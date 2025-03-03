@@ -16,8 +16,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ModbusContext, ModbusCoordinator, ModbusCoordinatorEntity
 from .helpers import async_setup_entities
-from .entity_management.base import ModbusSensorEntityDescription
-from .entity_management.const import ControlType
+from .entity_management.base import ModbusSensorEntityDescription, MirroredSensorEntityDescription
+from .entity_management.const import ControlType, ModbusDataType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,7 +83,15 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
 
                     self.last_reset = datetime.now()
 
-                self._attr_native_value = value
+                if isinstance(self.entity_description, MirroredSensorEntityDescription):
+                    mirror_type = self.entity_description.mirror_type
+                    if mirror_type in [ControlType.SWITCH, ControlType.BINARY_SENSOR] and \
+                       self.entity_description.data_type in [ModbusDataType.COIL, ModbusDataType.DISCRETE_INPUT]: # TODO: Is check of self.entity_description.data_type neccessary?
+                        self._attr_native_value = "on" if value else "off"
+                    else:
+                        self._attr_native_value = value
+                else:
+                    self._attr_native_value = value
                 self.async_write_ha_state()
 
                 if (

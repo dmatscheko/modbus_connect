@@ -10,7 +10,7 @@ from homeassistant.helpers import device_registry as dr
 from .const import (
     CONF_SLAVE_ID,
     DOMAIN,
-    OPTIONS_DEFAULT_REFRESH,
+    OPTIONS_REFRESH_DEFAULT,
     OPTIONS_REFRESH,
     PLATFORMS,
 )
@@ -49,7 +49,7 @@ async def async_setup_entry(
                 client=client,
                 gateway=gateway_key,
                 update_interval=entry.options.get(
-                    OPTIONS_REFRESH, OPTIONS_DEFAULT_REFRESH
+                    OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT
                 ),
             )
         else:
