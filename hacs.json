@@ -1,5 +1,5 @@
 {
-    "name": "Modbus Connect - For Modbus TCP Gateways",
+    "name": "Modbus Connect - Modbus TCP Integration",
     "render_readme": true,
     "homeassistant": "2025.2.0",
     "hide_default_branch": true
