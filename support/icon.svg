@@ -1,0 +1,19 @@
+<svg width="64mm" height="64mm" viewBox="0 0 64 64" version="1.1" id="svg1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+    <style type="text/css" id="style1">
+        .st0{fill:#f49500}.st1{fill:#fcc000}.st2{fill:#03a239}
+    </style>
+    <g id="g15" transform="translate(.25 1.105)">
+        <path d="M0 34.005v23.812a3.98 3.98 0 0 0 3.968 3.97l55.563.002A3.98 3.98 0 0 0 63.5 57.82V34.008C63.5-11.384 0-11.288 0 34.005z" fill="#18bcf2" id="path2-0" style="fill:#f49500;fill-opacity:1;stroke-width:.264583"/>
+        <g id="g14" transform="matrix(.81233 0 0 .81233 -42.966 -123.774)">
+            <path style="fill:none;fill-rule:evenodd;stroke:#f2f4f9;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" id="path8" d="m92.564 190.28 6.245-19.219"/>
+            <path style="fill:none;fill-rule:evenodd;stroke:#f2f4f9;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" id="path10" d="m92.564 190.28-16.348-11.878"/>
+            <path style="fill:none;fill-rule:evenodd;stroke:#f2f4f9;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" id="path12" d="M92.564 190.28h20.209"/>
+            <path style="fill:none;fill-rule:evenodd;stroke:#f2f4f9;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1" id="path13" d="m92.564 190.28-16.348 11.878"/>
+            <circle style="fill:#f2f4f9;fill-opacity:1;stroke:none;stroke-width:4.99999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path11-15-1" cx="73.36" cy="204.233" r="7.06"/>
+            <circle style="fill:#f2f4f9;fill-opacity:1;stroke:none;stroke-width:4.99999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path11-1-8" cx="116.303" cy="190.28" r="7.06"/>
+            <circle style="fill:#f2f4f9;fill-opacity:1;stroke:none;stroke-width:4.99999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path11-3-4" cx="99.9" cy="167.704" r="7.06"/>
+            <circle style="fill:#f2f4f9;fill-opacity:1;stroke:none;stroke-width:4.99999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" id="path11-2-3" cx="73.36" cy="176.327" r="7.06"/>
+        </g>
+        <path id="polygon13-2" style="fill:#1192cf;stroke-width:.239338" d="M31.799 58.078h-4.907l3.4-16.92h7.754l3.494 10.171 7.587-10.172h7.778L53.46 58.078h-4.787l2.346-11.966-8.88 11.966h-3.757l-4.237-11.942z"/>
+    </g>
+</svg>
