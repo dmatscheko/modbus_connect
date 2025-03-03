@@ -1,0 +1,12 @@
+
+-r requirements.txt
+black
+fuzzywuzzy
+isort
+levenshtein
+pre-commit
+pylint
+pytest
+pytest-asyncio
+pytest-cov
+pytest-homeassistant-custom-component

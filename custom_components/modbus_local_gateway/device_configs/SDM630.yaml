@@ -1,0 +1,774 @@
+device:
+  manufacturer: Eastron
+  model: SDM-630
+
+read_write_word:
+  serial_num:
+    name: Serial Number
+    address: 64512
+    size: 2
+    precision: 0
+    entity_category: diagnostic
+  com_address:
+    name: Communicate address
+    address: 20
+    size: 2
+    float: true
+    icon: mdi:serial-port
+    control: number
+    number:
+      min: 1
+      max: 247
+  baud_rate:
+    name: Baud Rate
+    address: 28
+    size: 2
+    control: select
+    float: true
+    options:
+      0: 2400 bps
+      1: 4800 bps
+      2: 9600 bps
+      3: 19200 bps
+      4: 38400 bps
+
+read_only_word:
+  Phase 1 Voltage:
+    address: 0
+    name: Phase 1 Voltage
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 2 Voltage:
+    address: 2
+    name: Phase 2 Voltage
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 3 Voltage:
+    address: 4
+    name: Phase 3 Voltage
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 1 Current:
+    address: 6
+    name: Phase 1 Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 2 Current:
+    address: 8
+    name: Phase 2 Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 3 Current:
+    address: 10
+    name: Phase 3 Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 1 Active Power:
+    address: 12
+    name: Phase 1 Active Power
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 2 Active Power:
+    address: 14
+    name: Phase 2 Active Power
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 3 Active Power:
+    address: 16
+    name: Phase 3 Active Power
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 1 Apparent Power:
+    address: 18
+    name: Phase 1 Apparent Power
+    unit_of_measurement: VoltAmps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 2 Apparent Power:
+    address: 20
+    name: Phase 2 Apparent Power
+    unit_of_measurement: VoltAmps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 3 Apparent Power:
+    address: 22
+    name: Phase 3 Apparent Power
+    unit_of_measurement: VoltAmps
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 1 Reactive Power:
+    address: 24
+    name: Phase 1 Reactive Power
+    unit_of_measurement: VAr
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 2 Reactive Power:
+    address: 26
+    name: Phase 2 Reactive Power
+    unit_of_measurement: VAr
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 3 Reactive Power:
+    address: 28
+    name: Phase 3 Reactive Power
+    unit_of_measurement: VAr
+    precision: 2
+    float: True
+    size: 2
+
+  Phase 1 Power Factor:
+    address: 30
+    name: Phase 1 Power Factor
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 2 Power Factor:
+    address: 32  # Note: Was duplicate "address: 34" like below, corrected to "address: 32"
+    name: Phase 2 Power Factor
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 3 Power Factor:
+    address: 34
+    name: Phase 3 Power Factor
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 1 Phase Angle:
+    address: 36
+    name: Phase 1 Phase Angle
+    unit_of_measurement: Degrees
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 2 Phase Angle:
+    address: 38
+    name: Phase 2 Phase Angle
+    unit_of_measurement: Degrees
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 3 Phase Angle:
+    address: 40
+    name: Phase 3 Phase Angle
+    unit_of_measurement: Degrees
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Average Line to neutral Volts:
+    address: 42
+    name: Average Line to neutral Volts
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Average Line Current:
+    address: 46
+    name: Average Line Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Sum of Line currents:
+    address: 48
+    name: Sum of Line currents
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total System Power:
+    address: 52
+    name: Total System Power
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total System VA:
+    address: 56
+    name: Total System VA
+    unit_of_measurement: VA
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total System VAr:
+    address: 60
+    name: Total System VAr
+    unit_of_measurement: VAr
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total System Power factor:
+    address: 62
+    name: Total System Power factor
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total System Phase Angle:
+    address: 66
+    name: Total System Phase Angle
+    unit_of_measurement: Degrees
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Frequency:
+    address: 70
+    name: Frequency
+    unit_of_measurement: Hz
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Total Import Active Energy:
+    address: 72
+    name: Total Import Active Energy
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total Export Active Energy:
+    address: 74
+    name: Total Export Active Energy
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total Import Reactive Energy:
+    address: 76
+    name: Total Import Reactive Energy
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total Export Reactive Energy:
+    address: 78
+    name: Total Export Reactive Energy
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total VAh:
+    address: 80
+    name: Total VAh
+    unit_of_measurement: kVAh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Ah:
+    address: 82
+    name: Ah
+    unit_of_measurement: Ah
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total System Power demand:
+    address: 84
+    name: Total System Power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Maximum Total System Power demand:
+    address: 86
+    name: Maximum Total System Power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Total System VA demand:
+    address: 100
+    name: Total System VA demand
+    unit_of_measurement: VA
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Maximum Total System VA demand:
+    address: 102
+    name: Maximum Total System VA demand
+    unit_of_measurement: VA
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Neutral Current demand:
+    address: 104
+    name: Neutral Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Maximum neutral Current demand:
+    address: 106
+    name: Maximum neutral Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Line 1 to Line 2 Volts:
+    address: 200
+    name: Line 1 to Line 2 Volts
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Line 2 to Line 3 Volts:
+    address: 202
+    name: Line 2 to Line 3 Volts
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Line 3 to Line 1 Volts:
+    address: 204
+    name: Line 3 to Line 1 Volts
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Average Line to Line Volts:
+    address: 206
+    name: Average Line to Line Volts
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Neutral Current:
+    address: 224
+    name: Neutral Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 1 L/N Volts THD:
+    address: 234
+    name: Phase 1 L/N Volts THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 2 L/N Volts THD:
+    address: 236
+    name: Phase 2 L/N Volts THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 3 L/N Volts THD:
+    address: 238
+    name: Phase 3 L/N Volts THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 1 Current THD:
+    address: 240
+    name: Phase 1 Current THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 2 Current THD:
+    address: 242
+    name: Phase 2 Current THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 3 Current THD:
+    address: 244
+    name: Phase 3 Current THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Average Line to neutral Volts THD:
+    address: 248
+    name: Average Line to neutral Volts THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Average Line Current THD:
+    address: 250
+    name: Average Line Current THD
+    unit_of_measurement: "%"
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 1 Current demand:
+    address: 258
+    name: Phase 1 Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 2 Current demand:
+    address: 260
+    name: Phase 2 Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 3 Current demand:
+    address: 262
+    name: Phase 3 Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase 1 Maximum Current Demand:
+    address: 264
+    name: Phase 1 Maximum Current Demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Phase 2 Maximum Current Demand:
+    address: 266
+    name: Phase 2 Maximum Current Demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Phase 3 Maximum Current Demand:
+    address: 268
+    name: Phase 3 Maximum Current Demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Total Energy:
+    address: 342
+    name: Total kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  Total kVArh:
+    address: 344
+    name: Total kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L1 Import Energy:
+    address: 346
+    name: L1 Import kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L2 Import Energy:
+    address: 348
+    name: L2 Import kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L3 Import Energy:
+    address: 350
+    name: L3 Import kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L1 Export Energy:
+    address: 352
+    name: L1 Export kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L2 Export Energy:
+    address: 354
+    name: L2 Export kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L3 Export Energy:
+    address: 356
+    name: L3 Export kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L1 Total Energy:
+    address: 358
+    name: L1 Total kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L2 Total Energy:
+    address: 360
+    name: L2 Total kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L3 Total Energy:
+    address: 362
+    name: L3 Total kWh
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: measurement
+    size: 2
+
+  L1 Import kVArh:
+    address: 364
+    name: L1 Import kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L2 Import kVArh:
+    address: 366
+    name: L2 Import kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L3 Import kVArh:
+    address: 368
+    name: L3 Import kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L1 Export kVArh:
+    address: 370
+    name: L1 Export kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L2 Export kVArh:
+    address: 372
+    name: L2 Export kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L3 Export kVArh:
+    address: 374
+    name: L3 Export kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L1 Total kVArh:
+    address: 376
+    name: L1 Total kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L2 Total kVArh:
+    address: 378
+    name: L2 Total kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  L3 Total kVArh:
+    address: 380
+    name: L3 Total kVArh
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+read_write_boolean:
+
+read_only_boolean:

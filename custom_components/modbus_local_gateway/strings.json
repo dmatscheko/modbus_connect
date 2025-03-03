@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Configure the connection parameters",
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "port": "[%key:common::config_flow::data::port%]",
+          "slave_id": "Slave ID",
+          "prefix": "Prefix (optional)"
+        }
+      },
+      "device_type": {
+        "description": "Select the device type to configure",
+        "data": {
+          "filename": "Device"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Update device parameters",
+        "data": {
+          "refresh": "Update frequency"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    }
+  }
+}

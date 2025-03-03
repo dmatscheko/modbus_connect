@@ -1,0 +1,242 @@
+device:
+  manufacturer: Eastron
+  model: SDM-230
+
+read_write_word:
+  serial_num:
+    name: Serial Number
+    address: 64512
+    size: 2
+    precision: 0
+    entity_category: diagnostic
+  com_address:
+    name: Communicate address
+    address: 20
+    size: 2
+    control: number
+    float: true
+    icon: mdi:serial-port
+    number:
+      min: 1
+      max: 247
+  baud_rate:
+    name: Baud Rate
+    address: 28
+    size: 2
+    control: select
+    float: true
+    options:
+      0: 2400 bps
+      1: 4800 bps
+      2: 9600 bps
+      5: 1200 bps
+
+read_only_word:
+  Total system power demand:
+    address: 84
+    name: Total system power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Maximum total system power demand:
+    address: 86
+    name: Maximum total system power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Current system import power demand:
+    address: 88
+    name: Current system import power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Maximum system import power demand:
+    address: 90
+    name: Maximum system import power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Current system export power demand:
+    address: 92
+    name: Current system export power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Maximum system export power demand:
+    address: 94
+    name: Maximum system export power demand
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Voltage:
+    address: 0
+    name: Voltage
+    unit_of_measurement: Volts
+    precision: 2
+    float: True
+    size: 2
+
+  Current:
+    address: 6
+    name: Current
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    size: 2
+
+  Active Power:
+    address: 12
+    name: Active Power
+    unit_of_measurement: Watts
+    precision: 2
+    float: True
+    size: 2
+
+  Apparent Power:
+    address: 18
+    name: Apparent Power
+    unit_of_measurement: VoltAmps
+    precision: 2
+    float: True
+    size: 2
+
+  Reactive Power:
+    address: 24
+    name: Reactive Power
+    unit_of_measurement: VAr
+    precision: 2
+    float: True
+    size: 2
+
+  Power Factor:
+    address: 30
+    name: Power Factor
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Phase Angle:
+    address: 36
+    name: Phase Angle
+    unit_of_measurement: Degrees
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Frequency:
+    address: 70
+    name: Frequency
+    unit_of_measurement: Hz
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Import Active Energy:
+    address: 72
+    name: Import Active Energy
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Export Active Energy:
+    address: 74
+    name: Export Active Energy
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Import Reactive Energy:
+    address: 76
+    name: Import Reactive Energy
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Export Reactive Energy:
+    address: 78
+    name: Export Reactive Energy
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Current demand:
+    address: 258
+    name: Current demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+
+  Maximum current Demand:
+    address: 264
+    name: Maximum current Demand
+    unit_of_measurement: Amps
+    precision: 2
+    float: True
+    state_class: measurement
+    size: 2
+    never_resets: True
+
+  Total Active Energy:
+    address: 342
+    name: Total Active Energy
+    unit_of_measurement: kWh
+    precision: 2
+    float: True
+    device_class: energy
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+  Total Reactive Energy:
+    address: 344
+    name: Total Reactive Energy
+    unit_of_measurement: kVArh
+    precision: 2
+    float: True
+    state_class: total_increasing
+    size: 2
+    never_resets: True
+
+read_write_boolean:
+
+read_only_boolean:
