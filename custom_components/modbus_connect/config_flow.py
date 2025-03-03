@@ -16,6 +16,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_DEFAULT_PORT,
@@ -44,17 +45,21 @@ class OptionsFlowHandler(OptionsFlow):
         """Initialize options flow."""
         self.config_entry: ConfigEntry[Any] = config_entry
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
-            coordinator: ModbusCoordinator = self.hass.data[DOMAIN][
-                get_gateway_key(self.config_entry)
-            ]
-            coordinator.update_interval = datetime.timedelta(
-                seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT)
-            )
+            coordinator: ModbusCoordinator = self.hass.data[DOMAIN][get_gateway_key(self.config_entry)]
+            coordinator.update_interval = datetime.timedelta(seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT))
+            
+            # Clean up mirrored entities if the option is disabled
+            if not user_input["mirror_non_sensors"]:
+                entity_reg = er.async_get(self.hass)
+                entities = er.async_entries_for_config_entry(entity_reg, self.config_entry.entry_id)
+                mirrored_entities = [entity for entity in entities if entity.unique_id.endswith("_mirror")]
+                for entity in mirrored_entities:
+                    entity_reg.async_remove(entity.entity_id)
+
+            # Save the new options (this triggers a reload automatically)
             return self.async_create_entry(
                 title="",
                 data={
