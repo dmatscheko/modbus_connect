@@ -31,36 +31,37 @@ def get_gateway_key(entry: ConfigEntry, with_slave: bool = True) -> str:
 
 def create_mirrored_sensor_description(original_desc):
     """Generate a mirrored sensor description from a non-sensor entity."""
-    conv_map = original_desc.conv_map
-    if original_desc.control_type == ControlType.SELECT:
+    # Determine conv_map based on control type
+    conv_map = getattr(original_desc, 'conv_map', None)
+    if getattr(original_desc, 'control_type', None) == ControlType.SELECT:
         if isinstance(original_desc, ModbusSelectEntityDescription):
-            conv_map = original_desc.select_options
-    elif original_desc.control_type == ControlType.SWITCH and original_desc.data_type == ModbusDataType.HOLDING_REGISTER:
+            conv_map = getattr(original_desc, 'select_options', None)
+    elif getattr(original_desc, 'control_type', None) == ControlType.SWITCH and getattr(original_desc, 'data_type', None) == ModbusDataType.HOLDING_REGISTER:
         if isinstance(original_desc, ModbusSwitchEntityDescription):
-            conv_map = {original_desc.on: "on", original_desc.off: "off"}
-    
+            conv_map = {getattr(original_desc, 'on', None): "on", getattr(original_desc, 'off', None): "off"}
+
     return MirroredSensorEntityDescription(
         key=original_desc.key + "_mirror",
         name=original_desc.name + " (Mirror)",
         register_address=original_desc.register_address,
         data_type=original_desc.data_type,
         register_count=original_desc.register_count,
-        conv_sum_scale=original_desc.conv_sum_scale,
-        conv_multiplier=original_desc.conv_multiplier,
-        conv_offset=original_desc.conv_offset,
-        conv_shift_bits=original_desc.conv_shift_bits,
-        conv_bits=original_desc.conv_bits,
+        conv_sum_scale=getattr(original_desc, 'conv_sum_scale', None),
+        conv_multiplier=getattr(original_desc, 'conv_multiplier', 1.0),
+        conv_offset=getattr(original_desc, 'conv_offset', None),
+        conv_shift_bits=getattr(original_desc, 'conv_shift_bits', None),
+        conv_bits=getattr(original_desc, 'conv_bits', None),
         conv_map=conv_map,
-        conv_flags=original_desc.conv_flags,
-        is_string=original_desc.is_string,
-        is_float=original_desc.is_float,
-        precision=original_desc.precision,
-        never_resets=original_desc.never_resets,
+        conv_flags=getattr(original_desc, 'conv_flags', None),
+        is_string=getattr(original_desc, 'is_string', False),
+        is_float=getattr(original_desc, 'is_float', False),
+        precision=getattr(original_desc, 'precision', None),
+        never_resets=getattr(original_desc, 'never_resets', False),
         control_type=ControlType.SENSOR,
-        mirror_type=original_desc.control_type,
-        device_class=original_desc.device_class,
-        state_class=original_desc.state_class,
-        native_unit_of_measurement=original_desc.native_unit_of_measurement,
+        mirror_type=getattr(original_desc, 'control_type', None),
+        device_class=getattr(original_desc, 'device_class', None),
+        state_class=getattr(original_desc, 'state_class', None),  # Safely handle missing state_class
+        native_unit_of_measurement=getattr(original_desc, 'native_unit_of_measurement', None),
     )
 
 async def async_setup_entities(
