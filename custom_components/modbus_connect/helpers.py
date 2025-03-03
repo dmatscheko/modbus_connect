@@ -40,7 +40,7 @@ def create_mirrored_sensor_description(original_desc):
         if isinstance(original_desc, ModbusSwitchEntityDescription):
             conv_map = {getattr(original_desc, 'on', None): "on", getattr(original_desc, 'off', None): "off"}
 
-    return MirroredSensorEntityDescription(
+    desc = MirroredSensorEntityDescription(
         key=original_desc.key + "_mirror",
         name=original_desc.name + " (Mirror)",
         register_address=original_desc.register_address,
@@ -60,9 +60,17 @@ def create_mirrored_sensor_description(original_desc):
         control_type=ControlType.SENSOR,
         mirror_type=getattr(original_desc, 'control_type', None),
         device_class=getattr(original_desc, 'device_class', None),
-        state_class=getattr(original_desc, 'state_class', None),  # Safely handle missing state_class
+        state_class=getattr(original_desc, 'state_class', None),
         native_unit_of_measurement=getattr(original_desc, 'native_unit_of_measurement', None),
+        entity_category=getattr(original_desc, 'entity_category', None),
+        entity_registry_enabled_default=getattr(original_desc, 'entity_registry_enabled_default', None),
     )
+
+    # Filter out None values
+    desc = {k: v for k, v in desc.items() if v is not None}
+    # if desc.validate():
+    #     return desc
+    return desc
 
 async def async_setup_entities(
     hass: HomeAssistant,
