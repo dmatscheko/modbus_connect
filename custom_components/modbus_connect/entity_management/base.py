@@ -33,7 +33,7 @@ _LOGGER: logging.Logger = logging.getLogger(__name__)
 @dataclass(kw_only=True, frozen=True)
 class UnusedKeysMixin:
     """Mixin for unused but allowed keys."""
-    address: int                                    # register_address
+    address: int | None = None                      # register_address
     size: int | None = 1                            # register_count
     sum_scale: list[float] | None = None            # conv_sum_scale
     multiplier: float | None = 1.0                  # conv_multiplier
