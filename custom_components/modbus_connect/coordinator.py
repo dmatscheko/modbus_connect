@@ -198,7 +198,7 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
             _LOGGER.debug("Early return from _update_device(), because entities list is empty")
             return {}
 
-        _LOGGER.debug("Entities in _update_device(): {entities}")
+        _LOGGER.debug(f"Entities in _update_device(): {entities}")
 
         # Execute the read plan
         responses = await self.client.batch_read(
