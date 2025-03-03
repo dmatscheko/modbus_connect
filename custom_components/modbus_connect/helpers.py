@@ -68,8 +68,6 @@ def create_mirrored_sensor_description(original_desc):
 
     # Filter out None values
     desc = {k: v for k, v in desc.items() if v is not None}
-    # if desc.validate():
-    #     return desc
     return desc
 
 async def async_setup_entities(

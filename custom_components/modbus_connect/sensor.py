@@ -98,10 +98,7 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
                     self._attr_device_info
                     and "identifiers" in self._attr_device_info
                     and self.entity_description.key
-                    in [
-                        "hw_version",
-                        "sw_version",
-                    ]
+                    in ["hw_version", "sw_version"]
                 ):
                     attr: dict[str, str] = {self.entity_description.key: str(value)}
                     _LOGGER.debug("Updating device with %s as %s", self.entity_description.key, value)
