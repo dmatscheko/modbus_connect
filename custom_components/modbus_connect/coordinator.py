@@ -193,6 +193,10 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
 
     async def _update_device(self, entities: list[ModbusContext]) -> dict[str, Any]:
         """Update data using the precomputed read plan"""
+        # Check if entities list is empty and return early if so
+        if not entities:
+            return {}
+
         # Execute the read plan
         responses = await self.client.batch_read(
             read_plan=self._read_plan,
