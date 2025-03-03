@@ -17,7 +17,7 @@ logger:
   default: info
   logs:
     pymodbus.logging: critical
-    custom_components.modbus_local_gateway: debug
+    custom_components.modbus_connect: debug
 
 modbus:
   - name: modbus_hub

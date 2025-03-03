@@ -1,4 +1,4 @@
-"""Helper functions for Modbus Local Gateway integration."""
+"""Helper functions for Modbus Connect integration."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ async def async_setup_entities(
     control: ControlType,
     entity_class: type[ModbusCoordinatorEntity],
 ) -> None:
-    """Set up the Modbus Local Gateway sensors."""
+    """Set up the Modbus Connect sensors."""
     config: dict[str, Any] = {**config_entry.data}
     _LOGGER.debug(f"Setting up entities for config: {config}, platform: {control}")
     coordinator: ModbusCoordinator = hass.data[DOMAIN][get_gateway_key(config_entry)]

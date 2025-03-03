@@ -5,19 +5,19 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.modbus_local_gateway.const import DOMAIN
-from custom_components.modbus_local_gateway.context import (
+from custom_components.modbus_connect.const import DOMAIN
+from custom_components.modbus_connect.context import (
     ModbusContext,
     ModbusEntityDescription,
 )
-from custom_components.modbus_local_gateway.select import (
+from custom_components.modbus_connect.select import (
     ModbusSelectEntity,
     async_setup_entry,
 )
-from custom_components.modbus_local_gateway.entity_management.base import (
+from custom_components.modbus_connect.entity_management.base import (
     ModbusSelectEntityDescription,
 )
-from custom_components.modbus_local_gateway.entity_management.modbus_device_info import (
+from custom_components.modbus_connect.entity_management.modbus_device_info import (
     ModbusDeviceInfo,
 )
 
@@ -67,7 +67,7 @@ async def test_setup_entry(hass) -> None:
     pm3 = PropertyMock(return_value="")
 
     with patch(
-        "custom_components.modbus_local_gateway.sensor_types.modbus_device_info.load_yaml",
+        "custom_components.modbus_connect.sensor_types.modbus_device_info.load_yaml",
         return_value={
             "device": MagicMock(),
             "entities": [],
@@ -123,11 +123,11 @@ async def test_update_exception() -> None:
     coordinator.get_data.side_effect = Exception()
 
     with patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.warning"
+        "custom_components.modbus_connect.select._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.debug"
+        "custom_components.modbus_connect.select._LOGGER.debug"
     ) as debug, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.error"
+        "custom_components.modbus_connect.select._LOGGER.error"
     ) as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
@@ -164,11 +164,11 @@ async def test_update_value() -> None:
     entity.async_write_ha_state = write
 
     with patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.warning"
+        "custom_components.modbus_connect.select._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.debug"
+        "custom_components.modbus_connect.select._LOGGER.debug"
     ) as debug, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.error"
+        "custom_components.modbus_connect.select._LOGGER.error"
     ) as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
@@ -211,11 +211,11 @@ async def test_update_deviceupdate() -> None:
     coordinator.get_data.return_value = 1
 
     with patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.warning"
+        "custom_components.modbus_connect.select._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.debug"
+        "custom_components.modbus_connect.select._LOGGER.debug"
     ) as debug, patch(
-        "custom_components.modbus_local_gateway.select._LOGGER.error"
+        "custom_components.modbus_connect.select._LOGGER.error"
     ) as error:
 
         entity._handle_coordinator_update()  # pylint: disable=protected-access

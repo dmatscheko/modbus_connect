@@ -13,13 +13,13 @@ from pymodbus.pdu.bit_message import (
     ReadDiscreteInputsResponse,
 )
 
-from custom_components.modbus_local_gateway.context import ModbusContext
-from custom_components.modbus_local_gateway.entity_management.base import (
+from custom_components.modbus_connect.context import ModbusContext
+from custom_components.modbus_connect.entity_management.base import (
     ModbusSensorEntityDescription,
     ModbusSwitchEntityDescription,
     ModbusBinarySensorEntityDescription,
 )
-from custom_components.modbus_local_gateway.tcp_client import (
+from custom_components.modbus_connect.tcp_client import (
     AsyncModbusTcpClientGateway,
 )
 
@@ -110,9 +110,9 @@ async def test_update_slave_not_connected() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug:
         gateway = AsyncModbusTcpClientGateway(host="127.0.0.1")
         gateway.connect = AsyncMock()
@@ -144,9 +144,9 @@ async def test_update_slave_connected_no_entities() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug:
         gateway = AsyncModbusTcpClientGateway(host="127.0.0.1")
         gateway.connect = AsyncMock()
@@ -178,12 +178,12 @@ async def test_update_slave_connected_sucess_slave_single() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug, patch(
         (
-            "custom_components.modbus_local_gateway.tcp_client."
+            "custom_components.modbus_connect.tcp_client."
             "AsyncModbusTcpClientGateway.read_registers"
         )
     ) as read_reg:
@@ -237,12 +237,12 @@ async def test_update_slave_connected_sucess_slave_multiple() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug, patch(
         (
-            "custom_components.modbus_local_gateway.tcp_client."
+            "custom_components.modbus_connect.tcp_client."
             "AsyncModbusTcpClientGateway.read_registers"
         )
     ) as read_reg:
@@ -313,12 +313,12 @@ async def test_update_slave_connected_failed_slave_single() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug, patch(
         (
-            "custom_components.modbus_local_gateway.tcp_client."
+            "custom_components.modbus_connect.tcp_client."
             "AsyncModbusTcpClientGateway.read_registers"
         )
     ) as read_reg:
@@ -365,12 +365,12 @@ async def test_update_slave_connected_failed_slave_multiple() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug, patch(
         (
-            "custom_components.modbus_local_gateway.tcp_client."
+            "custom_components.modbus_connect.tcp_client."
             "AsyncModbusTcpClientGateway.read_registers"
         )
     ) as read_reg:
@@ -438,11 +438,11 @@ async def test_update_slave_connected_success_all_types() -> None:
         "__init__",
         __init__,
     ), patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.warning"
+        "custom_components.modbus_connect.tcp_client._LOGGER.warning"
     ) as warning, patch(
-        "custom_components.modbus_local_gateway.tcp_client._LOGGER.debug"
+        "custom_components.modbus_connect.tcp_client._LOGGER.debug"
     ) as debug, patch(
-        "custom_components.modbus_local_gateway.tcp_client.AsyncModbusTcpClientGateway.read_registers"
+        "custom_components.modbus_connect.tcp_client.AsyncModbusTcpClientGateway.read_registers"
     ) as read_reg:
         gateway = AsyncModbusTcpClientGateway(host="127.0.0.1")
         gateway.connect = AsyncMock()

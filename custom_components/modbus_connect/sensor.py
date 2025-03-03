@@ -1,4 +1,4 @@
-"""Modbus Local Gateway sensors"""
+"""Modbus Connect sensors"""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Modbus Local Gateway sensor."""
+    """Set up the Modbus Connect sensor."""
     await async_setup_entities(
         hass=hass,
         config_entry=config_entry,

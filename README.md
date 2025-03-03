@@ -1,11 +1,13 @@
 # Modbus Connect Integration for Home Assistant
 
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=bugs)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=timlaing_modbus_local_gateway&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=timlaing_modbus_local_gateway)
+# In Development – Might Not Work – NO GUARANTEES!
+
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=bugs)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
@@ -19,19 +21,13 @@ The easiest way to install this integration is through the [Home Assistant Commu
 
 1. Go to HACS > Integrations.
 2. Click the three-dot menu and select "Custom repositories".
-3. Add one of these repositories:
-   - **timlaing version** (original version, recommended for stability):\
-   `https://github.com/timlaing/modbus_local_gateway`
-   - **dmatscheko version** (this fork with additional features):\
-   `https://github.com/dmatscheko/modbus_local_gateway`
+3. Add this repository:\
+   `https://github.com/dmatscheko/modbus_connect`
 4. Set category to "Integration" and click "Add".
 5. Search for "Modbus Connect" and install.
 
-Or use these buttons (requires *My Home Assistant*):
-- **timlaing version** (original version, recommended for stability):\
-  [![Open HACS Repository](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=timlaing&repository=modbus_local_gateway&category=integration)
-- **dmatscheko version** (this fork with additional features):\
-  [![Open HACS Repository](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_local_gateway&category=integration)
+Or use this button (requires *My Home Assistant*):\
+  [![Open HACS Repository](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration)
 
 Restart Home Assistant after installation.
 
@@ -42,7 +38,7 @@ Add devices via the Home Assistant UI:
 1. Go to **Settings > Devices & Services**.
 2. Click **Add Integration**, search for "Modbus Connect".
 3. Or use this button:\
-   [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_local_gateway)
+   [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)
 
 #### Step 1: Connection Details
 - **Host**: Gateway IP/hostname (e.g., `192.168.1.100`).
@@ -58,7 +54,7 @@ Adjust the **update frequency** (default: 30 seconds) via "Configure" at the dev
 
 ## Creating YAML Device Configurations
 
-To add support for a new device, create a YAML file in `custom_components/modbus_local_gateway/device_configs/`. Each file specifies the Modbus registers/coils for a single device, mapping them to corresponding Home Assistant entities.
+To add support for a new device, create a YAML file in `custom_components/modbus_connect/device_configs/`. Each file specifies the Modbus registers/coils for a single device, mapping them to corresponding Home Assistant entities.
 
 ### Minimal Example
 ```yaml
@@ -227,7 +223,7 @@ read_only_boolean:
     address: 15
     device_class: power
 ```
-See `custom_components/modbus_local_gateway/device_configs/` for more examples.
+See `custom_components/modbus_connect/device_configs/` for more examples.
 
 ## Troubleshooting
 - **Logs**: Enable debug logging in `configuration.yaml`:
@@ -235,7 +231,7 @@ See `custom_components/modbus_local_gateway/device_configs/` for more examples.
   logger:
     default: info
     logs:
-      custom_components.modbus_local_gateway: debug
+      custom_components.modbus_connect: debug
   ```
 - **Connection Issues**: Verify gateway IP, port, and slave ID.
 
@@ -248,3 +244,6 @@ Firmware variations may affect compatibility.
 
 ## License
 MIT License. See repository for details.
+
+## Original Version
+[Modbus Connect component - Tim Laing](https://github.com/timlaing/modbus_connect)

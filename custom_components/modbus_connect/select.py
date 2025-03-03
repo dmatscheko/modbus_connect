@@ -1,4 +1,4 @@
-"""Modbus Local Gateway selects"""
+"""Modbus Connect selects"""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Modbus Local Gateway entities."""
+    """Set up the Modbus Connect entities."""
     await async_setup_entities(
         hass=hass,
         config_entry=config_entry,

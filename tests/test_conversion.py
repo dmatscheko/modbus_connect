@@ -1,10 +1,10 @@
 """Conversion Tests"""
 
-from custom_components.modbus_local_gateway.entity_management.base import (
+from custom_components.modbus_connect.entity_management.base import (
     ModbusSensorEntityDescription,
 )
-from custom_components.modbus_local_gateway.conversion import Conversion
-from custom_components.modbus_local_gateway.tcp_client import AsyncModbusTcpClient
+from custom_components.modbus_connect.conversion import Conversion
+from custom_components.modbus_connect.tcp_client import AsyncModbusTcpClient
 
 
 async def test_int16() -> None:

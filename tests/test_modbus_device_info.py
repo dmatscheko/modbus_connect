@@ -5,9 +5,9 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from custom_components.modbus_local_gateway.entity_management.device_loader import load_devices
-from custom_components.modbus_local_gateway.entity_management.modbus_device_info import ModbusDeviceInfo
-from custom_components.modbus_local_gateway.entity_management.const import ModbusDataType
+from custom_components.modbus_connect.entity_management.device_loader import load_devices
+from custom_components.modbus_connect.entity_management.modbus_device_info import ModbusDeviceInfo
+from custom_components.modbus_connect.entity_management.const import ModbusDataType
 
 
 def test_entity_load() -> None:
@@ -38,7 +38,7 @@ read_only_boolean:
     address: 4"""
 
     with patch(
-        "custom_components.modbus_local_gateway.sensor_types.modbus_device_info.load_yaml"
+        "custom_components.modbus_connect.sensor_types.modbus_device_info.load_yaml"
     ) as load_yaml:
         load_yaml.return_value = yaml.full_load(yaml_txt)
         device = ModbusDeviceInfo("test.yaml")
@@ -108,7 +108,7 @@ def test_entity_create_all_fields() -> None:
     with patch.object(ModbusDeviceInfo, "__init__", __init__):
         device = ModbusDeviceInfo("test.yaml")
         with patch(
-            "custom_components.modbus_local_gateway.sensor_types.base.ModbusSensorEntityDescription.validate",
+            "custom_components.modbus_connect.sensor_types.base.ModbusSensorEntityDescription.validate",
             return_value=True,
         ):
             entities = device.entity_descriptions
@@ -146,7 +146,7 @@ def test_entity_invalid_string_float() -> None:
 
     with patch.object(ModbusDeviceInfo, "__init__", __init__):
         device = ModbusDeviceInfo("test.yaml")
-        with patch("custom_components.modbus_local_gateway.sensor_types.base._LOGGER.warning") as log:
+        with patch("custom_components.modbus_connect.sensor_types.base._LOGGER.warning") as log:
             entities = device.entity_descriptions
             log.assert_called_once()
             assert len(entities) == 0
@@ -166,7 +166,7 @@ def test_entity_invalid_address() -> None:
 
     with patch.object(ModbusDeviceInfo, "__init__", __init__):
         device = ModbusDeviceInfo("test.yaml")
-        with patch("custom_components.modbus_local_gateway.sensor_types.modbus_device_info._LOGGER.error") as log:
+        with patch("custom_components.modbus_connect.sensor_types.modbus_device_info._LOGGER.error") as log:
             entities = device.entity_descriptions
             log.assert_not_called()  # No error logged, just skipped
             assert len(entities) == 0
@@ -186,7 +186,7 @@ def test_entity_invalid_control_type() -> None:
 
     with patch.object(ModbusDeviceInfo, "__init__", __init__):
         device = ModbusDeviceInfo("test.yaml")
-        with patch("custom_components.modbus_local_gateway.sensor_types.modbus_device_info._LOGGER.warning") as log:
+        with patch("custom_components.modbus_connect.sensor_types.modbus_device_info._LOGGER.warning") as log:
             entities = device.entity_descriptions
             log.assert_called_once()
             assert len(entities) == 0
@@ -195,12 +195,12 @@ def test_entity_invalid_control_type() -> None:
 @pytest.mark.nohomeassistant
 async def test_devices_yaml(hass) -> None:
     """Validate yaml files with new structure"""
-    with patch("custom_components.modbus_local_gateway.sensor_types.device_loader._LOGGER.error") as log:
+    with patch("custom_components.modbus_connect.sensor_types.device_loader._LOGGER.error") as log:
         devices: dict[str, ModbusDeviceInfo] = await load_devices(hass=hass)
         log.assert_not_called()
 
     for name in devices:
-        with patch("custom_components.modbus_local_gateway.sensor_types.modbus_device_info._LOGGER.warning") as log:
+        with patch("custom_components.modbus_connect.sensor_types.modbus_device_info._LOGGER.warning") as log:
             _ = devices[name].entity_descriptions
             log.assert_not_called()
             _ = devices[name].manufacturer

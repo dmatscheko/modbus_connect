@@ -5,16 +5,16 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.modbus_local_gateway.const import DOMAIN
-from custom_components.modbus_local_gateway.context import ModbusContext
-from custom_components.modbus_local_gateway.binary_sensor import (
+from custom_components.modbus_connect.const import DOMAIN
+from custom_components.modbus_connect.context import ModbusContext
+from custom_components.modbus_connect.binary_sensor import (
     ModbusBinarySensorEntity,
     async_setup_entry,
 )
-from custom_components.modbus_local_gateway.entity_management.base import (
+from custom_components.modbus_connect.entity_management.base import (
     ModbusBinarySensorEntityDescription,
 )
-from custom_components.modbus_local_gateway.entity_management.modbus_device_info import (
+from custom_components.modbus_connect.entity_management.modbus_device_info import (
     ModbusDeviceInfo,
 )
 
@@ -53,7 +53,7 @@ async def test_setup_entry(hass) -> None:
     pm2 = PropertyMock(return_value="")
 
     with patch(
-        "custom_components.modbus_local_gateway.sensor_types.modbus_device_info.load_yaml",
+        "custom_components.modbus_connect.sensor_types.modbus_device_info.load_yaml",
         return_value={"device": MagicMock()},
     ), patch.object(ModbusDeviceInfo, "entity_descriptions", pm1), patch.object(
         ModbusDeviceInfo, "manufacturer", pm2
@@ -104,7 +104,7 @@ async def test_update_exception() -> None:
     type(entity).name = PropertyMock(return_value="Test")
     coordinator.get_data.side_effect = Exception()
 
-    with patch("custom_components.modbus_local_gateway.binary_sensor._LOGGER.error") as error:
+    with patch("custom_components.modbus_connect.binary_sensor._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)
@@ -130,7 +130,7 @@ async def test_update_value() -> None:
     write = MagicMock()
     entity.async_write_ha_state = write
 
-    with patch("custom_components.modbus_local_gateway.binary_sensor._LOGGER.error") as error:
+    with patch("custom_components.modbus_connect.binary_sensor._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)

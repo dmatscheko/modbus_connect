@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 /live/**
-custom_components/modbus_local_gateway/devices/Test-Device.yaml
+custom_components/modbus_connect/devices/Test-Device.yaml
 temp.py
 /config/*
 !/config/*.yaml

@@ -1,4 +1,4 @@
-"""TCP Client for Modbus Local Gateway"""
+"""TCP Client for Modbus Connect"""
 
 from __future__ import annotations
 

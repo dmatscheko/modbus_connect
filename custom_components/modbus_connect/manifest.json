@@ -1,0 +1,21 @@
+{
+  "domain": "modbus_connect",
+  "name": "Modbus Connect",
+  "codeowners": [
+    "@dmatscheko",
+    "@timlaing"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/dmatscheko/modbus_connect",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/dmatscheko/modbus_connect",
+  "loggers": [
+    "ModbusConnect"
+  ],
+  "requirements": [
+    "pymodbus>=3.8.3",
+    "getmac"
+  ],
+  "version": "1.7.9"
+}

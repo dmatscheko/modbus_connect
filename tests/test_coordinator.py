@@ -3,9 +3,9 @@
 import asyncio
 from unittest.mock import MagicMock, patch
 
-from custom_components.modbus_local_gateway.context import ModbusContext
-from custom_components.modbus_local_gateway.coordinator import ModbusCoordinator
-from custom_components.modbus_local_gateway.entity_management.base import (
+from custom_components.modbus_connect.context import ModbusContext
+from custom_components.modbus_connect.coordinator import ModbusCoordinator
+from custom_components.modbus_connect.entity_management.base import (
     ModbusSensorEntityDescription,
 )
 
@@ -40,11 +40,11 @@ async def test_update_single():
     future.set_result(response)
     client.update_slave.return_value = future
     with patch(
-        "custom_components.modbus_local_gateway.coordinator.ModbusCoordinator.async_contexts",
+        "custom_components.modbus_connect.coordinator.ModbusCoordinator.async_contexts",
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_local_gateway.sensor_types"
+            "custom_components.modbus_connect.sensor_types"
             ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.return_value = "Result"
@@ -91,11 +91,11 @@ async def test_update_multiple():
     future.set_result(response)
     client.update_slave.return_value = future
     with patch(
-        "custom_components.modbus_local_gateway.coordinator.ModbusCoordinator.async_contexts",
+        "custom_components.modbus_connect.coordinator.ModbusCoordinator.async_contexts",
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_local_gateway.sensor_types"
+            "custom_components.modbus_connect.sensor_types"
             ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.return_value = "Result"
@@ -140,11 +140,11 @@ async def test_update_exception():
     future.set_result(response)
     client.update_slave.return_value = future
     with patch(
-        "custom_components.modbus_local_gateway.coordinator.ModbusCoordinator.async_contexts",
+        "custom_components.modbus_connect.coordinator.ModbusCoordinator.async_contexts",
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_local_gateway.sensor_types"
+            "custom_components.modbus_connect.sensor_types"
             ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.side_effect = ["Result", Exception()]

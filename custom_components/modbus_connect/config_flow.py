@@ -1,4 +1,4 @@
-"""Config flow for Modbus Local Gateway integration."""
+"""Config flow for Modbus Connect integration."""
 
 from __future__ import annotations
 
@@ -72,12 +72,12 @@ class OptionsFlowHandler(OptionsFlow):
 
 
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Modbus Local Gateway."""
+    """Handle a config flow for Modbus Connect."""
 
     VERSION = 1
 
     def __init__(self) -> None:
-        """Initialise Modbus Local Gateway flow."""
+        """Initialise Modbus Connect flow."""
         self.client: AsyncModbusTcpClientGateway
         self.data = {}
 
@@ -145,7 +145,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             create_device_info, self.data[CONF_FILENAME]
         )
 
-        # This title is shown in the main devices list under the Modbus Local Gateway integration
+        # This title is shown in the main devices list under the Modbus Connect integration
         title = " ".join([part for part in [self.data.get(CONF_PREFIX), device_info.manufacturer, device_info.model] if part])
         return self.async_create_entry(title=title, data=self.data)
 
