@@ -166,3 +166,4 @@ temp.py
 !/config/*.yaml
 
 .DS_Store
+diffs/
