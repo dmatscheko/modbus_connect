@@ -84,8 +84,6 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         for entity in mirrored_entities:
             entity_reg.async_remove(entity.entity_id)
 
-    # await hass.config_entries.async_reload(entry.entry_id)
-
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
