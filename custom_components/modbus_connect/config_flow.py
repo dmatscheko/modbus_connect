@@ -41,6 +41,10 @@ _LOGGER: logging.Logger = logging.getLogger(__name__)
 class OptionsFlowHandler(OptionsFlow):
     """Class to support the options flow"""
 
+    def __init__(self, config_entry: ConfigEntry) -> None:
+        """Initialize options flow."""
+        pass
+
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
