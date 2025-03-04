@@ -40,7 +40,6 @@ def create_mirrored_sensor_description(original_desc):
         if isinstance(original_desc, ModbusSwitchEntityDescription):
             conv_map = {getattr(original_desc, 'on', None): "on", getattr(original_desc, 'off', None): "off"}
 
-    # Adjust entity_category: if CONFIG, set to None
     entity_category = getattr(original_desc, 'entity_category', None)
     if entity_category == EntityCategory.CONFIG:
         entity_category = EntityCategory.DIAGNOSTIC  # Optionally, use None instead
