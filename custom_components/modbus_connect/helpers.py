@@ -88,9 +88,11 @@ async def async_setup_entities(
 
     coordinator.max_read_size = device_info.max_read_size
 
-    identifiers: set[tuple[str, str]] = {
-        (DOMAIN, f"{coordinator.gateway}-{config[CONF_SLAVE_ID]}"),
-    }
+    identifiers = {(DOMAIN, coordinator.gateway)}
+    # # This could also look like that if we want only one gateway per TCP gateway
+    # identifiers: set[tuple[str, str]] = {
+    #     (DOMAIN, f"{coordinator.gateway}-{config[CONF_SLAVE_ID]}"),
+    # }
 
     device = DeviceInfo(
         identifiers=identifiers,
