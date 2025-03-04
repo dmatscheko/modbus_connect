@@ -57,9 +57,7 @@ class ModbusNumberEntity(ModbusCoordinatorEntity, NumberEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: str | int | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
+            value: str | int | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
             if value is not None:
                 self._attr_native_value = float(value)
                 _LOGGER.debug(
@@ -90,9 +88,8 @@ class ModbusNumberEntity(ModbusCoordinatorEntity, NumberEntity):  # type: ignore
         precision = self.coordinator_context.desc.precision
         multiplier = self.coordinator_context.desc.conv_multiplier
 
-        keep_float = (
-            (precision is not None and precision > 0) or
-            (precision is None and multiplier is not None and multiplier % 1 != 0)
+        keep_float = (precision is not None and precision > 0) or (
+            precision is None and multiplier is not None and multiplier % 1 != 0
         )
 
         return self._attr_native_value if keep_float else int(round(self._attr_native_value))

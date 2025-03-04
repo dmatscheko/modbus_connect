@@ -174,9 +174,7 @@ async def test_string() -> None:
     conversion = Conversion(client=client)
 
     value = conversion.convert_from_registers(
-        registers=client.convert_to_registers(
-            "HelloWorld", data_type=client.DATATYPE.STRING
-        ),
+        registers=client.convert_to_registers("HelloWorld", data_type=client.DATATYPE.STRING),
         desc=ModbusSensorEntityDescription(  # pylint: disable=unexpected-keyword-arg
             register_address=1,
             key="test",
@@ -193,9 +191,7 @@ async def test_from_string() -> None:
     client = AsyncModbusTcpClient
     conversion = Conversion(client=client)
 
-    registers = client.convert_to_registers(
-        "HelloWorld", data_type=client.DATATYPE.STRING
-    )
+    registers = client.convert_to_registers("HelloWorld", data_type=client.DATATYPE.STRING)
 
     value = conversion.convert_to_registers(
         value="HelloWorld",

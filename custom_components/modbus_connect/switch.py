@@ -50,12 +50,10 @@ class ModbusSwitchEntity(ModbusCoordinatorEntity, SwitchEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: str | int | bool | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
-            if value is not None and isinstance(
-                self.entity_description, ModbusSwitchEntityDescription
-            ):
+            value: str | int | bool | None = cast(ModbusCoordinator, self.coordinator).get_data(
+                self.coordinator_context
+            )
+            if value is not None and isinstance(self.entity_description, ModbusSwitchEntityDescription):
                 if self.entity_description.data_type == ModbusDataType.COIL:
                     self._attr_is_on = value
                 elif self.entity_description.data_type == ModbusDataType.HOLDING_REGISTER:

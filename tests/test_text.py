@@ -120,13 +120,9 @@ async def test_update_exception() -> None:
     type(entity).name = PropertyMock(return_value="Test")
     coordinator.get_data.side_effect = Exception()
 
-    with patch(
-        "custom_components.modbus_connect.text._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.text._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.text._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.text._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.text._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)
@@ -160,13 +156,9 @@ async def test_update_value() -> None:
     write = MagicMock()
     entity.async_write_ha_state = write
 
-    with patch(
-        "custom_components.modbus_connect.text._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.text._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.text._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.text._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.text._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)
@@ -206,13 +198,9 @@ async def test_update_deviceupdate() -> None:
 
     coordinator.get_data.return_value = 1
 
-    with patch(
-        "custom_components.modbus_connect.text._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.text._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.text._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.text._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.text._LOGGER.error") as error:
 
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 

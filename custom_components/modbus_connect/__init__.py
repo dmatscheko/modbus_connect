@@ -24,9 +24,7 @@ from .tcp_client import AsyncModbusTcpClientGateway
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: config_entries.ConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry) -> bool:
     """Load the saved entities."""
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
@@ -42,10 +40,8 @@ async def async_setup_entry(
     )
 
     if gateway_key not in hass.data[DOMAIN]:
-        client: AsyncModbusTcpClientGateway = (
-            AsyncModbusTcpClientGateway.async_get_client_connection(
-                host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]
-            )
+        client: AsyncModbusTcpClientGateway = AsyncModbusTcpClientGateway.async_get_client_connection(
+            host=entry.data[CONF_HOST], port=entry.data[CONF_PORT]
         )
         if client is not None:
             hass.data[DOMAIN][gateway_key] = ModbusCoordinator(
@@ -53,14 +49,10 @@ async def async_setup_entry(
                 gateway_device=device,
                 client=client,
                 gateway=gateway_key,
-                update_interval=entry.options.get(
-                    OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT
-                ),
+                update_interval=entry.options.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT),
             )
         else:
-            raise ConfigEntryNotReady(
-                f"Unable to connect to {gateway_key}, slave: {entry.data[CONF_SLAVE_ID]}"
-            )
+            raise ConfigEntryNotReady(f"Unable to connect to {gateway_key}, slave: {entry.data[CONF_SLAVE_ID]}")
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # Register the update listener for dynamic option changes

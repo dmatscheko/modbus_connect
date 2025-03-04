@@ -43,7 +43,9 @@ async def test_setup_entry(hass) -> None:
     pm1 = PropertyMock(
         return_value=[
             ModbusSwitchEntityDescription(key="coil_rw", register_address=1, data_type="coil", control_type="switch"),
-            ModbusSwitchEntityDescription(key="reg_rw", register_address=2, data_type="holding_register", control_type="switch", on=1, off=0),
+            ModbusSwitchEntityDescription(
+                key="reg_rw", register_address=2, data_type="holding_register", control_type="switch", on=1, off=0
+            ),
         ]
     )
     pm2 = PropertyMock(return_value="")
@@ -53,7 +55,9 @@ async def test_setup_entry(hass) -> None:
         return_value={"device": MagicMock()},
     ), patch.object(ModbusDeviceInfo, "entity_descriptions", pm1), patch.object(
         ModbusDeviceInfo, "manufacturer", pm2
-    ), patch.object(ModbusDeviceInfo, "model", pm2):
+    ), patch.object(
+        ModbusDeviceInfo, "model", pm2
+    ):
         await async_setup_entry(hass, entry, callback.add)
 
         callback.add.assert_called_once()
@@ -96,13 +100,9 @@ async def test_update_exception() -> None:
     type(entity).name = PropertyMock(return_value="Test")
     coordinator.get_data.side_effect = Exception()
 
-    with patch(
-        "custom_components.modbus_connect.switch._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.switch._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.switch._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.switch._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.switch._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)
@@ -138,13 +138,9 @@ async def test_update_value() -> None:
     write = MagicMock()
     entity.async_write_ha_state = write
 
-    with patch(
-        "custom_components.modbus_connect.switch._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.switch._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.switch._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.switch._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.switch._LOGGER.error") as error:
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 
         coordinator.get_data.assert_called_once_with(ctx)
@@ -186,13 +182,9 @@ async def test_update_deviceupdate() -> None:
 
     coordinator.get_data.return_value = 1
 
-    with patch(
-        "custom_components.modbus_connect.switch._LOGGER.warning"
-    ) as warning, patch(
+    with patch("custom_components.modbus_connect.switch._LOGGER.warning") as warning, patch(
         "custom_components.modbus_connect.switch._LOGGER.debug"
-    ) as debug, patch(
-        "custom_components.modbus_connect.switch._LOGGER.error"
-    ) as error:
+    ) as debug, patch("custom_components.modbus_connect.switch._LOGGER.error") as error:
 
         entity._handle_coordinator_update()  # pylint: disable=protected-access
 

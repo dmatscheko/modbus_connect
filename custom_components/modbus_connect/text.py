@@ -20,9 +20,7 @@ _LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up the Modbus Connect entities."""
     await async_setup_entities(
@@ -37,12 +35,7 @@ async def async_setup_entry(
 class ModbusTextEntity(ModbusCoordinatorEntity, TextEntity):  # type: ignore
     """Text entity for Modbus gateway"""
 
-    def __init__(
-        self,
-        coordinator: ModbusCoordinator,
-        ctx: ModbusContext,
-        device: DeviceInfo,
-    ) -> None:
+    def __init__(self, coordinator: ModbusCoordinator, ctx: ModbusContext, device: DeviceInfo) -> None:
         """Initialize a PVOutput sensor."""
         super().__init__(coordinator, ctx=ctx, device=device)
 
@@ -50,16 +43,10 @@ class ModbusTextEntity(ModbusCoordinatorEntity, TextEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: str | int | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
+            value: str | int | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
             if value is not None:
                 self._attr_native_value = str(value)
-                _LOGGER.debug(
-                    "Updating device with %s as %s",
-                    self.entity_description.key,
-                    value,
-                )
+                _LOGGER.debug("Updating device with %s as %s", self.entity_description.key, value)
                 self.async_write_ha_state()
 
         except Exception as err:  # pylint: disable=broad-exception-caught

@@ -27,6 +27,7 @@ _LOGGER: logging.Logger = logging.getLogger(__name__)
 # Type alias for read plan: category -> list of (start_address, count)
 ReadPlan = Dict[str, List[Tuple[int, int]]]
 
+
 class ModbusCoordinatorEntity(CoordinatorEntity):
     """Base class for Modbus entities"""
 
@@ -122,9 +123,7 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
         scheduled: bool = False,
         raise_on_entry_error: bool = False,
     ) -> None:
-        return await super()._async_refresh(
-            log_failures, raise_on_auth_failed, scheduled, raise_on_entry_error
-        )
+        return await super()._async_refresh(log_failures, raise_on_auth_failed, scheduled, raise_on_entry_error)
 
     async def async_update(self) -> dict[str, Any] | None:
         """Fetch updated data for all registered entities"""
@@ -148,16 +147,20 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
             ModbusDataType.DISCRETE_INPUT: [],
         }
         # Group entities by category
-        entities_by_category: Dict[str, List[ModbusContext]] = {
-            category: [] for category in read_plan.keys()
-        }
+        entities_by_category: Dict[str, List[ModbusContext]] = {category: [] for category in read_plan.keys()}
         for entity in entities:
             category = entity.desc.data_type
             entities_by_category[category].append(entity)
 
         # For each category, merge address ranges
         for category, ents in entities_by_category.items():
-            ranges = [(e.desc.register_address, e.desc.register_count * (len(e.desc.sum_scale) if e.desc.sum_scale is not None else 1)) for e in ents]
+            ranges = [
+                (
+                    e.desc.register_address,
+                    e.desc.register_count * (len(e.desc.sum_scale) if e.desc.sum_scale is not None else 1),
+                )
+                for e in ents
+            ]
             read_plan[category] = self._merge_ranges(ranges, self._max_read_size)
         return read_plan
 
@@ -212,7 +215,9 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
         for entity in entities:
             category = entity.desc.data_type
             start = entity.desc.register_address
-            count = entity.desc.register_count * (len(entity.desc.sum_scale) if entity.desc.sum_scale is not None else 1)
+            count = entity.desc.register_count * (
+                len(entity.desc.sum_scale) if entity.desc.sum_scale is not None else 1
+            )
             response_offset = self._find_response(responses, category, start)
             if response_offset:
                 response, offset = response_offset
@@ -232,13 +237,18 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
                 except Exception as e:
                     _LOGGER.debug(
                         "Data conversion failed for key: %s (%d): %s",
-                        entity.desc.key, entity.slave_id, str(e), exc_info=True
+                        entity.desc.key,
+                        entity.slave_id,
+                        str(e),
+                        exc_info=True,
                     )
             else:
                 _LOGGER.debug("No response for %s", entity.desc.key)
         return data
 
-    def _find_response(self, responses: Dict[str, List[ModbusPDU]], category: str, address: int) -> Tuple[ModbusPDU, int] | None:
+    def _find_response(
+        self, responses: Dict[str, List[ModbusPDU]], category: str, address: int
+    ) -> Tuple[ModbusPDU, int] | None:
         """Find the response and offset for a given address"""
         for (start, count), response in zip(self._read_plan[category], responses[category]):
             if start <= address < start + count:

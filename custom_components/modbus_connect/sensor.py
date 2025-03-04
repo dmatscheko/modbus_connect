@@ -54,25 +54,18 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
         """Restore the state when sensor is added."""
         await super().async_added_to_hass()
         self._attr_native_state = await self.async_get_last_state()
-        last_data: SensorExtraStoredData | None = (
-            await self.async_get_last_sensor_data()
-        )
+        last_data: SensorExtraStoredData | None = await self.async_get_last_sensor_data()
         if last_data:
             _LOGGER.debug("%s", last_data)
             self._attr_native_unit_of_measurement = last_data.native_unit_of_measurement
             self._attr_native_value = last_data.native_value
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: str | int | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
-            if value is not None and isinstance(
-                self.entity_description, ModbusSensorEntityDescription
-            ):
+            value: str | int | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
+            if value is not None and isinstance(self.entity_description, ModbusSensorEntityDescription):
                 if (
                     self.native_value is not None
                     and self.state_class == SensorStateClass.TOTAL_INCREASING
@@ -85,8 +78,13 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
 
                 if isinstance(self.entity_description, MirroredSensorEntityDescription):
                     mirror_type = self.entity_description.mirror_type
-                    if mirror_type in [ControlType.SWITCH, ControlType.BINARY_SENSOR] and \
-                       self.entity_description.data_type in [ModbusDataType.COIL, ModbusDataType.DISCRETE_INPUT]: # TODO: Is check of self.entity_description.data_type neccessary?
+                    if mirror_type in [
+                        ControlType.SWITCH,
+                        ControlType.BINARY_SENSOR,
+                    ] and self.entity_description.data_type in [
+                        ModbusDataType.COIL,
+                        ModbusDataType.DISCRETE_INPUT,
+                    ]:  # TODO: Is check of self.entity_description.data_type neccessary?
                         self._attr_native_value = "on" if value else "off"
                     else:
                         self._attr_native_value = value
@@ -97,8 +95,7 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
                 if (
                     self._attr_device_info
                     and "identifiers" in self._attr_device_info
-                    and self.entity_description.key
-                    in ["hw_version", "sw_version"]
+                    and self.entity_description.key in ["hw_version", "sw_version"]
                 ):
                     attr: dict[str, str] = {self.entity_description.key: str(value)}
                     _LOGGER.debug("Updating device with %s as %s", self.entity_description.key, value)
@@ -114,7 +111,6 @@ class ModbusSensorEntity(ModbusCoordinatorEntity, RestoreSensor):  # type: ignor
 
         except Exception as err:  # pylint: disable=broad-exception-caught
             _LOGGER.error("Unable to get data for %s %s", self.name, err)
-
 
     @property
     def native_value(self):  # type: ignore

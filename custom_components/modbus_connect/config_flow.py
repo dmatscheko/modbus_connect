@@ -49,7 +49,9 @@ class OptionsFlowHandler(OptionsFlow):
         """Manage the options."""
         if user_input is not None:
             coordinator: ModbusCoordinator = self.hass.data[DOMAIN][get_gateway_key(self.config_entry)]
-            coordinator.update_interval = datetime.timedelta(seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT))
+            coordinator.update_interval = datetime.timedelta(
+                seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT)
+            )
 
             # Save the new options
             return self.async_create_entry(
@@ -66,13 +68,13 @@ class OptionsFlowHandler(OptionsFlow):
                 {
                     vol.Required(
                         OPTIONS_REFRESH,
-                        default=self.config_entry.options.get(
-                            OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT
-                        ),
+                        default=self.config_entry.options.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT),
                     ): int,
                     vol.Required(
                         OPTIONS_MIRROR_NON_SENSORS,
-                        default=self.config_entry.options.get(OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT),
+                        default=self.config_entry.options.get(
+                            OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT
+                        ),
                     ): bool,
                 }
             ),
@@ -89,9 +91,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         self.client: AsyncModbusTcpClientGateway
         self.data = {}
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
         host_opts: dict[str, str] = {"default": ""}
@@ -128,9 +128,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_device_type(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_device_type(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the device type step."""
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -138,8 +136,12 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             return await self.async_create()
 
         devices: dict[str, ModbusDeviceInfo] = await load_devices(self.hass)
-        devices_data: dict[str, str] = {item[0]: f"{item[1].manufacturer or 'Unknown'} {item[1].model or 'Unknown'}"
-                for item in sorted(devices.items(), key=lambda item: f"{item[1].manufacturer or 'Unknown'} {item[1].model or 'Unknown'}")}
+        devices_data: dict[str, str] = {
+            item[0]: f"{item[1].manufacturer or 'Unknown'} {item[1].model or 'Unknown'}"
+            for item in sorted(
+                devices.items(), key=lambda item: f"{item[1].manufacturer or 'Unknown'} {item[1].model or 'Unknown'}"
+            )
+        }
 
         return self.async_show_form(
             step_id="device_type",
@@ -154,7 +156,9 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
         # This title is shown in the main devices list under the Modbus Connect integration
-        title = " ".join([part for part in [self.data.get(CONF_PREFIX), device_info.manufacturer, device_info.model] if part])
+        title = " ".join(
+            [part for part in [self.data.get(CONF_PREFIX), device_info.manufacturer, device_info.model] if part]
+        )
         return self.async_create_entry(title=title, data=self.data)
 
     def async_abort(
@@ -162,9 +166,7 @@ class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Aborting the setup"""
         self.client.close()
-        return super().async_abort(
-            reason=reason, description_placeholders=description_placeholders
-        )
+        return super().async_abort(reason=reason, description_placeholders=description_placeholders)
 
     def async_show_progress_done(self, *, next_step_id: str) -> ConfigFlowResult:
         """Setup complete"""

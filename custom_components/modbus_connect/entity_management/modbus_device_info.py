@@ -139,8 +139,12 @@ class ModbusDeviceInfo:
             raise DeviceConfigError()
 
         descriptions = []
-        for section in (ModbusDataType.HOLDING_REGISTER, ModbusDataType.INPUT_REGISTER,
-                        ModbusDataType.COIL, ModbusDataType.DISCRETE_INPUT):
+        for section in (
+            ModbusDataType.HOLDING_REGISTER,
+            ModbusDataType.INPUT_REGISTER,
+            ModbusDataType.COIL,
+            ModbusDataType.DISCRETE_INPUT,
+        ):
             if isinstance(self._config.get(section), dict):
                 for entity, entity_data in self._config[section].items():
                     if isinstance(entity_data, dict):
@@ -173,7 +177,9 @@ class ModbusDeviceInfo:
             "state_class": state_class,
         }
 
-    def _create_description(self, entity: str, data_type: ModbusDataType, _data: dict[str, Any]) -> DESCRIPTION_TYPE | None:
+    def _create_description(
+        self, entity: str, data_type: ModbusDataType, _data: dict[str, Any]
+    ) -> DESCRIPTION_TYPE | None:
         """Create an entity description based on data type"""
         control_type = _data.get(CONTROL_TYPE, self.default_control_type[data_type])
         if control_type not in self.allowed_control_types.get(data_type, []):
@@ -186,27 +192,29 @@ class ModbusDeviceInfo:
         params = dict(_data)
 
         # Override or add required and computed fields
-        params.update({
-            "key": entity,
-            "name": " ".join([self.manufacturer, _data.get(NAME, entity)]),
-            "data_type": data_type,
-            "control_type": control_type,
-            "register_address": _data.get(REGISTER_ADDRESS),
-            "register_count": _data.get(REGISTER_COUNT, 1),
-            "conv_sum_scale": _data.get(CONV_SUM_SCALE),
-            "conv_shift_bits": _data.get(CONV_SHIFT_BITS),
-            "conv_bits": _data.get(CONV_BITS),
-            "conv_multiplier": _data.get(CONV_MULTIPLIER, 1.0),
-            "conv_offset": _data.get(CONV_OFFSET),
-            "conv_map": _data.get(CONV_MAP),
-            "conv_flags": _data.get(CONV_FLAGS),
-            "is_float": _data.get(IS_FLOAT, False),
-            "is_string": _data.get(IS_STRING, False),
-            "never_resets": _data.get(NEVER_RESETS, False),
-            "native_unit_of_measurement": uom["native_unit_of_measurement"],
-            "device_class": uom["device_class"],
-            "state_class": uom["state_class"],
-        })
+        params.update(
+            {
+                "key": entity,
+                "name": " ".join([self.manufacturer, _data.get(NAME, entity)]),
+                "data_type": data_type,
+                "control_type": control_type,
+                "register_address": _data.get(REGISTER_ADDRESS),
+                "register_count": _data.get(REGISTER_COUNT, 1),
+                "conv_sum_scale": _data.get(CONV_SUM_SCALE),
+                "conv_shift_bits": _data.get(CONV_SHIFT_BITS),
+                "conv_bits": _data.get(CONV_BITS),
+                "conv_multiplier": _data.get(CONV_MULTIPLIER, 1.0),
+                "conv_offset": _data.get(CONV_OFFSET),
+                "conv_map": _data.get(CONV_MAP),
+                "conv_flags": _data.get(CONV_FLAGS),
+                "is_float": _data.get(IS_FLOAT, False),
+                "is_string": _data.get(IS_STRING, False),
+                "never_resets": _data.get(NEVER_RESETS, False),
+                "native_unit_of_measurement": uom["native_unit_of_measurement"],
+                "device_class": uom["device_class"],
+                "state_class": uom["state_class"],
+            }
+        )
 
         # Handle entity_category directly from params
         if "entity_category" in params:
@@ -222,12 +230,18 @@ class ModbusDeviceInfo:
             desc_cls = ModbusSensorEntityDescription
             # Set precision based on conv_multiplier if applicable
             if params.get("precision") is None:
-                if params.get("conv_map") is None and params.get("conv_flags") is None and params.get("is_string") is None:
+                if (
+                    params.get("conv_map") is None
+                    and params.get("conv_flags") is None
+                    and params.get("is_string") is None
+                ):
                     multiplier = params.get("conv_multiplier")
                     if not multiplier or multiplier % 1 == 0:
                         params["precision"] = 0
                     elif multiplier > 0.0001:
-                        params["precision"] = len(f"{multiplier:.8g}".split(".")[-1].rstrip("0")) if "." in f"{multiplier:.8g}" else 0
+                        params["precision"] = (
+                            len(f"{multiplier:.8g}".split(".")[-1].rstrip("0")) if "." in f"{multiplier:.8g}" else 0
+                        )
                     else:
                         params["precision"] = 4
         elif control_type == ControlType.BINARY_SENSOR:

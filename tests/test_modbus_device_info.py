@@ -37,9 +37,7 @@ read_only_boolean:
     name: Discrete RO
     address: 4"""
 
-    with patch(
-        "custom_components.modbus_connect.sensor_types.modbus_device_info.load_yaml"
-    ) as load_yaml:
+    with patch("custom_components.modbus_connect.sensor_types.modbus_device_info.load_yaml") as load_yaml:
         load_yaml.return_value = yaml.full_load(yaml_txt)
         device = ModbusDeviceInfo("test.yaml")
 
@@ -55,6 +53,7 @@ read_only_boolean:
 
 def test_entity_create_basic() -> None:
     """Test basic entity creation for all data types"""
+
     def __init__(self, _):
         """Mocked init"""
         self._config = {  # pylint: disable=protected-access
@@ -69,14 +68,26 @@ def test_entity_create_basic() -> None:
         device = ModbusDeviceInfo("test.yaml")
         entities = device.entity_descriptions
         assert len(entities) == 4
-        assert any(e.name == "Title RW" and e.register_address == 1 and e.data_type == ModbusDataType.HOLDING_REGISTER for e in entities)
-        assert any(e.name == "Title RO" and e.register_address == 2 and e.data_type == ModbusDataType.INPUT_REGISTER for e in entities)
-        assert any(e.name == "Title Coil" and e.register_address == 3 and e.data_type == ModbusDataType.COIL for e in entities)
-        assert any(e.name == "Title Discrete" and e.register_address == 4 and e.data_type == ModbusDataType.DISCRETE_INPUT for e in entities)
+        assert any(
+            e.name == "Title RW" and e.register_address == 1 and e.data_type == ModbusDataType.HOLDING_REGISTER
+            for e in entities
+        )
+        assert any(
+            e.name == "Title RO" and e.register_address == 2 and e.data_type == ModbusDataType.INPUT_REGISTER
+            for e in entities
+        )
+        assert any(
+            e.name == "Title Coil" and e.register_address == 3 and e.data_type == ModbusDataType.COIL for e in entities
+        )
+        assert any(
+            e.name == "Title Discrete" and e.register_address == 4 and e.data_type == ModbusDataType.DISCRETE_INPUT
+            for e in entities
+        )
 
 
 def test_entity_create_all_fields() -> None:
     """Test entity creation with all fields for a Holding Register"""
+
     def __init__(self, _):
         """Mocked init"""
         self._config = {  # pylint: disable=protected-access
@@ -134,6 +145,7 @@ def test_entity_create_all_fields() -> None:
 
 def test_entity_invalid_string_float() -> None:
     """Test invalid entity with both string and float"""
+
     def __init__(self, _):
         """Mocked init"""
         self._config = {  # pylint: disable=protected-access
@@ -154,6 +166,7 @@ def test_entity_invalid_string_float() -> None:
 
 def test_entity_invalid_address() -> None:
     """Test entity missing address"""
+
     def __init__(self, _):
         """Mocked init"""
         self._config = {  # pylint: disable=protected-access
@@ -174,6 +187,7 @@ def test_entity_invalid_address() -> None:
 
 def test_entity_invalid_control_type() -> None:
     """Test entity with invalid control type for data type"""
+
     def __init__(self, _):
         """Mocked init"""
         self._config = {  # pylint: disable=protected-access

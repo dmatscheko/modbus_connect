@@ -48,10 +48,7 @@ class ModbusSelectEntity(ModbusCoordinatorEntity, SelectEntity):  # type: ignore
     ) -> None:
         """Initialize a PVOutput Select."""
         super().__init__(coordinator, ctx=ctx, device=device)
-        if (
-            isinstance(ctx.desc, ModbusSelectEntityDescription)
-            and ctx.desc.select_options
-        ):
+        if isinstance(ctx.desc, ModbusSelectEntityDescription) and ctx.desc.select_options:
             self._attr_options: list[str] = list(ctx.desc.select_options.values())
         self._attr_current_option = None
 
@@ -59,17 +56,13 @@ class ModbusSelectEntity(ModbusCoordinatorEntity, SelectEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: str | int | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
+            value: str | int | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
             if (
                 isinstance(self.entity_description, ModbusSelectEntityDescription)
                 and value is not None
                 and self.entity_description.select_options
             ):
-                self._attr_current_option = self.entity_description.select_options[
-                    int(value)
-                ]
+                self._attr_current_option = self.entity_description.select_options[int(value)]
                 _LOGGER.debug(
                     "Updating device with %s as %s",
                     self.entity_description.key,

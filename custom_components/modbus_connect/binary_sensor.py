@@ -18,6 +18,7 @@ from .entity_management.const import ControlType
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -32,15 +33,11 @@ async def async_setup_entry(
         entity_class=ModbusBinarySensorEntity,
     )
 
+
 class ModbusBinarySensorEntity(ModbusCoordinatorEntity, BinarySensorEntity):
     """Binary sensor entity for Modbus gateway"""
 
-    def __init__(
-        self,
-        coordinator: ModbusCoordinator,
-        ctx: ModbusContext,
-        device: DeviceInfo,
-    ) -> None:
+    def __init__(self, coordinator: ModbusCoordinator, ctx: ModbusContext, device: DeviceInfo) -> None:
         """Initialize a Modbus binary sensor."""
         super().__init__(coordinator, ctx=ctx, device=device)
         if not isinstance(ctx.desc, ModbusBinarySensorEntityDescription):
@@ -50,9 +47,7 @@ class ModbusBinarySensorEntity(ModbusCoordinatorEntity, BinarySensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         try:
-            value: bool | None = cast(
-                ModbusCoordinator, self.coordinator
-            ).get_data(self.coordinator_context)
+            value: bool | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
             if value is not None:
                 self._attr_is_on = value
                 self.async_write_ha_state()

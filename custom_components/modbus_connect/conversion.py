@@ -59,7 +59,7 @@ class Conversion:
             value = self.client.convert_from_registers(registers, data_type=self.client.DATATYPE.FLOAT32)
         else:
             int_value = registers[0]  # FLOAT16 uses 1 register (16 bits)
-            value = struct.unpack('>e', int_value.to_bytes(2, byteorder="big"))[0]  # '>e' is big-endian float16
+            value = struct.unpack(">e", int_value.to_bytes(2, byteorder="big"))[0]  # '>e' is big-endian float16
 
         if isinstance(value, float):
             return value
@@ -70,7 +70,7 @@ class Conversion:
         if desc.register_count == 2:
             return self.client.convert_to_registers(value, data_type=self.client.DATATYPE.FLOAT32)
         else:
-            float_bytes = struct.pack('>e', value)  # '>e' is big-endian float16
+            float_bytes = struct.pack(">e", value)  # '>e' is big-endian float16
             return [int.from_bytes(float_bytes, byteorder="big")]
 
     def _convert_to_enum(self, registers: list, desc: ModbusEntityDescription) -> str | None:
@@ -97,11 +97,7 @@ class Conversion:
         """Convert to an int type"""
         num: str | int | float | list = self.client.convert_from_registers(
             registers,
-            data_type=(
-                self.client.DATATYPE.UINT32
-                if desc.register_count == 2
-                else self.client.DATATYPE.UINT16
-            ),
+            data_type=(self.client.DATATYPE.UINT32 if desc.register_count == 2 else self.client.DATATYPE.UINT16),
         )
 
         if desc.conv_sum_scale is not None:
@@ -140,15 +136,13 @@ class Conversion:
 
         registers: list[int] = self.client.convert_to_registers(
             int(round(num)),
-            data_type=(
-                self.client.DATATYPE.UINT32
-                if desc.register_count == 2
-                else self.client.DATATYPE.UINT16
-            ),
+            data_type=(self.client.DATATYPE.UINT32 if desc.register_count == 2 else self.client.DATATYPE.UINT16),
         )
         return registers
 
-    def convert_from_response(self, desc: ModbusEntityDescription, response: ModbusPDU) -> str | float | int | bool | None:
+    def convert_from_response(
+        self, desc: ModbusEntityDescription, response: ModbusPDU
+    ) -> str | float | int | bool | None:
         """Entry point for conversion from response (registers or bits)"""
         if desc.data_type in [ModbusDataType.HOLDING_REGISTER, ModbusDataType.INPUT_REGISTER]:
             if isinstance(response, (ReadHoldingRegistersResponse, ReadInputRegistersResponse)):

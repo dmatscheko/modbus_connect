@@ -57,7 +57,9 @@ async def test_setup_entry(hass) -> None:
         return_value={"device": MagicMock()},
     ), patch.object(ModbusDeviceInfo, "entity_descriptions", pm1), patch.object(
         ModbusDeviceInfo, "manufacturer", pm2
-    ), patch.object(ModbusDeviceInfo, "model", pm2):
+    ), patch.object(
+        ModbusDeviceInfo, "model", pm2
+    ):
         await async_setup_entry(hass, entry, callback.add)
 
         callback.add.assert_called_once()

@@ -44,14 +44,11 @@ async def test_update_single():
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_connect.sensor_types"
-            ".conversion.Conversion.convert_from_registers"
+            "custom_components.modbus_connect.sensor_types" ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.return_value = "Result"
             await coordinator._async_update_data()  # pylint: disable=protected-access
-            convert.assert_called_once_with(
-                desc=entities[0].desc, registers=response["test"].registers
-            )
+            convert.assert_called_once_with(desc=entities[0].desc, registers=response["test"].registers)
 
 
 async def test_update_multiple():
@@ -95,8 +92,7 @@ async def test_update_multiple():
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_connect.sensor_types"
-            ".conversion.Conversion.convert_from_registers"
+            "custom_components.modbus_connect.sensor_types" ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.return_value = "Result"
             await coordinator._async_update_data()  # pylint: disable=protected-access
@@ -144,8 +140,7 @@ async def test_update_exception():
         return_value=entities,
     ):
         with patch(
-            "custom_components.modbus_connect.sensor_types"
-            ".conversion.Conversion.convert_from_registers"
+            "custom_components.modbus_connect.sensor_types" ".conversion.Conversion.convert_from_registers"
         ) as convert:
             convert.side_effect = ["Result", Exception()]
             await coordinator._async_update_data()  # pylint: disable=protected-access

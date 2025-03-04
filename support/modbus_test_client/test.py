@@ -3,7 +3,7 @@ import logging
 from pymodbus.client import AsyncModbusTcpClient
 
 # Constants
-MODBUS_HOST = '10.0.0.60'
+MODBUS_HOST = "10.0.0.60"
 MODBUS_PORT = 502
 SLAVE_ID = 20
 
@@ -15,11 +15,9 @@ WRITE_VALUE_SINGLE = 2
 WRITE_VALUE_MULTIPLE = 5
 
 # Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 async def modbus_operations():
     logger.debug("Creating Modbus TCP client for %s:%d", MODBUS_HOST, MODBUS_PORT)
@@ -33,8 +31,12 @@ async def modbus_operations():
                 logger.info("Successfully connected to device")
 
                 # Read operation
-                logger.debug("Reading %d register(s) from address %d, slave %d", REGISTER_COUNT, REGISTER_ADDRESS, SLAVE_ID)
-                result = await client.read_holding_registers(address=REGISTER_ADDRESS, count=REGISTER_COUNT, slave=SLAVE_ID)
+                logger.debug(
+                    "Reading %d register(s) from address %d, slave %d", REGISTER_COUNT, REGISTER_ADDRESS, SLAVE_ID
+                )
+                result = await client.read_holding_registers(
+                    address=REGISTER_ADDRESS, count=REGISTER_COUNT, slave=SLAVE_ID
+                )
 
                 if result.isError():
                     logger.error("Error reading register: %s", result)
@@ -45,8 +47,15 @@ async def modbus_operations():
                 if ENABLE_WRITE:
 
                     # Write operation using write_register (function code 6)
-                    logger.debug("Writing value %d to register at address %d, slave %d using write_register", WRITE_VALUE_SINGLE, REGISTER_ADDRESS, SLAVE_ID)
-                    result = await client.write_register(address=REGISTER_ADDRESS, value=WRITE_VALUE_SINGLE, slave=SLAVE_ID)
+                    logger.debug(
+                        "Writing value %d to register at address %d, slave %d using write_register",
+                        WRITE_VALUE_SINGLE,
+                        REGISTER_ADDRESS,
+                        SLAVE_ID,
+                    )
+                    result = await client.write_register(
+                        address=REGISTER_ADDRESS, value=WRITE_VALUE_SINGLE, slave=SLAVE_ID
+                    )
 
                     if result.isError():
                         logger.error("Error writing register with write_register: %s", result)
@@ -54,8 +63,16 @@ async def modbus_operations():
                         logger.info("Successfully wrote register with write_register")
 
                     # Write operation using write_registers (function code 16)
-                    logger.debug("Writing value %d to %d register(s) at address %d, slave %d using write_registers", WRITE_VALUE_MULTIPLE, REGISTER_COUNT, REGISTER_ADDRESS, SLAVE_ID)
-                    result = await client.write_registers(address=REGISTER_ADDRESS, values=[WRITE_VALUE_MULTIPLE], slave=SLAVE_ID)
+                    logger.debug(
+                        "Writing value %d to %d register(s) at address %d, slave %d using write_registers",
+                        WRITE_VALUE_MULTIPLE,
+                        REGISTER_COUNT,
+                        REGISTER_ADDRESS,
+                        SLAVE_ID,
+                    )
+                    result = await client.write_registers(
+                        address=REGISTER_ADDRESS, values=[WRITE_VALUE_MULTIPLE], slave=SLAVE_ID
+                    )
 
                     if result.isError():
                         logger.error("Error writing register with write_registers: %s", result)
@@ -70,6 +87,7 @@ async def modbus_operations():
             raise
 
     logger.info("Connection closed automatically by context manager")
+
 
 if __name__ == "__main__":
     logger.info("Starting Modbus operations")

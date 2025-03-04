@@ -16,6 +16,7 @@ from .entity_management.const import ModbusDataType
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
+
 class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
     """Custom Modbus TCP client with request batching based on slave and locking."""
 
@@ -33,12 +34,14 @@ class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
             ModbusDataType.HOLDING_REGISTER: self.read_holding_registers,
             ModbusDataType.INPUT_REGISTER: self.read_input_registers,
             ModbusDataType.COIL: self.read_coils,
-            ModbusDataType.DISCRETE_INPUT: self.read_discrete_inputs
+            ModbusDataType.DISCRETE_INPUT: self.read_discrete_inputs,
         }
         super().__init__(host=host, port=port, framer=framer, source_address=source_address, **kwargs)
         self.lock = asyncio.Lock()
 
-    async def batch_read(self, read_plan: Dict[str, List[Tuple[int, int]]], slave: int, max_read_size: int) -> Dict[str, List[ModbusPDU]]:
+    async def batch_read(
+        self, read_plan: Dict[str, List[Tuple[int, int]]], slave: int, max_read_size: int
+    ) -> Dict[str, List[ModbusPDU]]:
         """Execute the precomputed read plan and return responses."""
         responses: Dict[str, List[ModbusPDU]] = {}
         async with self.lock:
@@ -55,10 +58,7 @@ class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
                     _LOGGER.error("Invalid category: %s", category)
                     continue
                 for start, count in requests:
-                    _LOGGER.debug(
-                        "Reading %s from %d, count %d, slave %d",
-                        category, start, count, slave
-                    )
+                    _LOGGER.debug("Reading %s from %d, count %d, slave %d", category, start, count, slave)
                     response = await func(
                         address=start,
                         count=count,
@@ -67,10 +67,7 @@ class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
                     if response and not response.isError():
                         responses[category].append(response)
                     else:
-                        _LOGGER.error(
-                            "Failed to read %s from %d for %d units",
-                            category, start, count
-                        )
+                        _LOGGER.error("Failed to read %s from %d for %d units", category, start, count)
                         responses[category].append(None)  # Maintain order
         return responses
 
@@ -90,10 +87,14 @@ class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
                 _LOGGER.debug("Writing successful")
         else:
             # Multiple values: try write_registers first
-            _LOGGER.debug(f"Attempting to write multiple values {values} starting at address {address}, slave {slave} using write_registers")
+            _LOGGER.debug(
+                f"Attempting to write multiple values {values} starting at address {address}, slave {slave} using write_registers"
+            )
             result = await self.write_registers(address=address, values=values, slave=slave)
             if result.isError():
-                _LOGGER.warning(f"Failed to write multiple values using write_registers: {result}. Falling back to old method (individual write_register calls).")
+                _LOGGER.warning(
+                    f"Failed to write multiple values using write_registers: {result}. Falling back to old method (individual write_register calls)."
+                )
                 # Fallback method: individual write_register calls
                 for i, value in enumerate(values):
                     current_address = address + i
@@ -127,10 +128,15 @@ class AsyncModbusTcpClientGateway(AsyncModbusTcpClient):
 
             if entity.desc.data_type == ModbusDataType.HOLDING_REGISTER:
                 from .conversion import Conversion
+
                 registers = Conversion(type(self)).convert_to_registers(entity.desc, value)
-                _LOGGER.debug("Raw value after conversion to registers: %s (type: %s)", registers, type(registers).__name__)
+                _LOGGER.debug(
+                    "Raw value after conversion to registers: %s (type: %s)", registers, type(registers).__name__
+                )
                 if len(registers) != entity.desc.register_count:
-                    raise ModbusException("Incorrect number of registers: expected %d, got %d", entity.desc.register_count, len(registers))
+                    raise ModbusException(
+                        "Incorrect number of registers: expected %d, got %d", entity.desc.register_count, len(registers)
+                    )
                 return await self._custom_write_registers(
                     address=entity.desc.register_address,
                     values=registers,

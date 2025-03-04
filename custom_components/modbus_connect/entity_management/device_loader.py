@@ -18,9 +18,7 @@ async def load_devices(hass: HomeAssistant) -> dict[str, ModbusDeviceInfo]:
     devices: dict[str, ModbusDeviceInfo] = {}
     for filename in filenames:
         try:
-            devices[os.path.basename(filename)] = await hass.async_add_executor_job(
-                create_device_info, filename
-            )
+            devices[os.path.basename(filename)] = await hass.async_add_executor_job(create_device_info, filename)
         except Exception as err:  # pylint: disable=broad-exception-caught
             _LOGGER.error("Error loading device from YAML file: %s - %s", filename, err)
 
