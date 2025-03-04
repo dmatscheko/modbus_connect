@@ -102,8 +102,6 @@ async def async_setup_entities(
 
     _LOGGER.debug(device)
 
-    await coordinator.async_config_entry_first_refresh()
-
     descriptions = [desc for desc in device_info.entity_descriptions if desc.control_type == control]
     if control == ControlType.SENSOR and config_entry.options.get(OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT):
         non_sensor_descriptions = [desc for desc in device_info.entity_descriptions if desc.control_type != ControlType.SENSOR]
@@ -121,3 +119,5 @@ async def async_setup_entities(
         ],
         update_before_add=False,
     )
+
+    await coordinator.async_config_entry_first_refresh()
