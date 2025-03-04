@@ -84,6 +84,9 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         for entity in mirrored_entities:
             entity_reg.async_remove(entity.entity_id)
 
+    coordinator: ModbusCoordinator = hass.data[DOMAIN][get_gateway_key(entry)]
+    coordinator._recompute_read_plan = True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

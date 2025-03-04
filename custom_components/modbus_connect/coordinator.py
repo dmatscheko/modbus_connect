@@ -70,7 +70,7 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
         self._last_successful_update: datetime | None = None
         # Persistent read plan and tracking for max_read_size changes
         self._read_plan: ReadPlan | None = None
-        self._last_max_read_size: int | None = None
+        self._recompute_read_plan = True
 
         super().__init__(
             hass,
@@ -131,9 +131,9 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
         if self.started:
             entities: list[ModbusContext] = list(self.async_contexts())
             # Compute read plan on first update or if max_read_size changes
-            if self._read_plan is None or self._last_max_read_size != self._max_read_size:
+            if self._recompute_read_plan:
                 self._read_plan = self._compute_read_plan(entities)
-                self._last_max_read_size = self._max_read_size
+                self._recompute_read_plan = False
             data = await self._update_device(entities=entities)
             if data:
                 self._last_successful_update = datetime.now()
