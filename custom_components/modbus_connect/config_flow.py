@@ -16,6 +16,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_DEFAULT_PORT,
@@ -23,8 +24,10 @@ from .const import (
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
-    OPTIONS_DEFAULT_REFRESH,
     OPTIONS_REFRESH,
+    OPTIONS_REFRESH_DEFAULT,
+    OPTIONS_MIRROR_NON_SENSORS,
+    OPTIONS_MIRROR_NON_SENSORS_DEFAULT,
 )
 from .coordinator import ModbusCoordinator
 from .helpers import get_gateway_key
@@ -42,19 +45,20 @@ class OptionsFlowHandler(OptionsFlow):
         """Initialize options flow."""
         pass
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
-            coordinator: ModbusCoordinator = self.hass.data[DOMAIN][
-                get_gateway_key(self.config_entry)
-            ]
-            coordinator.update_interval = datetime.timedelta(
-                seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_DEFAULT_REFRESH)
-            )
+            coordinator: ModbusCoordinator = self.hass.data[DOMAIN][get_gateway_key(self.config_entry)]
+            coordinator.update_interval = datetime.timedelta(seconds=user_input.get(OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT))
 
-            return self.async_create_entry(title="", data=user_input)
+            # Save the new options
+            return self.async_create_entry(
+                title="",
+                data={
+                    OPTIONS_REFRESH: user_input[OPTIONS_REFRESH],
+                    OPTIONS_MIRROR_NON_SENSORS: user_input[OPTIONS_MIRROR_NON_SENSORS],
+                },
+            )
 
         return self.async_show_form(
             step_id="init",
@@ -63,9 +67,13 @@ class OptionsFlowHandler(OptionsFlow):
                     vol.Required(
                         OPTIONS_REFRESH,
                         default=self.config_entry.options.get(
-                            OPTIONS_REFRESH, OPTIONS_DEFAULT_REFRESH
+                            OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT
                         ),
-                    ): int
+                    ): int,
+                    vol.Required(
+                        OPTIONS_MIRROR_NON_SENSORS,
+                        default=self.config_entry.options.get(OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT),
+                    ): bool,
                 }
             ),
         )

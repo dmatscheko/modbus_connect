@@ -1,22 +1,27 @@
 """The Modbus Connect sensor integration."""
 
+import logging
+
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_SLAVE_ID,
     DOMAIN,
-    OPTIONS_DEFAULT_REFRESH,
+    OPTIONS_REFRESH_DEFAULT,
     OPTIONS_REFRESH,
     PLATFORMS,
 )
 from .coordinator import ModbusCoordinator
 from .helpers import get_gateway_key
 from .tcp_client import AsyncModbusTcpClientGateway
+
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -49,7 +54,7 @@ async def async_setup_entry(
                 client=client,
                 gateway=gateway_key,
                 update_interval=entry.options.get(
-                    OPTIONS_REFRESH, OPTIONS_DEFAULT_REFRESH
+                    OPTIONS_REFRESH, OPTIONS_REFRESH_DEFAULT
                 ),
             )
         else:
@@ -58,9 +63,29 @@ async def async_setup_entry(
             )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Register the update listener for dynamic option changes
+    entry.async_on_unload(entry.add_update_listener(update_listener))
+    _LOGGER.debug("Update listener registered for entry %s", entry.entry_id)
     return True
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    _LOGGER.debug("Update listener triggered for entry %s with options: %s", entry.entry_id, entry.options)
+
+    if entry.options["mirror_non_sensors"]:
+        # Reload the integration to apply the changes
+        await hass.config_entries.async_reload(entry.entry_id)
+    else:
+        # Clean up mirrored entities if the option is disabled
+        entity_reg = er.async_get(hass)
+        entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
+        mirrored_entities = [entity for entity in entities if entity.unique_id.endswith("_mirror")]
+        for entity in mirrored_entities:
+            entity_reg.async_remove(entity.entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    _LOGGER.debug("Async unload entry triggered for entry %s with options: %s", entry.entry_id, entry.options)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

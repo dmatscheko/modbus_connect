@@ -132,6 +132,12 @@ class ModbusSensorEntityDescription(SensorEntityDescription, ModbusEntityDescrip
 
 
 @dataclass(kw_only=True, frozen=True)
+class MirroredSensorEntityDescription(ModbusSensorEntityDescription):
+    """Describes a mirrored sensor entity."""
+    mirror_type: ControlType
+
+
+@dataclass(kw_only=True, frozen=True)
 class ModbusSwitchEntityDescription(SwitchEntityDescription, ModbusEntityDescription):
     """Describes Modbus switch holding register entity."""
     on: int | None = None

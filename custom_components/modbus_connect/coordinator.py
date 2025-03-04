@@ -199,6 +199,7 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
             return {}
 
         _LOGGER.debug(f"Entities in _update_device(): {entities}")
+        _LOGGER.debug(f"Read plan in _update_device(): {self._read_plan}")
 
         # Execute the read plan
         responses = await self.client.batch_read(
