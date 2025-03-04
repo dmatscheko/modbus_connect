@@ -6,18 +6,16 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT, EntityCategory
+from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_PREFIX, CONF_SLAVE_ID, DOMAIN, OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT
-
+from .const import CONF_PREFIX, CONF_SLAVE_ID, DOMAIN
 from .coordinator import ModbusContext, ModbusCoordinator, ModbusCoordinatorEntity
-from .entity_management.const import ControlType, ModbusDataType
+from .entity_management.const import ControlType
 from .entity_management.device_loader import create_device_info
 from .entity_management.modbus_device_info import ModbusDeviceInfo
-from .entity_management.base import MirroredSensorEntityDescription, ModbusSelectEntityDescription, ModbusSwitchEntityDescription
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
@@ -29,46 +27,6 @@ def get_gateway_key(entry: ConfigEntry, with_slave: bool = True) -> str:
 
     return f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}"
 
-def create_mirrored_sensor_description(original_desc):
-    """Generate a mirrored sensor description from a non-sensor entity."""
-    # Determine conv_map based on control type
-    conv_map = getattr(original_desc, 'conv_map', None)
-    if getattr(original_desc, 'control_type', None) == ControlType.SELECT:
-        if isinstance(original_desc, ModbusSelectEntityDescription):
-            conv_map = getattr(original_desc, 'select_options', None)
-    elif getattr(original_desc, 'control_type', None) == ControlType.SWITCH and getattr(original_desc, 'data_type', None) == ModbusDataType.HOLDING_REGISTER:
-        if isinstance(original_desc, ModbusSwitchEntityDescription):
-            conv_map = {getattr(original_desc, 'on', None): "on", getattr(original_desc, 'off', None): "off"}
-
-    entity_category = getattr(original_desc, 'entity_category', None)
-    if entity_category == EntityCategory.CONFIG:
-        entity_category = EntityCategory.DIAGNOSTIC  # Optionally, use None instead
-
-    return MirroredSensorEntityDescription(
-        key=original_desc.key + "_mirror",
-        name=original_desc.name + " (Mirror)",
-        register_address=original_desc.register_address,
-        data_type=original_desc.data_type,
-        register_count=original_desc.register_count,
-        conv_sum_scale=getattr(original_desc, 'conv_sum_scale', None),
-        conv_multiplier=getattr(original_desc, 'conv_multiplier', 1.0),
-        conv_offset=getattr(original_desc, 'conv_offset', None),
-        conv_shift_bits=getattr(original_desc, 'conv_shift_bits', None),
-        conv_bits=getattr(original_desc, 'conv_bits', None),
-        conv_map=conv_map,
-        conv_flags=getattr(original_desc, 'conv_flags', None),
-        is_string=getattr(original_desc, 'is_string', False),
-        is_float=getattr(original_desc, 'is_float', False),
-        precision=getattr(original_desc, 'precision', None),
-        never_resets=getattr(original_desc, 'never_resets', False),
-        control_type=ControlType.SENSOR,
-        mirror_type=getattr(original_desc, 'control_type', None),
-        device_class=getattr(original_desc, 'device_class', None),
-        state_class=getattr(original_desc, 'state_class', None),
-        native_unit_of_measurement=getattr(original_desc, 'native_unit_of_measurement', None),
-        entity_category=entity_category,
-        entity_registry_enabled_default=getattr(original_desc, 'entity_registry_enabled_default', None),
-    )
 
 async def async_setup_entities(
     hass: HomeAssistant,
@@ -104,12 +62,6 @@ async def async_setup_entities(
 
     await coordinator.async_config_entry_first_refresh()
 
-    descriptions = [desc for desc in device_info.entity_descriptions if desc.control_type == control]
-    if control == ControlType.SENSOR and config_entry.options.get(OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT):
-        non_sensor_descriptions = [desc for desc in device_info.entity_descriptions if desc.control_type != ControlType.SENSOR]
-        mirrored_descriptions = [create_mirrored_sensor_description(desc) for desc in non_sensor_descriptions]
-        descriptions.extend(mirrored_descriptions)
-
     async_add_entities(
         [
             entity_class(
@@ -117,7 +69,8 @@ async def async_setup_entities(
                 ctx=ModbusContext(slave_id=config[CONF_SLAVE_ID], desc=desc),
                 device=device,
             )
-            for desc in descriptions
+            for desc in device_info.entity_descriptions
+            if desc.control_type == control
         ],
         update_before_add=False,
     )

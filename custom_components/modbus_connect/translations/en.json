@@ -30,8 +30,7 @@
             "init": {
                 "description": "Update device parameters",
                 "data": {
-                    "refresh": "Update frequency",
-                    "mirror_non_sensors": "Mirror non-sensor entities to sensors"
+                    "refresh": "Update frequency"
                 }
             }
         }
