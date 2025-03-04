@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_FILENAME, CONF_HOST, CONF_PORT, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -40,6 +40,11 @@ def create_mirrored_sensor_description(original_desc):
         if isinstance(original_desc, ModbusSwitchEntityDescription):
             conv_map = {getattr(original_desc, 'on', None): "on", getattr(original_desc, 'off', None): "off"}
 
+    # Adjust entity_category: if CONFIG, set to None
+    entity_category = getattr(original_desc, 'entity_category', None)
+    if entity_category == EntityCategory.CONFIG:
+        entity_category = EntityCategory.DIAGNOSTIC  # Optionally, use None instead
+
     return MirroredSensorEntityDescription(
         key=original_desc.key + "_mirror",
         name=original_desc.name + " (Mirror)",
@@ -62,7 +67,7 @@ def create_mirrored_sensor_description(original_desc):
         device_class=getattr(original_desc, 'device_class', None),
         state_class=getattr(original_desc, 'state_class', None),
         native_unit_of_measurement=getattr(original_desc, 'native_unit_of_measurement', None),
-        entity_category=getattr(original_desc, 'entity_category', None),
+        entity_category=entity_category,
         entity_registry_enabled_default=getattr(original_desc, 'entity_registry_enabled_default', None),
     )
 
