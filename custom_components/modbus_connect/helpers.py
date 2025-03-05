@@ -145,4 +145,5 @@ async def async_setup_entities(
         update_before_add=False,
     )
 
+    coordinator._recompute_read_plan = True
     await coordinator.async_config_entry_first_refresh()
