@@ -72,14 +72,10 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         # Clean up mirrored entities if the option is disabled
         entity_reg = er.async_get(hass)
         entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
-        mirrored_entities = [
-            entity
-            for entity in entities
-            if coordinator.get_description_by_unique_id(entity.unique_id) is not None
-            and isinstance(coordinator.get_description_by_unique_id(entity.unique_id), MirroredSensorEntityDescription)
-        ]
-        for entity in mirrored_entities:
-            entity_reg.async_remove(entity.entity_id)
+        for entity in entities:
+            desc = coordinator.get_description_by_unique_id(entity.unique_id)
+            if desc is not None and isinstance(desc, MirroredSensorEntityDescription):
+                entity_reg.async_remove(entity.entity_id)
 
     coordinator._recompute_read_plan = True
     # Reload the integration to apply the changes
