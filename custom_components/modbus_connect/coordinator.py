@@ -260,10 +260,3 @@ class ModbusCoordinator(TimestampDataUpdateCoordinator):
         if self.data and ctx.desc.key in self.data:
             return self.data[ctx.desc.key]
         return None
-
-    def get_description_by_unique_id(self, unique_id: str) -> ModbusEntityDescription | None:
-        """Return the entity description for a given unique ID."""
-        for ctx in self.async_contexts():
-            if f"{ctx.slave_id}-{ctx.desc.key}" == unique_id:
-                return ctx.desc
-        return None
