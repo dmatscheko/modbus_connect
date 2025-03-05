@@ -117,8 +117,18 @@ async def async_setup_entities(
     if control == ControlType.SENSOR and config_entry.options.get(
         OPTIONS_MIRROR_NON_SENSORS, OPTIONS_MIRROR_NON_SENSORS_DEFAULT
     ):
+        # Collect (data_type, register_address) pairs for all existing sensor entities
+        sensor_keys = {
+            (desc.data_type, desc.register_address)
+            for desc in device_info.entity_descriptions
+            if desc.control_type == ControlType.SENSOR
+        }
+
+        # Filter non-sensor descriptions, excluding those with a matching sensor already defined
         non_sensor_descriptions = [
-            desc for desc in device_info.entity_descriptions if desc.control_type != ControlType.SENSOR
+            desc
+            for desc in device_info.entity_descriptions
+            if desc.control_type != ControlType.SENSOR and (desc.data_type, desc.register_address) not in sensor_keys
         ]
         mirrored_descriptions = [create_mirrored_sensor_description(desc) for desc in non_sensor_descriptions]
         descriptions.extend(mirrored_descriptions)
