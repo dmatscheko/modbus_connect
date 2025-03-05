@@ -1,6 +1,6 @@
 # Modbus Connect Integration for Home Assistant
 
-# Experimental development version – NO GUARANTEES! This is a renamed copy of the [Modbus Local Gateway integration of Tim Laing](https://github.com/timlaing/modbus_local_gateway) where I experiement with a few things. Use the version of Tim Laing.
+# Experimental development version – NO GUARANTEES! This is a modified copy of the [Modbus Local Gateway integration by Tim Laing](https://github.com/timlaing/modbus_local_gateway), created for experimentation. Use Tim Laing's original.
 
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
