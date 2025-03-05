@@ -17,6 +17,7 @@ from .const import (
     OPTIONS_REFRESH,
     PLATFORMS,
 )
+from .entity_management.base import MirroredSensorEntityDescription
 from .coordinator import ModbusCoordinator
 from .helpers import get_gateway_key
 from .tcp_client import AsyncModbusTcpClientGateway
@@ -65,19 +66,24 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle options update."""
     _LOGGER.debug("Update listener triggered for entry %s with options: %s", entry.entry_id, entry.options)
 
-    if entry.options["mirror_non_sensors"]:
-        # Reload the integration to apply the changes
-        await hass.config_entries.async_reload(entry.entry_id)
-    else:
+    coordinator: ModbusCoordinator = hass.data[DOMAIN][get_gateway_key(entry)]
+
+    if not entry.options["mirror_non_sensors"]:
         # Clean up mirrored entities if the option is disabled
         entity_reg = er.async_get(hass)
         entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
-        mirrored_entities = [entity for entity in entities if entity.unique_id.endswith("_mirror")]
+        mirrored_entities = [
+            entity
+            for entity in entities
+            if coordinator.get_description_by_unique_id(entity.unique_id) is not None
+            and isinstance(coordinator.get_description_by_unique_id(entity.unique_id), MirroredSensorEntityDescription)
+        ]
         for entity in mirrored_entities:
             entity_reg.async_remove(entity.entity_id)
 
-    coordinator: ModbusCoordinator = hass.data[DOMAIN][get_gateway_key(entry)]
     coordinator._recompute_read_plan = True
+    # Reload the integration to apply the changes
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
