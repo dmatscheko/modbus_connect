@@ -1,3 +1,6 @@
+# to use this, first run:
+# pip install pymodbus
+
 import asyncio
 import logging
 from pymodbus.client import AsyncModbusTcpClient
@@ -35,10 +38,10 @@ async def modbus_operations():
                 result = await client.read_holding_registers(address=REGISTER_ADDRESS, count=REGISTER_COUNT, slave=SLAVE_ID)
 
                 if result.isError():
-                    logger.error("Error reading register: %s", result)
+                    logger.error("Error reading register(s): %s", result)
                 else:
-                    logger.info("Successfully read register value: %s", result.registers[0])
-                    print(result.registers[0])
+                    logger.info("Successfully read register value(s): %s", result.registers)
+                    print(result.registers)
 
                 if ENABLE_WRITE:
                     # Write operation using write_register (function code 6)
