@@ -31,12 +31,8 @@ async def modbus_operations():
                 logger.info("Successfully connected to device")
 
                 # Read operation
-                logger.debug(
-                    "Reading %d register(s) from address %d, slave %d", REGISTER_COUNT, REGISTER_ADDRESS, SLAVE_ID
-                )
-                result = await client.read_holding_registers(
-                    address=REGISTER_ADDRESS, count=REGISTER_COUNT, slave=SLAVE_ID
-                )
+                logger.debug("Reading %d register(s) from address %d, slave %d", REGISTER_COUNT, REGISTER_ADDRESS, SLAVE_ID)
+                result = await client.read_holding_registers(address=REGISTER_ADDRESS, count=REGISTER_COUNT, slave=SLAVE_ID)
 
                 if result.isError():
                     logger.error("Error reading register: %s", result)
@@ -45,7 +41,6 @@ async def modbus_operations():
                     print(result.registers[0])
 
                 if ENABLE_WRITE:
-
                     # Write operation using write_register (function code 6)
                     logger.debug(
                         "Writing value %d to register at address %d, slave %d using write_register",
@@ -53,9 +48,7 @@ async def modbus_operations():
                         REGISTER_ADDRESS,
                         SLAVE_ID,
                     )
-                    result = await client.write_register(
-                        address=REGISTER_ADDRESS, value=WRITE_VALUE_SINGLE, slave=SLAVE_ID
-                    )
+                    result = await client.write_register(address=REGISTER_ADDRESS, value=WRITE_VALUE_SINGLE, slave=SLAVE_ID)
 
                     if result.isError():
                         logger.error("Error writing register with write_register: %s", result)
@@ -70,9 +63,7 @@ async def modbus_operations():
                         REGISTER_ADDRESS,
                         SLAVE_ID,
                     )
-                    result = await client.write_registers(
-                        address=REGISTER_ADDRESS, values=[WRITE_VALUE_MULTIPLE], slave=SLAVE_ID
-                    )
+                    result = await client.write_registers(address=REGISTER_ADDRESS, values=[WRITE_VALUE_MULTIPLE], slave=SLAVE_ID)
 
                     if result.isError():
                         logger.error("Error writing register with write_registers: %s", result)
