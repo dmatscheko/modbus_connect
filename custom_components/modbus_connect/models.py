@@ -24,21 +24,32 @@ ALL_TABLES = WORD_TABLES | BIT_TABLES
 PROTOCOL_MAX_REGISTERS = 125
 PROTOCOL_MAX_BITS = 2000
 
-# Value types for word tables ("bool" is implied for bit tables)
-TYPE_WIDTH = {
-    "uint16": 1,
-    "int16": 1,
-    "uint32": 2,
-    "int32": 2,
-    "uint64": 4,
-    "int64": 4,
-    "float32": 2,
-    "float64": 4,
+# Value types for word tables ("bool" is implied for bit tables), in bits per
+# value. Sub-word values sit in the least significant bits of their register;
+# with sum_scale, elements are taken from each register least-significant-first
+# ("swap: byte" flips the byte order for devices that pack high byte first).
+TYPE_BITS = {
+    "bit": 1,
+    "uint8": 8,
+    "int8": 8,
+    "uint16": 16,
+    "int16": 16,
+    "uint32": 32,
+    "int32": 32,
+    "uint64": 64,
+    "int64": 64,
+    "float16": 16,
+    "float32": 32,
+    "float64": 64,
 }
+TYPE_ALIASES = {"int1": "bit"}
+# Registers occupied by one value of each type
+TYPE_WIDTH = {t: max(1, bits // 16) for t, bits in TYPE_BITS.items()}
 TYPE_STRING = "string"
 TYPE_BOOL = "bool"
-FLOAT_TYPES = frozenset({"float32", "float64"})
-SIGNED_TYPES = frozenset({"int16", "int32", "int64"})
+FLOAT_TYPES = frozenset({"float16", "float32", "float64"})
+SIGNED_TYPES = frozenset({"int8", "int16", "int32", "int64"})
+UNSIGNED_INT_TYPES = frozenset(TYPE_BITS) - FLOAT_TYPES - SIGNED_TYPES
 
 # Entity platforms
 PLATFORMS = frozenset(
@@ -161,4 +172,6 @@ class DeviceDef:
     max_read: int = 8  # max registers/bits per read request
     max_gap: int = 8  # bridge unused holes up to this many addresses
     scan_interval: int | None = None  # device default poll interval
+    modbus_id: int | None = None  # factory-default Modbus device id
+    prefix: str | None = None  # default entity-id prefix
     filename: str = ""

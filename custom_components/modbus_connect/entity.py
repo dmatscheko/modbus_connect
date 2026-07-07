@@ -7,9 +7,10 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.exceptions import ServiceValidationError, TemplateError
-from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import slugify
 
 from .const import DOMAIN
 from .coordinator import ModbusConnectCoordinator
@@ -52,6 +53,21 @@ def build_mirror_description(defn: EntityDef) -> EntityDescription:
     return build_description(defn, platform="sensor", overrides=overrides)
 
 
+def suggest_entity_id(
+    entity: Entity, coordinator: ModbusConnectCoordinator, domain: str, key: str
+) -> None:
+    """Suggest ``<domain>.<prefix>_<key>`` as the entity id.
+
+    Only applies when the config entry has an entity-id prefix, and only on
+    first registration — renames done by the user stick.
+    """
+    if not coordinator.entity_id_prefix:
+        return
+    object_id = slugify(f"{coordinator.entity_id_prefix} {key}")
+    if object_id:
+        entity.entity_id = f"{domain}.{object_id}"
+
+
 def resolve_on_off(defn: EntityDef, value: Any) -> bool | None:
     """Shared on/off interpretation for switch and binary_sensor."""
     if value is None:
@@ -77,12 +93,16 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         description: EntityDescription,
         *,
         unique_suffix: str = "",
+        domain: str | None = None,
     ) -> None:
         super().__init__(coordinator)
         self._defn = defn
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.entry_id}_{defn.key}{unique_suffix}"
         self._attr_device_info = coordinator.device_info
+        suggest_entity_id(
+            self, coordinator, domain or defn.platform, f"{defn.key}{unique_suffix}"
+        )
 
     @property
     def device_value(self) -> Any:
@@ -139,6 +159,7 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self._attr_unique_id = f"{coordinator.entry_id}_{tdef.key}"
         self._attr_device_info = coordinator.device_info
         self._compiled: dict[str, Template] = {}
+        suggest_entity_id(self, coordinator, tdef.platform, tdef.key)
 
     def render(self, field: str) -> Any:
         """Render one of the configured templates; None if absent or failing."""

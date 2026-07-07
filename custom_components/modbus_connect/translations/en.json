@@ -2,55 +2,59 @@
   "config": {
     "step": {
       "user": {
+        "title": "Device type",
+        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
+        "data": {
+          "filename": "Device definition",
+          "name": "Device name"
+        },
+        "data_description": {
+          "filename": "The YAML file describing the registers and entities of your device.",
+          "name": "Friendly name for this device. Leave empty to use manufacturer and model from the device file."
+        }
+      },
+      "connection": {
         "title": "Modbus gateway",
-        "description": "Connect to the Modbus TCP gateway (or a device speaking Modbus TCP directly).",
+        "description": "Connect {device} through its Modbus TCP gateway (or directly, if the device speaks Modbus TCP itself).",
         "data": {
           "host": "Host",
           "port": "Port",
           "slave_id": "Modbus device ID",
-          "prefix": "Device name"
+          "prefix": "Entity ID prefix"
         },
         "data_description": {
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
-          "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255).",
-          "prefix": "Optional friendly name for this device. Leave empty to use manufacturer and model from the device file."
-        }
-      },
-      "device": {
-        "title": "Device type",
-        "description": "Pick the device definition that matches your hardware. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
-        "data": {
-          "filename": "Device definition"
-        },
-        "data_description": {
-          "filename": "The YAML file describing the registers and entities of your device."
+          "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255). Prefilled with the device file's factory default.",
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.<prefix>_<entity>`. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
       },
       "reconfigure": {
+        "title": "Device type",
+        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
+        "data": {
+          "filename": "Device definition",
+          "name": "Device name"
+        },
+        "data_description": {
+          "filename": "The YAML file describing the registers and entities of your device.",
+          "name": "Friendly name for this device. Leave empty to use manufacturer and model from the device file."
+        }
+      },
+      "reconfigure_connection": {
         "title": "Modbus gateway",
-        "description": "Update the connection to the Modbus TCP gateway.",
+        "description": "Update the connection to the Modbus TCP gateway for {device}.",
         "data": {
           "host": "Host",
           "port": "Port",
           "slave_id": "Modbus device ID",
-          "prefix": "Device name"
+          "prefix": "Entity ID prefix"
         },
         "data_description": {
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
           "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255).",
-          "prefix": "Optional friendly name for this device. Leave empty to use manufacturer and model from the device file."
-        }
-      },
-      "reconfigure_device": {
-        "title": "Device type",
-        "description": "Pick the device definition that matches your hardware. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
-        "data": {
-          "filename": "Device definition"
-        },
-        "data_description": {
-          "filename": "The YAML file describing the registers and entities of your device."
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.<prefix>_<entity>`. Changing it only affects entities created afterwards. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
       }
     },

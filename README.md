@@ -61,20 +61,34 @@ Add the **Modbus Connect** integration in **Settings → Devices & services**
 The connection is tested before anything is created. Add the integration once
 per Modbus device — several devices can share one gateway.
 
+**Step 1 — device:**
+
+| Setting | Meaning | Default |
+| --- | --- | --- |
+| Device definition | The YAML file describing the device's registers | — |
+| Device name | Friendly name of the device and its config entry | manufacturer + model |
+
+**Step 2 — connection:**
+
 | Setting | Meaning | Default |
 | --- | --- | --- |
 | Host | Hostname or IP of the Modbus TCP gateway | — |
 | Port | TCP port of the gateway | `502` |
-| Modbus device ID | Unit/slave ID of the device behind the gateway (0–255) | `1` |
-| Device name | Optional friendly name; otherwise manufacturer + model | empty |
-| Device definition | The YAML file describing the device's registers | — |
+| Modbus device ID | Unit/slave ID of the device behind the gateway (0–255) | the device file's `modbus_id`, else `1` |
+| Entity ID prefix | Start of all entity IDs of this device: `sensor.<prefix>_<key>` | the device file's `prefix`, else the device name |
+
+The Modbus device ID and the prefix are prefilled from the chosen device
+file, so devices whose factory default ID is not `1` work without looking it
+up. Clear the prefix to let Home Assistant derive entity IDs from the device
+name instead. Entity IDs are only assigned when an entity is first created —
+changing the prefix later does not rename existing entities.
 
 **Options** (gear icon on the integration entry): the default poll interval
-in seconds (1–86400, default 30). The device file and individual entities can
-override it, see below.
+in seconds (1–86400; default from the device file, else 30). Individual
+entities can override it, see below.
 
-**Reconfigure** (three-dot menu → *Reconfigure*): change the gateway
-address, device ID, name, or device file without removing the entry.
+**Reconfigure** (three-dot menu → *Reconfigure*): change the device file,
+name, gateway address, device ID, or prefix without removing the entry.
 
 ## Your own device files
 
@@ -90,6 +104,10 @@ bits), `discrete:` (read-only bits). The platform is free within what the
 table allows — for example, a *holding* register can deliberately be exposed
 as a read-only `sensor` when changing it would be dangerous.
 
+Several entities may read the same registers (e.g. a raw value and a scaled
+twin, or single bits of a status word) — each register is still read only
+once per poll.
+
 ```yaml
 device:
   manufacturer: Eastron
@@ -97,12 +115,17 @@ device:
   max_register_read: 100   # max registers per read request (default 8, cap 125)
   max_read_gap: 8          # bridge unused holes up to this many registers (default 8)
   scan_interval: 30        # default poll interval in seconds (optional)
+  modbus_id: 1             # factory-default Modbus device ID (optional);
+                           #   prefills the config flow for this device
+  prefix: sdm630           # default entity-id prefix (optional); the config
+                           #   flow prefills it with this, else the device name
 
 input:
   phase_1_voltage:
     address: 0x0000        # register/coil address (decimal or hex)
     type: float32          # uint16 (default) | int16 | uint32 | int32 | uint64 |
-                           # int64 | float32 | float64 | string
+                           # int64 | float16 | float32 | float64 | uint8 | int8 |
+                           # bit (alias int1) | string
     ha:
       platform: sensor     # sensor | binary_sensor | number | select | switch |
                            # text | button
@@ -142,10 +165,10 @@ coil:
 | Key | Meaning |
 | --- | --- |
 | `address` | Start address (0–65535, hex `0x…` works) |
-| `type` | Value type; determines register count. `string` needs `count`. Bit tables are implicitly `bool` |
+| `type` | Value type; determines register count. `string` needs `count`. Sub-word types (`uint8`/`int8` = low byte, `bit` = least significant bit) read one register. Bit tables are implicitly `bool` |
 | `count` | Register count — only for `string` (2 characters per register) |
 | `swap` | `byte`, `word`, or `word_byte` for little-endian devices |
-| `sum_scale` | List of per-word weights: `value = Σ word[i] · scale[i]`. Example `[1, 10000, 100000000]` for values spread over 3 registers. Writable when the weights are positive integers |
+| `sum_scale` | List of per-element weights: `value = Σ element[i] · scale[i]`, where each element has the entity's `type` (default `uint16` — one register per weight). Example `[1, 10000, 100000000]` for a counter spread over 3 registers. With `type: uint8` each register holds two elements (low byte first — combine with `swap: byte` for devices that pack high byte first), so the same weights cover 1.5 registers (2 are read); with `type: bit` each register holds sixteen (LSB first). Writable when the weights are positive integers and the type is an unsigned integer |
 | `mask` | Extract bits: `value = (raw & mask) >> trailing_zeros(mask)`. Replaces the old `bits`/`shift_bits` pair |
 | `multiplier` / `offset` | `value = raw · multiplier + offset` (inverted on write) |
 | `map` | `{register value: label}` — enums; used as the options of a `select` |

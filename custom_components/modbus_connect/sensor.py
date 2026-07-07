@@ -36,7 +36,11 @@ async def async_setup_entry(
         elif defn.duplicate_as_sensor:
             entities.append(
                 ModbusConnectSensor(
-                    coordinator, defn, build_mirror_description(defn), unique_suffix="_sensor"
+                    coordinator,
+                    defn,
+                    build_mirror_description(defn),
+                    unique_suffix="_sensor",
+                    domain="sensor",
                 )
             )
     entities.extend(

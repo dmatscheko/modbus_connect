@@ -6,8 +6,8 @@ written (``flags``) raise :class:`NotWritableError` from ``encode``.
 
 Decode pipeline for word tables (each step only if configured):
 
-    words -> swap -> assemble (type / string / sum_scale) -> mask
-          -> map | flags | (multiplier -> offset)
+    words -> swap -> assemble (type / string / sum_scale over typed elements)
+          -> mask -> map | flags | (multiplier -> offset)
 
 ``encode`` runs the same pipeline backwards.
 """
@@ -21,8 +21,10 @@ from .models import (
     BIT_TABLES,
     FLOAT_TYPES,
     SIGNED_TYPES,
+    TYPE_BITS,
     TYPE_STRING,
     TYPE_WIDTH,
+    UNSIGNED_INT_TYPES,
     EntityDef,
 )
 
@@ -35,7 +37,7 @@ class NotWritableError(CodecError):
     """The entity's configuration does not support writing."""
 
 
-_FLOAT_FMT = {"float32": ">f", "float64": ">d"}
+_FLOAT_FMT = {"float16": ">e", "float32": ">f", "float64": ">d"}
 
 
 def _swap_words(words: list[int], mode: str | None) -> list[int]:
@@ -68,6 +70,37 @@ def _int_if_whole(num: float | int) -> float | int:
     return num
 
 
+def _element_values(defn: EntityDef, words: list[int], n: int) -> list[float | int] | None:
+    """The first ``n`` values of the entity's type from the (swapped) words.
+
+    Sub-word elements (``bit``, ``uint8``, ``int8``) are taken from each
+    register least-significant-first; wider elements consume whole big-endian
+    registers. Returns ``None`` when a float element is NaN or infinite.
+    """
+    bits = TYPE_BITS[defn.type]
+    if bits < 16:
+        per_word = 16 // bits
+        top = 1 << bits
+        chunks: list[float | int] = [
+            (words[i // per_word] >> (bits * (i % per_word))) & (top - 1) for i in range(n)
+        ]
+        if defn.type in SIGNED_TYPES:
+            chunks = [v - top if v >= top // 2 else v for v in chunks]
+        return chunks
+    step = bits // 16
+    out: list[float | int] = []
+    for i in range(n):
+        data = _words_to_bytes(words[i * step : (i + 1) * step])
+        if defn.type in FLOAT_TYPES:
+            value: float = struct.unpack(_FLOAT_FMT[defn.type], data)[0]
+            if math.isnan(value) or math.isinf(value):
+                return None
+            out.append(value)
+        else:
+            out.append(int.from_bytes(data, "big", signed=defn.type in SIGNED_TYPES))
+    return out
+
+
 def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
     """Convert raw register words / coil bits into the entity's value.
 
@@ -86,13 +119,17 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
 
     num: float | int
     if defn.sum_scale is not None:
-        num = _int_if_whole(sum(w * s for w, s in zip(words, defn.sum_scale, strict=True)))
-    elif defn.type in FLOAT_TYPES:
-        num = struct.unpack(_FLOAT_FMT[defn.type], _words_to_bytes(words))[0]
-        if math.isnan(num) or math.isinf(num):
+        elements = _element_values(defn, words, len(defn.sum_scale))
+        if elements is None:
             return None
+        num = _int_if_whole(
+            sum(e * s for e, s in zip(elements, defn.sum_scale, strict=True))
+        )
     else:
-        num = int.from_bytes(_words_to_bytes(words), "big", signed=defn.type in SIGNED_TYPES)
+        single = _element_values(defn, words, 1)
+        if single is None:
+            return None
+        num = single[0]
 
     if defn.mask is not None:
         num = (int(num) & defn.mask) >> _mask_shift(defn.mask)
@@ -175,38 +212,50 @@ def _pack_number(
     defn: EntityDef, num: float | int, value: object, current_raw: int | None
 ) -> list[int]:
     """Pack the raw number into register words (float / sum_scale / mask / int)."""
-    if defn.type in FLOAT_TYPES:
-        words = _bytes_to_words(struct.pack(_FLOAT_FMT[defn.type], float(num)))
-        return _swap_words(words, defn.swap)
-
-    int_num = round(num)
-    if abs(num - int_num) > 1e-6:
-        raise CodecError(f"{defn.key}: {value!r} does not map to a whole register value")
-
     if defn.sum_scale is not None:
-        return _swap_words(_encode_sum_scale(defn, int_num), defn.swap)
+        return _swap_words(_encode_sum_scale(defn, num, value), defn.swap)
+
+    if defn.type in FLOAT_TYPES:
+        try:
+            packed = struct.pack(_FLOAT_FMT[defn.type], float(num))
+        except (OverflowError, struct.error) as err:
+            raise CodecError(
+                f"{defn.key}: {value!r} out of range for {defn.type}"
+            ) from err
+        return _swap_words(_bytes_to_words(packed), defn.swap)
+
+    int_num = _whole_number(defn, num, value)
 
     if defn.mask is not None:
         return [_encode_masked(defn, int_num, current_raw)]
 
-    width = TYPE_WIDTH[defn.type]
-    bits = width * 16
+    bits = TYPE_BITS[defn.type]
     if defn.type in SIGNED_TYPES:
         lo, hi = -(1 << (bits - 1)), (1 << (bits - 1)) - 1
     else:
         lo, hi = 0, (1 << bits) - 1
     if not lo <= int_num <= hi:
         raise CodecError(f"{defn.key}: {int_num} out of range for {defn.type}")
+    width = TYPE_WIDTH[defn.type]
     words = _bytes_to_words((int_num & ((1 << bits) - 1)).to_bytes(width * 2, "big"))
     return _swap_words(words, defn.swap)
 
 
-def _encode_sum_scale(defn: EntityDef, num: int) -> list[int]:
-    """Decompose ``num`` into words such that sum(word[i] * scale[i]) == num."""
+def _whole_number(defn: EntityDef, num: float | int, value: object) -> int:
+    int_num = round(num)
+    if abs(num - int_num) > 1e-6:
+        raise CodecError(f"{defn.key}: {value!r} does not map to a whole register value")
+    return int_num
+
+
+def _encode_sum_scale(defn: EntityDef, num: float | int, value: object) -> list[int]:
+    """Decompose ``num`` into elements with sum(element[i] * scale[i]) == num."""
     scales = defn.sum_scale
     assert scales is not None
-    if num < 0:
-        raise CodecError(f"{defn.key}: negative values not representable with sum_scale")
+    if defn.type not in UNSIGNED_INT_TYPES:
+        raise NotWritableError(
+            f"{defn.key}: sum_scale writes require an unsigned integer type"
+        )
     int_scales: list[int] = []
     for s in scales:
         if s <= 0 or int(s) != s:
@@ -214,16 +263,37 @@ def _encode_sum_scale(defn: EntityDef, num: int) -> list[int]:
                 f"{defn.key}: sum_scale write requires positive integer scales"
             )
         int_scales.append(int(s))
-    words = [0] * len(int_scales)
-    rem = num
+    int_num = _whole_number(defn, num, value)
+    if int_num < 0:
+        raise CodecError(f"{defn.key}: negative values not representable with sum_scale")
+    cap = (1 << TYPE_BITS[defn.type]) - 1
+    digits = [0] * len(int_scales)
+    rem = int_num
     # Fill positions from the largest weight down; min() lets the remainder
     # flow to smaller weights, the final check catches unrepresentable values.
     for i in sorted(range(len(int_scales)), key=lambda i: -int_scales[i]):
-        digit = min(rem // int_scales[i], 0xFFFF)
-        words[i] = digit
+        digit = min(rem // int_scales[i], cap)
+        digits[i] = digit
         rem -= digit * int_scales[i]
     if rem != 0:
-        raise CodecError(f"{defn.key}: {num} is not representable with sum_scale {scales}")
+        raise CodecError(
+            f"{defn.key}: {int_num} is not representable with sum_scale {scales}"
+        )
+    return _pack_elements(defn, digits)
+
+
+def _pack_elements(defn: EntityDef, digits: list[int]) -> list[int]:
+    """Place element values into registers (the inverse of ``_element_values``)."""
+    bits = TYPE_BITS[defn.type]
+    words = [0] * defn.count
+    if bits < 16:
+        per_word = 16 // bits
+        for i, digit in enumerate(digits):
+            words[i // per_word] |= digit << (bits * (i % per_word))
+        return words
+    step = bits // 16
+    for i, digit in enumerate(digits):
+        words[i * step : (i + 1) * step] = _bytes_to_words(digit.to_bytes(step * 2, "big"))
     return words
 
 

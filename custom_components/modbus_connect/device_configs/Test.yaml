@@ -2,7 +2,25 @@
 device:
   manufacturer: Test
   model: Test Model (DO NOT USE)
+  modbus_id: 1          # prefills the "Modbus device ID" field of the config flow
+  prefix: test_device   # prefills the "Entity ID prefix" field of the config flow
 holding:
+  low_byte_of_reg_8:
+    address: 8
+    type: uint8         # low byte of the register; bit / int8 / float16 work too
+    ha:
+      platform: sensor
+      name: Low byte (8)
+      entity_category: diagnostic
+  packed_bcd_counter:
+    address: 9
+    type: uint8
+    sum_scale: [1, 100, 10000]   # three bytes over 1.5 registers (2 are read)
+    ha:
+      platform: sensor
+      name: Packed counter (9-10)
+      precision: 0
+      entity_category: diagnostic
   nibe_degree_minutes_h_11_t:
     address: 11
     type: int32

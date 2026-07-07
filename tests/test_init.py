@@ -5,13 +5,16 @@ from pathlib import Path
 from unittest.mock import patch
 
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.modbus_connect.client import ModbusBlockClient
 from custom_components.modbus_connect.const import (
     CONF_FILENAME,
+    CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
     OPTION_SCAN_INTERVAL,
@@ -634,3 +637,94 @@ async def test_write_failure_becomes_home_assistant_error(hass: HomeAssistant) -
             {"entity_id": eid(hass, entry, "number", "setpoint"), "value": 1},
             blocking=True,
         )
+
+
+async def test_prefix_drives_entity_ids(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.1",
+            "port": 502,
+            CONF_SLAVE_ID: 7,
+            CONF_FILENAME: "acme_x1.yaml",
+            CONF_NAME: "Heat pump",
+            CONF_PREFIX: "hp",
+        },
+        unique_id="192.0.2.1:502:7",
+        title="Heat pump",
+    )
+    assert await setup_entry(hass, entry, FakeClient())
+
+    assert eid(hass, entry, "sensor", "temperature") == "sensor.hp_temperature"
+    assert eid(hass, entry, "number", "setpoint") == "number.hp_setpoint"
+    # the duplicate_as_sensor mirror keeps its suffix
+    assert eid(hass, entry, "sensor", "setpoint_sensor") == "sensor.hp_setpoint_sensor"
+    # template entities are prefixed too
+    assert eid(hass, entry, "sensor", "double_temp") == "sensor.hp_double_temp"
+    assert eid(hass, entry, "climate", "t_climate") == "climate.hp_t_climate"
+
+    # the device name comes from the name, not the prefix
+    device = dr.async_get(hass).async_get_device(
+        identifiers={(DOMAIN, entry.entry_id)}
+    )
+    assert device is not None
+    assert device.name == "Heat pump"
+
+
+async def test_no_prefix_keeps_device_name_entity_ids(hass: HomeAssistant) -> None:
+    entry = make_entry()  # no prefix, no name
+    assert await setup_entry(hass, entry, FakeClient())
+    # default HA naming: device name (manufacturer + model) + entity name
+    assert eid(hass, entry, "sensor", "temperature") == "sensor.acme_x1_temperature"
+
+
+SHARED_YAML = """
+device:
+  manufacturer: Acme
+  model: Shared
+holding:
+  raw_value:
+    address: 0
+    ha:
+      platform: sensor
+      name: Raw
+  scaled_value:
+    address: 0
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Scaled
+  low_byte:
+    address: 0
+    type: uint8
+    ha:
+      platform: sensor
+      name: Low byte
+  first_bit:
+    address: 0
+    type: bit
+    ha:
+      platform: sensor
+      name: First bit
+"""
+
+
+async def test_multiple_entities_share_a_register(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "acme_shared.yaml").write_text(SHARED_YAML, encoding="utf-8")
+
+    entry = make_entry("acme_shared.yaml")
+    client = FakeClient()
+    client.values[("holding", 0)] = 215  # 0x00D7
+    assert await setup_entry(hass, entry, client)
+
+    for key, expected in [
+        ("raw_value", "215"),
+        ("scaled_value", "21.5"),
+        ("low_byte", "215"),
+        ("first_bit", "1"),
+    ]:
+        state = hass.states.get(eid(hass, entry, "sensor", key))
+        assert state is not None
+        assert state.state == expected

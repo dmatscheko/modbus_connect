@@ -180,6 +180,99 @@ def test_sum_scale_negative_rejected():
         encode(defn, -1)
 
 
+# --- small types (bit / uint8 / int8 / float16) --------------------------------
+
+
+def test_bit_reads_lsb_and_roundtrips():
+    defn = e(type="bit")
+    assert decode(defn, [0b0101]) == 1
+    assert decode(defn, [0b0100]) == 0
+    assert encode(defn, 1) == [1]
+    assert encode(defn, 0) == [0]
+    with pytest.raises(CodecError):
+        encode(defn, 2)
+
+
+def test_uint8_reads_low_byte_and_roundtrips():
+    defn = e(type="uint8")
+    assert decode(defn, [0x1234]) == 0x34
+    assert encode(defn, 0xAB) == [0x00AB]
+    with pytest.raises(CodecError):
+        encode(defn, 256)
+
+
+def test_int8_sign_extends():
+    defn = e(type="int8")
+    assert decode(defn, [0x00FB]) == -5
+    assert encode(defn, -5) == [0x00FB]
+    with pytest.raises(CodecError):
+        encode(defn, 128)
+
+
+def test_float16_roundtrip_and_nan():
+    defn = e(type="float16")
+    words = encode(defn, 1.5)
+    assert words == [0x3E00]
+    assert decode(defn, words) == 1.5
+    assert decode(defn, [0x7E00]) is None  # NaN
+    with pytest.raises(CodecError):
+        encode(defn, 1e6)  # not representable in half precision
+
+
+# --- sum_scale over typed elements ----------------------------------------------
+
+
+def test_sum_scale_uint8_packs_two_per_register():
+    defn = e(type="uint8", count=1, sum_scale=(1, 100))
+    assert decode(defn, [0x0305]) == 5 + 3 * 100
+    assert encode(defn, 305) == [0x0305]
+
+
+def test_sum_scale_uint8_across_registers():
+    # 3 byte elements -> 1.5 registers, stored in 2
+    defn = e(type="uint8", count=2, sum_scale=(1, 100, 10000))
+    words = encode(defn, 987)
+    assert words == [0x0957, 0x0000]  # 87 low byte, 9 high byte, 0 pad
+    assert decode(defn, words) == 987
+
+
+def test_sum_scale_bits():
+    defn = e(type="bit", count=1, sum_scale=(1, 2, 4, 8))
+    assert decode(defn, [0b1010]) == 10
+    assert encode(defn, 10) == [0b1010]
+
+
+def test_sum_scale_signed_elements_decode_only():
+    defn = e(type="int16", count=2, sum_scale=(1, 10))
+    assert decode(defn, [0xFFFE, 2]) == -2 + 2 * 10
+    with pytest.raises(NotWritableError):
+        encode(defn, 18)
+
+
+def test_sum_scale_uint32_elements():
+    defn = e(type="uint32", count=4, sum_scale=(1, 1000000))
+    words = encode(defn, 2_100_000)
+    assert words == [0x0001, 0x86A0, 0x0000, 0x0002]
+    assert decode(defn, words) == 2_100_000
+
+
+def test_sum_scale_float_elements_decode_only():
+    defn = e(type="float32", count=4, sum_scale=(1, 10))
+    one_and_two = encode(e(type="float32", count=2), 1.0) + encode(
+        e(type="float32", count=2), 2.0
+    )
+    assert decode(defn, one_and_two) == 21  # 1.0 + 2.0*10
+    with pytest.raises(NotWritableError):
+        encode(defn, 21)
+
+
+def test_sum_scale_uint8_with_byte_swap():
+    # device packs the first element into the high byte: swap flips it back
+    defn = e(type="uint8", count=1, sum_scale=(1, 100), swap="byte")
+    assert decode(defn, [0x0503]) == 5 + 3 * 100
+    assert encode(defn, 305) == [0x0503]
+
+
 # --- mask ----------------------------------------------------------------------
 
 

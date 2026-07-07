@@ -46,6 +46,8 @@ from .models import (
     PLATFORMS,
     SWAP_MODES,
     TEMPLATE_PLATFORMS,
+    TYPE_ALIASES,
+    TYPE_BITS,
     TYPE_STRING,
     TYPE_WIDTH,
     WRITABLE_TABLES,
@@ -164,24 +166,20 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     device = data.get("device")
     if not isinstance(device, dict):
         raise ctx.fail("missing 'device:' section")
-    max_read, max_gap, scan_interval = _parse_device_block(ctx, device)
+    device_fields = _parse_device_block(ctx, device)
     entities = _parse_sections(ctx, data, filename)
     templates = _parse_templates(ctx, data, entities, filename)
 
     return DeviceDef(
-        manufacturer=device["manufacturer"],
-        model=device["model"],
         entities=tuple(entities),
         templates=tuple(templates),
-        max_read=max_read,
-        max_gap=max_gap,
-        scan_interval=scan_interval,
         filename=filename,
+        **device_fields,
     )
 
 
-def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> tuple[int, int, int | None]:
-    """Validate the device: section; returns (max_read, max_gap, scan_interval)."""
+def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
+    """Validate the device: section; returns the device-level DeviceDef fields."""
     for required in ("manufacturer", "model"):
         if not isinstance(device.get(required), str) or not device[required]:
             raise ctx.fail(f"device.{required} is required and must be a string")
@@ -191,17 +189,31 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> tuple[int, int, in
         "max_register_read",
         "max_read_gap",
         "scan_interval",
+        "modbus_id",
+        "prefix",
     }
     if unknown:
         raise ctx.fail(f"unknown device keys: {sorted(unknown)}")
-    max_read = _int_in_range(ctx, "device.max_register_read",
-                             device.get("max_register_read", DEFAULT_MAX_READ), 1, 2000)
-    max_gap = _int_in_range(ctx, "device.max_read_gap",
-                            device.get("max_read_gap", DEFAULT_MAX_GAP), 0, 1000)
     scan_interval = device.get("scan_interval")
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "device.scan_interval", scan_interval, 1, 86400)
-    return max_read, max_gap, scan_interval
+    modbus_id = device.get("modbus_id")
+    if modbus_id is not None:
+        modbus_id = _int_in_range(ctx, "device.modbus_id", modbus_id, 0, 255)
+    prefix = device.get("prefix")
+    if prefix is not None and (not isinstance(prefix, str) or not prefix):
+        raise ctx.fail("device.prefix must be a non-empty string")
+    return {
+        "manufacturer": device["manufacturer"],
+        "model": device["model"],
+        "max_read": _int_in_range(ctx, "device.max_register_read",
+                                  device.get("max_register_read", DEFAULT_MAX_READ), 1, 2000),
+        "max_gap": _int_in_range(ctx, "device.max_read_gap",
+                                 device.get("max_read_gap", DEFAULT_MAX_GAP), 0, 1000),
+        "scan_interval": scan_interval,
+        "modbus_id": modbus_id,
+        "prefix": prefix,
+    }
 
 
 def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[EntityDef]:
@@ -391,10 +403,14 @@ def _parse_shape(
         count = 1
     else:
         typ = raw.get("type", "uint16")
-        if typ == "bool" or (typ != TYPE_STRING and typ not in TYPE_WIDTH):
+        if isinstance(typ, str):
+            typ = TYPE_ALIASES.get(typ, typ)
+        if not isinstance(typ, str) or typ == "bool" or (
+            typ != TYPE_STRING and typ not in TYPE_BITS
+        ):
             raise ctx.fail(
                 f"unknown type {typ!r}, expected one of "
-                f"{sorted(TYPE_WIDTH)} or 'string'"
+                f"{sorted(TYPE_BITS)} or 'string'"
             )
         count = _derive_count(ctx, raw, typ, sum_scale)
 
@@ -435,8 +451,8 @@ def _parse_conversions(
 
     if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or swap or sum_scale):
         raise ctx.fail("strings cannot be combined with numeric conversions or swap")
-    if typ in FLOAT_TYPES and (mask or flags or sum_scale):
-        raise ctx.fail("floats cannot be combined with mask/flags/sum_scale")
+    if typ in FLOAT_TYPES and (mask or flags):
+        raise ctx.fail("floats cannot be combined with mask/flags")
     if value_map and flags:
         raise ctx.fail("'map' and 'flags' are mutually exclusive")
     if (value_map or flags) and (multiplier is not None or offset is not None):
@@ -457,11 +473,13 @@ def _derive_count(
             raise ctx.fail("strings require 'count' (registers; 2 characters each)")
         return explicit
     if sum_scale is not None:
-        if typ != "uint16":
-            raise ctx.fail("sum_scale requires type uint16 (one word per scale factor)")
-        if explicit is not None and explicit != len(sum_scale):
-            raise ctx.fail(f"count {explicit} contradicts sum_scale length {len(sum_scale)}")
-        return len(sum_scale)
+        derived = (TYPE_BITS[typ] * len(sum_scale) + 15) // 16
+        if explicit is not None and explicit != derived:
+            raise ctx.fail(
+                f"count {explicit} contradicts sum_scale "
+                f"({len(sum_scale)} x {typ} needs {derived})"
+            )
+        return derived
     derived = TYPE_WIDTH[typ]
     if explicit is not None and explicit != derived:
         raise ctx.fail(f"count {explicit} contradicts type {typ} (needs {derived})")

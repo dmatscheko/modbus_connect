@@ -9,6 +9,7 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -67,10 +68,17 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._cache: dict[tuple[str, int], int | bool] = {}
         self._consecutive_failures = 0
 
-        prefix = entry.data.get(CONF_PREFIX) or ""
+        # The prefix drives entity ids; the name is the device/entry title.
+        # Old entries stored their device name in CONF_PREFIX.
+        self.entity_id_prefix: str = entry.data.get(CONF_PREFIX) or ""
+        name = (
+            entry.data.get(CONF_NAME)
+            or self.entity_id_prefix
+            or f"{device.manufacturer} {device.model}"
+        )
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name=prefix or f"{device.manufacturer} {device.model}",
+            name=name,
             manufacturer=device.manufacturer,
             model=device.model,
         )

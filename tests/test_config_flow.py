@@ -3,7 +3,9 @@
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
+import voluptuous as vol
 from homeassistant.config_entries import SOURCE_RECONFIGURE, SOURCE_USER
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -28,15 +30,33 @@ holding:
       name: Temperature
 """
 
+DEVICE_YAML_DEFAULTS = """
+device:
+  manufacturer: Acme
+  model: X2
+  modbus_id: 42
+  prefix: acme_pre
+  scan_interval: 15
+holding:
+  temperature:
+    address: 0
+    ha:
+      platform: sensor
+      name: Temperature
+"""
+
+DEVICE_STEP = {CONF_FILENAME: "acme_x1.yaml", CONF_NAME: ""}
 CONNECTION = {"host": "192.0.2.1", "port": 502, CONF_SLAVE_ID: 7, CONF_PREFIX: ""}
 UNIQUE_ID = "192.0.2.1:502:7"
 
 
-def write_device_file(hass: HomeAssistant, name: str = "acme_x1.yaml") -> None:
+def write_device_file(
+    hass: HomeAssistant, name: str = "acme_x1.yaml", content: str = DEVICE_YAML
+) -> None:
     """Drop a minimal device file into the user config dir."""
     directory = Path(hass.config.config_dir) / DOMAIN
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / name).write_text(DEVICE_YAML, encoding="utf-8")
+    (directory / name).write_text(content, encoding="utf-8")
 
 
 def patch_probe(result: bool):
@@ -53,6 +73,15 @@ def patch_setup():
     )
 
 
+def form_defaults(result) -> dict:
+    """The prefilled defaults of the shown form, by field name."""
+    out = {}
+    for key in result["data_schema"].schema:
+        default = getattr(key, "default", vol.UNDEFINED)
+        out[str(key.schema)] = None if default is vol.UNDEFINED else default()
+    return out
+
+
 async def test_full_flow(hass: HomeAssistant) -> None:
     write_device_file(hass)
     with patch_probe(True), patch_setup():
@@ -63,37 +92,56 @@ async def test_full_flow(hass: HomeAssistant) -> None:
         assert result["step_id"] == "user"
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], CONNECTION
+            result["flow_id"], DEVICE_STEP
         )
         assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "device"
+        assert result["step_id"] == "connection"
+        # No device defaults in the file: modbus id 1, prefix from the title
+        assert form_defaults(result)[CONF_SLAVE_ID] == 1
+        assert form_defaults(result)[CONF_PREFIX] == "Acme X1"
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_FILENAME: "acme_x1.yaml"}
+            result["flow_id"], CONNECTION
         )
         await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "Acme X1"
-    assert result["data"] == {**CONNECTION, CONF_FILENAME: "acme_x1.yaml"}
+    assert result["data"] == {**DEVICE_STEP, **CONNECTION}
     assert result["result"].unique_id == UNIQUE_ID
 
 
-async def test_prefix_becomes_title(hass: HomeAssistant) -> None:
+async def test_name_becomes_title_and_prefix_default(hass: HomeAssistant) -> None:
     write_device_file(hass)
     with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_USER}
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {**CONNECTION, CONF_PREFIX: "Heat pump"}
+            result["flow_id"], {**DEVICE_STEP, CONF_NAME: "Heat pump"}
         )
+        assert form_defaults(result)[CONF_PREFIX] == "Heat pump"
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_FILENAME: "acme_x1.yaml"}
+            result["flow_id"], {**CONNECTION, CONF_PREFIX: "hp"}
         )
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "Heat pump"
+    assert result["data"][CONF_NAME] == "Heat pump"
+    assert result["data"][CONF_PREFIX] == "hp"
+
+
+async def test_device_file_defaults_prefill(hass: HomeAssistant) -> None:
+    write_device_file(hass, "acme_x2.yaml", DEVICE_YAML_DEFAULTS)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_FILENAME: "acme_x2.yaml", CONF_NAME: ""}
+    )
+    defaults = form_defaults(result)
+    assert defaults[CONF_SLAVE_ID] == 42
+    assert defaults[CONF_PREFIX] == "acme_pre"
 
 
 async def test_cannot_connect_then_recover(hass: HomeAssistant) -> None:
@@ -101,26 +149,35 @@ async def test_cannot_connect_then_recover(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
     )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
     with patch_probe(False):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
         )
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "user"
+    assert result["step_id"] == "connection"
     assert result["errors"] == {"base": "cannot_connect"}
+    # Entered values survive the retry form
+    assert form_defaults(result)["host"] == "192.0.2.1"
 
-    with patch_probe(True):
+    with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
         )
-    assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "device"
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
 async def test_duplicate_aborts(hass: HomeAssistant) -> None:
+    write_device_file(hass)
     MockConfigEntry(domain=DOMAIN, unique_id=UNIQUE_ID).add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], CONNECTION
@@ -130,18 +187,12 @@ async def test_duplicate_aborts(hass: HomeAssistant) -> None:
 
 
 async def test_no_device_files_aborts(hass: HomeAssistant) -> None:
-    with (
-        patch_probe(True),
-        patch(
-            "custom_components.modbus_connect.config_flow.async_load_all",
-            AsyncMock(return_value={}),
-        ),
+    with patch(
+        "custom_components.modbus_connect.config_flow.async_load_all",
+        AsyncMock(return_value={}),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_USER}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], CONNECTION
         )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "no_device_files"
@@ -173,24 +224,40 @@ async def test_reconfigure_flow(hass: HomeAssistant) -> None:
     result = await start_reconfigure(hass, entry)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
+    assert form_defaults(result)[CONF_FILENAME] == "acme_x1.yaml"
 
-    new_connection = {**CONNECTION, "host": "192.0.2.2", CONF_PREFIX: "Renamed"}
+    new_connection = {**CONNECTION, "host": "192.0.2.2"}
     with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], new_connection
+            result["flow_id"], {CONF_FILENAME: "other.yaml", CONF_NAME: "Renamed"}
         )
         assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "reconfigure_device"
+        assert result["step_id"] == "reconfigure_connection"
+        assert form_defaults(result)["host"] == "192.0.2.1"
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_FILENAME: "other.yaml"}
+            result["flow_id"], new_connection
         )
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
-    assert entry.data == {**new_connection, CONF_FILENAME: "other.yaml"}
+    assert entry.data == {
+        **new_connection,
+        CONF_FILENAME: "other.yaml",
+        CONF_NAME: "Renamed",
+    }
     assert entry.unique_id == "192.0.2.2:502:7"
     assert entry.title == "Renamed"
+
+
+async def test_reconfigure_prefills_name_from_old_prefix(hass: HomeAssistant) -> None:
+    """Entries created before CONF_NAME stored the device name in the prefix."""
+    write_device_file(hass)
+    entry = make_entry(**{CONF_PREFIX: "Old name"})
+    entry.add_to_hass(hass)
+
+    result = await start_reconfigure(hass, entry)
+    assert form_defaults(result)[CONF_NAME] == "Old name"
 
 
 async def test_reconfigure_same_connection_ok(hass: HomeAssistant) -> None:
@@ -201,13 +268,13 @@ async def test_reconfigure_same_connection_ok(hass: HomeAssistant) -> None:
     result = await start_reconfigure(hass, entry)
     with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], CONNECTION
+            result["flow_id"], DEVICE_STEP
         )
         assert result["type"] is FlowResultType.FORM
-        assert result["step_id"] == "reconfigure_device"
+        assert result["step_id"] == "reconfigure_connection"
 
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_FILENAME: "acme_x1.yaml"}
+            result["flow_id"], CONNECTION
         )
         await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
@@ -223,6 +290,9 @@ async def test_reconfigure_collision_aborts(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
 
     result = await start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
     with patch_probe(True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**CONNECTION, "host": "192.0.2.9"}
@@ -237,12 +307,15 @@ async def test_reconfigure_cannot_connect(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
 
     result = await start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
     with patch_probe(False):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
         )
     assert result["type"] is FlowResultType.FORM
-    assert result["step_id"] == "reconfigure"
+    assert result["step_id"] == "reconfigure_connection"
     assert result["errors"] == {"base": "cannot_connect"}
 
 
@@ -261,21 +334,25 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert entry.options == {OPTION_SCAN_INTERVAL: 10}
 
 
+async def test_options_flow_defaults_to_device_scan_interval(
+    hass: HomeAssistant,
+) -> None:
+    write_device_file(hass, "acme_x2.yaml", DEVICE_YAML_DEFAULTS)
+    entry = make_entry(**{CONF_FILENAME: "acme_x2.yaml"})
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert form_defaults(result)[OPTION_SCAN_INTERVAL] == 15
+
+
 async def test_reconfigure_no_device_files_aborts(hass: HomeAssistant) -> None:
-    write_device_file(hass)
     entry = make_entry()
     entry.add_to_hass(hass)
 
-    result = await start_reconfigure(hass, entry)
-    with (
-        patch_probe(True),
-        patch(
-            "custom_components.modbus_connect.config_flow.async_load_all",
-            AsyncMock(return_value={}),
-        ),
+    with patch(
+        "custom_components.modbus_connect.config_flow.async_load_all",
+        AsyncMock(return_value={}),
     ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], CONNECTION
-        )
+        result = await start_reconfigure(hass, entry)
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "no_device_files"

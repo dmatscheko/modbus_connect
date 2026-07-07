@@ -101,6 +101,60 @@ def test_sum_scale_sets_count():
     assert dev.entities[0].count == 3
 
 
+@pytest.mark.parametrize(
+    ("typ", "weights", "count"),
+    [
+        ("uint16", 3, 3),
+        ("uint8", 3, 2),  # 1.5 registers -> read 2
+        ("uint8", 6, 3),
+        ("int8", 2, 1),
+        ("bit", 20, 2),
+        ("int1", 4, 1),
+        ("uint32", 2, 4),
+        ("float32", 2, 4),
+    ],
+)
+def test_sum_scale_count_follows_type(typ, weights, count):
+    dev = parse_device(
+        doc(x={"address": 1, "type": typ, "sum_scale": [1] * weights,
+               "ha": {"platform": "sensor"}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].count == count
+
+
+@pytest.mark.parametrize("typ", ["bit", "int1", "uint8", "int8", "float16"])
+def test_small_types_read_one_register(typ):
+    dev = parse_device(
+        doc(x={"address": 1, "type": typ, "ha": {"platform": "sensor"}}), "t.yaml"
+    )
+    assert dev.entities[0].count == 1
+    assert dev.entities[0].type == ("bit" if typ == "int1" else typ)
+
+
+def test_device_defaults_parsed():
+    data = {
+        "device": {
+            "manufacturer": "Acme",
+            "model": "X1",
+            "modbus_id": 247,
+            "prefix": "acme_x1",
+            "scan_interval": 15,
+        },
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.modbus_id == 247
+    assert dev.prefix == "acme_x1"
+    assert dev.scan_interval == 15
+
+
+def test_device_defaults_absent():
+    dev = parse_device(doc(x={"address": 1, "ha": {"platform": "sensor"}}), "t.yaml")
+    assert dev.modbus_id is None
+    assert dev.prefix is None
+
+
 def test_count_conflict_rejected():
     with pytest.raises(DeviceSchemaError, match="contradicts"):
         parse_device(
@@ -450,6 +504,16 @@ ERROR_CASES = [
         {"device": {"manufacturer": "A", "model": "X", "max_register_read": 0}},
         "device.max_register_read",
     ),
+    (
+        "bad_device_modbus_id",
+        {"device": {"manufacturer": "A", "model": "X", "modbus_id": 256}},
+        "device.modbus_id",
+    ),
+    (
+        "bad_device_prefix",
+        {"device": {"manufacturer": "A", "model": "X", "prefix": ""}},
+        "device.prefix",
+    ),
     ("section_not_mapping", {**DEVICE, "holding": []}, "must be a mapping of entity"),
     (
         "template_not_mapping",
@@ -505,7 +569,12 @@ ERROR_CASES = [
     ),
     (
         "unknown_type",
-        doc(x={"address": 0, "type": "float16", "ha": {"platform": "sensor"}}),
+        doc(x={"address": 0, "type": "uint24", "ha": {"platform": "sensor"}}),
+        "unknown type",
+    ),
+    (
+        "type_not_a_string",
+        doc(x={"address": 0, "type": 16, "ha": {"platform": "sensor"}}),
         "unknown type",
     ),
     (
@@ -585,16 +654,10 @@ ERROR_CASES = [
         "sum_scale is not valid for strings",
     ),
     (
-        "sum_scale_wrong_type",
-        doc(x={"address": 0, "type": "uint32", "sum_scale": [1, 2],
-               "ha": {"platform": "sensor"}}),
-        "sum_scale requires type uint16",
-    ),
-    (
         "sum_scale_count_conflict",
         doc(x={"address": 0, "count": 3, "sum_scale": [1, 2],
                "ha": {"platform": "sensor"}}),
-        "contradicts sum_scale length",
+        "contradicts sum_scale",
     ),
     (
         "count_contradicts_type",
