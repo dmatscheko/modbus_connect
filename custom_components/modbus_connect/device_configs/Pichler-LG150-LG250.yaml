@@ -4,6 +4,8 @@ device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 150 - LG 250
   max_register_read: 100
+  modbus_id: 20
+  prefix: pichler_lg
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
