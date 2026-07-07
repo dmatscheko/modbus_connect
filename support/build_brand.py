@@ -6,10 +6,10 @@ top and two device nodes below. The wordmark is outlined from Figtree (the
 Home Assistant brand typeface, OFL) so the SVGs are fully self-contained.
 
 Usage:
-    curl -sL -o /tmp/figtree.ttf \
+    curl -sL -o figtree.ttf \
         "https://github.com/google/fonts/raw/main/ofl/figtree/Figtree%5Bwght%5D.ttf"
     pip install fonttools
-    python3 support/build_brand.py /tmp/figtree.ttf
+    python3 support/build_brand.py figtree.ttf
 
 PNG rendering (needs rsvg-convert and imagemagick):
     cd support
@@ -107,7 +107,11 @@ def logo_svg(font_path: Path, text_color: str) -> str:
 
 
 if __name__ == "__main__":
-    font = Path(sys.argv[1] if len(sys.argv) > 1 else "/tmp/figtree.ttf")
+    if len(sys.argv) != 2:
+        sys.exit("usage: build_brand.py <path to Figtree[wght].ttf> — see module docstring")
+    font = Path(sys.argv[1])
+    if not font.is_file():
+        sys.exit(f"font file not found: {font}")
     (OUT / "icon.svg").write_text(icon_svg(), encoding="utf-8")
     (OUT / "logo.svg").write_text(logo_svg(font, DARK), encoding="utf-8")
     (OUT / "logo-dark.svg").write_text(logo_svg(font, TRACE), encoding="utf-8")

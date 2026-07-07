@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Deliberately not SHA-pinned: hassfest validates against Home
+      # Assistant's *current* integration standards, has no releases, and is
+      # documented to be used from master. A pinned SHA would freeze the
+      # validation rules and silently rot.
       - uses: home-assistant/actions/hassfest@master
 
   hacs:
@@ -21,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Deliberately not SHA-pinned: the HACS validator evolves with the HACS
+      # store requirements and is documented to be used from main.
       - uses: hacs/action@main
         with:
           category: integration

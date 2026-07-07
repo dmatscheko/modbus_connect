@@ -81,13 +81,13 @@
       "message": "Cannot connect to Modbus gateway {host}:{port}."
     },
     "write_failed": {
-      "message": "Writing '{key}' failed: {error}"
+      "message": "Writing {key} failed: {error}"
     },
     "no_action": {
-      "message": "'{key}' has no '{action}' action configured."
+      "message": "{key} has no {action} action configured."
     },
     "no_mapping": {
-      "message": "'{key}' has no '{action}' mapping for '{value}'."
+      "message": "{key} has no {action} mapping for {value}."
     }
   }
 }

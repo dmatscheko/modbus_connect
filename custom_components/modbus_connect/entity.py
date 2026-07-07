@@ -88,8 +88,10 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
     def device_value(self) -> Any:
         """The decoded value from the last read, or None.
 
-        Deliberately not named ``value``: NumberEntity and TextEntity define a
-        final ``value`` property that converts ``native_value`` for display.
+        Deliberately not named ``value``: NumberEntity defines a final
+        ``value`` property (``state`` returns it) that converts
+        ``native_value`` into the display unit; shadowing it would bypass
+        that conversion.
         """
         data = self.coordinator.data
         return None if data is None else data.get(self._defn.key)

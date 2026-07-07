@@ -49,29 +49,50 @@ def plan_blocks(
     blocks: list[Span] = []
     unique = sorted(set(spans))
     for table in sorted({s.table for s in unique}):
+        table_spans = [s for s in unique if s.table == table]
         cap = _table_cap(table, max_read)
-        cur_start: int | None = None
-        cur_end = 0
-        for span in (s for s in unique if s.table == table):
-            if cur_start is None:
-                cur_start, cur_end = span.start, span.end
-                continue
-            if span.start <= cur_end:
-                bridged: range = range(0)
-            else:
-                bridged = range(cur_end, span.start)
-            fits = max(cur_end, span.end) - cur_start <= cap
-            gap_ok = len(bridged) <= max_gap and not any(
-                (table, a) in holes for a in bridged
-            )
-            if fits and gap_ok:
-                cur_end = max(cur_end, span.end)
-            else:
-                blocks.extend(_split(table, cur_start, cur_end, cap))
-                cur_start, cur_end = span.start, span.end
-        if cur_start is not None:
-            blocks.extend(_split(table, cur_start, cur_end, cap))
+        blocks.extend(_plan_table(table, table_spans, cap, max_gap, holes))
     return blocks
+
+
+def _plan_table(
+    table: str,
+    spans: list[Span],
+    cap: int,
+    max_gap: int,
+    holes: frozenset[Hole] | set[Hole],
+) -> list[Span]:
+    """Merge one table's sorted spans into blocks of at most ``cap`` addresses."""
+    blocks: list[Span] = []
+    cur_start: int | None = None
+    cur_end = 0
+    for span in spans:
+        if cur_start is None:
+            cur_start, cur_end = span.start, span.end
+        elif _can_merge(table, cur_start, cur_end, span, cap, max_gap, holes):
+            cur_end = max(cur_end, span.end)
+        else:
+            blocks.extend(_split(table, cur_start, cur_end, cap))
+            cur_start, cur_end = span.start, span.end
+    if cur_start is not None:
+        blocks.extend(_split(table, cur_start, cur_end, cap))
+    return blocks
+
+
+def _can_merge(
+    table: str,
+    cur_start: int,
+    cur_end: int,
+    span: Span,
+    cap: int,
+    max_gap: int,
+    holes: frozenset[Hole] | set[Hole],
+) -> bool:
+    """Whether ``span`` may join the current block (size cap, gap, no holes)."""
+    if max(cur_end, span.end) - cur_start > cap:
+        return False
+    bridged = range(cur_end, span.start) if span.start > cur_end else range(0)
+    return len(bridged) <= max_gap and not any((table, a) in holes for a in bridged)
 
 
 def spans_in_block(block: Span, spans: Iterable[Span]) -> list[Span]:

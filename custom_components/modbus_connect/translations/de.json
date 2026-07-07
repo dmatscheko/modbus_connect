@@ -81,13 +81,13 @@
       "message": "Keine Verbindung zum Modbus-Gateway {host}:{port} möglich."
     },
     "write_failed": {
-      "message": "Schreiben von '{key}' fehlgeschlagen: {error}"
+      "message": "Schreiben von {key} fehlgeschlagen: {error}"
     },
     "no_action": {
-      "message": "'{key}' hat keine konfigurierte '{action}'-Aktion."
+      "message": "{key} hat keine konfigurierte {action}-Aktion."
     },
     "no_mapping": {
-      "message": "'{key}' hat keine '{action}'-Zuordnung für '{value}'."
+      "message": "{key} hat keine {action}-Zuordnung für {value}."
     }
   }
 }

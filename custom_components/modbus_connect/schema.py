@@ -164,6 +164,24 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     device = data.get("device")
     if not isinstance(device, dict):
         raise ctx.fail("missing 'device:' section")
+    max_read, max_gap, scan_interval = _parse_device_block(ctx, device)
+    entities = _parse_sections(ctx, data, filename)
+    templates = _parse_templates(ctx, data, entities, filename)
+
+    return DeviceDef(
+        manufacturer=device["manufacturer"],
+        model=device["model"],
+        entities=tuple(entities),
+        templates=tuple(templates),
+        max_read=max_read,
+        max_gap=max_gap,
+        scan_interval=scan_interval,
+        filename=filename,
+    )
+
+
+def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> tuple[int, int, int | None]:
+    """Validate the device: section; returns (max_read, max_gap, scan_interval)."""
     for required in ("manufacturer", "model"):
         if not isinstance(device.get(required), str) or not device[required]:
             raise ctx.fail(f"device.{required} is required and must be a string")
@@ -183,7 +201,11 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     scan_interval = device.get("scan_interval")
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "device.scan_interval", scan_interval, 1, 86400)
+    return max_read, max_gap, scan_interval
 
+
+def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[EntityDef]:
+    """Parse the four table sections into entity definitions."""
     entities: list[EntityDef] = []
     section_of: dict[str, str] = {}
     for section in SECTIONS:
@@ -206,7 +228,13 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
         raise ctx.fail(
             f"no entities defined (add one of the {'/'.join(SECTIONS)} sections)"
         )
+    return entities
 
+
+def _parse_templates(
+    ctx: _Ctx, data: dict[str, Any], entities: list[EntityDef], filename: str
+) -> list[TemplateDef]:
+    """Parse the template: section against the already-parsed entities."""
     raw_templates = data.get("template") or {}
     if not isinstance(raw_templates, dict):
         raise ctx.fail("'template:' must be a mapping")
@@ -219,17 +247,7 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
                 f"template '{key}' collides with an entity of the same name"
             )
         templates.append(_parse_template(_Ctx(filename, key), key, raw, defs_by_key))
-
-    return DeviceDef(
-        manufacturer=device["manufacturer"],
-        model=device["model"],
-        entities=tuple(entities),
-        templates=tuple(templates),
-        max_read=max_read,
-        max_gap=max_gap,
-        scan_interval=scan_interval,
-        filename=filename,
-    )
+    return templates
 
 
 def _int_in_range(ctx: _Ctx, name: str, value: Any, lo: int, hi: int) -> int:
@@ -258,94 +276,17 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
             f"unknown keys: {sorted(unknown)} (Home Assistant fields go under 'ha:')"
         )
 
-    internal = _bool(ctx, raw, "internal")
-    ha_raw = raw.get("ha")
-    parsed_ha: dict[str, Any] = {}
-    if internal:
-        if ha_raw is not None:
-            raise ctx.fail(
-                "internal entities must not have an 'ha:' block "
-                "(they exist only for the template: section)"
-            )
-        for bad in ("on", "off", "write_value"):
-            if raw.get(bad) is not None:
-                raise ctx.fail(f"'{bad}' is not valid for internal entities")
-        if raw.get("duplicate_as_sensor"):
-            raise ctx.fail("'duplicate_as_sensor' is not valid for internal entities")
-        platform = "internal"
-    else:
-        if not isinstance(ha_raw, dict) or "platform" not in ha_raw:
-            raise ctx.fail("'ha:' block with a 'platform:' is required")
-        platform = ha_raw["platform"]
-        if platform not in PLATFORMS:
-            raise ctx.fail(
-                f"unknown platform {platform!r}, expected one of {sorted(PLATFORMS)}"
-            )
-        parsed_ha = _parse_ha(ctx, platform, ha_raw)
+    platform, parsed_ha = _parse_platform(ctx, raw)
 
     address = raw.get("address")
     if address is None:
         raise ctx.fail("'address' is required")
     address = _int_in_range(ctx, "address", address, 0, 0xFFFF)
 
-    # --- value type and count -------------------------------------------------
-    sum_scale = raw.get("sum_scale")
-    if sum_scale is not None:
-        if (
-            not isinstance(sum_scale, list)
-            or not sum_scale
-            or any(isinstance(s, bool) or not isinstance(s, (int, float)) for s in sum_scale)
-        ):
-            raise ctx.fail("sum_scale must be a non-empty list of numbers")
-        sum_scale = tuple(float(s) for s in sum_scale)
-
-    if table in BIT_TABLES:
-        typ = raw.get("type", "bool")
-        if typ != "bool":
-            raise ctx.fail(f"type {typ!r} is not valid for a {table} (bit) table")
-        for forbidden in ("swap", "sum_scale", "mask", "multiplier", "offset", "map", "flags"):
-            if raw.get(forbidden) is not None:
-                raise ctx.fail(f"'{forbidden}' is not valid for a {table} (bit) table")
-        count = 1
-    else:
-        typ = raw.get("type", "uint16")
-        if typ == "bool" or (typ != TYPE_STRING and typ not in TYPE_WIDTH):
-            raise ctx.fail(
-                f"unknown type {typ!r}, expected one of "
-                f"{sorted(TYPE_WIDTH)} or 'string'"
-            )
-        count = _derive_count(ctx, raw, typ, sum_scale)
-
-    swap = raw.get("swap")
-    if swap is not None and swap not in SWAP_MODES:
-        raise ctx.fail(f"unknown swap {swap!r}, expected one of {sorted(SWAP_MODES)}")
-
-    mask = raw.get("mask")
-    if mask is not None:
-        if typ in FLOAT_TYPES or typ == TYPE_STRING:
-            raise ctx.fail("'mask' requires an integer type")
-        mask = _int_in_range(ctx, "mask", mask, 1, (1 << (16 * count)) - 1)
-
-    multiplier = raw.get("multiplier")
-    if multiplier is not None:
-        multiplier = _number(ctx, "multiplier", multiplier)
-        if multiplier == 0:
-            raise ctx.fail("multiplier must not be 0")
-    offset = raw.get("offset")
-    if offset is not None:
-        offset = _number(ctx, "offset", offset)
-
-    value_map = _parse_int_str_map(ctx, "map", raw.get("map"))
-    flags = _parse_int_str_map(ctx, "flags", raw.get("flags"), max_key=16 * count - 1)
-
-    if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or swap or sum_scale):
-        raise ctx.fail("strings cannot be combined with numeric conversions or swap")
-    if typ in FLOAT_TYPES and (mask or flags or sum_scale):
-        raise ctx.fail("floats cannot be combined with mask/flags/sum_scale")
-    if value_map and flags:
-        raise ctx.fail("'map' and 'flags' are mutually exclusive")
-    if (value_map or flags) and (multiplier is not None or offset is not None):
-        raise ctx.fail("'map'/'flags' cannot be combined with multiplier/offset")
+    typ, count, sum_scale, swap = _parse_shape(ctx, raw, table)
+    mask, multiplier, offset, value_map, flags = _parse_conversions(
+        ctx, raw, typ, count, sum_scale, swap
+    )
 
     read_modify_write = _bool(ctx, raw, "read_modify_write")
     if read_modify_write and (mask is None or count != 1):
@@ -394,9 +335,113 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         duplicate_as_sensor=duplicate_as_sensor,
         ha=parsed_ha,
     )
-    if not internal:
+    if not defn.internal:
         _check_platform_semantics(ctx, defn)
     return defn
+
+
+def _parse_platform(ctx: _Ctx, raw: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """The entity's platform and validated ha: fields; ('internal', {}) for internal."""
+    internal = _bool(ctx, raw, "internal")
+    ha_raw = raw.get("ha")
+    if internal:
+        if ha_raw is not None:
+            raise ctx.fail(
+                "internal entities must not have an 'ha:' block "
+                "(they exist only for the template: section)"
+            )
+        for bad in ("on", "off", "write_value"):
+            if raw.get(bad) is not None:
+                raise ctx.fail(f"'{bad}' is not valid for internal entities")
+        if raw.get("duplicate_as_sensor"):
+            raise ctx.fail("'duplicate_as_sensor' is not valid for internal entities")
+        return "internal", {}
+
+    if not isinstance(ha_raw, dict) or "platform" not in ha_raw:
+        raise ctx.fail("'ha:' block with a 'platform:' is required")
+    platform = ha_raw["platform"]
+    if platform not in PLATFORMS:
+        raise ctx.fail(
+            f"unknown platform {platform!r}, expected one of {sorted(PLATFORMS)}"
+        )
+    return platform, _parse_ha(ctx, platform, ha_raw)
+
+
+def _parse_shape(
+    ctx: _Ctx, raw: dict[str, Any], table: str
+) -> tuple[str, int, tuple[float, ...] | None, str | None]:
+    """Value type, register count, sum_scale weights, and word swap."""
+    sum_scale = raw.get("sum_scale")
+    if sum_scale is not None:
+        if (
+            not isinstance(sum_scale, list)
+            or not sum_scale
+            or any(isinstance(s, bool) or not isinstance(s, (int, float)) for s in sum_scale)
+        ):
+            raise ctx.fail("sum_scale must be a non-empty list of numbers")
+        sum_scale = tuple(float(s) for s in sum_scale)
+
+    if table in BIT_TABLES:
+        typ = raw.get("type", "bool")
+        if typ != "bool":
+            raise ctx.fail(f"type {typ!r} is not valid for a {table} (bit) table")
+        for forbidden in ("swap", "sum_scale", "mask", "multiplier", "offset", "map", "flags"):
+            if raw.get(forbidden) is not None:
+                raise ctx.fail(f"'{forbidden}' is not valid for a {table} (bit) table")
+        count = 1
+    else:
+        typ = raw.get("type", "uint16")
+        if typ == "bool" or (typ != TYPE_STRING and typ not in TYPE_WIDTH):
+            raise ctx.fail(
+                f"unknown type {typ!r}, expected one of "
+                f"{sorted(TYPE_WIDTH)} or 'string'"
+            )
+        count = _derive_count(ctx, raw, typ, sum_scale)
+
+    swap = raw.get("swap")
+    if swap is not None and swap not in SWAP_MODES:
+        raise ctx.fail(f"unknown swap {swap!r}, expected one of {sorted(SWAP_MODES)}")
+    return typ, count, sum_scale, swap
+
+
+def _parse_conversions(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    typ: str,
+    count: int,
+    sum_scale: tuple[float, ...] | None,
+    swap: str | None,
+) -> tuple[
+    int | None, float | None, float | None, dict[int, str] | None, dict[int, str] | None
+]:
+    """mask / multiplier / offset / map / flags, plus their combination rules."""
+    mask = raw.get("mask")
+    if mask is not None:
+        if typ in FLOAT_TYPES or typ == TYPE_STRING:
+            raise ctx.fail("'mask' requires an integer type")
+        mask = _int_in_range(ctx, "mask", mask, 1, (1 << (16 * count)) - 1)
+
+    multiplier = raw.get("multiplier")
+    if multiplier is not None:
+        multiplier = _number(ctx, "multiplier", multiplier)
+        if multiplier == 0:
+            raise ctx.fail("multiplier must not be 0")
+    offset = raw.get("offset")
+    if offset is not None:
+        offset = _number(ctx, "offset", offset)
+
+    value_map = _parse_int_str_map(ctx, "map", raw.get("map"))
+    flags = _parse_int_str_map(ctx, "flags", raw.get("flags"), max_key=16 * count - 1)
+
+    if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or swap or sum_scale):
+        raise ctx.fail("strings cannot be combined with numeric conversions or swap")
+    if typ in FLOAT_TYPES and (mask or flags or sum_scale):
+        raise ctx.fail("floats cannot be combined with mask/flags/sum_scale")
+    if value_map and flags:
+        raise ctx.fail("'map' and 'flags' are mutually exclusive")
+    if (value_map or flags) and (multiplier is not None or offset is not None):
+        raise ctx.fail("'map'/'flags' cannot be combined with multiplier/offset")
+    return mask, multiplier, offset, value_map, flags
 
 
 def _derive_count(
@@ -498,6 +543,12 @@ def _coerce_enum(ctx: _Ctx, name: str, value: str, enum_cls: type) -> Any:
 
 
 def _check_platform_semantics(ctx: _Ctx, defn: EntityDef) -> None:
+    _check_write_semantics(ctx, defn)
+    _check_value_semantics(ctx, defn)
+
+
+def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
+    """Writability rules: table, button write_value, select map."""
     platform = defn.platform
     if defn.writes and defn.table not in WRITABLE_TABLES:
         raise ctx.fail(f"platform {platform} writes, but table {defn.table} is read-only")
@@ -514,6 +565,10 @@ def _check_platform_semantics(ctx: _Ctx, defn: EntityDef) -> None:
         if len(set(defn.value_map.values())) != len(defn.value_map):
             raise ctx.fail("select 'map' values must be unique")
 
+
+def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
+    """Value shape rules per platform: types, min/max, on/off, flags."""
+    platform = defn.platform
     if platform == "text" and defn.type != TYPE_STRING:
         raise ctx.fail("text entities require type 'string'")
 
@@ -640,6 +695,21 @@ def _parse_template(
         )
 
     config: dict[str, Any] = {}
+    _collect_template_strings(ctx, spec, raw, config)
+    _collect_template_actions(ctx, spec, raw, defs, config, platform)
+
+    ha = _parse_ha(ctx, platform, ha_raw)
+    post = _TEMPLATE_POST.get(platform)
+    if post:
+        post(ctx, raw, config, defs, ha)
+
+    return TemplateDef(key=key, platform=platform, ha=ha, config=config)
+
+
+def _collect_template_strings(
+    ctx: _Ctx, spec: _TplSpec, raw: dict[str, Any], config: dict[str, Any]
+) -> None:
+    """Validate and collect the Jinja template fields of a template entry."""
     for name in (*spec.req_templates, *spec.opt_templates):
         if name in raw:
             if not isinstance(raw[name], str):
@@ -648,6 +718,16 @@ def _parse_template(
         elif name in spec.req_templates:
             raise ctx.fail(f"'{name}' (a template string) is required")
 
+
+def _collect_template_actions(
+    ctx: _Ctx,
+    spec: _TplSpec,
+    raw: dict[str, Any],
+    defs: dict[str, EntityDef],
+    config: dict[str, Any],
+    platform: str,
+) -> None:
+    """Validate and collect the write actions of a template entry."""
     for kind, names in (
         ("fixed", (*spec.req_fixed, *spec.opt_fixed)),
         ("value", (*spec.req_value, *spec.opt_value)),
@@ -659,13 +739,6 @@ def _parse_template(
                 config[name] = _parse_write_target(ctx, name, raw[name], defs, kind)
             elif name in required:
                 raise ctx.fail(f"'{name}' action is required for {platform} templates")
-
-    ha = _parse_ha(ctx, platform, ha_raw)
-    post = _TEMPLATE_POST.get(platform)
-    if post:
-        post(ctx, raw, config, defs, ha)
-
-    return TemplateDef(key=key, platform=platform, ha=ha, config=config)
 
 
 def _parse_write_target(

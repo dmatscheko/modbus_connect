@@ -127,31 +127,54 @@ def encode(
 
     num: float | int
     if defn.value_map is not None:
-        reverse = {v: k for k, v in defn.value_map.items()}
-        if len(reverse) != len(defn.value_map):
-            raise NotWritableError(f"{defn.key}: map values are not unique, cannot write")
-        if value not in reverse:
-            raise CodecError(f"{defn.key}: {value!r} is not a mapped value")
-        num = reverse[value]
+        num = _unmap(defn, value)
     elif defn.type == TYPE_STRING:
-        data = str(value).encode("ascii")
-        if len(data) > defn.count * 2:
-            raise CodecError(
-                f"{defn.key}: string longer than {defn.count * 2} characters"
-            )
-        words = _bytes_to_words(data.ljust(defn.count * 2, b"\x00"))
-        return _swap_words(words, defn.swap)
+        return _encode_string(defn, value)
     else:
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise CodecError(f"{defn.key}: expected a number, got {value!r}")
-        num = value
-        if defn.offset is not None:
-            num = num - defn.offset
-        if defn.multiplier is not None:
-            if defn.multiplier == 0:
-                raise CodecError(f"{defn.key}: multiplier 0 cannot be inverted")
-            num = num / defn.multiplier
+        num = _invert_conversions(defn, value)
 
+    return _pack_number(defn, num, value, current_raw)
+
+
+def _unmap(defn: EntityDef, value: object) -> int:
+    """Reverse a ``map``: label -> register value."""
+    assert defn.value_map is not None
+    reverse = {v: k for k, v in defn.value_map.items()}
+    if len(reverse) != len(defn.value_map):
+        raise NotWritableError(f"{defn.key}: map values are not unique, cannot write")
+    if value not in reverse:
+        raise CodecError(f"{defn.key}: {value!r} is not a mapped value")
+    return reverse[value]
+
+
+def _encode_string(defn: EntityDef, value: object) -> list[int]:
+    data = str(value).encode("ascii")
+    if len(data) > defn.count * 2:
+        raise CodecError(
+            f"{defn.key}: string longer than {defn.count * 2} characters"
+        )
+    words = _bytes_to_words(data.ljust(defn.count * 2, b"\x00"))
+    return _swap_words(words, defn.swap)
+
+
+def _invert_conversions(defn: EntityDef, value: object) -> float | int:
+    """Run multiplier/offset backwards: displayed value -> raw number."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise CodecError(f"{defn.key}: expected a number, got {value!r}")
+    num: float | int = value
+    if defn.offset is not None:
+        num = num - defn.offset
+    if defn.multiplier is not None:
+        if defn.multiplier == 0:
+            raise CodecError(f"{defn.key}: multiplier 0 cannot be inverted")
+        num = num / defn.multiplier
+    return num
+
+
+def _pack_number(
+    defn: EntityDef, num: float | int, value: object, current_raw: int | None
+) -> list[int]:
+    """Pack the raw number into register words (float / sum_scale / mask / int)."""
     if defn.type in FLOAT_TYPES:
         words = _bytes_to_words(struct.pack(_FLOAT_FMT[defn.type], float(num)))
         return _swap_words(words, defn.swap)
