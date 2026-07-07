@@ -9,6 +9,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .coordinator import ModbusConnectConfigEntry
 from .entity import ModbusConnectEntity, build_description
 
+# Serialize writes; the gateway handles one transaction at a time.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,

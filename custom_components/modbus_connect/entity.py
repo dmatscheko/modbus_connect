@@ -6,11 +6,12 @@ import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorStateClass
-from homeassistant.exceptions import HomeAssistantError, TemplateError
+from homeassistant.exceptions import ServiceValidationError, TemplateError
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import DOMAIN
 from .coordinator import ModbusConnectCoordinator
 from .models import BIT_TABLES, TYPE_STRING, EntityDef, TemplateDef
 from .schema import DESCRIPTION_CLASSES, description_fields
@@ -84,8 +85,12 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self._attr_device_info = coordinator.device_info
 
     @property
-    def value(self) -> Any:
-        """The decoded value from the last read, or None."""
+    def device_value(self) -> Any:
+        """The decoded value from the last read, or None.
+
+        Deliberately not named ``value``: NumberEntity and TextEntity define a
+        final ``value`` property that converts ``native_value`` for display.
+        """
         data = self.coordinator.data
         return None if data is None else data.get(self._defn.key)
 
@@ -95,7 +100,7 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
             return False
         if self._defn.platform == "button":
             return True  # buttons do not read
-        return self.value is not None
+        return self.device_value is not None
 
     async def _write(self, value: Any) -> None:
         await self.coordinator.async_write(self._defn, value)
@@ -166,13 +171,25 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         """
         target = self._tdef.config.get(name)
         if target is None:
-            raise HomeAssistantError(f"{self._tdef.key} has no '{name}' action")
+            raise ServiceValidationError(
+                f"{self._tdef.key} has no '{name}' action",
+                translation_domain=DOMAIN,
+                translation_key="no_action",
+                translation_placeholders={"key": self._tdef.key, "action": name},
+            )
         if target.value is not None:
             payload: Any = target.value
         elif target.value_map is not None:
             if str(value) not in target.value_map:
-                raise HomeAssistantError(
-                    f"{self._tdef.key}: no '{name}' mapping for {value!r}"
+                raise ServiceValidationError(
+                    f"{self._tdef.key}: no '{name}' mapping for {value!r}",
+                    translation_domain=DOMAIN,
+                    translation_key="no_mapping",
+                    translation_placeholders={
+                        "key": self._tdef.key,
+                        "action": name,
+                        "value": str(value),
+                    },
                 )
             payload = target.value_map[str(value)]
         else:

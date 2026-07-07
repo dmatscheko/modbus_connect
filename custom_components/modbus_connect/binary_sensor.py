@@ -16,6 +16,9 @@ from .entity import (
     resolve_on_off,
 )
 
+# Read-only platform; all data comes through the coordinator.
+PARALLEL_UPDATES = 0
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -43,7 +46,7 @@ class ModbusConnectBinarySensor(ModbusConnectEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool | None:
-        return resolve_on_off(self._defn, self.value)
+        return resolve_on_off(self._defn, self.device_value)
 
 
 class ModbusConnectTemplateBinarySensor(ModbusConnectTemplateEntity, BinarySensorEntity):

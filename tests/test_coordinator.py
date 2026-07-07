@@ -227,3 +227,69 @@ async def test_masked_write_read_modify_write(hass, monkeypatch):
 
     await coordinator.async_write(defn, 3)
     assert client.written == [(0, [0x0A3F])]  # other bits preserved
+
+
+async def test_nothing_due_returns_cache(hass, monkeypatch):
+    faketime = FakeTime()
+    client = FakeClient({0: 5})
+    device = make_device(sensor("a", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    await coordinator.async_refresh()
+    client.reads.clear()
+
+    await coordinator.async_refresh()  # nothing due yet
+    assert client.reads == []
+    assert coordinator.data == {"a": 5}
+
+
+async def test_all_reads_fail_raises(hass, monkeypatch):
+    client = FakeClient()
+    client.fail_addresses = {0}
+    device = make_device(sensor("a", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert not coordinator.last_update_success
+
+
+async def test_partial_fallback_learns_no_holes(hass, monkeypatch):
+    client = FakeClient({0: 1, 6: 2})
+    client.fail_addresses = {6}  # a real entity address fails, not a bridge
+    device = make_device(sensor("a", 0), sensor("b", 6))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success
+    assert coordinator.data == {"a": 1, "b": None}
+    assert coordinator._holes == set()
+
+
+async def test_write_cannot_connect_raises(hass, monkeypatch):
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    client = FakeClient({0: 1})
+    defn = EntityDef(
+        key="x",
+        platform="number",
+        address=0,
+        ha={"native_min_value": 0, "native_max_value": 10},
+    )
+    device = make_device(defn)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+
+    client.connected_ok = False
+    with pytest.raises(HomeAssistantError, match="Cannot connect"):
+        await coordinator.async_write(defn, 5)
+
+
+async def test_undecodable_value_becomes_none(hass, monkeypatch):
+    client = FakeClient({0: 1})
+    # count contradicts the type width; decode raises and the value is None
+    device = make_device(sensor("broken", 0, type="float32", count=1))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success
+    assert coordinator.data["broken"] is None

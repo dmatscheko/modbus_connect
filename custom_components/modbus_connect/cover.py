@@ -6,11 +6,16 @@ from typing import Any
 
 from homeassistant.components.cover import ATTR_POSITION, CoverEntity, CoverEntityFeature
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import result_as_boolean
 
-from .coordinator import ModbusConnectConfigEntry
+from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import ModbusConnectTemplateEntity, build_template_description
+from .models import TemplateDef
+
+# Serialize writes; the gateway handles one transaction at a time.
+PARALLEL_UPDATES = 1
 
 
 async def async_setup_entry(
@@ -29,7 +34,12 @@ async def async_setup_entry(
 class ModbusConnectCover(ModbusConnectTemplateEntity, CoverEntity):
     """State from 'is_closed'/'position' templates; actions write registers."""
 
-    def __init__(self, coordinator, tdef, description) -> None:
+    def __init__(
+        self,
+        coordinator: ModbusConnectCoordinator,
+        tdef: TemplateDef,
+        description: EntityDescription,
+    ) -> None:
         super().__init__(coordinator, tdef, description)
         cfg = tdef.config
         features = CoverEntityFeature(0)

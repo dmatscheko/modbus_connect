@@ -1,0 +1,6 @@
+pytest-homeassistant-custom-component
+pymodbus>=3.13.1
+pyyaml
+ruff
+mypy
+types-PyYAML

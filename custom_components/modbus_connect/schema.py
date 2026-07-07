@@ -37,7 +37,7 @@ from homeassistant.components.sensor import (
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntityDescription
 from homeassistant.components.text import TextEntityDescription, TextMode
 from homeassistant.const import UnitOfTemperature
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
 from .const import DEFAULT_MAX_GAP, DEFAULT_MAX_READ
 from .models import (
@@ -55,7 +55,7 @@ from .models import (
     WriteTarget,
 )
 
-DESCRIPTION_CLASSES: dict[str, type] = {
+DESCRIPTION_CLASSES: dict[str, type[EntityDescription]] = {
     "sensor": SensorEntityDescription,
     "binary_sensor": BinarySensorEntityDescription,
     "number": NumberEntityDescription,
@@ -260,6 +260,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
 
     internal = _bool(ctx, raw, "internal")
     ha_raw = raw.get("ha")
+    parsed_ha: dict[str, Any] = {}
     if internal:
         if ha_raw is not None:
             raise ctx.fail(
@@ -280,6 +281,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
             raise ctx.fail(
                 f"unknown platform {platform!r}, expected one of {sorted(PLATFORMS)}"
             )
+        parsed_ha = _parse_ha(ctx, platform, ha_raw)
 
     address = raw.get("address")
     if address is None:
@@ -390,14 +392,16 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         never_resets=_bool(ctx, raw, "never_resets"),
         scan_interval=scan_interval,
         duplicate_as_sensor=duplicate_as_sensor,
-        ha={} if internal else _parse_ha(ctx, platform, ha_raw),
+        ha=parsed_ha,
     )
     if not internal:
         _check_platform_semantics(ctx, defn)
     return defn
 
 
-def _derive_count(ctx: _Ctx, raw: dict, typ: str, sum_scale: tuple[float, ...] | None) -> int:
+def _derive_count(
+    ctx: _Ctx, raw: dict[str, Any], typ: str, sum_scale: tuple[float, ...] | None
+) -> int:
     explicit = raw.get("count")
     if explicit is not None:
         explicit = _int_in_range(ctx, "count", explicit, 1, 125)
@@ -419,14 +423,14 @@ def _derive_count(ctx: _Ctx, raw: dict, typ: str, sum_scale: tuple[float, ...] |
     return derived
 
 
-def _bool(ctx: _Ctx, raw: dict, name: str) -> bool:
+def _bool(ctx: _Ctx, raw: dict[str, Any], name: str) -> bool:
     value = raw.get(name, False)
     if not isinstance(value, bool):
         raise ctx.fail(f"'{name}' must be true or false")
     return value
 
 
-def _on_off(ctx: _Ctx, raw: dict, name: str) -> int | bool | None:
+def _on_off(ctx: _Ctx, raw: dict[str, Any], name: str) -> int | bool | None:
     value = raw.get(name)
     if value is None or isinstance(value, bool):
         return value
@@ -453,7 +457,7 @@ def _parse_int_str_map(
 
 
 @cache
-def description_fields(desc_cls: type) -> frozenset[str]:
+def description_fields(desc_cls: type[EntityDescription]) -> frozenset[str]:
     """Field names of an HA EntityDescription class.
 
     The classes are not plain dataclasses (FrozenOrThawed metaclass), but
@@ -463,7 +467,7 @@ def description_fields(desc_cls: type) -> frozenset[str]:
     return frozenset(params) - {"self", "key"}
 
 
-def _parse_ha(ctx: _Ctx, platform: str, ha_raw: dict) -> dict[str, Any]:
+def _parse_ha(ctx: _Ctx, platform: str, ha_raw: dict[str, Any]) -> dict[str, Any]:
     desc_cls = DESCRIPTION_CLASSES[platform]
     allowed = description_fields(desc_cls)
     enum_fields = _ENUM_FIELDS.get(platform, {})
@@ -705,7 +709,13 @@ def _str_list(ctx: _Ctx, name: str, raw: Any) -> list[str]:
     return [str(v) for v in raw]
 
 
-def _post_climate(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
+def _post_climate(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
     for name in ("min_temp", "max_temp", "temp_step"):
         if name in raw:
             config[name] = _number(ctx, name, raw[name])
@@ -727,14 +737,20 @@ def _post_climate(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> N
         raise ctx.fail("'set_hvac_mode' needs 'hvac_modes' (or a 'map' to derive them from)")
 
 
-def _post_select(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
+def _post_select(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
     target = config["select_option"]
     if "options" in raw:
         options = _str_list(ctx, "options", raw["options"])
     elif target.value_map:
         options = list(target.value_map)
-    elif defs[target.entity].value_map:
-        options = list(defs[target.entity].value_map.values())
+    elif entity_map := defs[target.entity].value_map:
+        options = list(entity_map.values())
     else:
         raise ctx.fail(
             "cannot determine the options: provide 'options', a 'map' on "
@@ -743,7 +759,13 @@ def _post_select(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> No
     config["options"] = options
 
 
-def _post_fan(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
+def _post_fan(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
     presets = raw.get("preset_modes")
     if presets is None and (target := config.get("set_preset_mode")) and target.value_map:
         presets = list(target.value_map)
@@ -755,12 +777,24 @@ def _post_fan(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
         )
 
 
-def _post_cover(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
+def _post_cover(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
     if "is_closed" not in config and "position" not in config:
         raise ctx.fail("covers need an 'is_closed' or 'position' template")
 
 
-def _post_number(ctx: _Ctx, raw: dict, config: dict, defs: dict, ha: dict) -> None:
+def _post_number(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
     for field in ("native_min_value", "native_max_value"):
         if field not in ha:
             raise ctx.fail("template numbers require ha.min and ha.max")

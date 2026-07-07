@@ -1,0 +1,161 @@
+# Integration Quality Scale tracking for Modbus Connect.
+#
+# As a custom integration the manifest may only declare `quality_scale:
+# custom`, but the code aims to satisfy every applicable rule up to and
+# including Platinum. This file documents the status of each rule.
+# https://developers.home-assistant.io/docs/core/integration-quality-scale/
+
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration registers no custom service actions.
+  appropriate-polling:
+    status: done
+    comment: >-
+      Default 30 s; overridable per config entry (options), per device file,
+      and per entity. Offline devices back off exponentially up to 5 min.
+  brands:
+    status: done
+    comment: >-
+      Brand images are bundled in brand/ (icon.png, icon@2x.png, logo.png,
+      logo@2x.png), served locally by Home Assistant 2026.3+.
+  common-modules:
+    status: done
+    comment: coordinator.py holds the DataUpdateCoordinator, entity.py the base entities.
+  config-flow-test-coverage: done
+  config-flow:
+    status: done
+    comment: Two-step flow (connection, device file) with data_description for every field.
+  dependency-transparency:
+    status: done
+    comment: pymodbus is open source, on PyPI, built from public CI.
+  docs-actions:
+    status: exempt
+    comment: The integration provides no custom service actions.
+  docs-triggers:
+    status: exempt
+    comment: The integration provides no device triggers.
+  docs-conditions:
+    status: exempt
+    comment: The integration provides no device conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup:
+    status: done
+    comment: All entities are CoordinatorEntity subclasses; subscriptions happen in async_added_to_hass.
+  entity-unique-id:
+    status: done
+    comment: "unique_id = <config entry id>_<entity key>."
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure:
+    status: done
+    comment: The config flow opens a TCP connection to the gateway before continuing.
+  test-before-setup:
+    status: done
+    comment: >-
+      async_config_entry_first_refresh raises ConfigEntryNotReady when the
+      gateway or device does not answer; invalid device files raise
+      ConfigEntryError.
+  unique-config-entry:
+    status: done
+    comment: "Unique id host:port:slave_id prevents duplicates."
+
+  # Silver
+  action-exceptions:
+    status: done
+    comment: >-
+      Failed writes raise translated HomeAssistantError; misconfigured
+      template actions raise ServiceValidationError.
+  config-entry-unloading:
+    status: done
+    comment: async_unload_entry unloads platforms and releases the refcounted gateway client.
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable:
+    status: done
+    comment: >-
+      Entities whose registers cannot be read become unavailable individually;
+      a dead gateway marks the whole coordinator unavailable.
+  integration-owner: done
+  log-when-unavailable:
+    status: done
+    comment: DataUpdateCoordinator logs once when the device becomes unavailable and once on recovery.
+  parallel-updates:
+    status: done
+    comment: 0 for coordinator-driven read platforms, 1 (serialized) for platforms that write.
+  reauthentication-flow:
+    status: exempt
+    comment: Modbus TCP has no authentication.
+  test-coverage: done
+
+  # Gold
+  devices:
+    status: done
+    comment: Each config entry creates one device with manufacturer and model from the device file.
+  diagnostics:
+    status: done
+    comment: diagnostics.py exports config (host redacted), device definition, polling state, and per-entity values.
+  discovery-update-info:
+    status: exempt
+    comment: Modbus TCP gateways expose no discovery protocol (no mDNS/SSDP/DHCP fingerprint).
+  discovery:
+    status: exempt
+    comment: Modbus TCP gateways expose no discovery protocol.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: One config entry maps to exactly one physical device described by a static YAML file.
+  entity-category:
+    status: done
+    comment: Device files assign entity_category per entity (validated against EntityCategory).
+  entity-device-class:
+    status: done
+    comment: Device files assign device_class/state_class per entity (validated against the HA enums).
+  entity-disabled-by-default:
+    status: done
+    comment: Device files can set enabled_by_default per entity; bundled files disable noisy diagnostics.
+  entity-translations:
+    status: exempt
+    comment: >-
+      Entity names come from user-authored device YAML files, so there is no
+      fixed set of entity names the integration could ship translations for.
+  exception-translations:
+    status: done
+    comment: User-facing errors carry translation_domain/translation_key (strings.json, en + de).
+  icon-translations:
+    status: exempt
+    comment: >-
+      There is no fixed entity set; icons are configured per entity in the
+      device YAML files instead.
+  reconfiguration-flow:
+    status: done
+    comment: Gateway connection and device file can be changed without removing the entry.
+  repair-issues:
+    status: exempt
+    comment: >-
+      There are no repairable states: connection problems surface through
+      config entry state and availability, invalid user device files are
+      logged and skipped without breaking existing entries.
+  stale-devices:
+    status: exempt
+    comment: One config entry is one device; removing the entry removes the device.
+
+  # Platinum
+  async-dependency:
+    status: done
+    comment: Uses pymodbus AsyncModbusTcpClient throughout; no blocking I/O in the event loop.
+  inject-websession:
+    status: exempt
+    comment: Modbus TCP is raw TCP, not HTTP; there is no websession to inject.
+  strict-typing:
+    status: done
+    comment: Fully annotated; pymodbus and homeassistant both ship py.typed.

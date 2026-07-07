@@ -33,6 +33,17 @@ class WriteError(Exception):
     """A write request failed."""
 
 
+async def async_probe(host: str, port: int, timeout: float = 5.0) -> bool:
+    """Try to open a TCP connection to the gateway (config flow validation)."""
+    client = AsyncModbusTcpClient(host, port=port, timeout=timeout, retries=0)
+    try:
+        return bool(await client.connect())
+    except (TimeoutError, ModbusException, OSError):
+        return False
+    finally:
+        client.close()
+
+
 class ModbusBlockClient:
     """One shared TCP connection per gateway (host:port), refcounted by entry."""
 

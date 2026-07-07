@@ -424,3 +424,413 @@ def test_unknown_template_key_lists_valid():
             }),
             "t.yaml",
         )
+
+
+# --- error branches, exhaustively -------------------------------------------------
+
+VALID_SENSOR = {"address": 0, "ha": {"platform": "sensor"}}
+
+ERROR_CASES = [
+    ("not_mapping", [], "YAML mapping"),
+    ("unknown_top_level", {**DEVICE, "holdings": {}}, "unknown top-level keys"),
+    ("device_missing", {"holding": {"x": VALID_SENSOR}}, "missing 'device:'"),
+    ("manufacturer_missing", {"device": {"model": "X"}}, "device.manufacturer"),
+    (
+        "unknown_device_key",
+        {"device": {"manufacturer": "A", "model": "X", "foo": 1}},
+        "unknown device keys",
+    ),
+    (
+        "bad_device_scan_interval",
+        {"device": {"manufacturer": "A", "model": "X", "scan_interval": 0}},
+        "device.scan_interval",
+    ),
+    (
+        "bad_max_register_read",
+        {"device": {"manufacturer": "A", "model": "X", "max_register_read": 0}},
+        "device.max_register_read",
+    ),
+    ("section_not_mapping", {**DEVICE, "holding": []}, "must be a mapping of entity"),
+    (
+        "template_not_mapping",
+        {**DEVICE, "holding": {"x": VALID_SENSOR}, "template": [1]},
+        "'template:' must be a mapping",
+    ),
+    (
+        "template_collides",
+        {
+            **DEVICE,
+            "holding": {"x": VALID_SENSOR},
+            "template": {"x": {"state": "{{ 1 }}", "ha": {"platform": "sensor"}}},
+        },
+        "collides with an entity",
+    ),
+    ("entity_not_mapping", doc(x=5), "entity must be a mapping"),
+    (
+        "internal_with_ha",
+        doc(x={"address": 0, "internal": True, "ha": {"platform": "sensor"}}),
+        "must not have an 'ha:' block",
+    ),
+    (
+        "internal_with_on",
+        doc(x={"address": 0, "internal": True, "on": 1}),
+        "not valid for internal",
+    ),
+    (
+        "internal_with_mirror",
+        doc(x={"address": 0, "internal": True, "duplicate_as_sensor": True}),
+        "not valid for internal",
+    ),
+    ("internal_not_bool", doc(x={"address": 0, "internal": "yes"}), "true or false"),
+    ("address_missing", doc(x={"ha": {"platform": "sensor"}}), "'address' is required"),
+    (
+        "address_out_of_range",
+        doc(x={"address": 70000, "ha": {"platform": "sensor"}}),
+        "address must be an integer",
+    ),
+    (
+        "sum_scale_not_list",
+        doc(x={"address": 0, "sum_scale": 5, "ha": {"platform": "sensor"}}),
+        "sum_scale must be a non-empty list",
+    ),
+    (
+        "bit_table_with_type",
+        doc("coil", x={"address": 0, "type": "uint16", "ha": {"platform": "switch"}}),
+        "not valid for a coil",
+    ),
+    (
+        "bit_table_with_multiplier",
+        doc("coil", x={"address": 0, "multiplier": 2, "ha": {"platform": "switch"}}),
+        "'multiplier' is not valid for a coil",
+    ),
+    (
+        "unknown_type",
+        doc(x={"address": 0, "type": "float16", "ha": {"platform": "sensor"}}),
+        "unknown type",
+    ),
+    (
+        "unknown_swap",
+        doc(x={"address": 0, "swap": "nibble", "ha": {"platform": "sensor"}}),
+        "unknown swap",
+    ),
+    (
+        "mask_on_float",
+        doc(x={"address": 0, "type": "float32", "mask": 1, "ha": {"platform": "sensor"}}),
+        "'mask' requires an integer type",
+    ),
+    (
+        "multiplier_zero",
+        doc(x={"address": 0, "multiplier": 0, "ha": {"platform": "sensor"}}),
+        "multiplier must not be 0",
+    ),
+    (
+        "string_with_conversion",
+        doc(x={"address": 0, "type": "string", "count": 2, "multiplier": 2,
+               "ha": {"platform": "sensor"}}),
+        "strings cannot be combined",
+    ),
+    (
+        "float_with_flags",
+        doc(x={"address": 0, "type": "float32", "flags": {0: "A"},
+               "ha": {"platform": "sensor"}}),
+        "floats cannot be combined",
+    ),
+    (
+        "map_and_flags",
+        doc(x={"address": 0, "map": {0: "a"}, "flags": {0: "A"},
+               "ha": {"platform": "sensor"}}),
+        "mutually exclusive",
+    ),
+    (
+        "map_with_multiplier",
+        doc(x={"address": 0, "map": {0: "a"}, "multiplier": 2,
+               "ha": {"platform": "sensor"}}),
+        "cannot be combined with multiplier",
+    ),
+    (
+        "rmw_without_mask",
+        doc(x={"address": 0, "read_modify_write": True,
+               "ha": {"platform": "number", "min": 0, "max": 1}}),
+        "requires a 'mask'",
+    ),
+    (
+        "max_change_negative",
+        doc(x={"address": 0, "max_change": -1, "ha": {"platform": "sensor"}}),
+        "max_change must be >= 0",
+    ),
+    (
+        "bad_entity_scan_interval",
+        doc(x={"address": 0, "scan_interval": 0, "ha": {"platform": "sensor"}}),
+        "scan_interval must be an integer",
+    ),
+    (
+        "on_not_int",
+        doc(x={"address": 0, "on": "x", "ha": {"platform": "switch"}}),
+        "'on' must be an integer or boolean",
+    ),
+    (
+        "write_value_not_number",
+        doc(x={"address": 0, "write_value": "go", "ha": {"platform": "button"}}),
+        "write_value must be a number",
+    ),
+    (
+        "string_without_count",
+        doc(x={"address": 0, "type": "string", "ha": {"platform": "sensor"}}),
+        "strings require 'count'",
+    ),
+    (
+        "string_with_sum_scale",
+        doc(x={"address": 0, "type": "string", "count": 2, "sum_scale": [1, 2],
+               "ha": {"platform": "sensor"}}),
+        "sum_scale is not valid for strings",
+    ),
+    (
+        "sum_scale_wrong_type",
+        doc(x={"address": 0, "type": "uint32", "sum_scale": [1, 2],
+               "ha": {"platform": "sensor"}}),
+        "sum_scale requires type uint16",
+    ),
+    (
+        "sum_scale_count_conflict",
+        doc(x={"address": 0, "count": 3, "sum_scale": [1, 2],
+               "ha": {"platform": "sensor"}}),
+        "contradicts sum_scale length",
+    ),
+    (
+        "count_contradicts_type",
+        doc(x={"address": 0, "type": "uint32", "count": 3, "ha": {"platform": "sensor"}}),
+        "contradicts type",
+    ),
+    (
+        "map_bad_key",
+        doc(x={"address": 0, "map": {"a": "x"}, "ha": {"platform": "sensor"}}),
+        "keys must be non-negative integers",
+    ),
+    (
+        "flags_key_out_of_range",
+        doc(x={"address": 0, "flags": {17: "x"}, "ha": {"platform": "sensor"}}),
+        "out of range",
+    ),
+    (
+        "map_not_dict",
+        doc(x={"address": 0, "map": 5, "ha": {"platform": "sensor"}}),
+        "'map' must be a non-empty mapping",
+    ),
+    (
+        "bad_entity_category",
+        doc(x={"address": 0, "ha": {"platform": "sensor", "entity_category": "diagnostics"}}),
+        "is invalid",
+    ),
+    (
+        "bad_device_class",
+        doc(x={"address": 0, "ha": {"platform": "sensor", "device_class": "warmth"}}),
+        "is invalid",
+    ),
+    (
+        "button_without_write_value",
+        doc(x={"address": 0, "ha": {"platform": "button"}}),
+        "buttons require 'write_value'",
+    ),
+    (
+        "write_value_on_sensor",
+        doc(x={"address": 0, "write_value": 1, "ha": {"platform": "sensor"}}),
+        "only valid for buttons",
+    ),
+    (
+        "select_without_map",
+        doc(x={"address": 0, "ha": {"platform": "select"}}),
+        "selects require 'map'",
+    ),
+    (
+        "select_map_not_unique",
+        doc(x={"address": 0, "map": {0: "a", 1: "a"}, "ha": {"platform": "select"}}),
+        "must be unique",
+    ),
+    (
+        "text_without_string",
+        doc(x={"address": 0, "ha": {"platform": "text"}}),
+        "require type 'string'",
+    ),
+    (
+        "number_without_min_max",
+        doc(x={"address": 0, "ha": {"platform": "number"}}),
+        "numbers require ha.min and ha.max",
+    ),
+    (
+        "number_with_map",
+        doc(x={"address": 0, "map": {0: "a"},
+               "ha": {"platform": "number", "min": 0, "max": 1}}),
+        "numbers cannot use map/flags",
+    ),
+    (
+        "switch_with_string",
+        doc(x={"address": 0, "type": "string", "count": 1, "ha": {"platform": "switch"}}),
+        "plain numeric or bit value",
+    ),
+    (
+        "on_off_on_sensor",
+        doc(x={"address": 0, "on": 1, "ha": {"platform": "sensor"}}),
+        "only valid for switch and binary_sensor",
+    ),
+    (
+        "flags_on_button",
+        doc(x={"address": 0, "write_value": 1, "flags": {0: "A"},
+               "ha": {"platform": "button"}}),
+        "only valid for sensors",
+    ),
+    (
+        "mirror_on_sensor",
+        doc(x={"address": 0, "duplicate_as_sensor": True, "ha": {"platform": "sensor"}}),
+        "only makes sense for writable",
+    ),
+    (
+        "write_on_read_only_table",
+        doc("input", x={"address": 0, "ha": {"platform": "number", "min": 0, "max": 1}}),
+        "read-only",
+    ),
+]
+
+
+@pytest.mark.parametrize("data,match", [c[1:] for c in ERROR_CASES], ids=[c[0] for c in ERROR_CASES])
+def test_error_branches(data, match):
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(data, "t.yaml")
+
+
+TEMPLATE_ERROR_CASES = [
+    (
+        "bad_platform",
+        {"x": {"state": "{{ 1 }}", "ha": {"platform": "vacuum"}}},
+        "template platform must be one of",
+    ),
+    (
+        "not_mapping",
+        {"x": 5},
+        "template entry must be a mapping",
+    ),
+    (
+        "no_ha",
+        {"x": {"state": "{{ 1 }}"}},
+        "'ha:' block with a 'platform:'",
+    ),
+    (
+        "unknown_keys",
+        {"x": {"state": "{{ 1 }}", "wobble": 1, "ha": {"platform": "sensor"}}},
+        "unknown sensor template keys",
+    ),
+    (
+        "state_not_string",
+        {"x": {"state": 5, "ha": {"platform": "sensor"}}},
+        "must be a template string",
+    ),
+    (
+        "missing_state",
+        {"x": {"ha": {"platform": "sensor"}}},
+        "'state' \\(a template string\\) is required",
+    ),
+    (
+        "missing_action",
+        {"x": {"state": "{{ 1 }}", "ha": {"platform": "switch"}}},
+        "'turn_on' action is required",
+    ),
+    (
+        "action_not_mapping",
+        {"x": {"state": "{{ 1 }}", "turn_on": 5, "turn_off": {"entity": "t", "value": 0},
+               "ha": {"platform": "switch"}}},
+        "must be a mapping with an 'entity' key",
+    ),
+    (
+        "action_unknown_keys",
+        {"x": {"state": "{{ 1 }}", "turn_on": {"entity": "t", "value": 1, "foo": 2},
+               "turn_off": {"entity": "t", "value": 0}, "ha": {"platform": "switch"}}},
+        "unknown keys",
+    ),
+    (
+        "action_unknown_entity",
+        {"x": {"state": "{{ 1 }}", "turn_on": {"entity": "ghost", "value": 1},
+               "turn_off": {"entity": "t", "value": 0}, "ha": {"platform": "switch"}}},
+        "references unknown entity",
+    ),
+    (
+        "action_read_only_target",
+        {"x": {"state": "{{ 1 }}", "turn_on": {"entity": "ro", "value": 1},
+               "turn_off": {"entity": "t", "value": 0}, "ha": {"platform": "switch"}}},
+        "read-only 'input:' section",
+    ),
+    (
+        "fixed_without_value",
+        {"x": {"state": "{{ 1 }}", "turn_on": {"entity": "t"},
+               "turn_off": {"entity": "t", "value": 0}, "ha": {"platform": "switch"}}},
+        "needs a 'value'",
+    ),
+    (
+        "mapped_map_empty",
+        {"x": {"state": "{{ 1 }}", "select_option": {"entity": "t", "map": {}},
+               "ha": {"platform": "select"}}},
+        "must be a non-empty mapping",
+    ),
+    (
+        "select_options_underivable",
+        {"x": {"state": "{{ 1 }}", "select_option": {"entity": "t"},
+               "ha": {"platform": "select"}}},
+        "cannot determine the options",
+    ),
+    (
+        "select_options_not_list",
+        {"x": {"state": "{{ 1 }}", "options": 5, "select_option": {"entity": "t"},
+               "ha": {"platform": "select"}}},
+        "must be a non-empty list",
+    ),
+    (
+        "climate_bad_hvac_mode",
+        {"x": {"current_temperature": "{{ 1 }}", "hvac_modes": ["banana"],
+               "ha": {"platform": "climate"}}},
+        "is invalid",
+    ),
+    (
+        "climate_bad_unit",
+        {"x": {"current_temperature": "{{ 1 }}", "temperature_unit": "X",
+               "ha": {"platform": "climate"}}},
+        "is invalid",
+    ),
+    (
+        "climate_mode_without_modes",
+        {"x": {"current_temperature": "{{ 1 }}", "set_hvac_mode": {"entity": "t"},
+               "ha": {"platform": "climate"}}},
+        "needs 'hvac_modes'",
+    ),
+    (
+        "fan_preset_without_modes",
+        {"x": {"state": "{{ 1 }}", "preset_mode": "{{ 'eco' }}",
+               "turn_on": {"entity": "t", "value": 1},
+               "turn_off": {"entity": "t", "value": 0}, "ha": {"platform": "fan"}}},
+        "fan presets need",
+    ),
+    (
+        "cover_without_state",
+        {"x": {"open_cover": {"entity": "t", "value": 1}, "ha": {"platform": "cover"}}},
+        "covers need an 'is_closed' or 'position'",
+    ),
+    (
+        "number_without_min_max",
+        {"x": {"state": "{{ 1 }}", "set_value": {"entity": "t"},
+               "ha": {"platform": "number"}}},
+        "template numbers require ha.min and ha.max",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "template,match",
+    [c[1:] for c in TEMPLATE_ERROR_CASES],
+    ids=[c[0] for c in TEMPLATE_ERROR_CASES],
+)
+def test_template_error_branches(template, match):
+    data = {
+        **DEVICE,
+        "holding": {"t": {"address": 0, "ha": {"platform": "sensor"}}},
+        "input": {"ro": {"address": 1, "ha": {"platform": "sensor"}}},
+        "template": template,
+    }
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(data, "t.yaml")

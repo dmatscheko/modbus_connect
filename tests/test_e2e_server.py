@@ -16,7 +16,13 @@ import pytest
 import yaml
 
 from custom_components.modbus_connect import codec
-from custom_components.modbus_connect.client import ModbusBlockClient
+from custom_components.modbus_connect.client import (
+    ModbusBlockClient,
+    ReadError,
+    WriteError,
+    async_probe,
+)
+from custom_components.modbus_connect.models import Span
 from custom_components.modbus_connect.planner import plan_blocks
 from custom_components.modbus_connect.schema import parse_device
 
@@ -26,10 +32,21 @@ DEVICE_FILE = (
 )
 
 
+# Address zones with special server behavior (see fixture below); chosen above
+# every address the SDM630 device file actually uses.
+NO_FC16_ZONE = 65000  # refuses multi-register writes (FC16); singles work
+ERROR_ZONE = 65280  # answers every request with ILLEGAL DATA ADDRESS
+
+
 @pytest.fixture
 async def modbus_server():
-    """A zero-filled Modbus/TCP server that records every request."""
-    requests: list[tuple[int, int, int]] = []  # (function_code, address, count)
+    """A zero-filled Modbus/TCP server that records every request.
+
+    Addresses >= ERROR_ZONE answer with exception code 2 (illegal data
+    address); FC16 writes to >= NO_FC16_ZONE are refused so the client's
+    single-write fallback can be exercised.
+    """
+    requests: list[tuple[int, int, int]] = []  # (function_code, address, count/value)
 
     async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         try:
@@ -38,11 +55,17 @@ async def modbus_server():
                 pdu = await reader.readexactly(length - 1)
                 fc, addr, count = struct.unpack(">BHH", pdu[:5])
                 requests.append((fc, addr, count))
-                if fc in (3, 4):  # read holding / input registers
+                if addr >= ERROR_ZONE or (fc == 16 and addr >= NO_FC16_ZONE):
+                    payload = bytes([fc | 0x80, 2])  # ILLEGAL DATA ADDRESS
+                elif fc in (3, 4):  # read holding / input registers
                     payload = bytes([fc, count * 2]) + bytes(count * 2)
-                else:  # read coils / discrete inputs
+                elif fc in (1, 2):  # read coils / discrete inputs
                     nbytes = (count + 7) // 8
                     payload = bytes([fc, nbytes]) + bytes(nbytes)
+                elif fc in (5, 6, 16):  # writes: echo address and value/count
+                    payload = pdu[:5]
+                else:
+                    payload = bytes([fc | 0x80, 1])  # ILLEGAL FUNCTION
                 writer.write(struct.pack(">HHHB", tid, pid, len(payload) + 1, uid) + payload)
                 await writer.drain()
         except (asyncio.IncompleteReadError, ConnectionResetError):
@@ -102,3 +125,70 @@ async def test_sdm630_polls_in_few_transactions(modbus_server):
         )
     finally:
         client.release("e2e-test")
+
+
+@pytest.mark.enable_socket
+async def test_probe(modbus_server):
+    port, _ = modbus_server
+    assert await async_probe("127.0.0.1", port) is True
+
+    # a port nothing listens on refuses the connection
+    closed = await asyncio.start_server(lambda r, w: None, "127.0.0.1", 0)
+    free_port = closed.sockets[0].getsockname()[1]
+    closed.close()
+    await closed.wait_closed()
+    assert await async_probe("127.0.0.1", free_port, timeout=1.0) is False
+
+
+@pytest.mark.enable_socket
+async def test_client_is_shared_and_refcounted(modbus_server):
+    port, _ = modbus_server
+    a = ModbusBlockClient.acquire("127.0.0.1", port, "entry-a")
+    b = ModbusBlockClient.acquire("127.0.0.1", port, "entry-b")
+    assert a is b
+    a.release("entry-a")
+    assert ModbusBlockClient.acquire("127.0.0.1", port, "entry-c") is a
+    a.release("entry-b")
+    a.release("entry-c")
+    assert ModbusBlockClient.acquire("127.0.0.1", port, "entry-d") is not a
+    ModbusBlockClient._instances[("127.0.0.1", port)].release("entry-d")
+
+
+@pytest.mark.enable_socket
+async def test_writes_and_errors(modbus_server):
+    port, requests = modbus_server
+    client = ModbusBlockClient.acquire("127.0.0.1", port, "e2e-writes")
+    try:
+        assert await client.ensure_connected()
+        async with client.lock:
+            # single register -> FC6
+            await client.write_registers(1, 100, [7])
+            assert requests[-1] == (6, 100, 7)
+
+            # multiple registers -> FC16
+            await client.write_registers(1, 200, [1, 2])
+            assert requests[-1] == (16, 200, 2)
+
+            # FC16 refused -> falls back to one FC6 per register
+            requests.clear()
+            await client.write_registers(1, NO_FC16_ZONE, [1, 2])
+            assert [r[0] for r in requests] == [16, 6, 6]
+
+            # coil write -> FC5
+            await client.write_coil(1, 5, True)
+            assert requests[-1][:2] == (5, 5)
+
+            # error zone: reads raise ReadError with the illegal-address flag
+            with pytest.raises(ReadError) as excinfo:
+                await client.read_block(1, Span("holding", ERROR_ZONE, 2))
+            assert excinfo.value.illegal_address
+
+            # error zone: writes raise WriteError (single and fallback path)
+            with pytest.raises(WriteError):
+                await client.write_registers(1, ERROR_ZONE, [1])
+            with pytest.raises(WriteError):
+                await client.write_registers(1, ERROR_ZONE, [1, 2])
+            with pytest.raises(WriteError):
+                await client.write_coil(1, ERROR_ZONE, True)
+    finally:
+        client.release("e2e-writes")

@@ -132,7 +132,7 @@ def encode(
             raise NotWritableError(f"{defn.key}: map values are not unique, cannot write")
         if value not in reverse:
             raise CodecError(f"{defn.key}: {value!r} is not a mapped value")
-        num = reverse[value]  # type: ignore[index]
+        num = reverse[value]
     elif defn.type == TYPE_STRING:
         data = str(value).encode("ascii")
         if len(data) > defn.count * 2:

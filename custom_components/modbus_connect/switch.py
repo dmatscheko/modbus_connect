@@ -19,6 +19,9 @@ from .entity import (
 )
 from .models import BIT_TABLES
 
+# Serialize writes; the gateway handles one transaction at a time.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -44,7 +47,7 @@ class ModbusConnectSwitch(ModbusConnectEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool | None:
-        return resolve_on_off(self._defn, self.value)
+        return resolve_on_off(self._defn, self.device_value)
 
     def _payload(self, turn_on: bool) -> Any:
         configured = self._defn.on_value if turn_on else self._defn.off_value

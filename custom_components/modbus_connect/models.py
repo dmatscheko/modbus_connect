@@ -7,6 +7,7 @@ the block planner, and the converter can be used and tested standalone.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 # Modbus tables
 TABLE_HOLDING = "holding"
@@ -103,7 +104,7 @@ class EntityDef:
     scan_interval: int | None = None
     duplicate_as_sensor: bool = False
     # Validated Home Assistant EntityDescription passthrough (aliases resolved)
-    ha: dict = field(default_factory=dict)
+    ha: dict[str, Any] = field(default_factory=dict)
 
     @property
     def span(self) -> Span:
@@ -145,8 +146,8 @@ class TemplateDef:
 
     key: str
     platform: str  # one of TEMPLATE_PLATFORMS
-    ha: dict = field(default_factory=dict)
-    config: dict = field(default_factory=dict)
+    ha: dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

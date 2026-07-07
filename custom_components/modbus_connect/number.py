@@ -14,6 +14,9 @@ from .entity import (
     build_template_description,
 )
 
+# Serialize writes; the gateway handles one transaction at a time.
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -39,7 +42,7 @@ class ModbusConnectNumber(ModbusConnectEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        value = self.value
+        value = self.device_value
         return value if isinstance(value, (int, float)) else None
 
     async def async_set_native_value(self, value: float) -> None:

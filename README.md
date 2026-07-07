@@ -1,4 +1,7 @@
-# Modbus Connect
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="custom_components/modbus_connect/brand/dark_logo@2x.png">
+  <img alt="Modbus Connect" src="custom_components/modbus_connect/brand/logo@2x.png" width="480">
+</picture>
 
 A Home Assistant custom integration for Modbus devices behind local TCP
 gateways — a ground-up rewrite of
@@ -26,15 +29,52 @@ Offline devices back off exponentially (up to 5 min) instead of hammering the
 gateway. One failing entity does not take down the rest; it just becomes
 unavailable.
 
+Typical use cases: energy meters (Eastron SDM), solar inverters and hybrid
+storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
+(Pichler, Salda), motor drives (Schneider Altivar), relay boards (Waveshare,
+Finder) — or any other device that speaks Modbus TCP, directly or through an
+RS-485 gateway.
+
 ## Installation
 
-Copy `custom_components/modbus_connect/` into `<ha_config>/custom_components/`
-(or add this repository as a custom HACS repository). Restart Home Assistant,
-then add the **Modbus Connect** integration: enter the gateway host/port and
-slave ID, then pick a device file.
+### HACS (recommended)
+
+1. In HACS, choose **Custom repositories** in the three-dot menu, add
+   `https://github.com/dmatscheko/modbus_connect` with type **Integration**
+   (or click
+   [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration)).
+2. Install **Modbus Connect** and restart Home Assistant.
+
+### Manual
+
+Copy `custom_components/modbus_connect/` into
+`<ha_config>/custom_components/` and restart Home Assistant.
 
 It can be installed side by side with `modbus_local_gateway`; entities are
 independent.
+
+## Configuration
+
+Add the **Modbus Connect** integration in **Settings → Devices & services**
+(or click
+[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)).
+The connection is tested before anything is created. Add the integration once
+per Modbus device — several devices can share one gateway.
+
+| Setting | Meaning | Default |
+| --- | --- | --- |
+| Host | Hostname or IP of the Modbus TCP gateway | — |
+| Port | TCP port of the gateway | `502` |
+| Modbus device ID | Unit/slave ID of the device behind the gateway (0–255) | `1` |
+| Device name | Optional friendly name; otherwise manufacturer + model | empty |
+| Device definition | The YAML file describing the device's registers | — |
+
+**Options** (gear icon on the integration entry): the default poll interval
+in seconds (1–86400, default 30). The device file and individual entities can
+override it, see below.
+
+**Reconfigure** (three-dot menu → *Reconfigure*): change the gateway
+address, device ID, name, or device file without removing the entry.
 
 ## Your own device files
 
@@ -210,6 +250,125 @@ not belong to this device or unload with it, and you would have to reference
 global entity ids instead of the device's keys. The Jinja engine used here
 *is* Home Assistant's own — only the thin entity glue is local.
 
+## Bundled device files
+
+Community-contributed definitions ship with the integration (most converted
+from `modbus_local_gateway`); pull requests with new files are welcome. Any
+Modbus TCP device not listed here works too — write a device file for it.
+
+| Manufacturer | Model | File |
+| --- | --- | --- |
+| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `Dimplex-SI-11TU.yaml` |
+| Eastron | SDM-230 | `SDM230.yaml` |
+| Eastron | SDM-630 | `SDM630.yaml` |
+| ebyte | ME31-AXAX404 | `ME31-AXAX404.yaml` |
+| Finder | 7M.24 | `7M_24.yaml` |
+| Finder | 7M.38 | `7M_38.yaml` |
+| Fröling | BWP300 PV | `Fröling_BWP300PV.yaml` |
+| Growatt | MIC 2500TL-X | `MIC-2500TL-X.yaml` |
+| Growatt | MIN 6000TL-XH | `MIN-6000TL-XH.yaml` |
+| Growatt | MOD 6000TL-X | `MOD-6000TL-X.yaml` |
+| Growatt | MOD 10KTL3-XH | `MOD-10KTL3-XH.yaml` |
+| Growatt | SPH3600TL BL_UP | `SPH-3600TL-BL_UP.yaml` |
+| Husdata | H60 | `Husdata_H60.yaml` |
+| Pichler | Lüftungsgerät LG 150 – LG 250 | `Pichler-LG150-LG250.yaml` |
+| Pichler | Lüftungsgerät LG 350 – LG 450 | `Pichler-LG350-LG450.yaml` |
+| Salda | RIS / RIRS (MCB) | `Salda_RIS_MCB.yaml` |
+| Schneider Electric | Altivar ATV312 | `Schneider_ATV312.yaml` |
+| Schneider Electric | Altivar ATV312 Expert | `Schneider_ATV312_expert.yaml` |
+| Varmann | Qtherm | `Varmann Qtherm.yaml` |
+| Waveshare | Modbus POE ETH Relay 30CH | `Waveshare_30_POE.yaml` |
+| Waveshare | Modbus RTU Relay (D) | `Waveshare_RTU_Relay_D.yaml` |
+
+## How data is updated
+
+The integration polls. Each cycle collects every entity that is due, plans
+the minimal set of block reads (see the top of this page), executes them over
+one shared TCP connection per gateway, and decodes all values from the
+result. The effective interval per entity is, in order of precedence: the
+entity's `scan_interval` → the config entry option → the device file's
+`device.scan_interval` → 30 s. Writes are confirmed by reading the register
+back immediately.
+
+## Automation examples
+
+Entities behave like any other Home Assistant entities:
+
+```yaml
+automation:
+  - alias: Boost ventilation while cooking
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.kitchen_hood_running
+        to: "on"
+    actions:
+      - action: fan.set_percentage
+        target:
+          entity_id: fan.pichler_lg350_ventilation
+        data:
+          percentage: 75
+
+  - alias: Warn on inverter fault
+    triggers:
+      - trigger: state
+        entity_id: sensor.growatt_mod_6000tl_x_fault_flags
+    conditions: "{{ trigger.to_state.state not in ('', 'unknown', 'unavailable') }}"
+    actions:
+      - action: notify.mobile_app_phone
+        data:
+          message: "Inverter fault: {{ trigger.to_state.state }}"
+```
+
+## Known limitations
+
+- **Modbus TCP only.** Serial (RTU) devices need an RS-485↔TCP gateway such
+  as a Waveshare/Elfin/USR box; the integration does not open serial ports.
+- **No discovery.** Modbus has no discovery protocol; the gateway address
+  must be entered manually.
+- **Reads are capped at 125 registers** per transaction by the Modbus
+  protocol; `max_register_read` can only lower that.
+- **`flags` entities are read-only** — a bit field cannot be written back as
+  a whole. Use `mask` with `read_modify_write` to write single fields.
+- **Writes go through the same conversions as reads**, so a value that
+  cannot be encoded (e.g. not in the `map`) is rejected instead of written.
+- **One device per config entry.** A gateway serving several slave IDs needs
+  one entry per device (they share the TCP connection automatically).
+
+## Troubleshooting
+
+- **"Failed to connect" in the config flow** — check host/port, and that
+  nothing else holds the gateway's only TCP slot; many cheap RS-485 gateways
+  allow exactly one client.
+- **Some entities are unavailable** — the device rejected their addresses
+  (wrong device file, or the register only exists on other firmware). The
+  log lists every address the device refused. Those addresses are excluded
+  from gap bridging automatically.
+- **Everything is unavailable** — the device did not answer at all: wrong
+  slave ID, or the gateway is up while the RS-485 side is down. The
+  integration logs once when a device becomes unreachable and once when it
+  recovers, and retries with exponential backoff (up to 5 min).
+- **Wrong values** — usually byte order: try `swap: word`, `byte`, or
+  `word_byte`, and check `multiplier`.
+- **Diagnostics**: the device page offers *Download diagnostics* with the
+  parsed device definition, poll planning state, and current values (host
+  redacted).
+- **Debug logging**:
+
+  ```yaml
+  logger:
+    logs:
+      custom_components.modbus_connect: debug
+      pymodbus: info
+  ```
+
+## Removal
+
+Remove the integration entry in **Settings → Devices & services** (this
+deletes its entities and device), then remove **Modbus Connect** in HACS (or
+delete `custom_components/modbus_connect/` manually) and restart Home
+Assistant. Your own device files in `<ha_config>/modbus_connect/` are never
+deleted automatically.
+
 ## Migrating from modbus_local_gateway
 
 Convert old device files with the standalone converter (needs only PyYAML):
@@ -236,13 +395,26 @@ it has to change or drop. What changes:
 Because this is a new integration (new domain), Home Assistant treats the
 entities as new; dashboards and automations need to be pointed at them.
 
+## Quality
+
+Custom integrations cannot carry an official quality scale rating (the
+manifest says `custom`), but the code follows the
+[integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
+up to and including the **Platinum** rules — connection test before setup,
+reconfigure flow, translations (English and German), translated exceptions,
+diagnostics, parallel-update limits, strict typing, async I/O throughout, and
+98% test coverage. [`quality_scale.yaml`](custom_components/modbus_connect/quality_scale.yaml)
+documents every rule, including the exemptions (Modbus has no discovery, no
+authentication, and no fixed entity set to translate).
+
 ## Development
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install pytest-homeassistant-custom-component pymodbus ruff pyyaml
-.venv/bin/python -m pytest tests/
+.venv/bin/pip install -r requirements_test.txt
+.venv/bin/python -m pytest tests/ --cov=custom_components.modbus_connect
 .venv/bin/ruff check custom_components tests converter
+.venv/bin/mypy custom_components/modbus_connect   # strict, see pyproject.toml
 ```
 
 Layout: `models.py` (plain dataclasses), `codec.py` (registers ↔ values,
@@ -252,3 +424,7 @@ writes), `entity.py` + thin platform modules including template-driven
 `climate.py`. The pure modules have no Home Assistant imports and are tested
 standalone; `tests/test_e2e_server.py` proves the transaction counts against
 a real TCP server.
+
+Brand assets live in `support/` (SVG sources and `build_brand.py` to
+regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
+which Home Assistant ≥ 2026.3 serves locally).

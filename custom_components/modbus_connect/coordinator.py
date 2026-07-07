@@ -229,7 +229,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             async with self.client.lock:
                 if not await self.client.ensure_connected():
                     raise HomeAssistantError(
-                        f"Cannot connect to gateway {self.client.host}:{self.client.port}"
+                        f"Cannot connect to gateway {self.client.host}:{self.client.port}",
+                        translation_domain=DOMAIN,
+                        translation_key="cannot_connect",
+                        translation_placeholders={
+                            "host": self.client.host,
+                            "port": str(self.client.port),
+                        },
                     )
                 current_raw: int | None = None
                 if defn.mask is not None and defn.read_modify_write:
@@ -247,7 +253,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                     confirmed = self._decode(defn)
         except (ReadError, WriteError, codec.CodecError) as err:
-            raise HomeAssistantError(f"Writing {defn.key} failed: {err}") from err
+            raise HomeAssistantError(
+                f"Writing {defn.key} failed: {err}",
+                translation_domain=DOMAIN,
+                translation_key="write_failed",
+                translation_placeholders={"key": defn.key, "error": str(err)},
+            ) from err
 
         if defn.platform != "button":
             data = dict(self.data) if self.data else {}

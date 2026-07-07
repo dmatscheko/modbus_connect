@@ -1,0 +1,93 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Modbus-Gateway",
+        "description": "Verbindung zum Modbus-TCP-Gateway (oder zu einem Gerät, das direkt Modbus TCP spricht).",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "slave_id": "Modbus-Geräte-ID",
+          "prefix": "Gerätename"
+        },
+        "data_description": {
+          "host": "Hostname oder IP-Adresse des Modbus-TCP-Gateways.",
+          "port": "TCP-Port des Gateways. Fast immer 502.",
+          "slave_id": "Unit-/Slave-ID des Modbus-Geräts hinter dem Gateway (0–255).",
+          "prefix": "Optionaler Anzeigename für dieses Gerät. Leer lassen, um Hersteller und Modell aus der Gerätedatei zu verwenden."
+        }
+      },
+      "device": {
+        "title": "Gerätetyp",
+        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.",
+        "data": {
+          "filename": "Gerätedefinition"
+        },
+        "data_description": {
+          "filename": "Die YAML-Datei, die Register und Entitäten des Geräts beschreibt."
+        }
+      },
+      "reconfigure": {
+        "title": "Modbus-Gateway",
+        "description": "Verbindung zum Modbus-TCP-Gateway ändern.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "slave_id": "Modbus-Geräte-ID",
+          "prefix": "Gerätename"
+        },
+        "data_description": {
+          "host": "Hostname oder IP-Adresse des Modbus-TCP-Gateways.",
+          "port": "TCP-Port des Gateways. Fast immer 502.",
+          "slave_id": "Unit-/Slave-ID des Modbus-Geräts hinter dem Gateway (0–255).",
+          "prefix": "Optionaler Anzeigename für dieses Gerät. Leer lassen, um Hersteller und Modell aus der Gerätedatei zu verwenden."
+        }
+      },
+      "reconfigure_device": {
+        "title": "Gerätetyp",
+        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.",
+        "data": {
+          "filename": "Gerätedefinition"
+        },
+        "data_description": {
+          "filename": "Die YAML-Datei, die Register und Entitäten des Geräts beschreibt."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Gateway fehlgeschlagen. Prüfe Host und Port und ob das Gateway erreichbar ist."
+    },
+    "abort": {
+      "already_configured": "Ein Gerät mit diesem Gateway und dieser Modbus-Geräte-ID ist bereits konfiguriert.",
+      "no_device_files": "Es wurden keine gültigen Gerätedefinitionen gefunden.",
+      "reconfigure_successful": "Die Neukonfiguration war erfolgreich."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Abfrage",
+        "data": {
+          "scan_interval": "Aktualisierungsintervall"
+        },
+        "data_description": {
+          "scan_interval": "Standard-Abfrageintervall in Sekunden. Gerätedatei und einzelne Entitäten können es überschreiben."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "Keine Verbindung zum Modbus-Gateway {host}:{port} möglich."
+    },
+    "write_failed": {
+      "message": "Schreiben von '{key}' fehlgeschlagen: {error}"
+    },
+    "no_action": {
+      "message": "'{key}' hat keine konfigurierte '{action}'-Aktion."
+    },
+    "no_mapping": {
+      "message": "'{key}' hat keine '{action}'-Zuordnung für '{value}'."
+    }
+  }
+}

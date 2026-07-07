@@ -1,0 +1,636 @@
+"""Integration setup, platform, write, and diagnostics tests with a fake client."""
+
+import asyncio
+from pathlib import Path
+from unittest.mock import patch
+
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.modbus_connect.client import ModbusBlockClient
+from custom_components.modbus_connect.const import (
+    CONF_FILENAME,
+    CONF_SLAVE_ID,
+    DOMAIN,
+    OPTION_SCAN_INTERVAL,
+)
+from custom_components.modbus_connect.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
+from custom_components.modbus_connect.models import BIT_TABLES, Span
+
+DEVICE_YAML = """
+device:
+  manufacturer: Acme
+  model: X1
+holding:
+  temperature:
+    address: 0
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Temperature
+      unit_of_measurement: "°C"
+  setpoint:
+    address: 1
+    duplicate_as_sensor: true
+    ha:
+      platform: number
+      name: Setpoint
+      min: 0
+      max: 255
+  mode:
+    address: 2
+    map: {0: "Off", 1: "Auto"}
+    ha:
+      platform: select
+      name: Mode
+  label:
+    address: 3
+    type: string
+    count: 2
+    ha:
+      platform: text
+      name: Label
+  reset:
+    address: 5
+    write_value: 1
+    ha:
+      platform: button
+      name: Reset
+  power:
+    address: 4
+    'on': 5
+    'off': 6
+    ha:
+      platform: switch
+      name: Power
+  valve:
+    address: 6
+    ha:
+      platform: switch
+      name: Valve
+  status:
+    address: 7
+    map: {0: "ok", 1: "warn"}
+    ha:
+      platform: sensor
+      name: Status
+coil:
+  pump:
+    address: 0
+    ha:
+      platform: switch
+      name: Pump
+discrete:
+  alarm:
+    address: 1
+    ha:
+      platform: binary_sensor
+      name: Alarm
+template:
+  double_temp:
+    state: "{{ temperature * 2 }}"
+    ha:
+      platform: sensor
+      name: Double temp
+  t_switch:
+    state: "{{ pump }}"
+    turn_on: {entity: pump, value: 1}
+    turn_off: {entity: pump, value: 0}
+    ha:
+      platform: switch
+      name: T switch
+  t_number:
+    state: "{{ setpoint }}"
+    set_value: {entity: setpoint}
+    ha:
+      platform: number
+      name: T number
+      min: 0
+      max: 255
+  t_select:
+    state: "{{ mode }}"
+    select_option: {entity: mode}
+    ha:
+      platform: select
+      name: T select
+  t_light:
+    state: "{{ pump }}"
+    brightness: "{{ setpoint }}"
+    turn_on: {entity: pump, value: 1}
+    turn_off: {entity: pump, value: 0}
+    set_brightness: {entity: setpoint}
+    ha:
+      platform: light
+      name: T light
+  t_fan:
+    state: "{{ pump }}"
+    percentage: "{{ setpoint }}"
+    preset_mode: "{{ 'eco' }}"
+    turn_on: {entity: pump, value: 1}
+    turn_off: {entity: pump, value: 0}
+    set_percentage: {entity: setpoint}
+    set_preset_mode:
+      entity: setpoint
+      map: {eco: 10, boost: 90}
+    ha:
+      platform: fan
+      name: T fan
+  t_cover:
+    position: "{{ setpoint }}"
+    open_cover: {entity: pump, value: 1}
+    close_cover: {entity: pump, value: 0}
+    set_position: {entity: setpoint}
+    ha:
+      platform: cover
+      name: T cover
+  t_climate:
+    current_temperature: "{{ temperature }}"
+    target_temperature: "{{ setpoint }}"
+    hvac_mode: "{{ 'heat' if mode == 'Auto' else 'off' }}"
+    min_temp: 5
+    max_temp: 95
+    temp_step: 0.5
+    set_temperature: {entity: setpoint}
+    set_hvac_mode:
+      entity: mode
+      map: {heat: "Auto", "off": "Off"}
+    ha:
+      platform: climate
+      name: T climate
+  t_climate2:
+    current_temperature: "{{ temperature }}"
+    hvac_mode: "{{ 'banana' }}"
+    hvac_action: "{{ 'banana' }}"
+    ha:
+      platform: climate
+      name: T climate2
+  t_cover2:
+    is_closed: "{{ not pump }}"
+    open_cover: {entity: pump, value: 1}
+    close_cover: {entity: pump, value: 0}
+    stop_cover: {entity: pump, value: 0}
+    ha:
+      platform: cover
+      name: T cover2
+  t_select2:
+    state: "{{ 'A' }}"
+    options: ["A", "B"]
+    select_option:
+      entity: setpoint
+      map: {A: 1}
+    ha:
+      platform: select
+      name: T select2
+  t_bad:
+    state: "{{ this_does_not_exist + 1 }}"
+    ha:
+      platform: sensor
+      name: T bad
+  t_list:
+    state: "{{ [1, 2] }}"
+    ha:
+      platform: sensor
+      name: T list
+"""
+
+
+class FakeClient:
+    """Duck-typed ModbusBlockClient backed by a dict."""
+
+    host = "192.0.2.1"
+    port = 502
+
+    def __init__(self) -> None:
+        self.lock = asyncio.Lock()
+        self.values: dict[tuple[str, int], int | bool] = {
+            ("holding", 0): 215,  # temperature 21.5
+            ("holding", 1): 42,  # setpoint
+            ("holding", 2): 1,  # mode "Auto"
+            ("holding", 3): 0x6869,  # "hi"
+            ("holding", 4): 5,  # power "on" (custom on/off values 5/6)
+            ("holding", 5): 0,
+            ("holding", 6): 1,  # valve on
+            ("holding", 7): 9,  # status: not in the map -> undecodable
+            ("coil", 0): True,  # pump on
+            ("discrete", 1): True,  # alarm on
+        }
+        self.released: list[str] = []
+        self.connected_ok = True
+
+    async def ensure_connected(self) -> bool:
+        return self.connected_ok
+
+    async def read_block(self, device_id: int, span: Span) -> list[int] | list[bool]:
+        default: int | bool = False if span.table in BIT_TABLES else 0
+        return [
+            self.values.get((span.table, a), default)
+            for a in range(span.start, span.end)
+        ]
+
+    async def write_registers(self, device_id: int, address: int, words: list[int]) -> None:
+        for i, word in enumerate(words):
+            self.values[("holding", address + i)] = word
+
+    async def write_coil(self, device_id: int, address: int, value: bool) -> None:
+        self.values[("coil", address)] = value
+
+    def release(self, entry_id: str) -> None:
+        self.released.append(entry_id)
+
+
+def write_device_file(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "acme_x1.yaml").write_text(DEVICE_YAML, encoding="utf-8")
+
+
+def make_entry(filename: str = "acme_x1.yaml") -> MockConfigEntry:
+    return MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.1",
+            "port": 502,
+            CONF_SLAVE_ID: 7,
+            CONF_FILENAME: filename,
+        },
+        unique_id="192.0.2.1:502:7",
+        title="Acme X1",
+    )
+
+
+async def setup_entry(hass: HomeAssistant, entry: MockConfigEntry, client: FakeClient) -> bool:
+    write_device_file(hass)
+    entry.add_to_hass(hass)
+    with patch.object(ModbusBlockClient, "acquire", return_value=client):
+        ok = await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return ok
+
+
+def eid(hass: HomeAssistant, entry: MockConfigEntry, platform: str, key: str) -> str:
+    """Resolve the entity id for a device-file key via the entity registry."""
+    entity_id = er.async_get(hass).async_get_entity_id(
+        platform, DOMAIN, f"{entry.entry_id}_{key}"
+    )
+    assert entity_id is not None, f"{platform}/{key} not registered"
+    return entity_id
+
+
+async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    assert await setup_entry(hass, entry, FakeClient())
+    assert entry.state is ConfigEntryState.LOADED
+
+    for platform, key, expected in [
+        ("sensor", "temperature", "21.5"),
+        ("number", "setpoint", "42"),
+        ("select", "mode", "Auto"),
+        ("text", "label", "hi"),
+        ("switch", "pump", "on"),
+        ("binary_sensor", "alarm", "on"),
+        ("sensor", "double_temp", "43.0"),
+        ("switch", "t_switch", "on"),
+        ("number", "t_number", "42.0"),
+        ("select", "t_select", "Auto"),
+        ("light", "t_light", "on"),
+        ("fan", "t_fan", "on"),
+        ("cover", "t_cover", "open"),
+        ("climate", "t_climate", "heat"),
+    ]:
+        state = hass.states.get(eid(hass, entry, platform, key))
+        assert state is not None, f"{platform}/{key} has no state"
+        assert state.state == expected, f"{platform}/{key}: {state.state} != {expected}"
+
+    # duplicate_as_sensor mirror of the setpoint number
+    mirror = hass.states.get(eid(hass, entry, "sensor", "setpoint_sensor"))
+    assert mirror is not None
+    assert mirror.state == "42"
+
+
+async def test_unload_releases_client(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert client.released == [entry.entry_id]
+
+
+async def test_setup_missing_device_file(hass: HomeAssistant) -> None:
+    entry = make_entry(filename="does_not_exist.yaml")
+    assert not await setup_entry(hass, entry, FakeClient())
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+
+
+async def test_setup_retry_when_gateway_down(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    client.connected_ok = False
+    assert not await setup_entry(hass, entry, client)
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    # the failed setup must not leak a client reference
+    assert client.released == [entry.entry_id]
+    await hass.config_entries.async_remove(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_writes_through_entities(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    # number: multiplier-free write, confirmed by read-back
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": eid(hass, entry, "number", "setpoint"), "value": 100},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 100
+    assert hass.states.get(eid(hass, entry, "number", "setpoint")).state == "100"
+
+    # select: mapped write
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": eid(hass, entry, "select", "mode"), "option": "Off"},
+        blocking=True,
+    )
+    assert client.values[("holding", 2)] == 0
+
+    # switch on a coil
+    await hass.services.async_call(
+        "switch",
+        "turn_off",
+        {"entity_id": eid(hass, entry, "switch", "pump")},
+        blocking=True,
+    )
+    assert client.values[("coil", 0)] is False
+
+    # text
+    await hass.services.async_call(
+        "text",
+        "set_value",
+        {"entity_id": eid(hass, entry, "text", "label"), "value": "ok"},
+        blocking=True,
+    )
+    assert client.values[("holding", 3)] == 0x6F6B  # "ok"
+
+    # button writes its fixed value
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": eid(hass, entry, "button", "reset")},
+        blocking=True,
+    )
+    assert client.values[("holding", 5)] == 1
+
+
+async def test_template_actions(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    # template switch writes through to the coil
+    await hass.services.async_call(
+        "switch",
+        "turn_off",
+        {"entity_id": eid(hass, entry, "switch", "t_switch")},
+        blocking=True,
+    )
+    assert client.values[("coil", 0)] == 0
+
+    # template light: brightness goes to the mapped holding register
+    await hass.services.async_call(
+        "light",
+        "turn_on",
+        {"entity_id": eid(hass, entry, "light", "t_light"), "brightness": 128},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 128
+
+    # template fan: percentage 0 routes to turn_off
+    await hass.services.async_call(
+        "fan",
+        "set_percentage",
+        {"entity_id": eid(hass, entry, "fan", "t_fan"), "percentage": 0},
+        blocking=True,
+    )
+    assert client.values[("coil", 0)] == 0
+
+    # template cover: set_position writes the register
+    await hass.services.async_call(
+        "cover",
+        "set_cover_position",
+        {"entity_id": eid(hass, entry, "cover", "t_cover"), "position": 75},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 75
+
+    # template climate: temperature and hvac mode (mapped)
+    await hass.services.async_call(
+        "climate",
+        "set_temperature",
+        {"entity_id": eid(hass, entry, "climate", "t_climate"), "temperature": 55},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 55
+    await hass.services.async_call(
+        "climate",
+        "set_hvac_mode",
+        {"entity_id": eid(hass, entry, "climate", "t_climate"), "hvac_mode": "off"},
+        blocking=True,
+    )
+    assert client.values[("holding", 2)] == 0
+
+
+async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    write_device_file(hass)
+    entry.add_to_hass(hass)
+    with patch.object(ModbusBlockClient, "acquire", return_value=client):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        hass.config_entries.async_update_entry(
+            entry, options={OPTION_SCAN_INTERVAL: 5}
+        )
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.runtime_data.update_interval.total_seconds() == 5
+
+
+async def test_diagnostics(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    assert await setup_entry(hass, entry, FakeClient())
+
+    diagnostics = await async_get_config_entry_diagnostics(hass, entry)
+    assert diagnostics["entry"]["data"]["host"] == "**REDACTED**"
+    assert diagnostics["device"]["manufacturer"] == "Acme"
+    assert diagnostics["device"]["model"] == "X1"
+    assert diagnostics["polling"]["last_update_success"] is True
+    by_key = {e["key"]: e for e in diagnostics["entities"]}
+    assert by_key["temperature"]["value"] == 21.5
+    assert by_key["temperature"]["address"] == 0
+    assert {t["key"] for t in diagnostics["templates"]} >= {"double_temp", "t_climate"}
+
+
+async def test_switch_variants_and_undecodable_value(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    # configured on/off raw values on a holding register
+    power = eid(hass, entry, "switch", "power")
+    assert hass.states.get(power).state == "on"
+    await hass.services.async_call(
+        "switch", "turn_off", {"entity_id": power}, blocking=True
+    )
+    assert client.values[("holding", 4)] == 6
+    assert hass.states.get(power).state == "off"
+    await hass.services.async_call(
+        "switch", "turn_on", {"entity_id": power}, blocking=True
+    )
+    assert client.values[("holding", 4)] == 5
+
+    # default 1/0 payloads on a holding register
+    valve = eid(hass, entry, "switch", "valve")
+    assert hass.states.get(valve).state == "on"
+    await hass.services.async_call(
+        "switch", "turn_off", {"entity_id": valve}, blocking=True
+    )
+    assert client.values[("holding", 6)] == 0
+
+    # a register value missing from the map decodes to None -> unavailable
+    assert hass.states.get(eid(hass, entry, "sensor", "status")).state == "unavailable"
+
+
+async def test_template_edge_rendering(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    assert await setup_entry(hass, entry, FakeClient())
+
+    # failing template -> unknown, not an exception
+    assert hass.states.get(eid(hass, entry, "sensor", "t_bad")).state == "unknown"
+    # non-primitive template results are stringified
+    assert hass.states.get(eid(hass, entry, "sensor", "t_list")).state == "[1, 2]"
+    # invalid hvac_mode/hvac_action strings are dropped
+    assert hass.states.get(eid(hass, entry, "climate", "t_climate2")).state == "unknown"
+    # is_closed template: pump is on -> not closed
+    assert hass.states.get(eid(hass, entry, "cover", "t_cover2")).state == "open"
+    # preset comes from the template
+    fan = hass.states.get(eid(hass, entry, "fan", "t_fan"))
+    assert fan.attributes["preset_mode"] == "eco"
+    assert fan.attributes["preset_modes"] == ["eco", "boost"]
+
+
+async def test_more_template_actions(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    # fan: turn_on with a percentage writes both actions
+    await hass.services.async_call(
+        "fan",
+        "turn_on",
+        {"entity_id": eid(hass, entry, "fan", "t_fan"), "percentage": 60},
+        blocking=True,
+    )
+    assert client.values[("coil", 0)] == 1
+    assert client.values[("holding", 1)] == 60
+
+    # fan: preset mode goes through its map
+    await hass.services.async_call(
+        "fan",
+        "set_preset_mode",
+        {"entity_id": eid(hass, entry, "fan", "t_fan"), "preset_mode": "boost"},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 90
+
+    # climate turn_off / turn_on write the mapped mode values
+    climate = eid(hass, entry, "climate", "t_climate")
+    await hass.services.async_call(
+        "climate", "turn_off", {"entity_id": climate}, blocking=True
+    )
+    assert client.values[("holding", 2)] == 0
+    await hass.services.async_call(
+        "climate", "turn_on", {"entity_id": climate}, blocking=True
+    )
+    assert client.values[("holding", 2)] == 1
+
+    # cover open/close/stop (fixed actions)
+    cover = eid(hass, entry, "cover", "t_cover2")
+    await hass.services.async_call(
+        "cover", "close_cover", {"entity_id": cover}, blocking=True
+    )
+    assert client.values[("coil", 0)] == 0
+    await hass.services.async_call(
+        "cover", "open_cover", {"entity_id": cover}, blocking=True
+    )
+    assert client.values[("coil", 0)] == 1
+    await hass.services.async_call(
+        "cover", "stop_cover", {"entity_id": cover}, blocking=True
+    )
+    assert client.values[("coil", 0)] == 0
+
+    # light turn_off
+    await hass.services.async_call(
+        "light",
+        "turn_off",
+        {"entity_id": eid(hass, entry, "light", "t_light")},
+        blocking=True,
+    )
+    assert client.values[("coil", 0)] == 0
+
+
+async def test_unmapped_action_value_raises(hass: HomeAssistant) -> None:
+    import pytest
+    from homeassistant.exceptions import ServiceValidationError
+
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    # "A" is mapped and writes; "B" is a valid option without a mapping
+    select = eid(hass, entry, "select", "t_select2")
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {"entity_id": select, "option": "A"},
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 1
+
+    with pytest.raises(ServiceValidationError, match="no 'select_option' mapping"):
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": select, "option": "B"},
+            blocking=True,
+        )
+
+
+async def test_write_failure_becomes_home_assistant_error(hass: HomeAssistant) -> None:
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    entry = make_entry()
+    client = FakeClient()
+    assert await setup_entry(hass, entry, client)
+
+    client.connected_ok = False
+    with pytest.raises(HomeAssistantError, match="Cannot connect"):
+        await hass.services.async_call(
+            "number",
+            "set_value",
+            {"entity_id": eid(hass, entry, "number", "setpoint"), "value": 1},
+            blocking=True,
+        )
