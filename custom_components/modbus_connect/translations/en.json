@@ -1,39 +1,35 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Device is already configured"
-        },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "unknown": "Unexpected error"
-        },
-        "step": {
-            "device_type": {
-                "data": {
-                    "filename": "Device"
-                },
-                "description": "Select the device type to configure"
-            },
-            "user": {
-                "data": {
-                    "host": "Host",
-                    "port": "Port",
-                    "slave_id": "Slave ID",
-                    "prefix": "Prefix (optional)"
-                },
-                "description": "Configure the connection parameters"
-            }
+  "config": {
+    "step": {
+      "user": {
+        "title": "Gateway connection",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "slave_id": "Slave / unit ID",
+          "prefix": "Device name (optional, defaults to manufacturer + model)"
         }
+      },
+      "device": {
+        "title": "Device type",
+        "data": {
+          "filename": "Device configuration file"
+        }
+      }
     },
-    "options": {
-        "step": {
-            "init": {
-                "description": "Update device parameters",
-                "data": {
-                    "refresh": "Update frequency",
-                    "mirror_non_sensors": "Mirror non-sensor entities to sensors"
-                }
-            }
-        }
+    "abort": {
+      "already_configured": "This gateway + slave ID is already configured.",
+      "no_device_files": "No device configuration files found."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Modbus Connect options",
+        "data": {
+          "scan_interval": "Update interval (seconds)"
+        }
+      }
+    }
+  }
 }

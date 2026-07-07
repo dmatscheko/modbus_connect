@@ -1,0 +1,203 @@
+# Converted from modbus_local_gateway 'Varmann Qtherm.yaml' by convert.py
+device:
+  manufacturer: Varmann
+  model: Qtherm
+holding:
+  slave_address:
+    address: 0
+    ha:
+      platform: number
+      min: 1
+      max: 240
+      name: Slave Address
+      icon: mdi:serial-port
+      entity_category: config
+  tmp_ntc:
+    address: 1
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Temperature NTC
+      unit_of_measurement: °C
+      precision: 1
+      icon: mdi:thermometer
+  ust_tmp:
+    address: 2
+    multiplier: 0.1
+    ha:
+      platform: number
+      min: 0
+      max: 100
+      name: Required Temperature
+      unit_of_measurement: °C
+      icon: mdi:thermometer
+  heat_chill:
+    address: 3
+    map:
+      0: Heating
+      1: Cooling
+      2: Auto
+    ha:
+      platform: select
+      name: Heat/Chill Mode
+  timereg:
+    address: 4
+    ha:
+      platform: number
+      min: 1
+      max: 240
+      name: Integration time
+      unit_of_measurement: s
+      entity_category: config
+  kreg:
+    address: 5
+    ha:
+      platform: number
+      min: 1
+      max: 3
+      name: Regulation profile
+      entity_category: config
+  ust_fan:
+    address: 6
+    ha:
+      platform: number
+      min: 0
+      max: 100
+      name: Required Fan speed
+      unit_of_measurement: '%'
+      icon: mdi:fan
+  valve_heat:
+    address: 7
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: Heating valve
+      icon: mdi:valve
+  valve_chill:
+    address: 8
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: Cooling valve
+      icon: mdi:valve
+  tmp_out:
+    address: 9
+    multiplier: 0.1
+    ha:
+      platform: number
+      min: 10
+      max: 500
+      name: Incoming temperature
+      unit_of_measurement: °C
+      icon: mdi:thermometer
+  time_lan:
+    address: 10
+    ha:
+      platform: number
+      min: 2
+      max: 250
+      name: LAN communication timeout
+      unit_of_measurement: s
+      icon: mdi:lan-pending
+      entity_category: config
+  vadc:
+    address: 11
+    ha:
+      platform: sensor
+      name: ADC value
+      unit_of_measurement: '%'
+  fan_ust:
+    address: 12
+    ha:
+      platform: sensor
+      name: Fan speed
+      unit_of_measurement: '%'
+  o_heat:
+    address: 13
+    map:
+      0: Closed
+      1: Open
+    ha:
+      platform: sensor
+      name: Heating valve state
+      icon: mdi:valve
+  o_chill:
+    address: 14
+    map:
+      0: Closed
+      1: Open
+    ha:
+      platform: sensor
+      name: Cooling valve state
+      icon: mdi:valve
+  alarm:
+    address: 15
+    map:
+      0: OK
+      1: Fault
+    ha:
+      platform: sensor
+      name: Alarm status
+      icon: mdi:alert
+  dip_1:
+    address: 16
+    map:
+      0: Manual
+      1: Auto
+    ha:
+      platform: sensor
+      name: DIP Switch 1
+  dip_2:
+    address: 17
+    map:
+      0: Manual
+      1: Auto
+    ha:
+      platform: sensor
+      name: DIP Switch 2
+  i_mode:
+    address: 18
+    ha:
+      platform: binary_sensor
+      name: Operating mode
+  i_manual:
+    address: 19
+    mask: 0x7
+    flags:
+      0: Fan High
+      1: Fan Medium
+      2: Fan Low
+    ha:
+      platform: sensor
+      name: Manual control
+      icon: mdi:fan
+  freq_sin:
+    address: 20
+    ha:
+      platform: sensor
+      name: Motor drive frequency
+      unit_of_measurement: Hz
+      device_class: frequency
+      state_class: measurement
+  amp_sin:
+    address: 21
+    ha:
+      platform: sensor
+      name: Motor drive amplitude
+      unit_of_measurement: V
+  ishunt:
+    address: 22
+    ha:
+      platform: sensor
+      name: Motor current
+      unit_of_measurement: A
+  inorm:
+    address: 23
+    ha:
+      platform: number
+      min: 1
+      max: 65535
+      name: Motor nominal current
+      unit_of_measurement: A

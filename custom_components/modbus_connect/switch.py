@@ -1,104 +1,76 @@
-"""Modbus Connect switches"""
+"""Switch platform."""
 
 from __future__ import annotations
 
-import logging
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.template import result_as_boolean
 
-from .coordinator import ModbusContext, ModbusCoordinator, ModbusCoordinatorEntity
-from .helpers import async_setup_entities
-from .entity_management.base import ModbusSwitchEntityDescription
-from .entity_management.const import ControlType, ModbusDataType
-
-_LOGGER: logging.Logger = logging.getLogger(__name__)
+from .coordinator import ModbusConnectConfigEntry
+from .entity import (
+    ModbusConnectEntity,
+    ModbusConnectTemplateEntity,
+    build_description,
+    build_template_description,
+    resolve_on_off,
+)
+from .models import BIT_TABLES
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ModbusConnectConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Modbus Connect entities."""
-    await async_setup_entities(
-        hass=hass,
-        config_entry=config_entry,
-        async_add_entities=async_add_entities,
-        control=ControlType.SWITCH,
-        entity_class=ModbusSwitchEntity,
+    coordinator = entry.runtime_data
+    entities: list[SwitchEntity] = [
+        ModbusConnectSwitch(coordinator, defn, build_description(defn))
+        for defn in coordinator.device_def.entities
+        if defn.platform == "switch"
+    ]
+    entities.extend(
+        ModbusConnectTemplateSwitch(coordinator, tdef, build_template_description(tdef))
+        for tdef in coordinator.device_def.templates
+        if tdef.platform == "switch"
     )
+    async_add_entities(entities)
 
 
-class ModbusSwitchEntity(ModbusCoordinatorEntity, SwitchEntity):
-    """Switch entity for Modbus gateway"""
+class ModbusConnectSwitch(ModbusConnectEntity, SwitchEntity):
+    """A writable on/off state on a coil or holding register."""
 
-    def __init__(
-        self,
-        coordinator: ModbusCoordinator,
-        ctx: ModbusContext,
-        device: DeviceInfo,
-    ) -> None:
-        """Initialize a PVOutput sensor."""
-        super().__init__(coordinator, ctx=ctx, device=device)
+    @property
+    def is_on(self) -> bool | None:
+        return resolve_on_off(self._defn, self.value)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        try:
-            value: str | int | bool | None = cast(ModbusCoordinator, self.coordinator).get_data(
-                self.coordinator_context
-            )
-            if value is not None and isinstance(self.entity_description, ModbusSwitchEntityDescription):
-                if self.entity_description.data_type == ModbusDataType.COIL:
-                    self._attr_is_on = value
-                elif self.entity_description.data_type == ModbusDataType.HOLDING_REGISTER:
-                    self._attr_is_on = value == self.entity_description.on
-                else:
-                    raise ValueError("Invalid data_type for switch")
-                _LOGGER.debug(
-                    "Updating device with %s as %s",
-                    self.entity_description.key,
-                    value,
-                )
-                self.async_write_ha_state()
-        except Exception as err:  # pylint: disable=broad-exception-caught
-            _LOGGER.error("Unable to get data for %s %s", self.name, err)
-
-    def turn_on(self, **kwargs: Any) -> None:
-        """Turn the entity on."""
-        raise NotImplementedError()
+    def _payload(self, turn_on: bool) -> Any:
+        configured = self._defn.on_value if turn_on else self._defn.off_value
+        if configured is not None:
+            return configured
+        if self._defn.table in BIT_TABLES:
+            return turn_on
+        return 1 if turn_on else 0
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the entity on."""
-        if isinstance(self.coordinator, ModbusCoordinator) and isinstance(
-            self.entity_description, ModbusSwitchEntityDescription
-        ):
-            if self.entity_description.data_type == ModbusDataType.COIL:
-                value = True
-            elif self.entity_description.data_type == ModbusDataType.HOLDING_REGISTER:
-                value = self.entity_description.on
-            else:
-                raise ValueError("Invalid data_type for switch")
-            await self.coordinator.client.write_data(self.coordinator_context, value)
-
-    def turn_off(self, **kwargs: Any) -> None:
-        """Turn the entity off."""
-        raise NotImplementedError()
+        await self._write(self._payload(True))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the entity off."""
-        if isinstance(self.coordinator, ModbusCoordinator) and isinstance(
-            self.entity_description, ModbusSwitchEntityDescription
-        ):
-            if self.entity_description.data_type == ModbusDataType.COIL:
-                value = False
-            elif self.entity_description.data_type == ModbusDataType.HOLDING_REGISTER:
-                value = self.entity_description.off
-            else:
-                raise ValueError("Invalid data_type for switch")
-            await self.coordinator.client.write_data(self.coordinator_context, value)
+        await self._write(self._payload(False))
+
+
+class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
+    """An on/off state from a template with configured write actions."""
+
+    @property
+    def is_on(self) -> bool | None:
+        value = self.render("state")
+        return None if value is None else result_as_boolean(value)
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._run_action("turn_on")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._run_action("turn_off")

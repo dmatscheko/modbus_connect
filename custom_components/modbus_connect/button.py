@@ -1,8 +1,8 @@
-"""Text platform."""
+"""Button platform: pressing writes a configured value."""
 
 from __future__ import annotations
 
-from homeassistant.components.text import TextEntity
+from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -17,19 +17,14 @@ async def async_setup_entry(
 ) -> None:
     coordinator = entry.runtime_data
     async_add_entities(
-        ModbusConnectText(coordinator, defn, build_description(defn))
+        ModbusConnectButton(coordinator, defn, build_description(defn))
         for defn in coordinator.device_def.entities
-        if defn.platform == "text"
+        if defn.platform == "button"
     )
 
 
-class ModbusConnectText(ModbusConnectEntity, TextEntity):
-    """A writable string."""
+class ModbusConnectButton(ModbusConnectEntity, ButtonEntity):
+    """Writes ``write_value`` when pressed; never reads."""
 
-    @property
-    def native_value(self) -> str | None:
-        value = self.value
-        return value if isinstance(value, str) else None
-
-    async def async_set_value(self, value: str) -> None:
-        await self._write(value)
+    async def async_press(self) -> None:
+        await self._write(self._defn.write_value)

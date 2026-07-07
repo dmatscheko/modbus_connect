@@ -1,0 +1,164 @@
+# Converted from modbus_local_gateway 'Waveshare_30_POE.yaml' by convert.py
+device:
+  manufacturer: Waveshare
+  model: Modbus POE ETH Relay 30CH
+holding:
+  sw_version:
+    address: 32768
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Software Version
+      precision: 3
+      entity_category: diagnostic
+coil:
+  relay_1:
+    address: 0
+    ha:
+      platform: switch
+      name: Relay 1
+  relay_2:
+    address: 1
+    ha:
+      platform: switch
+      name: Relay 2
+  relay_3:
+    address: 2
+    ha:
+      platform: switch
+      name: Relay 3
+  relay_4:
+    address: 3
+    ha:
+      platform: switch
+      name: Relay 4
+  relay_5:
+    address: 4
+    ha:
+      platform: switch
+      name: Relay 5
+  relay_6:
+    address: 5
+    ha:
+      platform: switch
+      name: Relay 6
+  relay_7:
+    address: 6
+    ha:
+      platform: switch
+      name: Relay 7
+  relay_8:
+    address: 7
+    ha:
+      platform: switch
+      name: Relay 8
+  relay_9:
+    address: 8
+    ha:
+      platform: switch
+      name: Relay 9
+  relay_10:
+    address: 9
+    ha:
+      platform: switch
+      name: Relay 10
+  relay_11:
+    address: 10
+    ha:
+      platform: switch
+      name: Relay 11
+  relay_12:
+    address: 11
+    ha:
+      platform: switch
+      name: Relay 12
+  relay_13:
+    address: 12
+    ha:
+      platform: switch
+      name: Relay 13
+  relay_14:
+    address: 13
+    ha:
+      platform: switch
+      name: Relay 14
+  relay_15:
+    address: 14
+    ha:
+      platform: switch
+      name: Relay 15
+  relay_16:
+    address: 15
+    ha:
+      platform: switch
+      name: Relay 16
+  relay_17:
+    address: 16
+    ha:
+      platform: switch
+      name: Relay 17
+  relay_18:
+    address: 17
+    ha:
+      platform: switch
+      name: Relay 18
+  relay_19:
+    address: 18
+    ha:
+      platform: switch
+      name: Relay 19
+  relay_20:
+    address: 19
+    ha:
+      platform: switch
+      name: Relay 20
+  relay_21:
+    address: 20
+    ha:
+      platform: switch
+      name: Relay 21
+  relay_22:
+    address: 21
+    ha:
+      platform: switch
+      name: Relay 22
+  relay_23:
+    address: 22
+    ha:
+      platform: switch
+      name: Relay 23
+  relay_24:
+    address: 23
+    ha:
+      platform: switch
+      name: Relay 24
+  relay_25:
+    address: 24
+    ha:
+      platform: switch
+      name: Relay 25
+  relay_26:
+    address: 25
+    ha:
+      platform: switch
+      name: Relay 26
+  relay_27:
+    address: 26
+    ha:
+      platform: switch
+      name: Relay 27
+  relay_28:
+    address: 27
+    ha:
+      platform: switch
+      name: Relay 28
+  relay_29:
+    address: 28
+    ha:
+      platform: switch
+      name: Relay 29
+  relay_30:
+    address: 29
+    ha:
+      platform: switch
+      name: Relay 30

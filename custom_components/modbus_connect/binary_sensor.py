@@ -1,55 +1,55 @@
-"""Modbus Connect binary sensors"""
+"""Binary sensor platform."""
 
 from __future__ import annotations
 
-import logging
-from typing import cast
-
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.template import result_as_boolean
 
-from .coordinator import ModbusContext, ModbusCoordinator, ModbusCoordinatorEntity
-from .helpers import async_setup_entities
-from .entity_management.base import ModbusBinarySensorEntityDescription
-from .entity_management.const import ControlType
-
-_LOGGER = logging.getLogger(__name__)
+from .coordinator import ModbusConnectConfigEntry
+from .entity import (
+    ModbusConnectEntity,
+    ModbusConnectTemplateEntity,
+    build_description,
+    build_template_description,
+    resolve_on_off,
+)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ModbusConnectConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Modbus Connect binary sensors."""
-    await async_setup_entities(
-        hass=hass,
-        config_entry=config_entry,
-        async_add_entities=async_add_entities,
-        control=ControlType.BINARY_SENSOR,
-        entity_class=ModbusBinarySensorEntity,
+    coordinator = entry.runtime_data
+    entities: list[BinarySensorEntity] = [
+        ModbusConnectBinarySensor(coordinator, defn, build_description(defn))
+        for defn in coordinator.device_def.entities
+        if defn.platform == "binary_sensor"
+    ]
+    entities.extend(
+        ModbusConnectTemplateBinarySensor(
+            coordinator, tdef, build_template_description(tdef)
+        )
+        for tdef in coordinator.device_def.templates
+        if tdef.platform == "binary_sensor"
     )
+    async_add_entities(entities)
 
 
-class ModbusBinarySensorEntity(ModbusCoordinatorEntity, BinarySensorEntity):
-    """Binary sensor entity for Modbus gateway"""
+class ModbusConnectBinarySensor(ModbusConnectEntity, BinarySensorEntity):
+    """A read-only on/off state."""
 
-    def __init__(self, coordinator: ModbusCoordinator, ctx: ModbusContext, device: DeviceInfo) -> None:
-        """Initialize a Modbus binary sensor."""
-        super().__init__(coordinator, ctx=ctx, device=device)
-        if not isinstance(ctx.desc, ModbusBinarySensorEntityDescription):
-            raise TypeError("Invalid description type")
+    @property
+    def is_on(self) -> bool | None:
+        return resolve_on_off(self._defn, self.value)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        try:
-            value: bool | None = cast(ModbusCoordinator, self.coordinator).get_data(self.coordinator_context)
-            if value is not None:
-                self._attr_is_on = value
-                self.async_write_ha_state()
-        except Exception as err:  # pylint: disable=broad-exception-caught
-            _LOGGER.error("Unable to get data for %s %s", self.name, err)
+
+class ModbusConnectTemplateBinarySensor(ModbusConnectTemplateEntity, BinarySensorEntity):
+    """An on/off state computed by a template over the device's values."""
+
+    @property
+    def is_on(self) -> bool | None:
+        value = self.render("state")
+        return None if value is None else result_as_boolean(value)

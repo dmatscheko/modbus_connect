@@ -1,0 +1,307 @@
+# Converted from modbus_local_gateway 'SPH-3600TL-BL_UP.yaml' by convert.py
+device:
+  manufacturer: Growatt
+  model: SPH3600TL BL_UP
+  max_register_read: 5
+holding:
+  hw_version:
+    address: 9
+    type: string
+    count: 3
+    ha:
+      platform: sensor
+      name: Firmware version
+  sw_version:
+    address: 12
+    type: string
+    count: 3
+    ha:
+      platform: sensor
+      name: Control firmware version
+  serial_no:
+    address: 23
+    type: string
+    count: 5
+    ha:
+      platform: sensor
+      name: Serial Number
+  on_off:
+    address: 0
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: Remote On/Off
+      icon: mdi:power
+  language:
+    address: 15
+    map:
+      0: Italian
+      1: English
+      2: German
+      3: Spanish
+      4: French
+      5: Chinese
+      6: Polish
+      7: Portuguese
+      8: Hungarian
+    ha:
+      platform: select
+      name: LCD language
+  baud_rate:
+    address: 22
+    map:
+      0: 9600 bps
+      1: 38400 bps
+    ha:
+      platform: select
+      name: Baud Rate
+  ups_on_off:
+    address: 1060
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: UPS On/Off
+      icon: mdi:power
+  priority_mode:
+    address: 1044
+    map:
+      0: Load
+      1: Battery
+      2: Grid
+    ha:
+      platform: select
+      name: Priority Mode
+  ups_output_voltage:
+    address: 1062
+    map:
+      0: 239V
+      1: 208V
+      2: 240V
+    ha:
+      platform: select
+      name: UPS Output Voltage
+  discharge_power_rate:
+    address: 1070
+    ha:
+      platform: number
+      min: 10
+      max: 100
+      name: Discharge Power Rate (Grid First)
+      unit_of_measurement: '%'
+      icon: mdi:flash
+  discharge_stop_soc:
+    address: 1071
+    ha:
+      platform: number
+      min: 10
+      max: 100
+      name: Discharge Stop SoC (Grid First)
+      unit_of_measurement: '%'
+      icon: mdi:flash
+  charge_stop_soc:
+    address: 1090
+    ha:
+      platform: number
+      min: 10
+      max: 100
+      name: Charge Stop SoC (Battery First)
+      unit_of_measurement: '%'
+      icon: mdi:flash
+  ac_charge:
+    address: 1092
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: AC Charge
+      icon: mdi:power
+input:
+  machine_status:
+    address: 0
+    map:
+      0: Waiting
+      1: Normal
+      3: Fault
+    ha:
+      platform: sensor
+      name: Inverter Status
+  Fac:
+    address: 37
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid frequency
+      unit_of_measurement: Hz
+      device_class: frequency
+      state_class: measurement
+      precision: 3
+  Vac1:
+    address: 38
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid voltage
+      unit_of_measurement: V
+      device_class: voltage
+      state_class: measurement
+      precision: 2
+  Iac1:
+    address: 39
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid output current
+      unit_of_measurement: A
+      device_class: current
+      state_class: measurement
+      precision: 2
+  Pac1:
+    address: 40
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid output watt VA
+      unit_of_measurement: VA
+      device_class: apparent_power
+      state_class: measurement
+      precision: 2
+  Temp1:
+    address: 93
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 2
+  Temp2:
+    address: 94
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: IPM Inverter temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 2
+  Temp3:
+    address: 95
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Boost temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 2
+  ac_charge_power:
+    address: 116
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Charge Power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  work_mode:
+    address: 1000
+    mask: 0xFF00
+    map:
+      0: Waiting module
+      1: Self-test
+      3: SysFault module
+      4: Flash module
+      5: PVBATOnline module
+      6: BatOnline module
+      7: PVOffline mode
+      8: BatOffline mode
+    ha:
+      platform: sensor
+      name: System Work Mode
+  pdischr:
+    address: 1009
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Discharge power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  vbat:
+    address: 1013
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Battery voltage
+      unit_of_measurement: V
+      device_class: voltage
+      state_class: measurement
+      precision: 3
+  soc:
+    address: 1014
+    ha:
+      platform: sensor
+      name: SoC
+      unit_of_measurement: '%'
+      device_class: battery
+      state_class: measurement
+      precision: 2
+  Pactouser:
+    address: 1015
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: AC power to user
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  PLocalLoad:
+    address: 1031
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter power to local load
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  PLocalLoad_total:
+    address: 1037
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter power to local load total
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  BattTemp:
+    address: 1040
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 2
+  sps_dsp_status:
+    address: 1041
+    map:
+      0: Charge
+      1: Discharge
+    ha:
+      platform: sensor
+      name: SPS DSP Status

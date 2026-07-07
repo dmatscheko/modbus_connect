@@ -1,0 +1,99 @@
+# Converted from modbus_local_gateway 'Salda_RIS_MCB.yaml' by convert.py
+device:
+  manufacturer: Salda
+  model: RIS / RIRS (MCB)
+  max_register_read: 16
+holding:
+  fan_speed_select:
+    address: 0
+    map:
+      0: 0 - Off (Stand-by)
+      1: 1 - Speed 1 (Building protection)
+      2: 2 - Speed 2 (Economy)
+      3: 3 - Speed 3 (Comfort)
+    ha:
+      platform: select
+      name: Fan Speed
+      icon: mdi:fan
+  temperature_setpoint_number:
+    address: 1
+    ha:
+      platform: number
+      min: 15
+      max: 30
+      step: 1
+      mode: box
+      name: Temperature Set Point
+      unit_of_measurement: °C
+      device_class: temperature
+      icon: mdi:thermometer
+input:
+  current_system_mode:
+    address: 14
+    map:
+      0: Stand-by
+      1: Building protection
+      2: Economy
+      3: Comfort
+      4: Emergency
+    ha:
+      platform: sensor
+      name: Current Mode
+      icon: mdi:fan
+      entity_category: diagnostic
+  current_air_flow:
+    address: 15
+    ha:
+      platform: sensor
+      name: Current Air Flow Mode
+      unit_of_measurement: ''
+      icon: mdi:air-filter
+  outside_temperature:
+    address: 9
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Outside Temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 1
+      icon: mdi:thermometer
+  inside_temperature:
+    address: 6
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inside Temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 1
+      icon: mdi:home-thermometer
+  supply_air_temperature:
+    address: 3
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Supply Air Temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 1
+      icon: mdi:thermometer
+  exhaust_air_temperature:
+    address: 0
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Exhaust Air Temperature
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+      precision: 1
+      icon: mdi:thermometer
+      entity_category: diagnostic

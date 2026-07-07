@@ -1,26 +1,44 @@
 """Constants for the Modbus Connect integration."""
 
+from typing import Final
+
 from homeassistant.const import Platform
 
-DOMAIN = "modbus_connect"
+DOMAIN: Final = "modbus_connect"
 
-PLATFORMS: list[Platform] = [
-    Platform.SENSOR,
+PLATFORMS: Final = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.CLIMATE,
+    Platform.COVER,
+    Platform.FAN,
+    Platform.LIGHT,
     Platform.NUMBER,
     Platform.SELECT,
+    Platform.SENSOR,
     Platform.SWITCH,
     Platform.TEXT,
 ]
 
-CONF_SLAVE_ID = "slave_id"
-CONF_DEVICE_INFO = "device_info"
-CONF_DEFAULT_SLAVE_ID = 1
-CONF_DEFAULT_PORT = 502
-CONF_PREFIX = "prefix"
+# Config entry data keys
+CONF_SLAVE_ID: Final = "slave_id"
+CONF_FILENAME: Final = "filename"
+CONF_PREFIX: Final = "prefix"
 
-OPTIONS_REFRESH = "refresh"
-OPTIONS_REFRESH_DEFAULT = 30
+# Config entry option keys
+OPTION_SCAN_INTERVAL: Final = "scan_interval"
 
-OPTIONS_MIRROR_NON_SENSORS = "mirror_non_sensors"
-OPTIONS_MIRROR_NON_SENSORS_DEFAULT = False
+DEFAULT_PORT: Final = 502
+DEFAULT_SLAVE_ID: Final = 1
+DEFAULT_SCAN_INTERVAL: Final = 30
+
+# Device-level YAML defaults
+DEFAULT_MAX_READ: Final = 8
+DEFAULT_MAX_GAP: Final = 8
+
+# Directory (relative to the HA config dir) where users can drop their own
+# device YAML files; they override built-in files with the same name.
+USER_CONFIG_DIR: Final = DOMAIN
+
+# Backoff cap for repeatedly failing devices (seconds)
+MAX_BACKOFF_SECONDS: Final = 300

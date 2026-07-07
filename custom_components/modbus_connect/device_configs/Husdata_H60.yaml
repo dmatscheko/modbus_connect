@@ -1,0 +1,77 @@
+# Converted from modbus_local_gateway 'Husdata_H60.yaml' by convert.py
+device:
+  manufacturer: Husdata
+  model: H60
+input:
+  UnderfloorForward:
+    address: 0
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Water feed out to underfloor
+      unit_of_measurement: °C
+      precision: 2
+  HeatCarrierReturn:
+    address: 1
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: HP Internal heat carrier return
+      unit_of_measurement: °C
+      precision: 2
+  HeatCarrierForward:
+    address: 2
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: HP internal heat supply forward
+      unit_of_measurement: °C
+      precision: 2
+  BrineIn:
+    address: 3
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: From ground loops
+      unit_of_measurement: °C
+      precision: 2
+  BrineOut:
+    address: 4
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: To ground loops
+      unit_of_measurement: °C
+      precision: 2
+  Outdoor:
+    address: 5
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Outdoor Temperature
+      unit_of_measurement: °C
+      precision: 2
+  Indoor:
+    address: 6
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Indoor Temperature
+      unit_of_measurement: °C
+      precision: 2
+  HotWaterActual:
+    address: 9
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: DHW Actual Temperature
+      unit_of_measurement: °C
+      precision: 2
+  HotWaterTarget:
+    address: 27
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: DHW Target Temperature
+      unit_of_measurement: °C
+      precision: 2

@@ -1,262 +1,255 @@
-"""Representation of Modbus Gateway"""
+"""Polling coordinator: plans block reads, caches raw registers, decodes values."""
 
 from __future__ import annotations
 
 import logging
-from datetime import timedelta, datetime
-from typing import Any, Dict, List, Tuple
+import struct
+import time
+from datetime import timedelta
+from typing import Any
 
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    TimestampDataUpdateCoordinator,
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from . import codec
+from .client import ModbusBlockClient, ReadError, WriteError
+from .const import (
+    CONF_PREFIX,
+    CONF_SLAVE_ID,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MAX_BACKOFF_SECONDS,
+    OPTION_SCAN_INTERVAL,
 )
-from pymodbus.pdu.pdu import ModbusPDU
+from .models import TABLE_COIL, DeviceDef, EntityDef, Span
+from .planner import bridged_addresses, plan_blocks, spans_in_block
 
-from .context import ModbusContext
-from .entity_management.base import ModbusEntityDescription
-from .entity_management.const import ModbusDataType
-from .conversion import Conversion
-from .tcp_client import AsyncModbusTcpClientGateway
+_LOGGER = logging.getLogger(__name__)
 
-_LOGGER: logging.Logger = logging.getLogger(__name__)
-
-# Type alias for read plan: category -> list of (start_address, count)
-ReadPlan = Dict[str, List[Tuple[int, int]]]
+type ModbusConnectConfigEntry = ConfigEntry[ModbusConnectCoordinator]
 
 
-class ModbusCoordinatorEntity(CoordinatorEntity):
-    """Base class for Modbus entities"""
+class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    """One coordinator per configured device (gateway + slave id).
 
-    def __init__(
-        self,
-        coordinator: ModbusCoordinator,
-        ctx: ModbusContext,
-        device: DeviceInfo,
-    ) -> None:
-        """Initialize an entity."""
-        super().__init__(coordinator, context=ctx)
-        if isinstance(ctx.desc, ModbusEntityDescription):
-            self.entity_description = ctx.desc
-        else:
-            raise TypeError()
-        self._attr_unique_id: str | None = f"{ctx.slave_id}-{ctx.desc.key}"
-        self._attr_device_info: DeviceInfo | None = device
-
-    @property
-    def available(self) -> bool:
-        return super().available and self.coordinator.available
-
-
-class ModbusCoordinator(TimestampDataUpdateCoordinator):
-    """Update coordinator for modbus entries"""
+    Each refresh collects the address spans of all entities that are due,
+    merges them into as few Modbus reads as possible, stores the raw words in
+    a sparse cache and decodes every due entity from it. ``data`` maps entity
+    key -> decoded value (``None`` = unreadable, entity unavailable).
+    """
 
     def __init__(
         self,
         hass: HomeAssistant,
-        gateway_device: dr.DeviceEntry,
-        client: AsyncModbusTcpClientGateway,
-        gateway: str,
-        update_interval: int = 30,
+        entry: ModbusConnectConfigEntry,
+        client: ModbusBlockClient,
+        device: DeviceDef,
     ) -> None:
-        """Initialise the coordinator"""
-        self.client: AsyncModbusTcpClientGateway = client
-        self._gateway: str = gateway
-        self._max_read_size: int
-        self._gateway_device: dr.DeviceEntry = gateway_device
-        self.started: bool = hass.is_running
-        self._last_successful_update: datetime | None = None
-        # Persistent read plan and tracking for max_read_size changes
-        self._read_plan: ReadPlan | None = None
-        self._recompute_read_plan = True
+        self.client = client
+        self.device_def = device
+        self.slave_id: int = entry.data[CONF_SLAVE_ID]
+        self.entry_id = entry.entry_id
+
+        base: int = (
+            entry.options.get(OPTION_SCAN_INTERVAL)
+            or device.scan_interval
+            or DEFAULT_SCAN_INTERVAL
+        )
+        self._readers = [e for e in device.entities if e.platform != "button"]
+        self.entity_defs = {e.key: e for e in device.entities}
+        self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
+        self._tick: int = min([base, *self._interval_for.values()])
+        self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
+        self._holes: set[tuple[str, int]] = set()
+        self._cache: dict[tuple[str, int], int | bool] = {}
+        self._consecutive_failures = 0
+
+        prefix = entry.data.get(CONF_PREFIX) or ""
+        self.device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=prefix or f"{device.manufacturer} {device.model}",
+            manufacturer=device.manufacturer,
+            model=device.model,
+        )
 
         super().__init__(
             hass,
-            logger=_LOGGER,
-            name=f"Modbus Coordinator - {self._gateway}",
-            update_interval=timedelta(seconds=update_interval),
-            update_method=self.async_update,  # type: ignore
-            always_update=False,
+            _LOGGER,
+            config_entry=entry,
+            name=f"{DOMAIN} {self.device_info['name']}",
+            update_interval=timedelta(seconds=self._tick),
         )
 
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, self._async_enable_sync)
+    # --- reading -------------------------------------------------------------
 
-    async def _async_enable_sync(self, _) -> None:
-        """Allow sync of devices after startup"""
-        self.started = True
-
-    @property
-    def gateway_device(self) -> dr.DeviceEntry:
-        """Returns the gateway name"""
-        return self._gateway_device
-
-    @property
-    def gateway(self) -> str:
-        """Returns the gateway name"""
-        return self._gateway
-
-    @property
-    def max_read_size(self) -> int:
-        """Return the current max register read size"""
-        return self._max_read_size
-
-    @property
-    def available(self) -> bool:
-        """Return True if the coordinator is available"""
-        if self._last_successful_update is None:
-            return False
-        threshold = timedelta(seconds=self.update_interval.total_seconds() * 2)
-        return (datetime.now() - self._last_successful_update) < threshold
-
-    @max_read_size.setter
-    def max_read_size(self, value: int) -> None:
-        """Sets the max register read size"""
-        self._max_read_size = value
-
-    async def _async_refresh(
-        self,
-        log_failures: bool = False,
-        raise_on_auth_failed: bool = False,
-        scheduled: bool = False,
-        raise_on_entry_error: bool = False,
-    ) -> None:
-        return await super()._async_refresh(log_failures, raise_on_auth_failed, scheduled, raise_on_entry_error)
-
-    async def async_update(self) -> dict[str, Any] | None:
-        """Fetch updated data for all registered entities"""
-        if self.started:
-            entities: list[ModbusContext] = list(self.async_contexts())
-            # Compute read plan on first update or if max_read_size changes
-            if self._recompute_read_plan:
-                self._read_plan = self._compute_read_plan(entities)
-                self._recompute_read_plan = False
-            data = await self._update_device(entities=entities)
-            if data:
-                self._last_successful_update = datetime.now()
+    async def _async_update_data(self) -> dict[str, Any]:
+        now = time.monotonic()
+        due = [e for e in self._readers if self._next_due[e.key] <= now]
+        data: dict[str, Any] = dict(self.data) if self.data else {}
+        if not due:
             return data
 
-    def _compute_read_plan(self, entities: list[ModbusContext]) -> ReadPlan:
-        """Compute the read plan by grouping addresses into efficient requests"""
-        read_plan: ReadPlan = {
-            ModbusDataType.HOLDING_REGISTER: [],
-            ModbusDataType.INPUT_REGISTER: [],
-            ModbusDataType.COIL: [],
-            ModbusDataType.DISCRETE_INPUT: [],
-        }
-        # Group entities by category
-        entities_by_category: Dict[str, List[ModbusContext]] = {category: [] for category in read_plan.keys()}
-        for entity in entities:
-            category = entity.desc.data_type
-            entities_by_category[category].append(entity)
-
-        # For each category, merge address ranges
-        for category, ents in entities_by_category.items():
-            ranges = [
-                (
-                    e.desc.register_address,
-                    e.desc.register_count * (len(e.desc.sum_scale) if e.desc.sum_scale is not None else 1),
-                )
-                for e in ents
-            ]
-            read_plan[category] = self._merge_ranges(ranges, self._max_read_size)
-        return read_plan
-
-    def _merge_ranges(self, ranges: List[Tuple[int, int]], max_size: int) -> List[Tuple[int, int]]:
-        """Merge address ranges into minimal read requests respecting max_size"""
-        if not ranges:
-            return []
-        # Split ranges exceeding max_size
-        split_ranges = []
-        for start, count in ranges:
-            while count > max_size:
-                split_ranges.append((start, max_size))
-                start += max_size
-                count -= max_size
-            if count > 0:
-                split_ranges.append((start, count))
-        # Sort by start address
-        sorted_ranges = sorted(split_ranges, key=lambda x: x[0])
-        merged = []
-        current_start, current_count = sorted_ranges[0]
-        current_end = current_start + current_count - 1
-        # Merge overlapping or adjacent ranges
-        for start, count in sorted_ranges[1:]:
-            end = start + count - 1
-            if start <= current_end + 1 and (end - current_start + 1) <= max_size:
-                current_end = max(current_end, end)
-            else:
-                merged.append((current_start, current_end - current_start + 1))
-                current_start = start
-                current_end = end
-        merged.append((current_start, current_end - current_start + 1))
-        return merged
-
-    async def _update_device(self, entities: list[ModbusContext]) -> dict[str, Any]:
-        """Update data using the precomputed read plan"""
-        # Check if entities list is empty and return early if so
-        if not entities:
-            _LOGGER.debug("Early return from _update_device(), because entities list is empty")
-            return {}
-
-        _LOGGER.debug(f"Entities in _update_device(): {entities}")
-        _LOGGER.debug(f"Read plan in _update_device(): {self._read_plan}")
-
-        # Execute the read plan
-        responses = await self.client.batch_read(
-            read_plan=self._read_plan,
-            slave=entities[0].slave_id,  # All entities share the same slave_id
-            max_read_size=self._max_read_size,
+        spans = {e.span for e in due}
+        blocks = plan_blocks(
+            spans,
+            max_read=self.device_def.max_read,
+            max_gap=self.device_def.max_gap,
+            holes=self._holes,
         )
-        data: dict[str, Any] = {}
-        # Extract values for each entity from responses
-        for entity in entities:
-            category = entity.desc.data_type
-            start = entity.desc.register_address
-            count = entity.desc.register_count * (
-                len(entity.desc.sum_scale) if entity.desc.sum_scale is not None else 1
-            )
-            response_offset = self._find_response(responses, category, start)
-            if response_offset:
-                response, offset = response_offset
-                # Slice the response and create a new PDU for conversion
-                if category in [ModbusDataType.HOLDING_REGISTER, ModbusDataType.INPUT_REGISTER]:
-                    registers = response.registers[offset : offset + count]
-                    sliced_response = type(response)(registers=registers)
-                elif category in [ModbusDataType.COIL, ModbusDataType.DISCRETE_INPUT]:
-                    bits = response.bits[offset : offset + count]
-                    sliced_response = type(response)(bits=bits)
-                try:
-                    value = Conversion(type(self.client)).convert_from_response(
-                        desc=entity.desc, response=sliced_response
-                    )
-                    data[entity.desc.key] = value
-                    _LOGGER.debug("Value for key %s is %s", entity.desc.key, value)
-                except Exception as e:
-                    _LOGGER.debug(
-                        "Data conversion failed for key: %s (%d): %s",
-                        entity.desc.key,
-                        entity.slave_id,
-                        str(e),
-                        exc_info=True,
-                    )
-            else:
-                _LOGGER.debug("No response for %s", entity.desc.key)
+        ok_blocks = 0
+        async with self.client.lock:
+            if not await self.client.ensure_connected():
+                self._register_failure()
+                raise UpdateFailed(
+                    f"cannot connect to gateway {self.client.host}:{self.client.port}"
+                )
+            for block in blocks:
+                ok_blocks += await self._read_with_fallback(block, spans)
+
+        if not ok_blocks:
+            self._register_failure()
+            raise UpdateFailed(f"device {self.slave_id} did not answer any read")
+        self._register_success()
+
+        for defn in due:
+            value = self._decode(defn)
+            data[defn.key] = self._postprocess(defn, data.get(defn.key), value)
+            self._next_due[defn.key] = now + self._interval_for[defn.key]
         return data
 
-    def _find_response(
-        self, responses: Dict[str, List[ModbusPDU]], category: str, address: int
-    ) -> Tuple[ModbusPDU, int] | None:
-        """Find the response and offset for a given address"""
-        for (start, count), response in zip(self._read_plan[category], responses[category]):
-            if start <= address < start + count:
-                return response, address - start
-        return None
+    async def _read_with_fallback(self, block: Span, spans: set[Span]) -> int:
+        """Read one block; on failure retry its spans without gap bridging.
 
-    def get_data(self, ctx: ModbusContext) -> str | int | bool | None:
-        """Retrieve cached data for a specific entity"""
-        if self.data and ctx.desc.key in self.data:
-            return self.data[ctx.desc.key]
-        return None
+        Returns 1 if at least something was read, else 0. If the block only
+        failed because of bridged filler addresses, remember those as holes so
+        future plans avoid them.
+        """
+        try:
+            self._store(block, await self.client.read_block(self.slave_id, block))
+            return 1
+        except ReadError as err:
+            _LOGGER.debug("Block %s failed (%s), retrying unbridged", block, err)
+
+        needed = spans_in_block(block, spans)
+        sub_blocks = plan_blocks(needed, max_read=self.device_def.max_read)
+        if sub_blocks == [block]:
+            self._clear(block)
+            _LOGGER.debug("Unbridged read %s failed too", block)
+            return 0
+
+        all_ok = True
+        any_ok = False
+        for sub in sub_blocks:
+            try:
+                self._store(sub, await self.client.read_block(self.slave_id, sub))
+                any_ok = True
+            except ReadError as err:
+                self._clear(sub)
+                all_ok = False
+                _LOGGER.debug("Fallback read %s failed: %s", sub, err)
+
+        if any_ok and all_ok:
+            new_holes = bridged_addresses(block, needed)
+            if new_holes:
+                self._holes |= new_holes
+                _LOGGER.info(
+                    "%s: device rejects %d bridged filler address(es) in the %s table; "
+                    "not bridging them again",
+                    self.name,
+                    len(new_holes),
+                    block.table,
+                )
+        return 1 if any_ok else 0
+
+    def _store(self, block: Span, values: list[int] | list[bool]) -> None:
+        for i, addr in enumerate(range(block.start, block.end)):
+            self._cache[(block.table, addr)] = values[i]
+
+    def _clear(self, block: Span) -> None:
+        for addr in range(block.start, block.end):
+            self._cache.pop((block.table, addr), None)
+
+    def _decode(self, defn: EntityDef) -> Any:
+        raw = [
+            self._cache.get((defn.table, a))
+            for a in range(defn.address, defn.address + defn.count)
+        ]
+        if any(v is None for v in raw):
+            return None
+        try:
+            return codec.decode(defn, raw)  # type: ignore[arg-type]
+        except (codec.CodecError, ValueError, struct.error) as err:
+            _LOGGER.debug("Decoding %s failed: %s", defn.key, err)
+            return None
+
+    def _postprocess(self, defn: EntityDef, old: Any, new: Any) -> Any:
+        """Value sanity filters: max_change spike rejection, never_resets guard."""
+        if (
+            new is None
+            or old is None
+            or isinstance(new, (bool, str))
+            or not isinstance(new, (int, float))
+            or not isinstance(old, (int, float))
+        ):
+            return new
+        if defn.max_change is not None and abs(new - old) > defn.max_change:
+            _LOGGER.debug(
+                "%s: change %s -> %s exceeds max_change %s, keeping old value",
+                defn.key,
+                old,
+                new,
+                defn.max_change,
+            )
+            return old
+        if defn.never_resets and new < old:
+            return old
+        return new
+
+    # --- backoff ---------------------------------------------------------------
+
+    def _register_failure(self) -> None:
+        self._consecutive_failures += 1
+        delay = min(self._tick * 2**self._consecutive_failures, MAX_BACKOFF_SECONDS)
+        self.update_interval = timedelta(seconds=max(self._tick, delay))
+
+    def _register_success(self) -> None:
+        if self._consecutive_failures:
+            self._consecutive_failures = 0
+            self.update_interval = timedelta(seconds=self._tick)
+
+    # --- writing ---------------------------------------------------------------
+
+    async def async_write(self, defn: EntityDef, value: Any) -> None:
+        """Encode and write a value, then read it back to confirm."""
+        confirmed: Any = None
+        try:
+            async with self.client.lock:
+                if not await self.client.ensure_connected():
+                    raise HomeAssistantError(
+                        f"Cannot connect to gateway {self.client.host}:{self.client.port}"
+                    )
+                current_raw: int | None = None
+                if defn.mask is not None and defn.read_modify_write:
+                    raw = await self.client.read_block(self.slave_id, defn.span)
+                    current_raw = int(raw[0])
+                payload = codec.encode(defn, value, current_raw=current_raw)
+                if defn.table == TABLE_COIL:
+                    await self.client.write_coil(self.slave_id, defn.address, bool(payload))
+                else:
+                    assert isinstance(payload, list)
+                    await self.client.write_registers(self.slave_id, defn.address, payload)
+                if defn.platform != "button":
+                    self._store(
+                        defn.span, await self.client.read_block(self.slave_id, defn.span)
+                    )
+                    confirmed = self._decode(defn)
+        except (ReadError, WriteError, codec.CodecError) as err:
+            raise HomeAssistantError(f"Writing {defn.key} failed: {err}") from err
+
+        if defn.platform != "button":
+            data = dict(self.data) if self.data else {}
+            data[defn.key] = confirmed
+            self.async_set_updated_data(data)

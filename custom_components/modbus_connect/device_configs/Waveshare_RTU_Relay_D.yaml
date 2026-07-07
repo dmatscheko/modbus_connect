@@ -1,0 +1,104 @@
+# Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml' by convert.py
+device:
+  manufacturer: Waveshare
+  model: Modbus RTU Relay (D)
+  max_register_read: 16
+holding:
+  sw_version:
+    address: 32768
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Software Version
+      precision: 3
+      entity_category: diagnostic
+coil:
+  relay_1:
+    address: 0
+    ha:
+      platform: switch
+      name: Relay 1
+  relay_2:
+    address: 1
+    ha:
+      platform: switch
+      name: Relay 2
+  relay_3:
+    address: 2
+    ha:
+      platform: switch
+      name: Relay 3
+  relay_4:
+    address: 3
+    ha:
+      platform: switch
+      name: Relay 4
+  relay_5:
+    address: 4
+    ha:
+      platform: switch
+      name: Relay 5
+  relay_6:
+    address: 5
+    ha:
+      platform: switch
+      name: Relay 6
+  relay_7:
+    address: 6
+    ha:
+      platform: switch
+      name: Relay 7
+  relay_8:
+    address: 7
+    ha:
+      platform: switch
+      name: Relay 8
+discrete:
+  relay_1_status:
+    address: 0
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 1 Status
+  relay_2_status:
+    address: 1
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 2 Status
+  relay_3_status:
+    address: 2
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 3 Status
+  relay_4_status:
+    address: 3
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 4 Status
+  relay_5_status:
+    address: 4
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 5 Status
+  relay_6_status:
+    address: 5
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 6 Status
+  relay_7_status:
+    address: 6
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 7 Status
+  relay_8_status:
+    address: 7
+    scan_interval: 1
+    ha:
+      platform: binary_sensor
+      name: Relay 8 Status

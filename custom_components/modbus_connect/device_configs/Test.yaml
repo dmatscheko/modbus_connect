@@ -1,0 +1,123 @@
+# Converted from modbus_local_gateway 'Test.yaml' by convert.py
+device:
+  manufacturer: Test
+  model: Test Model (DO NOT USE)
+holding:
+  nibe_degree_minutes_h_11_t:
+    address: 11
+    type: int32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 2
+    ha:
+      platform: number
+      min: -3000.0
+      max: 3000.0
+      name: Degree minutes t
+      unit_of_measurement: DM
+  on_off:
+    address: 0
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: Remote On/Off
+      icon: mdi:power
+  nibe_energy_lo:
+    address: 2180
+    ha:
+      platform: sensor
+      name: Energy LO (2180)
+      precision: 0
+      entity_category: diagnostic
+  nibe_energy_hi:
+    address: 2181
+    max_change: 5
+    ha:
+      platform: sensor
+      name: Energy HI (2181)
+      precision: 0
+      entity_category: diagnostic
+  nibe_total_energy_i_2180:
+    address: 2180
+    type: float32
+    swap: word_byte
+    ha:
+      platform: sensor
+      name: Total energy
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 2
+      entity_category: diagnostic
+  hotwater_demand:
+    address: 3
+    mask: 0x1
+    ha:
+      platform: binary_sensor
+      name: Heißwasser Nachfrage
+      device_class: heat
+      icon: mdi:water-boiler
+      entity_category: diagnostic
+      enabled_by_default: true
+  heating_demand:
+    address: 3
+    mask: 0x2
+    ha:
+      platform: binary_sensor
+      name: Heizung Nachfrage
+      device_class: heat
+      icon: mdi:heating-coil
+      entity_category: diagnostic
+      enabled_by_default: true
+  antilegionella_on:
+    address: 3
+    mask: 0x10
+    ha:
+      platform: binary_sensor
+      name: Antilegionellen Aktiv
+      device_class: running
+      icon: mdi:virus-off
+      entity_category: diagnostic
+      enabled_by_default: true
+  register_1:
+    address: 4
+    mask: 0x10
+    ha:
+      platform: binary_sensor
+      name: Boolean Register
+      device_class: running
+coil:
+  coil1:
+    address: 1
+    ha:
+      platform: switch
+      name: coil1
+  coil2:
+    address: 1
+    scan_interval: 45
+    ha:
+      platform: binary_sensor
+      name: coil2
+  coil3:
+    address: 1
+    'on': false
+    'off': true
+    ha:
+      platform: switch
+      name: coil3
+  coil4:
+    address: 1
+    'on': false
+    'off': true
+    ha:
+      platform: binary_sensor
+      name: coil4
+discrete:
+  di1:
+    address: 3
+    scan_interval: 60
+    ha:
+      platform: binary_sensor
+      name: di1
+      device_class: power

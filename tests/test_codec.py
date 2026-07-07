@@ -1,0 +1,262 @@
+"""Tests for the symmetric codec."""
+
+import math
+
+import pytest
+
+from custom_components.modbus_connect.codec import (
+    CodecError,
+    NotWritableError,
+    decode,
+    encode,
+)
+from custom_components.modbus_connect.models import EntityDef
+
+
+def e(**kwargs) -> EntityDef:
+    kwargs.setdefault("key", "test")
+    kwargs.setdefault("platform", "sensor")
+    return EntityDef(**kwargs)
+
+
+# --- plain integer types ---------------------------------------------------
+
+
+def test_uint16_roundtrip():
+    defn = e(type="uint16")
+    assert decode(defn, [1234]) == 1234
+    assert encode(defn, 1234) == [1234]
+
+
+def test_int16_negative_roundtrip():
+    defn = e(type="int16")
+    assert decode(defn, [0xFFFE]) == -2
+    assert encode(defn, -2) == [0xFFFE]
+
+
+def test_uint32_roundtrip():
+    defn = e(type="uint32", count=2)
+    assert decode(defn, [0x0001, 0x86A0]) == 100000
+    assert encode(defn, 100000) == [0x0001, 0x86A0]
+
+
+def test_int32_roundtrip():
+    defn = e(type="int32", count=2)
+    words = encode(defn, -123456)
+    assert decode(defn, words) == -123456
+
+
+def test_uint64_roundtrip():
+    defn = e(type="uint64", count=4)
+    value = 2**48 + 5
+    words = encode(defn, value)
+    assert len(words) == 4
+    assert decode(defn, words) == value
+
+
+def test_uint16_out_of_range():
+    with pytest.raises(CodecError):
+        encode(e(type="uint16"), 70000)
+    with pytest.raises(CodecError):
+        encode(e(type="uint16"), -1)
+
+
+# --- floats ------------------------------------------------------------------
+
+
+def test_float32_roundtrip():
+    defn = e(type="float32", count=2)
+    words = encode(defn, 21.5)
+    assert decode(defn, words) == 21.5
+
+
+def test_float64_roundtrip():
+    defn = e(type="float64", count=4)
+    words = encode(defn, math.pi)
+    assert decode(defn, words) == pytest.approx(math.pi)
+
+
+def test_float_nan_decodes_to_none():
+    defn = e(type="float32", count=2)
+    assert decode(defn, [0x7FC0, 0x0000]) is None
+
+
+# --- strings -----------------------------------------------------------------
+
+
+def test_string_roundtrip_with_padding():
+    defn = e(type="string", count=4)
+    words = encode(defn, "Hi!")
+    assert len(words) == 4
+    assert decode(defn, words) == "Hi!"
+
+
+def test_string_too_long():
+    with pytest.raises(CodecError):
+        encode(e(type="string", count=1), "toolong")
+
+
+def test_string_stops_at_nul():
+    defn = e(type="string", count=2)
+    # "AB", NUL, junk
+    assert decode(defn, [0x4142, 0x0043]) == "AB"
+
+
+# --- swaps -------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("swap", ["byte", "word", "word_byte"])
+def test_swap_roundtrip(swap):
+    defn = e(type="uint32", count=2, swap=swap)
+    words = encode(defn, 0x12345678)
+    assert decode(defn, words) == 0x12345678
+
+
+def test_word_swap_layout():
+    defn = e(type="uint32", count=2, swap="word")
+    # little-endian word order: low word first on the wire
+    assert decode(defn, [0x5678, 0x1234]) == 0x12345678
+    assert encode(defn, 0x12345678) == [0x5678, 0x1234]
+
+
+def test_byte_swap_layout():
+    defn = e(type="uint16", swap="byte")
+    assert decode(defn, [0x3412]) == 0x1234
+    assert encode(defn, 0x1234) == [0x3412]
+
+
+# --- multiplier / offset -------------------------------------------------------
+
+
+def test_multiplier_and_offset_roundtrip():
+    defn = e(type="int16", multiplier=0.1, offset=-40)
+    assert decode(defn, [500]) == 10  # 500*0.1 - 40
+    assert encode(defn, 10) == [500]
+
+
+def test_multiplier_float_result():
+    defn = e(type="uint16", multiplier=0.1)
+    assert decode(defn, [215]) == pytest.approx(21.5)
+    assert encode(defn, 21.5) == [215]
+
+
+def test_encode_rejects_non_integer_register_value():
+    defn = e(type="uint16", multiplier=0.1)
+    with pytest.raises(CodecError):
+        encode(defn, 21.55)  # 215.5 registers — not representable
+
+
+# --- sum_scale -----------------------------------------------------------------
+
+
+def test_sum_scale_decode():
+    defn = e(type="uint16", count=3, sum_scale=(1, 10000, 100000000))
+    assert decode(defn, [6789, 12345, 2]) == 6789 + 12345 * 10000 + 2 * 100000000
+
+
+def test_sum_scale_roundtrip():
+    defn = e(type="uint16", count=3, sum_scale=(1, 10000, 100000000))
+    value = 323456789
+    words = encode(defn, value)
+    assert decode(defn, words) == value
+    assert all(0 <= w <= 0xFFFF for w in words)
+
+
+def test_sum_scale_with_multiplier():
+    defn = e(type="uint16", count=2, sum_scale=(1, 10000), multiplier=0.1)
+    assert decode(defn, [5, 3]) == pytest.approx(3000.5)
+    assert encode(defn, 3000.5) == [5, 3]
+
+
+def test_sum_scale_unrepresentable():
+    defn = e(type="uint16", count=2, sum_scale=(3, 7))
+    with pytest.raises(CodecError):
+        encode(defn, 5)
+
+
+def test_sum_scale_negative_rejected():
+    defn = e(type="uint16", count=2, sum_scale=(1, 10000))
+    with pytest.raises(CodecError):
+        encode(defn, -1)
+
+
+# --- mask ----------------------------------------------------------------------
+
+
+def test_mask_decode():
+    defn = e(type="uint16", mask=0x00F0)
+    assert decode(defn, [0x0A5F]) == 0x5
+
+
+def test_mask_write_requires_read_modify_write():
+    defn = e(type="uint16", mask=0x00F0)
+    with pytest.raises(NotWritableError):
+        encode(defn, 3, current_raw=0x0A5F)
+
+
+def test_mask_write_merges_bits():
+    defn = e(type="uint16", mask=0x00F0, read_modify_write=True, platform="number")
+    assert encode(defn, 0x3, current_raw=0x0A5F) == [0x0A3F]
+
+
+def test_mask_write_value_too_big():
+    defn = e(type="uint16", mask=0x00F0, read_modify_write=True)
+    with pytest.raises(CodecError):
+        encode(defn, 0x1F, current_raw=0)
+
+
+def test_mask_write_requires_current_value():
+    defn = e(type="uint16", mask=0x00F0, read_modify_write=True)
+    with pytest.raises(CodecError):
+        encode(defn, 1, current_raw=None)
+
+
+# --- map / flags -----------------------------------------------------------------
+
+
+def test_map_decode_and_reverse():
+    defn = e(type="uint16", value_map={0: "Off", 1: "Auto", 2: "Party"})
+    assert decode(defn, [1]) == "Auto"
+    assert encode(defn, "Party") == [2]
+
+
+def test_map_unknown_value_decodes_to_none():
+    defn = e(type="uint16", value_map={0: "Off"})
+    assert decode(defn, [9]) is None
+
+
+def test_map_unknown_option_rejected_on_write():
+    defn = e(type="uint16", value_map={0: "Off"})
+    with pytest.raises(CodecError):
+        encode(defn, "On")
+
+
+def test_map_with_mask():
+    defn = e(
+        type="uint16",
+        mask=0x0F00,
+        value_map={1: "A", 2: "B"},
+        read_modify_write=True,
+    )
+    assert decode(defn, [0x0200]) == "B"
+    assert encode(defn, "A", current_raw=0x0234) == [0x0134]
+
+
+def test_flags_decode_and_not_writable():
+    defn = e(type="uint16", flags={0: "Pump", 2: "Mill", 5: "Fan"})
+    assert decode(defn, [0b100101]) == "Pump, Mill, Fan"
+    assert decode(defn, [0b000100]) == "Mill"
+    assert decode(defn, [0]) == ""
+    with pytest.raises(NotWritableError):
+        encode(defn, "Pump")
+
+
+# --- bit tables -------------------------------------------------------------------
+
+
+def test_coil_decode_encode():
+    defn = e(table="coil", type="bool", platform="switch")
+    assert decode(defn, [True]) is True
+    assert decode(defn, [0]) is False
+    assert encode(defn, 1) is True
+    assert encode(defn, False) is False

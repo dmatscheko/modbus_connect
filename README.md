@@ -1,249 +1,254 @@
-# Modbus Connect Integration for Home Assistant
+# Modbus Connect
 
-# Experimental development version – NO GUARANTEES! This is a modified copy of the [Modbus Local Gateway integration by Tim Laing](https://github.com/timlaing/modbus_local_gateway), created for experimentation. Use Tim Laing's original.
+A Home Assistant custom integration for Modbus devices behind local TCP
+gateways — a ground-up rewrite of
+[modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) built
+around three ideas:
 
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=bugs)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=dmatscheko_modbus_connect&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=dmatscheko_modbus_connect)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+1. **Block reads.** Instead of one Modbus round trip per entity, each poll
+   merges everything into as few reads as possible: overlapping and adjacent
+   registers combine, small unused holes are bridged (cheaper to read than to
+   ask twice), and blocks respect the device's `max_register_read` and the
+   protocol limit of 125 registers. Real device files: an Eastron SDM630 drops
+   from 85 transactions per poll to 7; a Pichler LG350 from 129 to 5.
+2. **Home Assistant is not shadowed.** Every entity has an `ha:` block that is
+   passed to the real per-platform `EntityDescription` and validated against
+   it — any entity feature HA supports (today or in a future release) can be
+   set there, and typos fail loudly with the file, entity, and valid choices
+   in the message.
+3. **Symmetric conversions.** Whatever the integration can decode it can also
+   encode for writing (`multiplier`/`offset`, `map`, `sum_scale`, masked bit
+   fields via read-modify-write). Only `flags` is inherently read-only.
 
-This custom Home Assistant integration enables communication with Modbus devices via a Modbus TCP gateway. It uses YAML configuration files to define device registers and coils, mapping them to Home Assistant entities like sensors, switches, numbers, and more. It supports both monitoring (read-only) and control (read/write) operations.
+Failed bridged blocks fall back to unbridged reads automatically, and
+addresses a device refuses to serve are remembered and never bridged again.
+Offline devices back off exponentially (up to 5 min) instead of hammering the
+gateway. One failing entity does not take down the rest; it just becomes
+unavailable.
 
 ## Installation
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+Copy `custom_components/modbus_connect/` into `<ha_config>/custom_components/`
+(or add this repository as a custom HACS repository). Restart Home Assistant,
+then add the **Modbus Connect** integration: enter the gateway host/port and
+slave ID, then pick a device file.
 
-The easiest way to install this integration is through the [Home Assistant Community Store (HACS)](https://hacs.xyz/). After setting up HACS, you can add this integration as a custom repository:
+It can be installed side by side with `modbus_local_gateway`; entities are
+independent.
 
-1. Go to HACS > Integrations.
-2. Click the three-dot menu and select "Custom repositories".
-3. Add this repository:\
-   `https://github.com/dmatscheko/modbus_connect`
-4. Set category to "Integration" and click "Add".
-5. Search for "Modbus Connect" and install.
+## Your own device files
 
-Or use this button (requires *My Home Assistant*):\
-  [![Open HACS Repository](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration)
+Put YAML files in `<ha_config>/modbus_connect/` — they survive updates and
+override built-in files with the same name. Invalid files are reported in the
+log with the entity and reason and skipped.
 
-Restart Home Assistant after installation.
+## Device file format
 
-## Configuration
+Entities are grouped by Modbus table, exactly like the datasheet: `holding:`
+(read/write registers), `input:` (read-only registers), `coil:` (read/write
+bits), `discrete:` (read-only bits). The platform is free within what the
+table allows — for example, a *holding* register can deliberately be exposed
+as a read-only `sensor` when changing it would be dangerous.
 
-### Adding a New Device
-Add devices via the Home Assistant UI:
-1. Go to **Settings > Devices & Services**.
-2. Click **Add Integration**, search for "Modbus Connect".
-3. Or use this button:\
-   [![Add Integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)
-
-#### Step 1: Connection Details
-- **Host**: Gateway IP/hostname (e.g., `192.168.1.100`).
-- **Port**: TCP port (default: `502`).
-- **Slave ID**: Modbus slave ID (e.g., `1`).
-- **Prefix**: Optional device and entity name prefix (e.g., `Device 3`).
-
-#### Step 2: Device Selection
-Choose a device type from the dropdown (e.g., `Eastron SDM-230` for `SDM230.yaml`).
-
-### Modifying Existing Devices
-Adjust the **update frequency** (default: 30 seconds) via "Configure" at the device in **Devices & Services**.
-
-## Creating YAML Device Configurations
-
-To add support for a new device, create a YAML file in `custom_components/modbus_connect/device_configs/`. Each file specifies the Modbus registers/coils for a single device, mapping them to corresponding Home Assistant entities.
-
-### Minimal Example
 ```yaml
 device:
-  manufacturer: "Dimplex"
-  model: "Wärmepumpe SI 11TU"
+  manufacturer: Eastron
+  model: SDM630
+  max_register_read: 100   # max registers per read request (default 8, cap 125)
+  max_read_gap: 8          # bridge unused holes up to this many registers (default 8)
+  scan_interval: 30        # default poll interval in seconds (optional)
 
-read_write_word:
+input:
+  phase_1_voltage:
+    address: 0x0000        # register/coil address (decimal or hex)
+    type: float32          # uint16 (default) | int16 | uint32 | int32 | uint64 |
+                           # int64 | float32 | float64 | string
+    ha:
+      platform: sensor     # sensor | binary_sensor | number | select | switch |
+                           # text | button
+      name: Phase 1 voltage
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      precision: 1
 
-  set_water_temp:    # This key must uniquely identify the entity within the config file
-    address: 20
-    name: "Set Water Temperature"
+holding:
+  operating_mode:
+    address: 5015
+    map: {0: "Off", 1: "Auto", 2: "Party"}
+    duplicate_as_sensor: true
+    ha:
+      platform: select
+      name: Operating mode
+      entity_category: config
+
+  reset_alarm:
+    address: 5020
+    write_value: 1
+    ha:
+      platform: button
+      name: Reset alarm
+
+coil:
+  pump:
+    address: 3
+    ha:
+      platform: switch
+      name: Circulation pump
+```
+
+### Modbus keys (per entity)
+
+| Key | Meaning |
+| --- | --- |
+| `address` | Start address (0–65535, hex `0x…` works) |
+| `type` | Value type; determines register count. `string` needs `count`. Bit tables are implicitly `bool` |
+| `count` | Register count — only for `string` (2 characters per register) |
+| `swap` | `byte`, `word`, or `word_byte` for little-endian devices |
+| `sum_scale` | List of per-word weights: `value = Σ word[i] · scale[i]`. Example `[1, 10000, 100000000]` for values spread over 3 registers. Writable when the weights are positive integers |
+| `mask` | Extract bits: `value = (raw & mask) >> trailing_zeros(mask)`. Replaces the old `bits`/`shift_bits` pair |
+| `multiplier` / `offset` | `value = raw · multiplier + offset` (inverted on write) |
+| `map` | `{register value: label}` — enums; used as the options of a `select` |
+| `flags` | `{bit number (0-indexed): name}` — sensor shows the set flags, read-only |
+| `on` / `off` | Values meaning on/off for `switch`/`binary_sensor` (defaults: 1/0, true/false) |
+| `write_value` | Value a `button` writes when pressed |
+| `read_modify_write` | Allow writing a `mask`ed field by merging into the current register |
+| `max_change` | Reject changes larger than this between two polls (spike filter) |
+| `never_resets` | Ignore decreasing values (for `total_increasing` counters) |
+| `scan_interval` | Per-entity poll interval in seconds (overrides the default) |
+| `duplicate_as_sensor` | Also create a read-only sensor twin of this writable entity, so its history lands in the recorder/long-term statistics |
+| `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block). Internal entities can still be write targets of template actions. If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
+
+### The `ha:` block
+
+`platform` selects the entity type; every other key is a field of that
+platform's `EntityDescription`. Friendly aliases: `unit_of_measurement`/`unit`
+→ `native_unit_of_measurement`, `min`/`max`/`step` → `native_min_value`/`…`,
+`precision` → `suggested_display_precision`, `enabled_by_default` →
+`entity_registry_enabled_default`. Enum fields (`device_class`,
+`state_class`, `entity_category`, number/text `mode`) are validated with the
+full list of valid values in the error message.
+
+## The `template:` section
+
+Composite entities built from the device's values with real Home Assistant
+Jinja templates. Every entity key of the device file is available as a plain
+variable (and via the `values` dict); all normal HA template functions work
+too. Templates re-render on every device poll.
+
+```yaml
+holding:
+  hot_water_target:      # only used by the climate entity below
+    address: 5033
     multiplier: 0.1
-    control: number  # Show a number input field in the Home Assistant UI
-    number:
-      min: 0
-      max: 100
+    internal: true       # polled, decoded, writable — but no HA entity
+  operating_mode:
+    address: 5015
+    map: {0: "Off", 1: "Auto"}
+    internal: true
+
+template:
+  cop:                                  # a computed sensor
+    state: "{{ (heat_output / power_input) | round(2) if power_input else none }}"
+    ha:
+      platform: sensor
+      name: COP
+      precision: 2
+
+  water_heater:                         # a climate entity from Modbus parts
+    ha:
+      platform: climate
+      name: Hot water
+    current_temperature: "{{ hot_water_temperature }}"
+    target_temperature: "{{ hot_water_target }}"
+    hvac_mode: "{{ 'heat' if operating_mode == 'Auto' else 'off' }}"
+    hvac_action: "{{ 'heating' if compressor_running else 'idle' }}"
+    min_temp: 30
+    max_temp: 60
+    temp_step: 0.5
+    set_temperature: {entity: hot_water_target}
+    set_hvac_mode:
+      entity: operating_mode
+      map: {heat: "Auto", "off": "Off"}   # hvac mode -> value written
 ```
 
-### YAML Structure
-Each file requires a `device` section and optional register/coil sections:
-- **`device` section** (required):
-  - `manufacturer` (required): String.
-  - `model` (required): String.
-  - `max_register_read` (optional): Max registers per read (default: 8).
+Write actions (`turn_on`, `set_temperature`, …) target one of the device's
+entities by key — through the same codec as everything else, so multipliers,
+offsets, and select maps apply. Targets must live in a writable table
+(`holding:`/`coil:`) and may be `internal`. Actions come in three kinds:
+fixed (`{entity: x, value: 1}` — on/off/open/close/stop), value-carrying
+(`{entity: x}` — the UI value is written), and mapped
+(`{entity: x, map: {ui value: written value}}`).
 
-- **Register/Coil Sections** (optional):
-  - `read_write_word`: Holding registers (read/write).
-  - `read_only_word`: Input registers (read-only).
-  - `read_write_boolean`: Coils (read/write).
-  - `read_only_boolean`: Discrete inputs (read-only).
+| Template platform | Templates | Actions | Statics |
+| --- | --- | --- | --- |
+| `sensor`, `binary_sensor` | `state` | — | — |
+| `switch` | `state` | `turn_on`, `turn_off` (fixed) | — |
+| `number` | `state` | `set_value` | `ha.min`/`ha.max` required |
+| `select` | `state` | `select_option` (mapped) | `options` (or derived from the action map / the target's `map`) |
+| `light` | `state`, `brightness` (0–255) | `turn_on`, `turn_off` (fixed), `set_brightness` | — |
+| `fan` | `state`, `percentage` (0–100), `preset_mode` | `turn_on`, `turn_off` (fixed), `set_percentage`, `set_preset_mode` (mapped) | `preset_modes` (or derived from the map) |
+| `cover` | `is_closed` and/or `position` (0–100) | `open_cover`, `close_cover`, `stop_cover` (fixed), `set_position` | — |
+| `climate` | `current_temperature`, `target_temperature`, `hvac_mode`, `hvac_action` | `set_temperature`, `set_hvac_mode` (mapped) | `min_temp`, `max_temp`, `temp_step`, `temperature_unit`, `hvac_modes` (or derived from the map) |
 
-Each register/coil section contains entity definitions, identified by a unique key (e.g., `set_water_temp`), mapping registers/coils to Home Assistant entities.
+A ventilation unit, for example:
 
-#### Common Properties
-For all entity definitions:
-- `address` (required): Modbus address (integer).
-- `name` (optional): Friendly name (default: the entity definition's key).
-- `size` (optional): Register count (default: 1; use 2 for raw 32-bit `float`, or string length / 2 for `string`; not needed for `sum_scale`).
-
-- **Home Assistant Properties** (see HA documentation for more information):
-  - `unit_of_measurement`: E.g., `Volts`, `h`.
-  - `device_class`: E.g., `voltage`, `power`.
-  - `state_class` (only for register): E.g., `measurement`, `total_increasing`.
-  - `entity_category`: `diagnostic` or `config`.
-  - `entity_registry_enabled_default: False`.
-  - `icon: mdi:thermometer`.
-
-#### Register Properties (`read_write_word`, `read_only_word`)
-- **Control Types** (only for `read_write_word`): Allows the user to control the value.
-  - `control: number`: Creates a number entity.
-    - E.g.:
-      ```yaml
-      control: number
-      number:         # Optional
-        min: 10.0     # float
-        max: 100.0    # float
-      ```
-  - `control: select`: Creates a select entity.
-    - E.g.:
-      ```yaml
-      control: select
-      options:        # Required
-        0: "Closed"
-        1: "Half-Open"
-        2: "Open"
-      ```
-  - `control: switch`: Creates a switch entity.
-    - E.g.:
-      ```yaml
-      control: switch
-      switch:         # Optional
-        "on": 1       # default: 1
-        "off": 0      # default: 0
-      ```
-  - `control: text`: Creates a text entity.
-
-- **Data Types**:
-  - `float: true`: Raw 32-bit float requires `size: 2`. Raw 16-bit float requires `size: 1`. Both are big endian.
-  - `string: true`: String requires `size:` = length / 2.
-    - E.g.
-      ```yaml
-      string: true
-      size: 5       # For a 10 byte string
-      ```
-- **Math Operations** (applied in order):
-  - `sum_scale`: List of scaling factors applied to consecutive registers.
-    - E.g., `sum_scale: [1, 10000]` for two registers starting at `address: 5` uses r1=5, r2=6, calculating r1 * 1 + r2 * 10000.
-  - `shift_bits`: Bit shift right (integer).
-  - `bits`: Bit mask length (integer).
-  - `multiplier`: Scaling factor (float).
-  - `offset`: Adds an offset (float).
-- **Display**:
-  - `precision`: Decimal places (integer). Only valid for `sensor` or `control: number` entities.
-  - `map`: Enum mapping.
-    - E.g.
-      ```yaml
-      map:
-        0: "Enabled"
-        1: "Disabled"
-        2: "Auto"
-      ```
-  - `flags`: Bit flags.
-    - E.g.
-      ```yaml
-      flags:
-        1: "Pump active"
-        3: "Mill active"
-        4: "Heating active"
-      ```
-- **Behavior**:
-  - `never_resets: true`: For non-resetting totals. (E.g. for sensors with `state_class: total_increasing`).
-
-#### Coil Properties (`read_write_boolean`, `read_only_boolean`)
-- **Control Types** (only for `read_write_boolean`): Allows the user to control the value.
-  - `control: switch`: Creates a switch entity.
-    - E.g.:
-      ```yaml
-      control: switch
-      switch:         # Optional
-        "on": 1       # default: 1
-        "off": 0      # default: 0
-      ```
-
-### Example YAML
 ```yaml
-device:
-  manufacturer: Rekall
-  model: MindSync Hub 310
-
-read_write_word:
-
-  baud_rate:
-    address: 28
-    control: select
-    options:
-      0: "2400 bps"
-      1: "4800 bps"
-      2: "9600 bps"
-
-  power_mode:
-    address: 30
-    control: switch
-    switch:
-      "on": 1
-      "off": 0
-
-read_only_word:
-
-  voltage:
-    address: 0
-    precision: 2
-    unit_of_measurement: Volts
-    device_class: voltage
-    state_class: measurement
-
-read_write_boolean:
-
-  power_switch:
-    address: 10
-    control: switch
-
-read_only_boolean:
-
-  status:
-    address: 15
-    device_class: power
+template:
+  ventilation:
+    ha: {platform: fan, name: Ventilation}
+    state: "{{ fan_stage > 0 }}"
+    percentage: "{{ fan_stage * 25 }}"          # stages 0-4
+    turn_on: {entity: fan_stage, value: 2}
+    turn_off: {entity: fan_stage, value: 0}
+    set_percentage: {entity: fan_stage_percent}  # or an internal scaled twin
 ```
-See `custom_components/modbus_connect/device_configs/` for more examples.
 
-## Troubleshooting
-- **Logs**: Enable debug logging in `configuration.yaml`:
-  ```yaml
-  logger:
-    default: info
-    logs:
-      custom_components.modbus_connect: debug
-  ```
-- **Connection Issues**: Verify gateway IP, port, and slave ID.
+Why not pass templates through to HA's template integration? Its platform
+setup is internal API (and core has no template *climate*), its entities would
+not belong to this device or unload with it, and you would have to reference
+global entity ids instead of the device's keys. The Jinja engine used here
+*is* Home Assistant's own — only the thin entity glue is local.
 
-## Supported Devices
-Tested with a [WaveShare Wi-Fi to RS485 Gateway](https://www.waveshare.com/rs485-to-wifi-eth.htm) in Modbus TCP to RTU mode:
-- **Settings**: Baud Rate: 9600, Data Bits: 8, Parity: None, Stop Bits: 1, Baudrate Adaptive: Disable, UART AutoFrame: Disable, Modbus Polling: Off, Network A TCP Time out: 5, Network A MAX TCP Num: 24.
-- **Tested Slaves**: Eastron SDM230/SDM630, Finder 7M.38/7M.24, Growatt MIN-6000-TL-XH/MOD-6000-TL-X/MIC-2500-TL-X.
+## Migrating from modbus_local_gateway
 
-Firmware variations may affect compatibility.
+Convert old device files with the standalone converter (needs only PyYAML):
 
-## License
-MIT License. See repository for details.
+```bash
+python3 converter/convert.py <old_device_configs_or_files> -o <output_dir>
+```
 
-## Original Version
-[Modbus Connect component - Tim Laing](https://github.com/timlaing/modbus_connect)
+The converter preserves semantics — the four old sections map 1:1 onto
+`holding:`/`input:`/`coil:`/`discrete:` — and prints a warning for everything
+it has to change or drop. What changes:
+
+- `control:` becomes `ha.platform`.
+- `float`/`signed`/`string`/`size` collapse into `type:` (+ `count` for strings).
+- `bits`/`shift_bits` become a single `mask`.
+- `flags` bit numbers are 0-indexed now (the converter shifts them).
+- Unit presets (`Volts`, `Celsius`, …) are expanded to real units plus the
+  device/state class they implied.
+- HA fields (`name`, `icon`, `device_class`, `entity_category`,
+  `precision`, …) move into the `ha:` block.
+- Number `precision` is dropped (HA numbers have no display precision;
+  use `ha.step`).
+
+Because this is a new integration (new domain), Home Assistant treats the
+entities as new; dashboards and automations need to be pointed at them.
+
+## Development
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pytest-homeassistant-custom-component pymodbus ruff pyyaml
+.venv/bin/python -m pytest tests/
+.venv/bin/ruff check custom_components tests converter
+```
+
+Layout: `models.py` (plain dataclasses), `codec.py` (registers ↔ values,
+pure), `planner.py` (block planning, pure), `client.py` (pymodbus wrapper),
+`schema.py` (YAML validation), `coordinator.py` (polling, cache, backoff,
+writes), `entity.py` + thin platform modules including template-driven
+`climate.py`. The pure modules have no Home Assistant imports and are tested
+standalone; `tests/test_e2e_server.py` proves the transaction counts against
+a real TCP server.

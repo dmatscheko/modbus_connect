@@ -1,0 +1,134 @@
+# Converted from modbus_local_gateway 'Schneider_ATV312_expert.yaml' by convert.py
+device:
+  manufacturer: Schneider Electric
+  model: Altivar ATV312 Expert
+  max_register_read: 8
+holding:
+  add_modbus_drive_address:
+    address: 6001
+    ha:
+      platform: number
+      min: 1
+      max: 247
+      step: 1
+      name: Modbus Drive Address
+      entity_category: config
+      enabled_by_default: false
+  tbr_modbus_transmission_speed:
+    address: 6003
+    map:
+      24: 4.8 kbps
+      28: 9.6 kbps
+      32: 19.2 kbps
+    ha:
+      platform: select
+      name: Modbus Transmission Speed
+      entity_category: config
+      enabled_by_default: false
+  tfo_modbus_communication_format:
+    address: 6004
+    map:
+      2: 8O1
+      3: 8E1
+      4: 8n1
+      5: 8n2
+    ha:
+      platform: select
+      name: Modbus Communication Format
+      entity_category: config
+      enabled_by_default: false
+  tto_modbus_timeout:
+    address: 6005
+    multiplier: 0.1
+    ha:
+      platform: number
+      min: 0.1
+      max: 10.0
+      step: 0.1
+      name: Modbus Time-out
+      unit_of_measurement: s
+      device_class: duration
+      entity_category: config
+      enabled_by_default: false
+  cmi1_modbus_extended_control_image:
+    address: 8541
+    flags:
+      0: Factory settings recall request
+      1: EEPROM save request
+      3: External fault request
+      4: Ramp switching request
+      9: High resolution enabled
+      13: Drive locked on standstill
+      14: Modbus communication monitoring inhibited
+      15: No parameter consistency check
+    ha:
+      platform: sensor
+      name: CMI1 Modbus Extended Control Image
+      entity_category: diagnostic
+      enabled_by_default: false
+  cmi2_canopen_extended_control_image:
+    address: 8542
+    flags:
+      0: Factory settings recall request
+      1: EEPROM save request
+      3: External fault request
+      4: Ramp switching request
+      9: High resolution enabled
+      13: Drive locked on standstill
+      14: Modbus communication monitoring inhibited
+      15: No parameter consistency check
+    ha:
+      platform: sensor
+      name: CMI2 CANopen Extended Control Image
+      entity_category: diagnostic
+      enabled_by_default: false
+  keypad_present:
+    address: 5240
+    mask: 0x80
+    ha:
+      platform: binary_sensor
+      name: Keypad Present
+      entity_category: diagnostic
+      enabled_by_default: false
+  ai1c_analog_input_ai1:
+    address: 5242
+    ha:
+      platform: sensor
+      name: AI1C Analog Input AI1
+      unit_of_measurement: mV
+      device_class: voltage
+      state_class: measurement
+      precision: 0
+      entity_category: diagnostic
+      enabled_by_default: false
+  ai2c_analog_input_ai2:
+    address: 5243
+    type: int16
+    ha:
+      platform: sensor
+      name: AI2C Analog Input AI2
+      unit_of_measurement: mV
+      device_class: voltage
+      state_class: measurement
+      precision: 0
+      entity_category: diagnostic
+      enabled_by_default: false
+  ai3c_analog_input_ai3:
+    address: 5244
+    ha:
+      platform: sensor
+      name: AI3C Analog Input AI3
+      unit_of_measurement: uA
+      device_class: current
+      state_class: measurement
+      precision: 0
+      entity_category: diagnostic
+      enabled_by_default: false
+  ao1r_analog_output_value:
+    address: 5261
+    ha:
+      platform: sensor
+      name: AO1R Analog Output Value
+      precision: 0
+      entity_category: diagnostic
+      enabled_by_default: false

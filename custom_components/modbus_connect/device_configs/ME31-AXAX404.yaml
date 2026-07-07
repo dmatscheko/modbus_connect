@@ -1,0 +1,53 @@
+# Converted from modbus_local_gateway 'ME31-AXAX404.yaml' by convert.py
+device:
+  manufacturer: ebyte
+  model: ME31-AXAX404
+coil:
+  coil1:
+    address: 0
+    ha:
+      platform: switch
+      name: coil1
+  coil2:
+    address: 1
+    ha:
+      platform: switch
+      name: coil2
+  coil3:
+    address: 2
+    ha:
+      platform: switch
+      name: coil3
+  coil4:
+    address: 3
+    ha:
+      platform: switch
+      name: coil4
+  ebyte_ip1:
+    address: 0
+    'on': true
+    'off': false
+    ha:
+      platform: binary_sensor
+      name: ebyte_ip1
+  ebyte_ip2:
+    address: 1
+    'on': true
+    'off': false
+    ha:
+      platform: binary_sensor
+      name: ebyte_ip2
+  ebyte_ip3:
+    address: 2
+    'on': true
+    'off': false
+    ha:
+      platform: binary_sensor
+      name: ebyte_ip3
+  ebyte_ip4:
+    address: 3
+    'on': true
+    'off': false
+    ha:
+      platform: binary_sensor
+      name: ebyte_ip4

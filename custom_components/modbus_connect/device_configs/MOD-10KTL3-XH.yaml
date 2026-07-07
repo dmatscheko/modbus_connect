@@ -1,7 +1,7 @@
-# Converted from modbus_local_gateway 'MIC-2500TL-X.yaml' by convert.py
+# Converted from modbus_local_gateway 'MOD-10KTL3-XH.yaml' by convert.py
 device:
   manufacturer: Growatt
-  model: MIC 2500TL-X
+  model: MOD 10KTL3-XH
   max_register_read: 5
 holding:
   hw_version:
@@ -58,13 +58,55 @@ holding:
       platform: select
       name: LCD language
   com_address:
-    address: 30
+    address: 3085
     ha:
       platform: number
       min: 1
       max: 254
       name: Communicate address
       icon: mdi:serial-port
+  GridFirstDischargePowerRate:
+    address: 3036
+    ha:
+      platform: number
+      min: 1
+      max: 255
+      name: Discharge Power Rate (Grid First)
+      icon: mdi:transmission-tower-export
+  GridFirstStopSOC:
+    address: 3037
+    ha:
+      platform: number
+      min: 1
+      max: 100
+      name: Stop Discharge SOC (Grid First)
+      unit_of_measurement: '%'
+      icon: mdi:battery-negative
+  BatFirstDischargePowerRate:
+    address: 3047
+    ha:
+      platform: number
+      min: 1
+      max: 100
+      name: Discharge Power Rate (Bat First)
+      icon: mdi:transmission-tower-import
+  BatFirstStopSOC:
+    address: 3048
+    ha:
+      platform: number
+      min: 1
+      max: 100
+      name: Stop Charge SOC (Bat First)
+      unit_of_measurement: '%'
+      icon: mdi:battery-charging
+  AcChargeEnable:
+    address: 3049
+    'on': 1
+    'off': 0
+    ha:
+      platform: switch
+      name: AC Charge Enable
+      icon: mdi:transmission-tower
 input:
   machine_status:
     address: 3000
@@ -632,3 +674,123 @@ input:
     ha:
       platform: sensor
       name: Warning code
+  Edischr_today:
+    address: 3125
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Today discharge energy
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total
+      precision: 2
+      icon: mdi:battery-negative
+  Edischr_total:
+    address: 3127
+    type: uint32
+    multiplier: 0.1
+    never_resets: true
+    ha:
+      platform: sensor
+      name: Total discharge energy
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 2
+      icon: mdi:battery-negative
+  Echr_today:
+    address: 3129
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Today charge energy
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total
+      precision: 2
+      icon: mdi:battery-positive
+  Echr_total:
+    address: 3131
+    type: uint32
+    multiplier: 0.1
+    never_resets: true
+    ha:
+      platform: sensor
+      name: Total charge energy
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 2
+      icon: mdi:battery-positive
+  priority:
+    address: 3144
+    map:
+      0: LoadFirst
+      1: BatteryFirst
+      2: GridFirst
+    ha:
+      platform: sensor
+      name: Work mode
+  FaultCode:
+    address: 3167
+    ha:
+      platform: sensor
+      name: Storage Fault code
+  WarningCode:
+    address: 3168
+    ha:
+      platform: sensor
+      name: Storage Warning code
+  vbat:
+    address: 3169
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Battery voltage
+      unit_of_measurement: V
+      device_class: voltage
+      state_class: measurement
+      precision: 3
+  ibat:
+    address: 3170
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery current
+      unit_of_measurement: A
+      device_class: current
+      state_class: measurement
+      precision: 2
+  soc:
+    address: 3171
+    ha:
+      platform: sensor
+      name: SoC
+      unit_of_measurement: '%'
+      device_class: battery
+      state_class: measurement
+      precision: 2
+  pdischr:
+    address: 3178
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Discharge power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
+  pchr:
+    address: 3180
+    type: uint32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Charge power
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      precision: 2
