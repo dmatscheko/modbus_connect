@@ -121,10 +121,12 @@ async def test_bridged_hole_learned(hass, monkeypatch):
 
     await coordinator.async_refresh()
     assert coordinator.last_update_success
-    # bridged block failed, both entities recovered individually
-    assert client.reads[:1] == [Span("holding", 0, 8)]
-    assert Span("holding", 0, 2) in client.reads
-    assert Span("holding", 6, 2) in client.reads
+    # the bridged block failed, then both entities recovered individually
+    assert client.reads == [
+        Span("holding", 0, 8),  # bridged read, rejected by the device
+        Span("holding", 0, 2),  # unbridged fallback reads
+        Span("holding", 6, 2),
+    ]
     assert coordinator._holes == {("holding", a) for a in (2, 3, 4, 5)}
 
     client.reads.clear()
