@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Waveshare
   model: Modbus RTU Relay (D)
   max_register_read: 16
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   sw_version:
     address: 32768
@@ -12,6 +15,8 @@ holding:
       name: Software Version
       precision: 3
       entity_category: diagnostic
+
+# Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
   relay_1:
     address: 0
@@ -53,6 +58,8 @@ coil:
     ha:
       platform: switch
       name: Relay 8
+
+# Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
 discrete:
   relay_1_status:
     address: 0

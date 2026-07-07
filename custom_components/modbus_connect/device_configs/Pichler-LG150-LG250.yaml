@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Pichler-LG150-LG250.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 150 - LG 250
   max_register_read: 100
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   betriebsmodus_sommer_winter_select:
     address: 1
@@ -185,6 +188,8 @@ holding:
       icon: mdi:thermometer
       entity_category: config
       enabled_by_default: false
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   temperatur_raum_display:
     address: 29

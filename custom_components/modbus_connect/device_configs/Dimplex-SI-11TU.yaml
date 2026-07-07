@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Dimplex-SI-11TU.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Dimplex
   model: Sole/Wasser-Wärmepumpe SI 11TU
   max_register_read: 100
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   operating_mode:
     address: 5015
@@ -161,6 +164,8 @@ holding:
       icon: mdi:water-thermometer-outline
       entity_category: config
       enabled_by_default: false
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   test_temp_what_is_this:
     address: 8
@@ -491,6 +496,8 @@ input:
       name: Sensorfehler
       icon: mdi:message-alert
       entity_category: diagnostic
+
+# Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
 discrete:
   hot_water_thermostat:
     address: 3

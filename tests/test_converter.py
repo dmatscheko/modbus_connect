@@ -1,6 +1,10 @@
 """Golden tests: old-format YAML through the converter and the new schema."""
 
-from converter.convert import convert_device
+import io
+
+import yaml
+
+from converter.convert import SECTION_COMMENTS, convert_device, dump_device_yaml
 from custom_components.modbus_connect.schema import parse_device
 
 OLD = {
@@ -137,3 +141,28 @@ def test_bit_tables():
     door = entity(dev, "door")
     assert door.table == "discrete"
     assert door.platform == "binary_sensor"
+
+
+def dump_old():
+    doc = convert_device(OLD, "old.yaml")
+    buf = io.StringIO()
+    dump_device_yaml(buf, doc)
+    return doc, buf.getvalue()
+
+
+def test_each_section_is_prefixed_with_its_comment():
+    doc, text = dump_old()
+    lines = text.splitlines()
+    # OLD exercises every table, so every documented section should appear
+    for section in ("device", "holding", "input", "coil", "discrete"):
+        assert section in doc
+        i = lines.index(f"{section}:")
+        assert lines[i - 1] == f"# {SECTION_COMMENTS[section]}"
+
+
+def test_dump_round_trips_and_keeps_hex_mask():
+    doc, text = dump_old()
+    # comments are ignored on load: the data round-trips unchanged
+    assert yaml.safe_load(text) == doc
+    # masks stay hex-formatted for humans (0x00F0 from bits/shift_bits)
+    assert "mask: 0xF0" in text

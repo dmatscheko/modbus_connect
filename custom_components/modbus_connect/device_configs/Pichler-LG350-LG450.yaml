@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Pichler-LG350-LG450.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 350 - LG 450
   max_register_read: 100
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   betriebsmodus_sommer_winter_select:
     address: 1
@@ -594,6 +597,8 @@ holding:
       icon: mdi:calendar-clock
       entity_category: config
       enabled_by_default: false
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   l5_ai1_co2_sensor:
     address: 2

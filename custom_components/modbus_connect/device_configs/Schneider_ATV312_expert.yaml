@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Schneider_ATV312_expert.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Schneider Electric
   model: Altivar ATV312 Expert
   max_register_read: 8
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   add_modbus_drive_address:
     address: 6001

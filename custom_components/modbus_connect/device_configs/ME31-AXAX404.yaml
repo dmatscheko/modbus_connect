@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway 'ME31-AXAX404.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: ebyte
   model: ME31-AXAX404
+
+# Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
   coil1:
     address: 0

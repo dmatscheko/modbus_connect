@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway 'SDM630.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Eastron
   model: SDM-630
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   serial_num:
     address: 64512
@@ -41,6 +44,8 @@ holding:
     ha:
       platform: select
       name: Energy Units Prefix
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   Phase 1 Voltage:
     address: 0

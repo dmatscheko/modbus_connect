@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway 'Varmann Qtherm.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Varmann
   model: Qtherm
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   slave_address:
     address: 0

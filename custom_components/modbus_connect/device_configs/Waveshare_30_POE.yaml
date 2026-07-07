@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway 'Waveshare_30_POE.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Waveshare
   model: Modbus POE ETH Relay 30CH
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   sw_version:
     address: 32768
@@ -11,6 +14,8 @@ holding:
       name: Software Version
       precision: 3
       entity_category: diagnostic
+
+# Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
   relay_1:
     address: 0

@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'MIC-2500TL-X.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Growatt
   model: MIC 2500TL-X
   max_register_read: 5
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   hw_version:
     address: 9
@@ -65,6 +68,8 @@ holding:
       max: 254
       name: Communicate address
       icon: mdi:serial-port
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   machine_status:
     address: 3000

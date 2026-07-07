@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Salda_RIS_MCB.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Salda
   model: RIS / RIRS (MCB)
   max_register_read: 16
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   fan_speed_select:
     address: 0
@@ -27,6 +30,8 @@ holding:
       unit_of_measurement: °C
       device_class: temperature
       icon: mdi:thermometer
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   current_system_mode:
     address: 14

@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Fröling GmbH
   model: BWP300 PV
   max_register_read: 160
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   t_setpoint_set:
     address: 4
@@ -354,6 +357,8 @@ holding:
       icon: mdi:calendar-sync
       entity_category: config
       enabled_by_default: true
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   di1_pressostat:
     address: 0

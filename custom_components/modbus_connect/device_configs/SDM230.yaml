@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway 'SDM230.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Eastron
   model: SDM-230
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   serial_num:
     address: 64512
@@ -31,6 +34,8 @@ holding:
     ha:
       platform: select
       name: Baud Rate
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   Total system power demand:
     address: 84

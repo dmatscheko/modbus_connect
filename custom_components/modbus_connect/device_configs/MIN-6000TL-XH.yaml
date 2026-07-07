@@ -1,8 +1,11 @@
 # Converted from modbus_local_gateway 'MIN-6000TL-XH.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Growatt
   model: MIN 6000TL-XH
   max_register_read: 5
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   hw_version:
     address: 9
@@ -107,6 +110,8 @@ holding:
       platform: switch
       name: AC Charge Enable
       icon: mdi:transmission-tower
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   machine_status:
     address: 3000

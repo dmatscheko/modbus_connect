@@ -1,9 +1,12 @@
 # Converted from modbus_local_gateway 'Test.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Test
   model: Test Model (DO NOT USE)
   modbus_id: 1          # prefills the "Modbus device ID" field of the config flow
   prefix: test_device   # prefills the "Entity ID prefix" field of the config flow
+
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   low_byte_of_reg_8:
     address: 8
@@ -105,6 +108,8 @@ holding:
       platform: binary_sensor
       name: Boolean Register
       device_class: running
+
+# Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
   coil1:
     address: 1
@@ -131,6 +136,8 @@ coil:
     ha:
       platform: binary_sensor
       name: coil4
+
+# Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
 discrete:
   di1:
     address: 3

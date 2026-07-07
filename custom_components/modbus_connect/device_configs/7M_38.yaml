@@ -1,7 +1,10 @@
 # Converted from modbus_local_gateway '7M_38.yaml' by convert.py
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Finder
   model: 7M.38
+
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   L1 Voltage:
     address: 2500

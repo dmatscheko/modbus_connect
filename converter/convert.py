@@ -69,6 +69,35 @@ def _hexint_representer(dumper: yaml.Dumper, value: HexInt) -> yaml.ScalarNode:
 yaml.SafeDumper.add_representer(HexInt, _hexint_representer)
 
 
+# One-line explanation written above each top-level section in the output YAML,
+# so the generated files are self-documenting (size + read/write access).
+SECTION_COMMENTS = {
+    "device": "Device metadata: manufacturer and model, plus optional read/poll tuning.",
+    "holding": "Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).",
+    "input": "Input registers: 16-bit words, read-only (Modbus FC04 read).",
+    "coil": "Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).",
+    "discrete": "Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).",
+    "template": "Templates: composite Home Assistant entities derived from the registers above.",
+}
+
+
+def dump_device_yaml(fh: Any, doc: dict[str, Any]) -> None:
+    """Write a device document, prefixing each top-level section with a comment.
+
+    PyYAML's ``safe_dump`` cannot attach comments to nodes, so each section is
+    dumped on its own and its :data:`SECTION_COMMENTS` line is written first.
+    """
+    for index, (section, body) in enumerate(doc.items()):
+        if index:
+            fh.write("\n")  # blank line between sections
+        comment = SECTION_COMMENTS.get(section)
+        if comment:
+            fh.write(f"# {comment}\n")
+        yaml.safe_dump(
+            {section: body}, fh, sort_keys=False, allow_unicode=True, width=100
+        )
+
+
 def warn(filename: str, message: str) -> None:
     print(f"  WARNING {filename}: {message}", file=sys.stderr)
 
@@ -280,7 +309,7 @@ def convert_file(path: Path, out_dir: Path) -> int:
     out_path = out_dir / path.name
     with out_path.open("w", encoding="utf-8") as fh:
         fh.write(f"# Converted from modbus_local_gateway '{path.name}' by convert.py\n")
-        yaml.safe_dump(new_doc, fh, sort_keys=False, allow_unicode=True, width=100)
+        dump_device_yaml(fh, new_doc)
     count = sum(len(new_doc.get(s, {})) for s in SECTION_TO_TABLE.values())
     print(f"  {path.name}: {count} entities -> {out_path}")
     return count
