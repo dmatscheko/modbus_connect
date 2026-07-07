@@ -13,6 +13,11 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+)
 
 from .client import async_probe
 from .const import (
@@ -39,7 +44,14 @@ def _connection_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
             ),
             vol.Required(
                 CONF_SLAVE_ID, default=defaults.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID)
-            ): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
+            ): vol.All(
+                NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=255, step=1, mode=NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Coerce(int),
+            ),
             vol.Optional(CONF_PREFIX, default=defaults.get(CONF_PREFIX, "")): str,
         }
     )
