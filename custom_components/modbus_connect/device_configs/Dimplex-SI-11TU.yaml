@@ -175,6 +175,8 @@ input:
       platform: sensor
       name: TEST What is this
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   outside_temp:
     address: 1
@@ -183,6 +185,8 @@ input:
       platform: sensor
       name: Außentemperatur (R1)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   heating_return_temp:
     address: 2
@@ -191,6 +195,8 @@ input:
       platform: sensor
       name: Heizung Rücklauftemperatur (R2)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   heating_1st_loop_temp:
     address: 27
@@ -199,6 +205,8 @@ input:
       platform: sensor
       name: 1. Heizkreis Temperatur (R5)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   heating_2nd_loop_temp:
     address: 9
@@ -207,6 +215,8 @@ input:
       platform: sensor
       name: 2. Heizkreis Temperatur (R?)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   heating_3rd_loop_temp:
@@ -216,6 +226,8 @@ input:
       platform: sensor
       name: 3. Heizkreis Temperatur (R13)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   heating_return_target:
@@ -225,6 +237,8 @@ input:
       platform: sensor
       name: Heizung Rücklaufsolltemperatur
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   heating_1st_loop_return_target:
@@ -234,6 +248,8 @@ input:
       platform: sensor
       name: 1. Heizkreis Rücklaufsolltemperatur
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   heating_2nd_loop_return_target:
     address: 54
@@ -242,6 +258,8 @@ input:
       platform: sensor
       name: 2. Heizkreis Rücklaufsolltemperatur
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   heating_3rd_loop_return_target:
@@ -251,6 +269,8 @@ input:
       platform: sensor
       name: 3. Heizkreis Rücklaufsolltemperatur
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   hot_water_temp:
@@ -260,6 +280,8 @@ input:
       platform: sensor
       name: Warmwasser Temperatur (R3)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   hot_water_target:
     address: 58
@@ -268,6 +290,8 @@ input:
       platform: sensor
       name: Warmwasser Solltemperatur
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
       enabled_by_default: false
   flow_temp:
@@ -277,6 +301,8 @@ input:
       platform: sensor
       name: Vorlauftemperatur (R9)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   source_input_temp:
     address: 6
@@ -285,6 +311,8 @@ input:
       platform: sensor
       name: Wärmequelleneintrittstemperatur (R24)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   source_output_temp:
     address: 7
@@ -293,6 +321,8 @@ input:
       platform: sensor
       name: Wärmequellenaustrittstemperatur (R6)
       unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
       icon: mdi:thermometer
   compressor1_hours:
     address: 72
@@ -301,6 +331,7 @@ input:
       platform: sensor
       name: Verdichter 1 Laufzeit
       unit_of_measurement: h
+      state_class: total_increasing
       precision: 0
       icon: mdi:history
       entity_category: diagnostic
@@ -311,6 +342,7 @@ input:
       platform: sensor
       name: Primärpumpe / Ventilator (M11) Laufzeit
       unit_of_measurement: h
+      state_class: total_increasing
       precision: 0
       icon: mdi:history
       entity_category: diagnostic
@@ -321,6 +353,7 @@ input:
       platform: sensor
       name: Heizungspumpe (M13) Laufzeit
       unit_of_measurement: h
+      state_class: total_increasing
       precision: 0
       icon: mdi:history
       entity_category: diagnostic
@@ -331,6 +364,7 @@ input:
       platform: sensor
       name: Warmwasserpumpe (M18) Laufzeit
       unit_of_measurement: h
+      state_class: total_increasing
       precision: 0
       icon: mdi:history
       entity_category: diagnostic
@@ -341,6 +375,7 @@ input:
       platform: sensor
       name: Zusatzumwälzpumpe (M16) Laufzeit
       unit_of_measurement: h
+      state_class: total_increasing
       precision: 0
       icon: mdi:history
       entity_category: diagnostic

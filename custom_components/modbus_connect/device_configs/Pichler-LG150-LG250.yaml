@@ -334,6 +334,7 @@ input:
       platform: sensor
       name: Filter Reststandzeit
       unit_of_measurement: h
+      state_class: measurement
       icon: mdi:timer-sand
   aktuelle_luftungsstufe:
     address: 59
@@ -355,6 +356,7 @@ input:
       platform: sensor
       name: Lüfter 1 Stunden
       unit_of_measurement: h
+      state_class: total_increasing
       icon: mdi:timer-sand
   lufter_2_stunden:
     address: 81
@@ -362,6 +364,7 @@ input:
       platform: sensor
       name: Lüfter 2 Stunden
       unit_of_measurement: h
+      state_class: total_increasing
       icon: mdi:timer-sand
   lufter_3_stunden:
     address: 82
@@ -369,6 +372,7 @@ input:
       platform: sensor
       name: Lüfter 3 Stunden
       unit_of_measurement: h
+      state_class: total_increasing
       icon: mdi:timer-sand
   lufter_grund_stunden:
     address: 83
@@ -376,6 +380,7 @@ input:
       platform: sensor
       name: Lüfter Grund Stunden
       unit_of_measurement: h
+      state_class: total_increasing
       icon: mdi:timer-sand
   heizelement_stunden:
     address: 85
@@ -383,6 +388,7 @@ input:
       platform: sensor
       name: Heizelement Stunden
       unit_of_measurement: h
+      state_class: total_increasing
       icon: mdi:timer-sand
       enabled_by_default: false
   position_bypassklappe:
