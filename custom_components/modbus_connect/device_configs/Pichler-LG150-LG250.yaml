@@ -272,6 +272,7 @@ input:
       platform: sensor
       name: Zuluft Ventilatordrehzahl
       unit_of_measurement: rpm
+      state_class: measurement
       icon: mdi:fan
   abluftventilator_drehzahl:
     address: 40
@@ -279,6 +280,7 @@ input:
       platform: sensor
       name: Abluft Ventilatordrehzahl
       unit_of_measurement: rpm
+      state_class: measurement
       icon: mdi:fan
   zuluftventilator:
     address: 44
@@ -286,6 +288,7 @@ input:
       platform: sensor
       name: Zuluft Ventilatorleistung
       unit_of_measurement: '%'
+      state_class: measurement
       icon: mdi:fan
   abluftventilator:
     address: 45
@@ -293,6 +296,7 @@ input:
       platform: sensor
       name: Abluft Ventilatorleistung
       unit_of_measurement: '%'
+      state_class: measurement
       icon: mdi:fan
   zuluftvolumenstrom:
     address: 46
@@ -300,6 +304,7 @@ input:
       platform: sensor
       name: Zuluft Luftstrom
       unit_of_measurement: m³/h
+      state_class: measurement
       icon: mdi:air-filter
   abluftvolumenstrom:
     address: 47
@@ -307,6 +312,7 @@ input:
       platform: sensor
       name: Abluft Luftstrom
       unit_of_measurement: m³/h
+      state_class: measurement
       icon: mdi:air-filter
   betriebsstatus:
     address: 48
