@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorStateClass
-from homeassistant.exceptions import ServiceValidationError, TemplateError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
 from .const import DOMAIN
-from .coordinator import ModbusConnectCoordinator
+from .coordinator import ModbusConnectCoordinator, render_over_values
 from .models import (
     BIT_TABLES,
     TYPE_STRING,
@@ -23,8 +22,6 @@ from .models import (
     WriteTarget,
 )
 from .schema import DESCRIPTION_CLASSES, description_fields
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def build_description(
@@ -180,14 +177,7 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         template = self._compiled.get(cache_key)
         if template is None:
             template = self._compiled[cache_key] = Template(source, self.hass)
-        data = self.coordinator.data or {}
-        try:
-            return template.async_render(
-                variables={**data, "values": data}, parse_result=True
-            )
-        except TemplateError as err:
-            _LOGGER.debug("%s: template '%s' failed: %s", self._tdef.key, cache_key, err)
-            return None
+        return render_over_values(template, self.coordinator.data)
 
     def render_number(self, field: str) -> float | None:
         """Render a template that must produce a number."""

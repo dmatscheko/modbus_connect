@@ -34,6 +34,25 @@ _LOGGER = logging.getLogger(__name__)
 type ModbusConnectConfigEntry = ConfigEntry[ModbusConnectCoordinator]
 
 
+def render_over_values(
+    template: Template, data: dict[str, Any] | None, *, parse_result: bool = True
+) -> Any:
+    """Render a compiled template over the device's decoded values.
+
+    Each entity key is injected as a plain variable, plus a ``values`` dict for
+    keys that are not valid identifiers. Returns None if the template raises.
+    This is the one convention shared by the template: section, ``read_register``,
+    and the device-info fields.
+    """
+    values = data or {}
+    try:
+        return template.async_render(
+            variables={**values, "values": values}, parse_result=parse_result
+        )
+    except TemplateError:
+        return None
+
+
 class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """One coordinator per configured device (gateway + slave id).
 
@@ -124,13 +143,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         referencing an unread (None) register."""
         if source is None:
             return None
-        data = self.data or {}
-        try:
-            value = Template(source, self.hass).async_render(
-                variables={**data, "values": data}, parse_result=False
-            )
-        except TemplateError as err:
-            _LOGGER.debug("%s: device-info template %r failed: %s", self.name, source, err)
+        value = render_over_values(Template(source, self.hass), self.data, parse_result=False)
+        if value is None:
             return None
         value = str(value).strip()
         return value if value and "None" not in value else None
@@ -183,11 +197,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         template = self._link_templates.get(defn.key)
         if template is None:
             template = self._link_templates[defn.key] = Template(source, self.hass)
-        try:
-            return template.async_render(variables={**data, "values": data}, parse_result=True)
-        except TemplateError as err:
-            _LOGGER.debug("%s: read_register failed: %s", defn.key, err)
-            return None
+        return render_over_values(template, data)
 
     async def _read_with_fallback(self, block: Span, spans: set[Span]) -> int:
         """Read one block; on failure retry its spans without gap bridging.
