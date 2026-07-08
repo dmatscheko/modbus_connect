@@ -1,0 +1,22 @@
+<svg version="1.1" id="made_by_dmatscheko" x="0" y="0" xml:space="preserve" width="198" height="198" xmlns="http://www.w3.org/2000/svg">
+    <defs id="d1">
+        <marker style="overflow:visible" id="ArrowWideHeavy" refX="0" refY="0" orient="auto-start-reverse" markerWidth=".52" markerHeight=".52" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid">
+            <path style="fill:context-stroke;fill-rule:evenodd" d="m1 0-3 3h-2l3-3-3-3h2z" id="path21"/>
+        </marker>
+    </defs>
+    <g id="g1" transform="rotate(14.661 984.915 124.021)">
+        <circle style="fill:#f49500" id="c1" cx="35.54" cy="344.247" r="68.296" transform="rotate(-14.661)"/>
+        <circle style="fill:#fcc000" id="c2" cx="196.182" cy="324.043" r="25.885"/>
+        <circle style="fill:#fcc000" id="c3" cx="158.847" cy="388.707" r="25.885"/>
+        <circle style="fill:#fcc000" id="c4" cx="84.179" cy="388.707" r="25.885"/>
+        <circle style="fill:#fcc000" id="c5" cx="46.844" cy="324.043" r="25.885"/>
+        <circle style="fill:#fcc000" id="c6" cx="84.179" cy="259.378" r="25.885"/>
+        <circle style="fill:#fcc000" id="c7" cx="158.847" cy="259.378" r="25.885"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="M190.883 324.043H134.4" id="p1"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="m156.198 384.119-28.242-48.917" id="p2"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="m86.828 384.119 28.242-48.917" id="p3"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="M52.143 324.043h56.484" id="p4"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="m156.198 263.966-28.242 48.917" id="p5"/>
+        <path style="stroke:#03a239;stroke-width:5;stroke-opacity:1;marker-start:url(#ArrowWideHeavy);marker-end:url(#ArrowWideHeavy)" d="m86.828 263.966 28.242 48.917" id="p6"/>
+    </g>
+</svg>

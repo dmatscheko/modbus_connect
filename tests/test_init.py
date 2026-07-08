@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -468,7 +469,7 @@ async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.runtime_data.update_interval.total_seconds() == 5
+    assert entry.runtime_data.update_interval.total_seconds() == pytest.approx(5)
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
@@ -481,7 +482,7 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
     assert diagnostics["device"]["model"] == "X1"
     assert diagnostics["polling"]["last_update_success"] is True
     by_key = {e["key"]: e for e in diagnostics["entities"]}
-    assert by_key["temperature"]["value"] == 21.5
+    assert by_key["temperature"]["value"] == pytest.approx(21.5)
     assert by_key["temperature"]["address"] == 0
     assert {t["key"] for t in diagnostics["templates"]} >= {"double_temp", "t_climate"}
 
@@ -595,7 +596,6 @@ async def test_more_template_actions(hass: HomeAssistant) -> None:
 
 
 async def test_unmapped_action_value_raises(hass: HomeAssistant) -> None:
-    import pytest
     from homeassistant.exceptions import ServiceValidationError
 
     entry = make_entry()
@@ -622,7 +622,6 @@ async def test_unmapped_action_value_raises(hass: HomeAssistant) -> None:
 
 
 async def test_write_failure_becomes_home_assistant_error(hass: HomeAssistant) -> None:
-    import pytest
     from homeassistant.exceptions import HomeAssistantError
 
     entry = make_entry()

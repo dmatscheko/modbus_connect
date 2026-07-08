@@ -67,7 +67,7 @@ def test_uint16_out_of_range():
 def test_float32_roundtrip():
     defn = e(type="float32", count=2)
     words = encode(defn, 21.5)
-    assert decode(defn, words) == 21.5
+    assert decode(defn, words) == pytest.approx(21.5)
 
 
 def test_float64_roundtrip():
@@ -213,7 +213,7 @@ def test_float16_roundtrip_and_nan():
     defn = e(type="float16")
     words = encode(defn, 1.5)
     assert words == [0x3E00]
-    assert decode(defn, words) == 1.5
+    assert decode(defn, words) == pytest.approx(1.5)
     assert decode(defn, [0x7E00]) is None  # NaN
     with pytest.raises(CodecError):
         encode(defn, 1e6)  # not representable in half precision

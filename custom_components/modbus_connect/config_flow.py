@@ -92,6 +92,13 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         self._filename: str = ""
         self._name: str = ""
         self._device: DeviceDef | None = None
+        self._devices: dict[str, DeviceDef] | None = None
+
+    async def _load_devices(self) -> dict[str, DeviceDef]:
+        """Load device definitions once and reuse them across this flow's steps."""
+        if self._devices is None:
+            self._devices = await async_load_all(self.hass)
+        return self._devices
 
     @property
     def _title(self) -> str:
@@ -123,7 +130,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        devices = await async_load_all(self.hass)
+        devices = await self._load_devices()
         if not devices:
             return self.async_abort(reason="no_device_files")
 
@@ -157,7 +164,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Change device file, name, and/or connection of an existing entry."""
         entry = self._get_reconfigure_entry()
-        devices = await async_load_all(self.hass)
+        devices = await self._load_devices()
         if not devices:
             return self.async_abort(reason="no_device_files")
 

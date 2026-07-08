@@ -1,16 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 374.08 64">
   <title>Modbus Connect</title>
-  <rect width="64" height="64" rx="14.5" fill="#18BCF2"/>
-  <g fill="none" stroke="#F2F4F9" stroke-width="5" stroke-linecap="round">
-    <path d="M12 35h40"/>
-    <path d="M32 35V21"/>
-    <path d="M20 35v9"/>
-    <path d="M44 35v9"/>
+  <path fill="#F49500" d="m 11.49,6.86 h 29.76 c 8.56,0 15.83,6.88 15.83,15.84 v 29.8 c 0,6.37 -5.13,11.49 -11.49,11.49 H 11.49 C 5.13,64 0,58.87 0,52.51 V 18.36 C 0,11.99 5.13,6.86 11.49,6.86 Z"/>
+  <g fill="#FCC000">
+    <circle cx="58" cy="27.08" r="6"/>
+    <circle cx="36.67" cy="6" r="6"/>
+    <circle cx="53.42" cy="10.38" r="6"/>
+  </g>
+  <g fill="none" stroke="#F2F4F9" stroke-width="4.7" stroke-linecap="round">
+    <path d="M9.6 39.22h37.89"/>
+    <path d="M28.54 39.22V25.96"/>
+    <path d="M17.17 39.22v8.53"/>
+    <path d="M39.91 39.22v8.53"/>
   </g>
   <g fill="#F2F4F9">
-    <circle cx="32" cy="15" r="7.5"/>
-    <circle cx="20" cy="48.5" r="6"/>
-    <circle cx="44" cy="48.5" r="6"/>
+    <circle cx="28.54" cy="20.8" r="7.5"/>
+    <circle cx="17.17" cy="52.01" r="6"/>
+    <circle cx="39.91" cy="52.01" r="6"/>
   </g>
   <g fill="#1D2126">
     <path transform="translate(79.00 45.0) scale(0.037143 -0.037143)" d="M82.80029296875 0V700H207.42926025390625L426.58990478515625 375.8990478515625L645.1805419921875 700H769.8095092773438V0H653.7803955078125V516.601318359375L426.44989013671875 180.47052001953125L198.82940673828125 515.4613037109375V0Z"/>

@@ -1,5 +1,6 @@
 """Runtime tests for template: entities."""
 
+import pytest
 import yaml
 from homeassistant.components.climate import HVACMode
 
@@ -145,7 +146,7 @@ async def test_internal_entities_polled_but_hidden(hass, monkeypatch):
         "light_level",
     }
     # polled and decoded like any entity, so templates can use them ...
-    assert coordinator.data["setpoint"] == 45.0
+    assert coordinator.data["setpoint"] == pytest.approx(45.0)
     assert coordinator.data["mode"] == "Auto"
     # ... but no platform will ever create an HA entity for them
     assert all(
@@ -159,7 +160,7 @@ async def test_template_sensor_renders(hass, monkeypatch):
     device, _, coordinator = await setup_device(hass, monkeypatch)
     sensor = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
                          template_def(device, "cop"))
-    assert sensor.native_value == 2.5
+    assert sensor.native_value == pytest.approx(2.5)
 
 
 async def test_template_binary_sensor(hass, monkeypatch):
@@ -178,13 +179,13 @@ async def test_climate_state_from_templates(hass, monkeypatch):
     device, _, coordinator = await setup_device(hass, monkeypatch)
     climate = make_entity(hass, ModbusConnectClimate, coordinator,
                           template_def(device, "hot_water"))
-    assert climate.current_temperature == 35.2
-    assert climate.target_temperature == 45.0
+    assert climate.current_temperature == pytest.approx(35.2)
+    assert climate.target_temperature == pytest.approx(45.0)
     assert climate.hvac_mode == HVACMode.HEAT
     assert set(climate.hvac_modes) == {HVACMode.HEAT, HVACMode.OFF}
     assert climate.min_temp == 20
     assert climate.max_temp == 60
-    assert climate.target_temperature_step == 0.5
+    assert climate.target_temperature_step == pytest.approx(0.5)
 
 
 async def test_climate_set_temperature_writes_through_codec(hass, monkeypatch):
@@ -195,7 +196,7 @@ async def test_climate_set_temperature_writes_through_codec(hass, monkeypatch):
     # setpoint has multiplier 0.5 -> raw register 100
     assert client.written == [(1, [100])]
     # read-back confirmed the new value; template sees it immediately
-    assert climate.target_temperature == 50.0
+    assert climate.target_temperature == pytest.approx(50.0)
 
 
 async def test_climate_set_hvac_mode_maps_to_select_option(hass, monkeypatch):

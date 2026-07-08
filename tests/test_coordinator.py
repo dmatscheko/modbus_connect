@@ -3,6 +3,7 @@
 import asyncio
 from typing import Any
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.modbus_connect.client import ReadError
@@ -167,7 +168,7 @@ async def test_backoff_on_total_failure(hass, monkeypatch):
     coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
     await coordinator.async_refresh()
     assert coordinator.last_update_success
-    assert coordinator.update_interval.total_seconds() == base
+    assert coordinator.update_interval.total_seconds() == pytest.approx(base)
 
 
 async def test_max_change_and_never_resets(hass, monkeypatch):
@@ -210,7 +211,7 @@ async def test_write_encodes_and_confirms(hass, monkeypatch):
 
     await coordinator.async_write(defn, 21.5)
     assert client.written == [(0, [215])]
-    assert coordinator.data["setpoint"] == 21.5  # confirmed by read-back
+    assert coordinator.data["setpoint"] == pytest.approx(21.5)  # confirmed by read-back
 
 
 async def test_masked_write_read_modify_write(hass, monkeypatch):
@@ -267,7 +268,6 @@ async def test_partial_fallback_learns_no_holes(hass, monkeypatch):
 
 
 async def test_write_cannot_connect_raises(hass, monkeypatch):
-    import pytest
     from homeassistant.exceptions import HomeAssistantError
 
     client = FakeClient({0: 1})

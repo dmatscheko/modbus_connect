@@ -1,7 +1,8 @@
 """Regenerate the Modbus Connect brand assets (SVGs here, PNGs in brand/).
 
-The mark is a Modbus network in the Home Assistant logo style: the brand blue
-tile (#18BCF2), off-white traces (#F2F4F9), one bus trunk, the gateway node on
+The mark is a Modbus network in the Home Assistant logo style: an orange tile
+(#F49500) with three gold accent dots (#FCC000) bursting from the top-right
+corner, off-white traces (#F2F4F9) for one bus trunk with the gateway node on
 top and two device nodes below. The wordmark is outlined from Figtree (the
 Home Assistant brand typeface, OFL) so the SVGs are fully self-contained.
 
@@ -31,8 +32,9 @@ from fontTools.varLib.instancer import instantiateVariableFont
 
 OUT = Path(__file__).parent
 
-BLUE = "#18BCF2"  # Home Assistant brand blue
-TRACE = "#F2F4F9"  # Home Assistant trace white
+TILE = "#F49500"  # tile orange
+ACCENT = "#FCC000"  # accent gold (top-right burst)
+TRACE = "#F2F4F9"  # Home Assistant trace white (traces + nodes)
 DARK = "#1D2126"  # Home Assistant wordmark color
 
 TEXT = "Modbus Connect"
@@ -71,17 +73,22 @@ def outline_text(font_path: Path) -> tuple[str, float]:
     return "\n    ".join(parts), x - TRACKING * upm * scale
 
 
-MARK = f"""<rect width="64" height="64" rx="14.5" fill="{BLUE}"/>
-  <g fill="none" stroke="{TRACE}" stroke-width="5" stroke-linecap="round">
-    <path d="M12 35h40"/>
-    <path d="M32 35V21"/>
-    <path d="M20 35v9"/>
-    <path d="M44 35v9"/>
+MARK = f"""<path fill="{TILE}" d="m 11.49,6.86 h 29.76 c 8.56,0 15.83,6.88 15.83,15.84 v 29.8 c 0,6.37 -5.13,11.49 -11.49,11.49 H 11.49 C 5.13,64 0,58.87 0,52.51 V 18.36 C 0,11.99 5.13,6.86 11.49,6.86 Z"/>
+  <g fill="{ACCENT}">
+    <circle cx="58" cy="27.08" r="6"/>
+    <circle cx="36.67" cy="6" r="6"/>
+    <circle cx="53.42" cy="10.38" r="6"/>
+  </g>
+  <g fill="none" stroke="{TRACE}" stroke-width="4.7" stroke-linecap="round">
+    <path d="M9.6 39.22h37.89"/>
+    <path d="M28.54 39.22V25.96"/>
+    <path d="M17.17 39.22v8.53"/>
+    <path d="M39.91 39.22v8.53"/>
   </g>
   <g fill="{TRACE}">
-    <circle cx="32" cy="15" r="7.5"/>
-    <circle cx="20" cy="48.5" r="6"/>
-    <circle cx="44" cy="48.5" r="6"/>
+    <circle cx="28.54" cy="20.8" r="7.5"/>
+    <circle cx="17.17" cy="52.01" r="6"/>
+    <circle cx="39.91" cy="52.01" r="6"/>
   </g>"""
 
 

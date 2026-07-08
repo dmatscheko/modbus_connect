@@ -26,7 +26,7 @@
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
           "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255). Prefilled with the device file's factory default.",
-          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.<prefix>_<entity>`. Leave empty to let Home Assistant derive entity IDs from the device name."
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
       },
       "reconfigure": {
@@ -54,7 +54,7 @@
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
           "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255).",
-          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.<prefix>_<entity>`. Changing it only affects entities created afterwards. Leave empty to let Home Assistant derive entity IDs from the device name."
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Changing it only affects entities created afterwards. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
       }
     },

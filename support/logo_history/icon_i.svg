@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 64 64"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="icon_i.svg"
+   xml:space="preserve"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"><defs
+     id="defs6"><marker
+   style="overflow:visible"
+   id="ArrowWideHeavy"
+   refX="0"
+   refY="0"
+   orient="auto-start-reverse"
+   markerWidth=".52"
+   markerHeight=".52"
+   viewBox="0 0 1 1"
+   preserveAspectRatio="xMidYMid">
+            <path
+   style="fill:context-stroke;fill-rule:evenodd"
+   d="m1 0-3 3h-2l3-3-3-3h2z"
+   id="path21" />
+        </marker>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    </defs><sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8"
+     inkscape:cx="31.9375"
+     inkscape:cy="31.9375"
+     inkscape:window-width="2560"
+     inkscape:window-height="1356"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg6"
+     showguides="false"><sodipodi:guide
+       position="57.085015,41.305651"
+       orientation="1,0"
+       id="guide11"
+       inkscape:locked="false" /><sodipodi:guide
+       position="57.085015,41.305651"
+       orientation="0,-1"
+       id="guide12"
+       inkscape:locked="false" /><sodipodi:guide
+       position="41.252186,57.13848"
+       orientation="1,0"
+       id="guide13"
+       inkscape:locked="false" /><sodipodi:guide
+       position="41.252186,57.13848"
+       orientation="0,-1"
+       id="guide14"
+       inkscape:locked="false" /></sodipodi:namedview><title
+     id="title1">Modbus Connect</title><path
+     id="rect1"
+     style="fill:#f49500;fill-opacity:1"
+     d="m 11.494796,6.8615198 h 29.75739 c 8.555616,0 15.832828,6.8773712 15.832828,15.8392382 v 29.804447 c 0,6.368117 -5.126679,11.494796 -11.494795,11.494796 H 11.494796 C 5.1266789,64.000001 0,58.873322 0,52.505205 V 18.356316 C 0,11.988199 5.1266789,6.8615198 11.494796,6.8615198 Z"
+     sodipodi:nodetypes="sssssssss" /><circle
+     style="opacity:1;fill:#fcc000;fill-opacity:1;stroke-width:0.231827"
+     id="c2"
+     cx="62.963551"
+     cy="11.514461"
+     transform="rotate(14.660999)"
+     r="6" /><circle
+     style="opacity:1;fill:#fcc000;fill-opacity:1;stroke-width:0.231827"
+     id="c6"
+     cx="36.998272"
+     cy="-3.4766085"
+     transform="rotate(14.660999)"
+     r="6" /><circle
+     style="opacity:1;fill:#fcc000;fill-opacity:1;stroke-width:0.231827"
+     id="c7"
+     cx="54.3083"
+     cy="-3.4766085"
+     transform="rotate(14.660999)"
+     r="6" /><metadata
+     id="metadata14"><rdf:RDF><cc:Work
+         rdf:about=""><dc:title>Modbus Connect</dc:title></cc:Work></rdf:RDF></metadata><path
+     d="M 9.5956446,39.220133 H 47.489369"
+     id="path1"
+     style="fill:none;stroke:#f2f4f9;stroke-width:4.7;stroke-linecap:round;stroke-dasharray:none" /><path
+     d="M 28.542507,39.220133 V 25.957329"
+     id="path2"
+     style="fill:none;stroke:#f2f4f9;stroke-width:4.7;stroke-linecap:round;stroke-dasharray:none" /><path
+     d="m 17.174389,39.220133 v 8.526088"
+     id="path3"
+     style="fill:none;stroke:#f2f4f9;stroke-width:4.7;stroke-linecap:round;stroke-dasharray:none" /><path
+     d="m 39.910624,39.220133 v 8.526088"
+     id="path4"
+     style="fill:none;stroke:#f2f4f9;stroke-width:4.7;stroke-linecap:round;stroke-dasharray:none" /><circle
+     cx="28.542507"
+     cy="20.8036"
+     id="circle4"
+     style="fill:#f2f4f9;stroke-width:0.947343"
+     r="7.5" /><circle
+     cx="17.174389"
+     cy="52.009266"
+     id="circle5"
+     style="fill:#f2f4f9;stroke-width:0.947343"
+     r="6" /><circle
+     cx="39.910625"
+     cy="52.009266"
+     id="circle6"
+     style="fill:#f2f4f9;stroke-width:0.947343"
+     r="6" /></svg>

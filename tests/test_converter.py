@@ -2,6 +2,7 @@
 
 import io
 
+import pytest
 import yaml
 
 from converter.convert import SECTION_COMMENTS, convert_device, dump_device_yaml
@@ -58,7 +59,7 @@ def test_all_entities_survive():
 def test_sensor_with_uom_preset():
     e = entity(convert_and_parse(), "temp")
     assert e.table == "holding"
-    assert e.multiplier == 0.1
+    assert e.multiplier == pytest.approx(0.1)
     assert e.offset == -40
     assert e.ha["native_unit_of_measurement"] == "°C"
     assert str(e.ha["device_class"]) == "temperature"
@@ -77,7 +78,7 @@ def test_number_limits_move_to_ha():
     assert e.platform == "number"
     assert e.ha["native_min_value"] == 5
     assert e.ha["native_max_value"] == 30
-    assert e.ha["native_step"] == 0.5
+    assert e.ha["native_step"] == pytest.approx(0.5)
     assert str(e.ha["mode"]) == "slider"
     # numbers are not sensors: no state_class
     assert "state_class" not in e.ha
