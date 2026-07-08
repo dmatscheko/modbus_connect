@@ -192,6 +192,9 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "scan_interval",
         "modbus_id",
         "prefix",
+        "sw_version",
+        "hw_version",
+        "serial_number",
     }
     if unknown:
         raise ctx.fail(f"unknown device keys: {sorted(unknown)}")
@@ -204,6 +207,13 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
     prefix = device.get("prefix")
     if prefix is not None and (not isinstance(prefix, str) or not prefix):
         raise ctx.fail("device.prefix must be a non-empty string")
+    # Device-info fields are template strings (rendered from the first read).
+    info: dict[str, str | None] = {}
+    for key in ("sw_version", "hw_version", "serial_number"):
+        value = device.get(key)
+        if value is not None and (not isinstance(value, str) or not value):
+            raise ctx.fail(f"device.{key} must be a non-empty string (may be a template)")
+        info[key] = value
     return {
         "manufacturer": device["manufacturer"],
         "model": device["model"],
@@ -214,6 +224,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "scan_interval": scan_interval,
         "modbus_id": modbus_id,
         "prefix": prefix,
+        **info,
     }
 
 

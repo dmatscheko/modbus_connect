@@ -154,6 +154,32 @@ def test_device_defaults_absent():
     dev = parse_device(doc(x={"address": 1, "ha": {"platform": "sensor"}}), "t.yaml")
     assert dev.modbus_id is None
     assert dev.prefix is None
+    assert dev.sw_version is None
+    assert dev.hw_version is None
+    assert dev.serial_number is None
+
+
+def test_device_info_fields_parsed():
+    data = {
+        "device": {
+            "manufacturer": "Acme", "model": "X1",
+            "sw_version": "FW {{ fw }}", "hw_version": "Gen4", "serial_number": "{{ sn }}",
+        },
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.sw_version == "FW {{ fw }}"
+    assert dev.hw_version == "Gen4"
+    assert dev.serial_number == "{{ sn }}"
+
+
+def test_device_info_field_must_be_string():
+    with pytest.raises(DeviceSchemaError, match="sw_version"):
+        parse_device(
+            {"device": {"manufacturer": "Acme", "model": "X1", "sw_version": 159},
+             "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}}},
+            "t.yaml",
+        )
 
 
 def test_count_conflict_rejected():

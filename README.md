@@ -119,6 +119,9 @@ device:
                            #   prefills the config flow for this device
   prefix: sdm630           # default entity-id prefix (optional); the config
                            #   flow prefills it with this, else the device name
+  sw_version: "DSP {{ dsp }} ARM {{ arm }}"  # firmware / hardware / serial for the
+  hw_version: "{{ hardware_gen }}"           #   device page (all optional); each is a
+  serial_number: "{{ serial }}"             #   template over register values (below)
 
 input:
   phase_1_voltage:
@@ -159,6 +162,13 @@ coil:
       platform: switch
       name: Circulation pump
 ```
+
+`sw_version`, `hw_version`, and `serial_number` fill the fields of the same name
+on the device page. Each is a Jinja template over the device's register values —
+declare the registers you reference (usually as `internal:` entities, since they
+need no entity of their own) and format them with the usual filters, e.g.
+`sw_version: "DSP {{ dsp | round(2) }} ARM {{ arm | round(2) }}"`. They are
+rendered once from the first read.
 
 ### Modbus keys (per entity)
 

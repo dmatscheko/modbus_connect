@@ -30,6 +30,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
         client.release(entry.entry_id)
         raise
 
+    # Fill firmware/hardware/serial from the first read before entities (and the
+    # device registry entry) are created.
+    coordinator.apply_device_info()
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))

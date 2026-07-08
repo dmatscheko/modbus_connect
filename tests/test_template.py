@@ -384,3 +384,46 @@ async def test_climate_switch_target_unmatched_case_raises(hass, monkeypatch):
     with pytest.raises(ServiceValidationError):
         await climate.async_set_temperature(temperature=22.0)
     assert client.written == []  # nothing written when no case matches
+
+
+# Device-info templates: firmware/hardware/serial composed from register values.
+DEVICE_INFO_YAML = """
+device:
+  manufacturer: Acme
+  model: HRV
+  sw_version: "DSP {{ dsp | round(2) }} ARM {{ arm | round(2) }}"
+  hw_version: "{{ hw_gen }}"
+  serial_number: "{{ serial }}"
+holding:
+  dsp: {address: 0, multiplier: 0.01, internal: true}
+  arm: {address: 1, multiplier: 0.01, internal: true}
+  hw_gen: {address: 2, map: {4: Gen4}, internal: true}
+  serial: {address: 3, type: string, count: 2, internal: true}
+"""
+
+
+async def setup_info_device(hass, monkeypatch, registers):
+    device = parse_device(yaml.safe_load(DEVICE_INFO_YAML), "info.yaml")
+    coordinator = await make_coordinator(hass, device, FakeClient(dict(registers)),
+                                         monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    return coordinator
+
+
+async def test_device_info_rendered_from_registers(hass, monkeypatch):
+    # dsp=1.59, arm=1.57, hw_gen=Gen4, serial "SN42" (0x534E, 0x3432)
+    coordinator = await setup_info_device(hass, monkeypatch,
+                                          {0: 159, 1: 157, 2: 4, 3: 0x534E, 4: 0x3432})
+    coordinator.apply_device_info()
+    assert coordinator.device_info["sw_version"] == "DSP 1.59 ARM 1.57"
+    assert coordinator.device_info["hw_version"] == "Gen4"
+    assert coordinator.device_info["serial_number"] == "SN42"
+
+
+async def test_device_info_skips_unread_register(hass, monkeypatch):
+    # hw_gen register value 9 is not in the map -> decodes to None -> field skipped
+    coordinator = await setup_info_device(hass, monkeypatch,
+                                          {0: 159, 1: 157, 2: 9, 3: 0x534E, 4: 0x3432})
+    coordinator.apply_device_info()
+    assert coordinator.device_info["sw_version"] == "DSP 1.59 ARM 1.57"
+    assert "hw_version" not in coordinator.device_info  # None render is not applied

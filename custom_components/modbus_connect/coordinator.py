@@ -11,8 +11,9 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, TemplateError
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from . import codec
@@ -95,6 +96,38 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name=f"{DOMAIN} {self.device_info['name']}",
             update_interval=timedelta(seconds=self._tick),
         )
+
+    # --- device info ----------------------------------------------------------
+
+    def apply_device_info(self) -> None:
+        """Fold firmware/hardware/serial into the device info.
+
+        The ``device:`` block may template these from register values (usually
+        ``internal`` ones). Rendered once from the first read, before entities —
+        and thus the device registry entry — are created.
+        """
+        if (v := self._render_info(self.device_def.sw_version)) is not None:
+            self.device_info["sw_version"] = v
+        if (v := self._render_info(self.device_def.hw_version)) is not None:
+            self.device_info["hw_version"] = v
+        if (v := self._render_info(self.device_def.serial_number)) is not None:
+            self.device_info["serial_number"] = v
+
+    def _render_info(self, source: str | None) -> str | None:
+        """Render one device-info template; None if absent, failing, or still
+        referencing an unread (None) register."""
+        if source is None:
+            return None
+        data = self.data or {}
+        try:
+            value = Template(source, self.hass).async_render(
+                variables={**data, "values": data}, parse_result=False
+            )
+        except TemplateError as err:
+            _LOGGER.debug("%s: device-info template %r failed: %s", self.name, source, err)
+            return None
+        value = str(value).strip()
+        return value if value and "None" not in value else None
 
     # --- reading -------------------------------------------------------------
 

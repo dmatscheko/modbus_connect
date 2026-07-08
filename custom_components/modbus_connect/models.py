@@ -188,4 +188,8 @@ class DeviceDef:
     scan_interval: int | None = None  # device default poll interval
     modbus_id: int | None = None  # factory-default Modbus device id
     prefix: str | None = None  # default entity-id prefix
+    # Device-info templates, rendered once from the first read (see coordinator).
+    sw_version: str | None = None
+    hw_version: str | None = None
+    serial_number: str | None = None
     filename: str = ""
