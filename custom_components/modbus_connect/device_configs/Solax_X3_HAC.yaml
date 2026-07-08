@@ -3,7 +3,7 @@ device:
   manufacturer: SolaX Power
   model: X3-HAC (11 kW)
   max_register_read: 32
-  prefix: solax_x3_hac
+  prefix: Solax X3-HAC
   sw_version: "ARM v{{ '%.2f' | format(firmware_version / 100) }}"
   hw_version: Gen2
 

@@ -3,7 +3,7 @@ device:
   manufacturer: SolaX Power
   model: X3-Hybrid G4
   max_register_read: 100
-  prefix: solax_x3_hybrid
+  prefix: Solax X3-Hybrid
   sw_version: "DSP {{ firmware_dsp // 100 }}.{{ '%02d' | format(firmware_dsp % 100) }} ARM {{ firmware_arm // 100 }}.{{ '%02d' | format(firmware_arm % 100) }}"
   hw_version: Gen4
   serial_number: "{{ serial }}"
