@@ -11,6 +11,7 @@ from custom_components.modbus_connect.cover import ModbusConnectCover
 from custom_components.modbus_connect.entity import build_template_description
 from custom_components.modbus_connect.fan import ModbusConnectFan
 from custom_components.modbus_connect.light import ModbusConnectLight
+from custom_components.modbus_connect.loader import BUILTIN_DIR, _load_file
 from custom_components.modbus_connect.number import ModbusConnectTemplateNumber
 from custom_components.modbus_connect.schema import parse_device
 from custom_components.modbus_connect.select import ModbusConnectTemplateSelect
@@ -427,3 +428,49 @@ async def test_device_info_skips_unread_register(hass, monkeypatch):
     coordinator.apply_device_info()
     assert coordinator.device_info["sw_version"] == "DSP 1.59 ARM 1.57"
     assert "hw_version" not in coordinator.device_info  # None render is not applied
+
+
+async def test_solax_hybrid_bundled_device_info(hass, monkeypatch):
+    """The shipped SolaX X3-Hybrid G4 file yields the real firmware/serial strings."""
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    disp = "H34A10IA764696"  # byte-swapped in the registers (SolaX stores it swapped)
+    raw = "".join(disp[i + 1] + disp[i] for i in range(0, len(disp), 2))
+    regs = {i // 2: (ord(raw[i]) << 8) | ord(raw[i + 1]) for i in range(0, 14, 2)}  # serial @ 0-6
+    regs[123], regs[124] = 159, 157  # firmware_dsp -> 1.59, firmware_arm -> 1.57
+    coordinator = await make_coordinator(hass, device, FakeClient(regs), monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    coordinator.apply_device_info()
+    assert coordinator.device_info["sw_version"] == "DSP 1.59 ARM 1.57"
+    assert coordinator.device_info["hw_version"] == "Gen4"
+    assert coordinator.device_info["serial_number"] == "H34A10IA764696"
+
+
+async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
+    """The rebuilt energy-flow templates split grid/battery power the way SolaX does."""
+    from custom_components.modbus_connect import codec
+
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    by = {e.key: e for e in device.entities}
+    regs: dict[int, int] = {}
+
+    def put(key, value):  # round-trip through the entity's own codec into raw registers
+        defn = by[key]
+        for i, w in enumerate(codec.encode(defn, value)):
+            regs[defn.address + i] = w & 0xFFFF
+
+    put("inverter_power", 3000)
+    put("measured_power", -800)         # grid: negative = importing 800 W
+    put("battery_power_charge", -500)   # battery: negative = discharging 500 W
+    coordinator = await make_coordinator(hass, device, FakeClient(regs), monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+
+    def value(key):
+        tdef = next(t for t in device.templates if t.key == key)
+        return make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef).native_value
+
+    assert coordinator.data["measured_power"] == -800  # int32 + swap: word round-trips
+    assert value("grid_import") == 800                 # importing
+    assert value("grid_export") == 0
+    assert value("house_load") == 3800                 # inverter_power - measured_power
+    assert value("battery_charge_power") == 0          # not charging
+    assert value("battery_discharge_power") == 500     # discharging

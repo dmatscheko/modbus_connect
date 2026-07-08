@@ -1,0 +1,2142 @@
+# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
+device:
+  manufacturer: SolaX Power
+  model: X3-Hybrid G4
+  max_register_read: 100
+  prefix: solax_x3_hybrid
+  sw_version: "DSP {{ firmware_dsp // 100 }}.{{ '%02d' | format(firmware_dsp % 100) }} ARM {{ firmware_arm // 100 }}.{{ '%02d' | format(firmware_arm % 100) }}"
+  hw_version: Gen4
+  serial_number: "{{ serial }}"
+
+holding:
+  lock_state:
+    address: 0
+    map:
+      0: Locked
+      2014: Unlocked
+      6868: Unlocked - Advanced
+    ha:
+      platform: select
+      name: Lock State
+  serial:
+    address: 0
+    type: string
+    count: 7
+    swap: byte
+    internal: true
+  manufacturer_name:
+    address: 7
+    type: string
+    count: 7
+    ha:
+      platform: sensor
+      name: Manufacturer
+      entity_category: diagnostic
+  model_number:
+    address: 14
+    type: string
+    count: 7
+    ha:
+      platform: sensor
+      name: Model Number
+      entity_category: diagnostic
+  inverter_id:
+    address: 21
+    ha:
+      platform: sensor
+      name: Inverter ID Number
+      entity_category: diagnostic
+  system_on:
+    address: 28
+    write_value: 1
+    ha:
+      platform: button
+      name: System On
+  system_off:
+    address: 28
+    write_value: 0
+    ha:
+      platform: button
+      name: System Off
+  safety_code:
+    address: 29
+    map:
+      0: VDE0126
+      1: VDE4105
+      2: AS 4777_2020_A
+      3: G98/1
+      4: C10/11
+      5: TOR
+      6: EN50438_NL
+      7: Denmark2019_W
+      8: CEB
+      9: CEI021
+      10: NRS097_2_1
+      11: VDE0126_Gr_Is
+      12: UTE_C15_712
+      13: IEC61727
+      14: G99/1
+      15: VDE0126_Gr_Co
+      16: Guyana
+      17: C15_712_is_50
+      18: C15_712_is_60
+      19: New Zealand
+      20: RD1699
+      21: Chile
+      22: Israel
+      23: Czech_PPDS_2020
+      24: RD1699_Island
+      25: EN50549_Poland
+      26: EN50438_Portugal
+      27: PEA
+      28: MEA
+      29: EN50549_Sweden
+      30: Philippines
+      31: EN50438_Slovenia
+      32: Denmark2019_E
+      33: EN50549_EU
+      34: AS 4777_2020_B
+      35: AS 4777_2020_C
+      36: User-Defined
+      37: EN50549_Romania
+      38: CEI016
+      39: ACEA
+      40: Chile2021 MT_R
+      41: Chile2021 MT_U
+      42: Czech_2022_2
+      43: G98/NI-1
+      44: G99/NI-1
+      45: G99/NI_Type B
+      46: CQC
+      47: LA_3P_380
+      48: LA_3P_220
+    ha:
+      platform: sensor
+      name: Safety code
+      enabled_by_default: false
+  charger_use_mode:
+    address: 31
+    map:
+      0: Self Use Mode
+      1: Feedin Priority
+      2: Back Up Mode
+      3: Manual Mode
+      4: PeakShaving
+      5: Smart Schedule
+    ha:
+      platform: select
+      name: Charger Use Mode
+  manual_mode_select:
+    address: 32
+    map:
+      0: Stop Charge and Discharge
+      1: Force Charge
+      2: Force Discharge
+    ha:
+      platform: select
+      name: Manual Mode Select
+  battery_charge_max_current:
+    address: 36
+    multiplier: 0.1
+    ha:
+      platform: number
+      name: Battery Charge Max Current
+      device_class: current
+      unit_of_measurement: A
+      min: 0
+      max: 20
+      step: 0.1
+  battery_discharge_max_current:
+    address: 37
+    multiplier: 0.1
+    ha:
+      platform: number
+      name: Battery Discharge Max Current
+      device_class: current
+      unit_of_measurement: A
+      min: 0
+      max: 20
+      step: 0.1
+  export_control_user_limit:
+    address: 66
+    multiplier: 10.0
+    ha:
+      platform: number
+      name: Export Control User Limit
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 6000
+      step: 100
+  measured_power:
+    address: 70
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Measured power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  mppt:
+    address: 72
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: MPPT
+  battery_awaken:
+    address: 86
+    write_value: 1
+    ha:
+      platform: button
+      name: Battery Awaken
+      enabled_by_default: false
+  max_pv_output_power:
+    address: 90
+    ha:
+      platform: sensor
+      name: Max PV Output Power
+      device_class: power
+      unit_of_measurement: W
+      entity_category: diagnostic
+  selfuse_discharge_min_soc:
+    address: 97
+    ha:
+      platform: number
+      name: Selfuse Discharge Min SOC
+      unit_of_measurement: "%"
+      min: 10
+      max: 100
+      step: 1
+  selfuse_night_charge_enable:
+    address: 98
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Selfuse Night Charge Enable
+  selfuse_nightcharge_upper_soc:
+    address: 99
+    ha:
+      platform: number
+      name: Selfuse Nightcharge Upper SOC
+      unit_of_measurement: "%"
+      min: 10
+      max: 100
+      step: 1
+  feedin_nightcharge_upper_soc:
+    address: 100
+    ha:
+      platform: number
+      name: Feedin Nightcharge Upper SOC
+      unit_of_measurement: "%"
+      min: 10
+      max: 100
+      step: 1
+  feedin_discharge_min_soc:
+    address: 101
+    ha:
+      platform: number
+      name: Feedin Discharge Min SOC
+      unit_of_measurement: "%"
+      min: 10
+      max: 100
+      step: 1
+  backup_nightcharge_upper_soc:
+    address: 102
+    ha:
+      platform: number
+      name: Backup Nightcharge Upper SOC
+      unit_of_measurement: "%"
+      min: 30
+      max: 100
+      step: 1
+  backup_discharge_min_soc:
+    address: 103
+    ha:
+      platform: number
+      name: Backup Discharge Min SOC
+      unit_of_measurement: "%"
+      min: 15
+      max: 100
+      step: 1
+  charge_and_discharge_period2_enable:
+    address: 108
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Charge and Discharge Period2 Enable
+      entity_category: config
+  main_breaker_current_limit:
+    address: 113
+    ha:
+      platform: number
+      name: Main Breaker Current Limit
+      device_class: current
+      unit_of_measurement: A
+      min: 10
+      max: 250
+      step: 1
+  firmware_dsp:
+    address: 123
+    internal: true
+  modbus_power_control_direct:
+    address: 124
+    map:
+      0: Disabled
+      1: Enable Power Control Mode
+      2: Enable Electric Quantity Target Control Mode
+      3: Enable SOC Target Control Mode
+      4: Push Power-Positive/Negative Mode
+      5: Push Power – Zero Mode
+      6: Self-Consume - Charge/Discharge Mode
+      7: Self-Consume - Charge Only Mode
+      8: Individual Setting - Duration Mode
+      9: Individual Setting - Target SOC Mode
+    ha:
+      platform: select
+      name: Modbus Power Control (direct)
+  firmware_arm:
+    address: 124
+    internal: true
+  remote_control_target_set_type_direct:
+    address: 125
+    map:
+      1: Set
+      2: Update
+    ha:
+      platform: select
+      name: RemoteControl Target Set Type (mode 8/9; direct)
+  remotecontrol_active_power_direct:
+    address: 126
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Active Power (mode 1; direct)
+      device_class: power
+      unit_of_measurement: W
+      min: -30000
+      max: 30000
+      step: 100
+  remotecontrol_reactive_power_direct:
+    address: 128
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Reactive Power (mode 1; direct)
+      device_class: reactive_power
+      unit_of_measurement: var
+      min: -4000
+      max: 4000
+      step: 100
+  remotecontrol_duration_direct:
+    address: 130
+    ha:
+      platform: number
+      name: Remotecontrol Duration (mode 1; direct)
+      unit_of_measurement: s
+      min: 0
+      max: 28800
+      step: 60
+  remotecontrol_target_soc_direct:
+    address: 131
+    ha:
+      platform: number
+      name: Remotecontrol Target SOC (mode 3; direct)
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  remotecontrol_target_energy_direct:
+    address: 132
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Target Energy (mode 2; direct)
+      device_class: energy
+      unit_of_measurement: Wh
+      min: 0
+      max: 30000
+      step: 100
+  remotecontrol_charge_discharge_power_direct:
+    address: 134
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Charge/Discharge Power (mode 2/3; direct)
+      device_class: power
+      unit_of_measurement: W
+      min: -30000
+      max: 30000
+      step: 100
+  remotecontrol_timeout_direct:
+    address: 136
+    ha:
+      platform: number
+      name: Remotecontrol TimeOut (mode 1-7; direct)
+      unit_of_measurement: s
+      min: 0
+      max: 28800
+      step: 60
+  remotecontrol_push_mode_power_direct:
+    address: 137
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Push Mode Power (mode 4; direct)
+      device_class: power
+      unit_of_measurement: W
+      min: -30000
+      max: 30000
+      step: 100
+  pgrid_bias:
+    address: 141
+    map:
+      0: Disabled
+      1: Grid
+      2: Inverter
+    ha:
+      platform: select
+      name: Pgrid Bias
+  battery_charge_float_voltage:
+    address: 142
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Charge Float Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  battery_discharge_cut_off_voltage:
+    address: 143
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Discharge Cut Off Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  shadow_fix_function_level_pv2_gmppt:
+    address: 152
+    map:
+      0: "Off"
+      1: Low
+      2: Middle
+      3: High
+    ha:
+      platform: select
+      name: Shadow Fix Function Level PV2 (GMPPT)
+  hotstandby:
+    address: 153
+    map:
+      0: Enabled
+      1: Disabled
+    ha:
+      platform: select
+      name: HotStandBy
+  extend_bms_setting:
+    address: 154
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Extend BMS Setting
+  shadow_fix_function_level_pv1_gmppt:
+    address: 156
+    map:
+      0: "Off"
+      1: Low
+      2: Middle
+      3: High
+    ha:
+      platform: select
+      name: Shadow Fix Function Level PV1 (GMPPT)
+  phase_power_balance_x3:
+    address: 158
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Phase Power Balance X3
+      entity_category: config
+  remote_control_power_control_mode_direct:
+    address: 160
+    map:
+      0: Disabled
+      8: Individual Setting - Duration Mode
+      9: Individual Setting - Target SOC Mode
+    ha:
+      platform: select
+      name: RemoteControl Power Control Mode (mode 8/9; direct)
+  power_control_mode_target_set_type_direct:
+    address: 161
+    map:
+      1: Set
+      2: Update
+    ha:
+      platform: select
+      name: Power Control Mode Target Set Type (mode 8/9; direct)
+  remotecontrol_pv_power_limit_direct:
+    address: 162
+    type: uint32
+    swap: word
+    ha:
+      platform: number
+      name: "Remotecontrol PV Power Limit (mode 8/9, direct)"
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 30000
+      step: 100
+  meter_1_direction:
+    address: 164
+    map:
+      0: Positive
+      1: Negative
+    ha:
+      platform: select
+      name: Meter 1 Direction
+      entity_category: config
+      enabled_by_default: false
+  remotecontrol_push_mode_power_8_9_direct:
+    address: 164
+    type: int32
+    swap: word
+    ha:
+      platform: number
+      name: Remotecontrol Push Mode Power (mode 8/9; direct)
+      device_class: power
+      unit_of_measurement: W
+      min: -30000
+      max: 30000
+      step: 100
+  meter_2_direction:
+    address: 165
+    map:
+      0: Positive
+      1: Negative
+    ha:
+      platform: select
+      name: Meter 2 Direction
+      entity_category: config
+      enabled_by_default: false
+  discharge_cut_off_point_different:
+    address: 166
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Discharge Cut Off Point Different
+  remotecontrol_duration_8_direct:
+    address: 166
+    ha:
+      platform: number
+      name: Remotecontrol Duration (mode 8; direct)
+      unit_of_measurement: s
+      min: 0
+      max: 28800
+      step: 60
+  remotecontrol_target_soc_9_direct:
+    address: 166
+    ha:
+      platform: number
+      name: Remotecontrol Target SOC (mode 9; direct)
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  remotecontrol_timeout_8_9_direct:
+    address: 167
+    ha:
+      platform: number
+      name: Remotecontrol TimeOut (mode 8/9; direct)
+      unit_of_measurement: s
+      min: 0
+      max: 28800
+      step: 60
+  registration_code_pocket:
+    address: 170
+    type: string
+    count: 5
+    ha:
+      platform: sensor
+      name: Registration Code Pocket
+      entity_category: diagnostic
+      enabled_by_default: false
+  lease_mode:
+    address: 180
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Lease Mode
+  device_lock:
+    address: 181
+    map:
+      0: Unlock
+      1: Lock
+    ha:
+      platform: select
+      name: Device Lock
+      entity_category: diagnostic
+  manual_mode_control:
+    address: 182
+    map:
+      0: "Off"
+      1: "On"
+    ha:
+      platform: select
+      name: Manual Mode Control
+  feedin_on_power:
+    address: 183
+    ha:
+      platform: number
+      name: Feedin On Power
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 8000
+      step: 100
+  consume_off_power:
+    address: 185
+    ha:
+      platform: number
+      name: Consume Off Power
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 8000
+      step: 100
+  inverter_power_type:
+    address: 186
+    ha:
+      platform: sensor
+      name: Inverter Rated Output Power
+      device_class: power
+      unit_of_measurement: W
+      entity_category: diagnostic
+  language:
+    address: 187
+    map:
+      0: English
+      1: Deutsche
+      2: Francais
+      3: Polskie
+      4: Espanol
+      5: Portugues
+      6: Italiano
+      7: Ukrainian
+    ha:
+      platform: sensor
+      name: Language
+      enabled_by_default: false
+  selfuse_mode_backup:
+    address: 196
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Selfuse Mode Backup
+  selfuse_backup_soc:
+    address: 197
+    ha:
+      platform: number
+      name: Selfuse Backup SOC
+      unit_of_measurement: "%"
+      enabled_by_default: false
+      min: 10
+      max: 100
+      step: 1
+  parallel_setting:
+    address: 198
+    map:
+      0: Free
+      1: Master
+      2: Slave
+    ha:
+      platform: select
+      name: Parallel Setting
+      entity_category: config
+  battery_heating:
+    address: 207
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Battery Heating
+  battery_charge_upper_soc:
+    address: 224
+    ha:
+      platform: number
+      name: Battery Charge Upper SOC
+      unit_of_measurement: "%"
+      min: 10
+      max: 100
+      step: 1
+  battery_to_ev_charger:
+    address: 225
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Battery to EV Charger
+      entity_category: config
+      enabled_by_default: false
+  peakshaving_discharge_limit_1:
+    address: 238
+    ha:
+      platform: number
+      name: PeakShaving Discharge Limit 1
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 15000
+      step: 100
+  peakshaving_discharge_limit_2:
+    address: 239
+    ha:
+      platform: number
+      name: PeakShaving Discharge Limit 2
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 15000
+      step: 100
+  peakshaving_charge_from_grid:
+    address: 240
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: PeakShaving Charge from Grid
+  peakshaving_charge_limit:
+    address: 241
+    ha:
+      platform: number
+      name: PeakShaving Charge Limit
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 15000
+      step: 100
+  peakshaving_max_soc:
+    address: 242
+    ha:
+      platform: number
+      name: PeakShaving Max SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  peakshaving_reserved_soc:
+    address: 243
+    ha:
+      platform: number
+      name: PeakShaving Reserved SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  vpp_exit_idle_enable:
+    address: 244
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: VPP Exit Idle Enable
+      entity_category: config
+      enabled_by_default: false
+  fast_ct_check_enable:
+    address: 245
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: Fast CT Check Enable
+      entity_category: config
+      enabled_by_default: false
+  ev_charger_address:
+    address: 249
+    ha:
+      platform: number
+      name: EV Charger Address
+      entity_category: config
+      enabled_by_default: false
+      min: 0
+      max: 255
+      step: 1
+  ct_cycle_detection:
+    address: 253
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: CT Cycle Detection
+  ct_type:
+    address: 259
+    map:
+      0: "100A"
+      1: "200A"
+    ha:
+      platform: sensor
+      name: CT Type
+      enabled_by_default: false
+  machine_type:
+    address: 261
+    map:
+      1: X1
+      3: X3
+    ha:
+      platform: sensor
+      name: Machine Type
+      entity_category: diagnostic
+  machine_style:
+    address: 263
+    map:
+      0: Hybrid
+      1: Fit
+    ha:
+      platform: sensor
+      name: Machine Style
+      entity_category: diagnostic
+  meter_1_id:
+    address: 265
+    ha:
+      platform: sensor
+      name: Meter 1 ID
+      entity_category: diagnostic
+      enabled_by_default: false
+  meter_2_id:
+    address: 266
+    ha:
+      platform: sensor
+      name: Meter 2 ID
+      entity_category: diagnostic
+      enabled_by_default: false
+  discharge_cut_off_voltage_grid_mode:
+    address: 275
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Discharge Cut Off Voltage Grid Mode
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  ct_meter_setting:
+    address: 277
+    map:
+      0: Meter
+      1: CT
+    ha:
+      platform: sensor
+      name: CT Meter Setting
+      entity_category: diagnostic
+      enabled_by_default: false
+  fvrt_vac_upper:
+    address: 279
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: FVRT Vac Upper
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  fvrt_vac_lower:
+    address: 280
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: FVRT Vac Lower
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  bias_power:
+    address: 281
+    ha:
+      platform: number
+      name: Bias Power
+      device_class: power
+      unit_of_measurement: W
+      entity_category: config
+      enabled_by_default: false
+      min: 1
+      max: 500
+      step: 1
+  pv_connection_mode:
+    address: 283
+    ha:
+      platform: sensor
+      name: PV Connection Mode
+      enabled_by_default: false
+  remotecontrol_readback_mode:
+    address: 416
+    map:
+      0: Disabled
+      1: Power Control Mode
+      2: Electric Quantity Target Control Mode
+      3: SOC Target Control Mode
+      4: Push Power - Positive/Negative Mode
+      5: Push Power - Zero Mode
+      6: Self-Consume - Charge/Discharge Mode
+      7: Self-Consume - Charge Only Mode
+      8: PV and BAT Individual Setting - Duration Mode
+      9: PV and BAT Individual Setting - Target SOC Mode
+    ha:
+      platform: sensor
+      name: Remotecontrol Readback Mode
+      entity_category: diagnostic
+      enabled_by_default: false
+  remotecontrol_mode8_pv_power_limit_readback:
+    address: 418
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Remotecontrol Mode 8 PV Power Limit Readback
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  remotecontrol_mode8_battery_power_target_readback:
+    address: 420
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Remotecontrol Mode 8 Battery Power Target Readback
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  remotecontrol_mode8_timeout_readback:
+    address: 422
+    ha:
+      platform: sensor
+      name: Remotecontrol Mode 8 Timeout Readback
+      device_class: duration
+      state_class: measurement
+      unit_of_measurement: s
+      entity_category: diagnostic
+      enabled_by_default: false
+  remotecontrol_mode8_next_motion_readback:
+    address: 423
+    map:
+      160: Exit current VPP mode and switch to user work mode
+      161: Exit current VPP mode and switch to VPP mode 6
+    ha:
+      platform: sensor
+      name: Remotecontrol Mode 8 Next Motion Readback
+      entity_category: diagnostic
+      enabled_by_default: false
+
+input:
+  inverter_voltage:
+    address: 0
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  inverter_current:
+    address: 1
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Current
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  inverter_power:
+    address: 2
+    type: int16
+    ha:
+      platform: sensor
+      name: Inverter Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  pv_voltage_1:
+    address: 3
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: PV Voltage 1
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  pv_voltage_2:
+    address: 4
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: PV Voltage 2
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  pv_current_1:
+    address: 5
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: PV Current 1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pv_current_2:
+    address: 6
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: PV Current 2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  inverter_frequency:
+    address: 7
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Inverter Frequency
+      state_class: measurement
+      unit_of_measurement: Hz
+      precision: 2
+  inverter_temperature:
+    address: 8
+    type: int16
+    ha:
+      platform: sensor
+      name: Inverter Temperature
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      entity_category: diagnostic
+  run_mode:
+    address: 9
+    map:
+      0: Waiting
+      1: Checking
+      2: Normal Mode
+      3: Fault
+      4: Permanent Fault Mode
+      5: Update Mode
+      6: Off-Grid Waiting
+      7: Off-Grid
+      8: Self Test
+      9: Idle Mode
+      10: Standby
+      20: Normal (R)
+      21: TOU Self use
+      22: TOU Charging
+      23: TOU Discharging
+      24: TOU Battery hold
+      25: TOU Peak Shaving
+      26: Normal Mode (Gen)
+      27: Waiting Charge Mode
+      28: Normal Mode SS
+    ha:
+      platform: sensor
+      name: Run Mode
+  pv_power_1:
+    address: 10
+    ha:
+      platform: sensor
+      name: PV Power 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  pv_power_2:
+    address: 11
+    ha:
+      platform: sensor
+      name: PV Power 2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  time_count_down:
+    address: 19
+    multiplier: 0.001
+    ha:
+      platform: sensor
+      name: Time Count Down
+      enabled_by_default: false
+  battery_voltage_charge:
+    address: 20
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Voltage Charge
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  battery_current_charge:
+    address: 21
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Current Charge
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  battery_power_charge:
+    address: 22
+    type: int16
+    ha:
+      platform: sensor
+      name: Battery Power Charge
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  bms_connect_state:
+    address: 23
+    map:
+      0: Disconnected
+      1: Connected
+    ha:
+      platform: sensor
+      name: BMS Connect State
+      enabled_by_default: false
+  battery_temperature:
+    address: 24
+    type: int16
+    ha:
+      platform: sensor
+      name: Battery Temperature
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      entity_category: diagnostic
+  bdc_status:
+    address: 25
+    map:
+      0: Discharge
+      1: Charge
+      2: Stop
+    ha:
+      platform: sensor
+      name: BDC Status
+  grid_status:
+    address: 26
+    map:
+      0: OnGrid
+      1: OffGrid
+    ha:
+      platform: sensor
+      name: Grid Status
+      enabled_by_default: false
+  mppt_count:
+    address: 27
+    ha:
+      platform: sensor
+      name: MPPT Count
+      entity_category: diagnostic
+  battery_capacity:
+    address: 28
+    ha:
+      platform: sensor
+      name: Battery Capacity
+      device_class: battery
+      state_class: measurement
+      unit_of_measurement: "%"
+  battery_output_energy_total:
+    address: 29
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Output Energy Total
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 1
+  battery_output_energy_today:
+    address: 32
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Output Energy Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  battery_input_energy_total:
+    address: 33
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Input Energy Total
+      device_class: energy
+      state_class: total
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 1
+  battery_input_energy_today:
+    address: 35
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Input Energy Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  bms_charge_max_current:
+    address: 36
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Charge Max Current
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  bms_discharge_max_current:
+    address: 37
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Discharge Max Current
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  bms_battery_capacity:
+    address: 38
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Battery Total Energy
+      device_class: energy
+      unit_of_measurement: Wh
+      enabled_by_default: false
+  pv_power_total:
+    address: 50
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: PV Power Total
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  ongrid_power_total:
+    address: 52
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Total On-Grid Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  battery_system_installed_capacity:
+    address: 58
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Battery System Installed Capacity
+      device_class: energy
+      unit_of_measurement: Wh
+      enabled_by_default: false
+  grid_export_total:
+    address: 72
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Export Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  grid_import_total:
+    address: 74
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Import Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  today_s_yield:
+    address: 80
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: "Today's Yield"
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 2
+  total_yield:
+    address: 82
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Total Yield
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 2
+  bus_volt:
+    address: 102
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Bus Volt
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  dc_fault_val:
+    address: 103
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: DC Fault Val
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  overload_fault_val:
+    address: 104
+    ha:
+      platform: sensor
+      name: Overload Fault Val
+      enabled_by_default: false
+  battery_volt_fault_val:
+    address: 105
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Volt Fault Val
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  inverter_voltage_l1:
+    address: 106
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Voltage L1
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  inverter_current_l1:
+    address: 107
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  inverter_power_l1:
+    address: 108
+    type: int16
+    ha:
+      platform: sensor
+      name: Inverter Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  inverter_frequency_l1:
+    address: 109
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Inverter Frequency L1
+      state_class: measurement
+      unit_of_measurement: Hz
+      precision: 1
+  inverter_voltage_l2:
+    address: 110
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Voltage L2
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  inverter_current_l2:
+    address: 111
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  inverter_power_l2:
+    address: 112
+    type: int16
+    ha:
+      platform: sensor
+      name: Inverter Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  inverter_frequency_l2:
+    address: 113
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Inverter Frequency L2
+      state_class: measurement
+      unit_of_measurement: Hz
+      precision: 1
+  inverter_voltage_l3:
+    address: 114
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Voltage L3
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  inverter_current_l3:
+    address: 115
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Inverter Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  inverter_power_l3:
+    address: 116
+    type: int16
+    ha:
+      platform: sensor
+      name: Inverter Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  inverter_frequency_l3:
+    address: 117
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Inverter Frequency L3
+      state_class: measurement
+      unit_of_measurement: Hz
+      precision: 1
+  measured_power_l1:
+    address: 130
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Measured Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  measured_power_l2:
+    address: 132
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Measured Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  measured_power_l3:
+    address: 134
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Measured Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  grid_mode_runtime:
+    address: 136
+    type: int32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Mode Runtime
+      unit_of_measurement: h
+      precision: 1
+  e_charge_today:
+    address: 145
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: E Charge Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  e_charge_total:
+    address: 146
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: E Charge Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  total_solar_energy:
+    address: 148
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Total Solar Energy
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  today_s_solar_energy:
+    address: 150
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: "Today's Solar Energy"
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  today_s_export_energy:
+    address: 152
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: "Today's Export Energy"
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 2
+  today_s_import_energy:
+    address: 154
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: "Today's Import Energy"
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 2
+  ev_charger_communication_state:
+    address: 160
+    map:
+      0: Disconnected
+      1: Connected
+    ha:
+      platform: sensor
+      name: EV Charger Communication State
+      entity_category: diagnostic
+      enabled_by_default: false
+  adapt_box_communication_state:
+    address: 161
+    map:
+      0: Disconnected
+      1: Connected
+    ha:
+      platform: sensor
+      name: Adapter Box Communication State
+      entity_category: diagnostic
+      enabled_by_default: false
+  battery_max_charge_power:
+    address: 162
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Battery Max Charge Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  battery_max_discharge_power:
+    address: 164
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Battery Max Discharge Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  meter_2_measured_power:
+    address: 168
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Meter 2 Measured Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  meter_2_export_total:
+    address: 170
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Meter 2 Export Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  meter_2_import_total:
+    address: 172
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Meter 2 Import Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  meter_2_export_today:
+    address: 174
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Meter 2 Export Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  meter_2_import_today:
+    address: 176
+    type: uint32
+    swap: word
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Meter 2 Import Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      enabled_by_default: false
+      precision: 2
+  meter_2_measured_power_l1:
+    address: 178
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Meter 2 Measured Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  meter_2_measured_power_l2:
+    address: 180
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Meter 2 Measured Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  meter_2_measured_power_l3:
+    address: 182
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Meter 2 Measured Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  meter_1_communication_state:
+    address: 184
+    map:
+      0: Communication Error
+      1: Normal
+    ha:
+      platform: sensor
+      name: Meter 1 Communication State
+      entity_category: diagnostic
+      enabled_by_default: false
+  meter_2_communication_state:
+    address: 185
+    map:
+      0: Communication Error
+      1: Normal
+    ha:
+      platform: sensor
+      name: Meter 2 Communication State
+      entity_category: diagnostic
+      enabled_by_default: false
+  battery_temp_high:
+    address: 186
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Temp High
+      device_class: temperature
+      unit_of_measurement: "°C"
+      enabled_by_default: false
+      precision: 1
+  battery_temp_low:
+    address: 187
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Battery Temp Low
+      device_class: temperature
+      unit_of_measurement: "°C"
+      enabled_by_default: false
+      precision: 1
+  cell_voltage_high:
+    address: 188
+    multiplier: 0.001
+    ha:
+      platform: sensor
+      name: Cell Voltage High
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 3
+  cell_voltage_low:
+    address: 189
+    multiplier: 0.001
+    ha:
+      platform: sensor
+      name: Cell Voltage Low
+      device_class: voltage
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 3
+  battery_soh:
+    address: 191
+    ha:
+      platform: sensor
+      name: Battery State of Health
+      state_class: measurement
+      unit_of_measurement: "%"
+      enabled_by_default: false
+  grid_reactive_power_total:
+    address: 192
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Grid Reactive Power Total
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l1:
+    address: 193
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L1
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l2:
+    address: 194
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L2
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l3:
+    address: 195
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L3
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_power_factor_total:
+    address: 196
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power Factor Total
+      unit_of_measurement: "%"
+      enabled_by_default: false
+  grid_power_factor_l1:
+    address: 197
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power Factor L1
+      unit_of_measurement: "%"
+      enabled_by_default: false
+  grid_power_factor_l2:
+    address: 198
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power Factor L2
+      unit_of_measurement: "%"
+      enabled_by_default: false
+  grid_power_factor_l3:
+    address: 199
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power Factor L3
+      unit_of_measurement: "%"
+      enabled_by_default: false
+  grid_frequency:
+    address: 200
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Frequency
+      state_class: measurement
+      unit_of_measurement: Hz
+      enabled_by_default: false
+      precision: 2
+  grid_voltage:
+    address: 201
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Voltage
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  grid_voltage_l1:
+    address: 202
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Voltage L1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  grid_voltage_l2:
+    address: 203
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Voltage L2
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  grid_voltage_l3:
+    address: 204
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Voltage L3
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      enabled_by_default: false
+      precision: 1
+  grid_current_total:
+    address: 205
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Current Total
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  grid_current_l1:
+    address: 206
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Current L1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  grid_current_l2:
+    address: 207
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Current L2
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  grid_current_l3:
+    address: 208
+    type: int16
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Grid Current L3
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      enabled_by_default: false
+      precision: 1
+  modbus_power_control:
+    address: 256
+    map:
+      0: Disabled
+      1: Enabled Power Control
+      2: Enabled Quantity Control
+      3: Enabled SOC Target Control
+      4: Push Power - P/N Mode
+      5: Push Power - Zero Mode
+      6: Self Consume - C/D Mode
+      7: Self Consume - Charge Only Mode
+      8: Individual Setting - Duration Mode
+      9: Individual Setting - Target SOC Mode
+    ha:
+      platform: sensor
+      name: Modbus Power Control
+  target_finish_flag:
+    address: 257
+    map:
+      0: Unfinished
+      1: Finished
+    ha:
+      platform: sensor
+      name: Target Finish Flag
+  active_power_target:
+    address: 258
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Active Power Target
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  reactive_power_target:
+    address: 260
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Reactive Power Target
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+  active_power_real:
+    address: 262
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Active Power Real
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  reactive_power_real:
+    address: 264
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Reactive Power Real
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+  active_power_upper:
+    address: 266
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Active Power Upper
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  active_power_lower:
+    address: 268
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Active Power Lower
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  reactive_power_upper:
+    address: 270
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Reactive Power Upper
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+  reactive_power_lower:
+    address: 272
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Reactive Power Lower
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+  charge_discharge_power:
+    address: 276
+    type: int32
+    swap: word
+    ha:
+      platform: sensor
+      name: Charge Discharge Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  chargeable_battery_capacity:
+    address: 278
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Chargeable Battery Energy
+      device_class: energy
+      unit_of_measurement: Wh
+      enabled_by_default: false
+  remaining_battery_capacity:
+    address: 280
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Remaining Battery Energy
+      device_class: energy_storage
+      state_class: measurement
+      unit_of_measurement: Wh
+      enabled_by_default: false
+
+# Computed sensors (energy-flow splits SolaX derives in code).
+template:
+  grid_import:
+    ha:
+      platform: sensor
+      name: Grid import
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ [-(measured_power or 0), 0] | max }}"
+  grid_export:
+    ha:
+      platform: sensor
+      name: Grid export
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ [measured_power or 0, 0] | max }}"
+  house_load:
+    ha:
+      platform: sensor
+      name: House load
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ (inverter_power or 0) - (measured_power or 0) }}"
+  battery_charge_power:
+    ha:
+      platform: sensor
+      name: Battery charge power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ [battery_power_charge or 0, 0] | max }}"
+  battery_discharge_power:
+    ha:
+      platform: sensor
+      name: Battery discharge power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ [-(battery_power_charge or 0), 0] | max }}"

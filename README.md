@@ -330,6 +330,8 @@ Modbus TCP device not listed here works too — write a device file for it.
 | Salda | RIS / RIRS (MCB) | `Salda_RIS_MCB.yaml` |
 | Schneider Electric | Altivar ATV312 | `Schneider_ATV312.yaml` |
 | Schneider Electric | Altivar ATV312 Expert | `Schneider_ATV312_expert.yaml` |
+| SolaX Power | X3-Hybrid G4 | `Solax_X3_Hybrid_G4.yaml` |
+| SolaX Power | X3-HAC (11 kW EV charger) | `Solax_X3_HAC.yaml` |
 | Varmann | Qtherm | `Varmann Qtherm.yaml` |
 | Waveshare | Modbus POE ETH Relay 30CH | `Waveshare_30_POE.yaml` |
 | Waveshare | Modbus RTU Relay (D) | `Waveshare_RTU_Relay_D.yaml` |

@@ -5,8 +5,22 @@ from pathlib import Path
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.modbus_connect.loader import async_load_all, async_load_device
+from custom_components.modbus_connect.loader import (
+    BUILTIN_DIR,
+    _load_file,
+    async_load_all,
+    async_load_device,
+)
 from custom_components.modbus_connect.schema import DeviceSchemaError
+
+BUNDLED = sorted(BUILTIN_DIR.glob("*.yaml"))
+
+
+@pytest.mark.parametrize("path", BUNDLED, ids=[p.name for p in BUNDLED])
+def test_bundled_device_file_parses(path: Path) -> None:
+    """Every shipped device file must parse and define at least one entity."""
+    device = _load_file(path, path.name.lower())
+    assert device.entities
 
 GOOD = """
 device: {manufacturer: Acme, model: X1}

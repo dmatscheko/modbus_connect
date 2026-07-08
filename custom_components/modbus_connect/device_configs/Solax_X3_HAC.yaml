@@ -1,0 +1,753 @@
+# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
+device:
+  manufacturer: SolaX Power
+  model: X3-HAC (11 kW)
+  max_register_read: 32
+  prefix: solax_x3_hac
+  sw_version: "ARM v{{ '%.2f' | format(firmware_version / 100) }}"
+  hw_version: Gen2
+
+holding:
+  firmware_version:
+    address: 37
+    internal: true
+  meter_setting:
+    address: 1548
+    map:
+      0: External CT
+      1: External Meter
+      2: Inverter
+    ha:
+      platform: select
+      name: Meter Setting
+      entity_category: config
+  charger_use_mode:
+    address: 1549
+    map:
+      0: Stop
+      1: Fast
+      2: ECO
+      3: Green
+    ha:
+      platform: select
+      name: Charger Use Mode
+  eco_gear:
+    address: 1550
+    map:
+      1: "6A"
+      2: "10A"
+      3: "16A"
+      4: "20A"
+      5: "25A"
+    ha:
+      platform: select
+      name: ECO Gear
+      entity_category: config
+  green_gear:
+    address: 1551
+    map:
+      1: "3A"
+      2: "6A"
+    ha:
+      platform: select
+      name: Green Gear
+      entity_category: config
+  start_charge_mode:
+    address: 1552
+    map:
+      0: Plug and Charge
+      1: Swipe Card to Start
+      2: App Start
+    ha:
+      platform: select
+      name: Start Charge Mode
+      entity_category: config
+  overload_limit:
+    address: 1553
+    ha:
+      platform: number
+      name: Overload Limit
+      device_class: voltage
+      unit_of_measurement: V
+      entity_category: config
+      min: 260
+      max: 300
+      step: 1
+  undervoltage_limit:
+    address: 1554
+    ha:
+      platform: number
+      name: Undervoltage Limit
+      device_class: voltage
+      unit_of_measurement: V
+      entity_category: config
+      min: 80
+      max: 160
+      step: 1
+  boost_mode:
+    address: 1555
+    map:
+      0: Normal
+      1: Timer Boost
+      2: Smart Boost
+    ha:
+      platform: select
+      name: Boost Mode
+  main_breaker_limit:
+    address: 1556
+    ha:
+      platform: number
+      name: Main Breaker Limit
+      device_class: current
+      unit_of_measurement: A
+      entity_category: config
+      min: 11
+      max: 300
+      step: 1
+  device_lock:
+    address: 1557
+    map:
+      0: Unlock
+      1: Lock
+    ha:
+      platform: select
+      name: Device Lock
+      entity_category: config
+  rfid_program:
+    address: 1558
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: select
+      name: RFID Card Activation
+      entity_category: config
+  charge_added_total:
+    address: 1561
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Charge Added Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  evse_scene:
+    address: 1564
+    map:
+      0: PV Mode
+      1: Standard Mode
+      2: OCPP Mode
+    ha:
+      platform: select
+      name: Charging Mode
+      entity_category: config
+  charge_phase:
+    address: 1573
+    map:
+      0: Three Phase
+      1: L1 Phase
+      2: L2 Phase
+      3: L3 Phase
+    ha:
+      platform: select
+      name: Charge Phase
+      entity_category: config
+  control_command:
+    address: 1575
+    map:
+      0: No Command
+      1: Available
+      2: Unavailable
+      3: Stop Charging
+      4: Start Charging
+      5: Reserve
+      6: Cancel the Reservation
+    ha:
+      platform: select
+      name: Control Command
+  charge_current:
+    address: 1576
+    multiplier: 0.01
+    ha:
+      platform: number
+      name: Charge Current
+      device_class: current
+      unit_of_measurement: A
+      min: 6
+      max: 32
+      step: 0.1
+  smart_boost_energy:
+    address: 1594
+    ha:
+      platform: number
+      name: Smart Boost Energy
+      device_class: energy
+      unit_of_measurement: kWh
+      entity_category: config
+      min: 0
+      max: 200
+      step: 1
+  charge_phase_alt:
+    address: 1595
+    map:
+      0: Three Phase
+      1: L1 Phase
+      2: L2 Phase
+      3: L3 Phase
+    ha:
+      platform: select
+      name: Charge Phase Alt
+      entity_category: config
+      enabled_by_default: false
+  modbus_address:
+    address: 1600
+    ha:
+      platform: number
+      name: Modbus Address
+      entity_category: config
+      min: 1
+      max: 247
+      step: 1
+  max_charge_current:
+    address: 1640
+    multiplier: 0.01
+    ha:
+      platform: number
+      name: Max Charge Current
+      device_class: current
+      unit_of_measurement: A
+      min: 6
+      max: 32
+      step: 0.1
+  evse_mode:
+    address: 1641
+    map:
+      0: Fast
+      1: ECO
+      2: Green
+    ha:
+      platform: select
+      name: EVSE Mode
+      entity_category: config
+
+input:
+  charge_voltage_l1:
+    address: 0
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Voltage L1
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  charge_voltage_l2:
+    address: 1
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Voltage L2
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  charge_voltage_l3:
+    address: 2
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Voltage L3
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  charge_pe_voltage:
+    address: 3
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge PE Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  charge_current_l1:
+    address: 4
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  charge_current_l2:
+    address: 5
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  charge_current_l3:
+    address: 6
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  charge_pe_current:
+    address: 7
+    ha:
+      platform: sensor
+      name: Charge PE Current
+      device_class: current
+      unit_of_measurement: mA
+      entity_category: diagnostic
+      enabled_by_default: false
+  charge_power_l1:
+    address: 8
+    ha:
+      platform: sensor
+      name: Charge Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  charge_power_l2:
+    address: 9
+    ha:
+      platform: sensor
+      name: Charge Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  charge_power_l3:
+    address: 10
+    ha:
+      platform: sensor
+      name: Charge Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  charge_power_total:
+    address: 11
+    ha:
+      platform: sensor
+      name: Charge Power Total
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  charge_frequency_l1:
+    address: 12
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Frequency L1
+      unit_of_measurement: Hz
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  charge_frequency_l2:
+    address: 13
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Frequency L2
+      unit_of_measurement: Hz
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  charge_frequency_l3:
+    address: 14
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Charge Frequency L3
+      unit_of_measurement: Hz
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  charge_added:
+    address: 15
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Charge Added
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  charge_added_cum:
+    address: 16
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: Charge Added - Cumulative
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  grid_current_l1:
+    address: 18
+    type: int16
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Current L1
+      device_class: current
+      unit_of_measurement: A
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  grid_current_l2:
+    address: 19
+    type: int16
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Current L2
+      device_class: current
+      unit_of_measurement: A
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  grid_current_l3:
+    address: 20
+    type: int16
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: Grid Current L3
+      device_class: current
+      unit_of_measurement: A
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  grid_power_l1:
+    address: 21
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  grid_power_l2:
+    address: 22
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  grid_power_l3:
+    address: 23
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  grid_power_total:
+    address: 24
+    type: int16
+    ha:
+      platform: sensor
+      name: Grid Power Total
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  cc_voltage:
+    address: 25
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: CC Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  cp_voltage:
+    address: 26
+    multiplier: 0.01
+    ha:
+      platform: sensor
+      name: CP Voltage
+      device_class: voltage
+      unit_of_measurement: V
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  pwm_duty_cycle:
+    address: 27
+    multiplier: 0.1
+    ha:
+      platform: sensor
+      name: PWM Duty Cycle
+      unit_of_measurement: "%"
+      entity_category: diagnostic
+      enabled_by_default: false
+      precision: 1
+  charger_temperature:
+    address: 28
+    ha:
+      platform: sensor
+      name: Charger Temperature
+      device_class: temperature
+      state_class: measurement
+      unit_of_measurement: "°C"
+      entity_category: diagnostic
+  run_mode:
+    address: 29
+    map:
+      0: Available
+      1: Preparing
+      2: Charging
+      3: Finishing
+      4: Faulted
+      5: Unavailable
+      6: Reserved
+      7: Suspended EV
+      8: Suspended EVSE
+      9: Update
+      10: Card Activation
+      11: Start Delay
+      12: Charge Paused
+      13: Stopping
+    ha:
+      platform: sensor
+      name: Run Mode
+  fault_code:
+    address: 30
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Fault Code
+      entity_category: diagnostic
+  case_type:
+    address: 32
+    map:
+      0: Case B
+      1: Case C
+    ha:
+      platform: sensor
+      name: Case Type
+      entity_category: diagnostic
+      enabled_by_default: false
+  power_rating:
+    address: 33
+    map:
+      0: "7.2 kW"
+      1: "11 kW"
+      2: "22 kW"
+      3: "4.6 kW"
+    ha:
+      platform: sensor
+      name: Power Rating
+      entity_category: diagnostic
+      enabled_by_default: false
+  phase_type:
+    address: 34
+    map:
+      0: Single Phase
+      1: Three Phase
+    ha:
+      platform: sensor
+      name: Phase Type
+      entity_category: diagnostic
+      enabled_by_default: false
+  model_type:
+    address: 35
+    map:
+      0: PV Mode
+      1: Standard Mode
+      2: OCPP Mode
+    ha:
+      platform: sensor
+      name: Charging Scene
+      entity_category: diagnostic
+  screen_fitted:
+    address: 36
+    map:
+      0: "No"
+      1: "Yes"
+    ha:
+      platform: sensor
+      name: Screen Fitted
+      entity_category: diagnostic
+      enabled_by_default: false
+  rssi:
+    address: 39
+    ha:
+      platform: sensor
+      name: RSSI
+      unit_of_measurement: "%"
+      entity_category: diagnostic
+      enabled_by_default: false
+  active_charge_phase:
+    address: 40
+    map:
+      0: Three Phase
+      1: L1 Phase
+      2: L2 Phase
+      3: L3 Phase
+    ha:
+      platform: sensor
+      name: Active Charge Phase
+  unbalanced_power_limit:
+    address: 41
+    ha:
+      platform: sensor
+      name: Unbalanced Power Limit
+      device_class: power
+      unit_of_measurement: W
+      entity_category: diagnostic
+      enabled_by_default: false
+  phase_unbalance:
+    address: 42
+    map:
+      0: "Off"
+      1: "On"
+    ha:
+      platform: sensor
+      name: Phase Unbalance
+      entity_category: diagnostic
+      enabled_by_default: false
+  charge_duration:
+    address: 43
+    type: uint32
+    swap: word
+    ha:
+      platform: sensor
+      name: Charging Duration
+      device_class: duration
+      state_class: total
+      unit_of_measurement: s
+  lock_state:
+    address: 45
+    map:
+      0: Unlocked
+      1: Locked
+    ha:
+      platform: sensor
+      name: Lock State
+  mainbrk_limit:
+    address: 46
+    map:
+      0: Not Limited
+      1: "Limited, Charging"
+      2: Stopped Charging
+    ha:
+      platform: sensor
+      name: Main Breaker Limit State
+  delay_state:
+    address: 47
+    map:
+      0: Not in Delay
+      1: In Random Delay
+    ha:
+      platform: sensor
+      name: Random Delay State
+      entity_category: diagnostic
+      enabled_by_default: false
+  ban_state:
+    address: 48
+    map:
+      0: Okay
+      1: Charge Prohibited
+    ha:
+      platform: sensor
+      name: Ban State
+  charge_power_l1_alt:
+    address: 256
+    ha:
+      platform: sensor
+      name: Charge Power L1 Alt
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  charge_power_l2_alt:
+    address: 257
+    ha:
+      platform: sensor
+      name: Charge Power L2 Alt
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  charge_power_l3_alt:
+    address: 258
+    ha:
+      platform: sensor
+      name: Charge Power L3 Alt
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      enabled_by_default: false
+  max_power_charging:
+    address: 259
+    map:
+      0: "No"
+      1: "Yes"
+    ha:
+      platform: sensor
+      name: Max Power Charging
+      entity_category: diagnostic
+  charge_mode_active:
+    address: 260
+    map:
+      0: Fast
+      1: ECO
+      2: Green
+    ha:
+      platform: sensor
+      name: Charge Mode Active
+  green_mode_start_power:
+    address: 261
+    ha:
+      platform: sensor
+      name: Green Mode Start Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      entity_category: diagnostic
+  charger_status:
+    address: 262
+    map:
+      0: Available
+      1: Preparing
+      2: Charging
+      3: Finishing
+      4: Faulted
+      5: Unavailable
+      6: Reserved
+      7: Suspended EV
+      8: Suspended EVSE
+      9: Update
+      10: Card Activation
+      11: Start Delay
+      12: Charge Paused
+      13: Stopping
+    ha:
+      platform: sensor
+      name: Run Mode Alt
+      enabled_by_default: false

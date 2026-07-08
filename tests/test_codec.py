@@ -102,6 +102,13 @@ def test_string_stops_at_nul():
     assert decode(defn, [0x4142, 0x0043]) == "AB"
 
 
+def test_string_byte_swap():
+    # byte-swapped strings (e.g. SolaX serial numbers) decode with swap: byte
+    defn = e(type="string", count=2, swap="byte")
+    assert decode(defn, [0x4E53, 0x3234]) == "SN42"  # stored "NS24" -> "SN42"
+    assert decode(defn, encode(defn, "SN42")) == "SN42"  # symmetric
+
+
 # --- swaps -------------------------------------------------------------------
 
 

@@ -461,8 +461,8 @@ def _parse_conversions(
     value_map = _parse_int_str_map(ctx, "map", raw.get("map"))
     flags = _parse_int_str_map(ctx, "flags", raw.get("flags"), max_key=16 * count - 1)
 
-    if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or swap or sum_scale):
-        raise ctx.fail("strings cannot be combined with numeric conversions or swap")
+    if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or sum_scale):
+        raise ctx.fail("strings cannot be combined with numeric conversions")
     if typ in FLOAT_TYPES and (mask or flags):
         raise ctx.fail("floats cannot be combined with mask/flags")
     if value_map and flags:
