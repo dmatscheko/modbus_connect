@@ -60,7 +60,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or device.scan_interval
             or DEFAULT_SCAN_INTERVAL
         )
-        self._readers = [e for e in device.entities if e.platform != "button"]
+        # Buttons never read; read_register entities read via another entity's
+        # value (rendered below), not from their own (write) register.
+        self._readers = [
+            e for e in device.entities if e.platform != "button" and e.read_register is None
+        ]
+        self._linked = [e for e in device.entities if e.read_register is not None]
+        self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
         self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
         self._tick: int = min([base, *self._interval_for.values()])
@@ -164,7 +170,24 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             value = self._decode(defn)
             data[defn.key] = self._postprocess(defn, data.get(defn.key), value)
             self._next_due[defn.key] = now + self._interval_for[defn.key]
+        # read_register entities take their value from other (just-decoded) values
+        for defn in self._linked:
+            data[defn.key] = self._render_link(defn, data)
         return data
+
+    def _render_link(self, defn: EntityDef, data: dict[str, Any]) -> Any:
+        """Render a read_register template to this entity's current value."""
+        source = defn.read_register
+        if source is None:
+            return None
+        template = self._link_templates.get(defn.key)
+        if template is None:
+            template = self._link_templates[defn.key] = Template(source, self.hass)
+        try:
+            return template.async_render(variables={**data, "values": data}, parse_result=True)
+        except TemplateError as err:
+            _LOGGER.debug("%s: read_register failed: %s", defn.key, err)
+            return None
 
     async def _read_with_fallback(self, block: Span, spans: set[Span]) -> int:
         """Read one block; on failure retry its spans without gap bridging.
@@ -294,10 +317,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     assert isinstance(payload, list)
                     await self.client.write_registers(self.slave_id, defn.address, payload)
                 if defn.platform != "button":
-                    self._store(
-                        defn.span, await self.client.read_block(self.slave_id, defn.span)
-                    )
-                    confirmed = self._decode(defn)
+                    if defn.read_register is not None:
+                        confirmed = value  # optimistic; the read register echoes it next poll
+                    else:
+                        self._store(
+                            defn.span, await self.client.read_block(self.slave_id, defn.span)
+                        )
+                        confirmed = self._decode(defn)
         except (ReadError, WriteError, codec.CodecError) as err:
             raise HomeAssistantError(
                 f"Writing {defn.key} failed: {err}",

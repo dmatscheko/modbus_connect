@@ -120,6 +120,7 @@ _MODBUS_KEYS = {
     "on",
     "off",
     "write_value",
+    "read_register",
     "read_modify_write",
     "max_change",
     "never_resets",
@@ -333,6 +334,10 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     if write_value is not None and not isinstance(write_value, (int, float, bool)):
         raise ctx.fail("write_value must be a number or boolean")
 
+    read_register = raw.get("read_register")
+    if read_register is not None and not isinstance(read_register, str):
+        raise ctx.fail("read_register must be a template string, e.g. '{{ other_key }}'")
+
     duplicate_as_sensor = _bool(ctx, raw, "duplicate_as_sensor")
 
     defn = EntityDef(
@@ -352,6 +357,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         on_value=on_value,
         off_value=off_value,
         write_value=write_value,
+        read_register=read_register,
         read_modify_write=read_modify_write,
         max_change=max_change,
         never_resets=_bool(ctx, raw, "never_resets"),
@@ -588,6 +594,11 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             raise ctx.fail("buttons require 'write_value'")
     elif defn.write_value is not None:
         raise ctx.fail("'write_value' is only valid for buttons")
+
+    # read_register decouples the read side; only meaningful for entities that both
+    # write and show a value (number/select/switch/text), not read-only or buttons.
+    if defn.read_register is not None and (not defn.writes or platform == "button"):
+        raise ctx.fail("'read_register' is only valid on writable, readable platforms")
 
     if platform == "select":
         if not defn.value_map:

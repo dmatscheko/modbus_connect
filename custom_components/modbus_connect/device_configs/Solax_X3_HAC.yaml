@@ -20,6 +20,7 @@ holding:
     ha:
       platform: select
       name: Meter Setting
+      icon: "mdi:meter-electric"
       entity_category: config
   charger_use_mode:
     address: 1549
@@ -31,6 +32,7 @@ holding:
     ha:
       platform: select
       name: Charger Use Mode
+      icon: "mdi:dip-switch"
   eco_gear:
     address: 1550
     map:
@@ -42,6 +44,7 @@ holding:
     ha:
       platform: select
       name: ECO Gear
+      icon: "mdi:dip-switch"
       entity_category: config
   green_gear:
     address: 1551
@@ -51,6 +54,7 @@ holding:
     ha:
       platform: select
       name: Green Gear
+      icon: "mdi:dip-switch"
       entity_category: config
   start_charge_mode:
     address: 1552
@@ -61,6 +65,7 @@ holding:
     ha:
       platform: select
       name: Start Charge Mode
+      icon: "mdi:lock"
       entity_category: config
   overload_limit:
     address: 1553
@@ -93,6 +98,7 @@ holding:
     ha:
       platform: select
       name: Boost Mode
+      icon: "mdi:dip-switch"
   main_breaker_limit:
     address: 1556
     ha:
@@ -112,6 +118,7 @@ holding:
     ha:
       platform: select
       name: Device Lock
+      icon: "mdi:lock"
       entity_category: config
   rfid_program:
     address: 1558
@@ -121,6 +128,7 @@ holding:
     ha:
       platform: select
       name: RFID Card Activation
+      icon: "mdi:card-account-details"
       entity_category: config
   charge_added_total:
     address: 1561
@@ -143,6 +151,7 @@ holding:
     ha:
       platform: select
       name: Charging Mode
+      icon: "mdi:dip-switch"
       entity_category: config
   charge_phase:
     address: 1573
@@ -154,6 +163,7 @@ holding:
     ha:
       platform: select
       name: Charge Phase
+      icon: "mdi:dip-switch"
       entity_category: config
   control_command:
     address: 1575
@@ -168,6 +178,7 @@ holding:
     ha:
       platform: select
       name: Control Command
+      icon: "mdi:dip-switch"
   charge_current:
     address: 1576
     multiplier: 0.01
@@ -200,6 +211,7 @@ holding:
     ha:
       platform: select
       name: Charge Phase Alt
+      icon: "mdi:dip-switch"
       entity_category: config
       enabled_by_default: false
   modbus_address:
@@ -207,6 +219,7 @@ holding:
     ha:
       platform: number
       name: Modbus Address
+      icon: "mdi:identifier"
       entity_category: config
       min: 1
       max: 247
@@ -231,6 +244,7 @@ holding:
     ha:
       platform: select
       name: EVSE Mode
+      icon: "mdi:dip-switch"
       entity_category: config
 
 input:
@@ -481,6 +495,7 @@ input:
       name: CC Voltage
       device_class: voltage
       unit_of_measurement: V
+      icon: "mdi:sine-wave"
       entity_category: diagnostic
       enabled_by_default: false
       precision: 1
@@ -492,6 +507,7 @@ input:
       name: CP Voltage
       device_class: voltage
       unit_of_measurement: V
+      icon: "mdi:sine-wave"
       entity_category: diagnostic
       enabled_by_default: false
       precision: 1
@@ -502,6 +518,7 @@ input:
       platform: sensor
       name: PWM Duty Cycle
       unit_of_measurement: "%"
+      icon: "mdi:pulse"
       entity_category: diagnostic
       enabled_by_default: false
       precision: 1
@@ -534,6 +551,7 @@ input:
     ha:
       platform: sensor
       name: Run Mode
+      icon: "mdi:ev-station"
   fault_code:
     address: 30
     type: uint32
@@ -541,6 +559,7 @@ input:
     ha:
       platform: sensor
       name: Fault Code
+      icon: "mdi:alert"
       entity_category: diagnostic
   case_type:
     address: 32
@@ -550,6 +569,7 @@ input:
     ha:
       platform: sensor
       name: Case Type
+      icon: "mdi:ev-plug-type2"
       entity_category: diagnostic
       enabled_by_default: false
   power_rating:
@@ -562,6 +582,7 @@ input:
     ha:
       platform: sensor
       name: Power Rating
+      icon: "mdi:lightning-bolt"
       entity_category: diagnostic
       enabled_by_default: false
   phase_type:
@@ -572,6 +593,7 @@ input:
     ha:
       platform: sensor
       name: Phase Type
+      icon: "mdi:sine-wave"
       entity_category: diagnostic
       enabled_by_default: false
   model_type:
@@ -583,6 +605,7 @@ input:
     ha:
       platform: sensor
       name: Charging Scene
+      icon: "mdi:dip-switch"
       entity_category: diagnostic
   screen_fitted:
     address: 36
@@ -592,6 +615,7 @@ input:
     ha:
       platform: sensor
       name: Screen Fitted
+      icon: "mdi:monitor"
       entity_category: diagnostic
       enabled_by_default: false
   rssi:
@@ -600,6 +624,7 @@ input:
       platform: sensor
       name: RSSI
       unit_of_measurement: "%"
+      icon: "mdi:wifi-strength-2"
       entity_category: diagnostic
       enabled_by_default: false
   active_charge_phase:
@@ -612,6 +637,7 @@ input:
     ha:
       platform: sensor
       name: Active Charge Phase
+      icon: "mdi:cable-data"
   unbalanced_power_limit:
     address: 41
     ha:
@@ -619,6 +645,7 @@ input:
       name: Unbalanced Power Limit
       device_class: power
       unit_of_measurement: W
+      icon: "mdi:scale-unbalanced"
       entity_category: diagnostic
       enabled_by_default: false
   phase_unbalance:
@@ -629,6 +656,7 @@ input:
     ha:
       platform: sensor
       name: Phase Unbalance
+      icon: "mdi:scale-unbalanced"
       entity_category: diagnostic
       enabled_by_default: false
   charge_duration:
@@ -641,6 +669,7 @@ input:
       device_class: duration
       state_class: total
       unit_of_measurement: s
+      icon: "mdi:timer"
   lock_state:
     address: 45
     map:
@@ -649,6 +678,7 @@ input:
     ha:
       platform: sensor
       name: Lock State
+      icon: "mdi:lock"
   mainbrk_limit:
     address: 46
     map:
@@ -658,6 +688,7 @@ input:
     ha:
       platform: sensor
       name: Main Breaker Limit State
+      icon: "mdi:car-speed-limiter"
   delay_state:
     address: 47
     map:
@@ -666,6 +697,7 @@ input:
     ha:
       platform: sensor
       name: Random Delay State
+      icon: "mdi:progress-clock"
       entity_category: diagnostic
       enabled_by_default: false
   ban_state:
@@ -676,6 +708,7 @@ input:
     ha:
       platform: sensor
       name: Ban State
+      icon: "mdi:hand-back-left"
   charge_power_l1_alt:
     address: 256
     ha:
@@ -711,6 +744,7 @@ input:
     ha:
       platform: sensor
       name: Max Power Charging
+      icon: "mdi:lightning-bolt"
       entity_category: diagnostic
   charge_mode_active:
     address: 260
@@ -721,6 +755,7 @@ input:
     ha:
       platform: sensor
       name: Charge Mode Active
+      icon: "mdi:dip-switch"
   green_mode_start_power:
     address: 261
     ha:
@@ -729,6 +764,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:solar-power"
       entity_category: diagnostic
   charger_status:
     address: 262
@@ -750,4 +786,5 @@ input:
     ha:
       platform: sensor
       name: Run Mode Alt
+      icon: "mdi:ev-station"
       enabled_by_default: false

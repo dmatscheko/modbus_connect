@@ -248,6 +248,23 @@ def test_read_modify_write_needs_mask():
         )
 
 
+def test_read_register_parsed():
+    dev = parse_device(
+        doc(x={"address": 36, "read_register": "{{ y }}",
+               "ha": {"platform": "number", "min": 0, "max": 50}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].read_register == "{{ y }}"
+
+
+def test_read_register_rejected_on_read_only_platform():
+    with pytest.raises(DeviceSchemaError, match="read_register"):
+        parse_device(
+            doc(x={"address": 1, "read_register": "{{ y }}", "ha": {"platform": "sensor"}}),
+            "t.yaml",
+        )
+
+
 def test_duplicate_as_sensor_only_for_writers():
     with pytest.raises(DeviceSchemaError, match="duplicate_as_sensor"):
         parse_device(

@@ -445,6 +445,18 @@ async def test_solax_hybrid_bundled_device_info(hass, monkeypatch):
     assert coordinator.device_info["serial_number"] == "H34A10IA764696"
 
 
+async def test_solax_hybrid_writable_reads_via_readback(hass, monkeypatch):
+    """A SolaX setting shows the value from its read-back register, and writes to its own."""
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    by = {e.key: e for e in device.entities}
+    client = FakeClient({144: 250, 36: 275})  # read-back reg 144 = 25.0 A; write reg 36 differs
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.data["battery_charge_max_current"] == pytest.approx(25.0)  # from reg 144
+    await coordinator.async_write(by["battery_charge_max_current"], 20.0)
+    assert client.written == [(36, [200])]  # written to reg 36, the write register
+
+
 async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     """The rebuilt energy-flow templates split grid/battery power the way SolaX does."""
     from custom_components.modbus_connect import codec

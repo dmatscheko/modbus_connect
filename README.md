@@ -185,6 +185,7 @@ rendered once from the first read.
 | `flags` | `{bit number (0-indexed): name}` — sensor shows the set flags, read-only |
 | `on` / `off` | Values meaning on/off for `switch`/`binary_sensor` (defaults: 1/0, true/false) |
 | `write_value` | Value a `button` writes when pressed |
+| `read_register` | Take the current value from elsewhere instead of this entity's own register — a Jinja template like the `template:` section (e.g. `"{{ other_key }}"`). For settings a device echoes on a different register (or table) than it accepts writes on: this entity writes to its own `address`/table, while the referenced entity — often `internal:`, with its own `type`/`mask`/`multiplier`, and free to live in `input:`/`discrete:` — supplies the read-back |
 | `read_modify_write` | Allow writing a `mask`ed field by merging into the current register |
 | `max_change` | Reject changes larger than this between two polls (spike filter) |
 | `never_resets` | Ignore decreasing values (for `total_increasing` counters) |

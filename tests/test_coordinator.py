@@ -243,6 +243,41 @@ async def test_masked_write_read_modify_write(hass, monkeypatch):
     assert client.written == [(0, [0x0A3F])]  # other bits preserved
 
 
+async def test_read_register_reads_linked_value_and_writes_own(hass, monkeypatch):
+    # 'charge_current' is shown from reg 144 (via a readback entity) but written to reg 36
+    client = FakeClient({144: 250, 36: 0})
+    readback = EntityDef(key="cc_readback", platform="internal", address=144, multiplier=0.1)
+    defn = EntityDef(
+        key="charge_current", platform="number", address=36, multiplier=0.1,
+        read_register="{{ cc_readback }}", ha={"native_min_value": 0, "native_max_value": 50},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(readback, defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_current"] == pytest.approx(25.0)  # from reg 144 via readback
+    await coordinator.async_write(defn, 30.0)
+    assert client.written == [(36, [300])]  # written to its own register, not the read register
+    assert coordinator.data["charge_current"] == pytest.approx(30.0)  # optimistic update
+
+
+async def test_read_register_packed_read_full_write(hass, monkeypatch):
+    # a byte-packed read (low byte of reg 150) with a full-register write to reg 103
+    client = FakeClient({150: (30 << 8) | 25, 103: 0})
+    readback = EntityDef(key="soc_readback", platform="internal", address=150, mask=0x00FF)
+    defn = EntityDef(
+        key="min_soc", platform="number", address=103, read_register="{{ soc_readback }}",
+        ha={"native_min_value": 0, "native_max_value": 100},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(readback, defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["min_soc"] == 25  # low byte of reg 150 via the readback entity
+    await coordinator.async_write(defn, 40)
+    assert client.written == [(103, [40])]  # full value written to reg 103
+
+
 async def test_nothing_due_returns_cache(hass, monkeypatch):
     faketime = FakeTime()
     client = FakeClient({0: 5})

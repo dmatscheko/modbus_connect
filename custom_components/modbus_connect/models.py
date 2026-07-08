@@ -109,6 +109,11 @@ class EntityDef:
     on_value: int | bool | None = None  # YAML key: on
     off_value: int | bool | None = None  # YAML key: off
     write_value: float | bool | None = None  # button press payload
+    # Some settings echo their value on a different register (or table) than the
+    # one they are written to. ``read_register`` is a Jinja template (like the
+    # template: section) whose result is the entity's current value; this entity's
+    # own address/table/codec are then used only for writing.
+    read_register: str | None = None
     read_modify_write: bool = False
     max_change: float | None = None
     never_resets: bool = False

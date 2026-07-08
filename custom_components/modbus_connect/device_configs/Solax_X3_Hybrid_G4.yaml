@@ -15,9 +15,11 @@ holding:
       0: Locked
       2014: Unlocked
       6868: Unlocked - Advanced
+    read_register: "{{ lock_state_readback }}"
     ha:
       platform: select
       name: Lock State
+      icon: "mdi:lock-question"
   serial:
     address: 0
     type: string
@@ -31,6 +33,7 @@ holding:
     ha:
       platform: sensor
       name: Manufacturer
+      icon: "mdi:information"
       entity_category: diagnostic
   model_number:
     address: 14
@@ -39,12 +42,14 @@ holding:
     ha:
       platform: sensor
       name: Model Number
+      icon: "mdi:information"
       entity_category: diagnostic
   inverter_id:
     address: 21
     ha:
       platform: sensor
       name: Inverter ID Number
+      icon: "mdi:information"
       entity_category: diagnostic
   system_on:
     address: 28
@@ -52,12 +57,14 @@ holding:
     ha:
       platform: button
       name: System On
+      icon: "mdi:power-on"
   system_off:
     address: 28
     write_value: 0
     ha:
       platform: button
       name: System Off
+      icon: "mdi:power-off"
   safety_code:
     address: 29
     map:
@@ -113,6 +120,7 @@ holding:
     ha:
       platform: sensor
       name: Safety code
+      icon: "mdi:dip-switch"
       enabled_by_default: false
   charger_use_mode:
     address: 31
@@ -123,48 +131,58 @@ holding:
       3: Manual Mode
       4: PeakShaving
       5: Smart Schedule
+    read_register: "{{ charger_use_mode_readback }}"
     ha:
       platform: select
       name: Charger Use Mode
+      icon: "mdi:dip-switch"
   manual_mode_select:
     address: 32
     map:
       0: Stop Charge and Discharge
       1: Force Charge
       2: Force Discharge
+    read_register: "{{ manual_mode_select_readback }}"
     ha:
       platform: select
       name: Manual Mode Select
+      icon: "mdi:dip-switch"
   battery_charge_max_current:
     address: 36
     multiplier: 0.1
+    read_register: "{{ battery_charge_max_current_readback }}"
     ha:
       platform: number
       name: Battery Charge Max Current
       device_class: current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       min: 0
       max: 20
       step: 0.1
   battery_discharge_max_current:
     address: 37
     multiplier: 0.1
+    read_register: "{{ battery_discharge_max_current_readback }}"
     ha:
       platform: number
       name: Battery Discharge Max Current
       device_class: current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       min: 0
       max: 20
       step: 0.1
   export_control_user_limit:
     address: 66
     multiplier: 10.0
+    read_register: "{{ export_control_user_limit_readback }}"
     ha:
       platform: number
       name: Export Control User Limit
       device_class: power
       unit_of_measurement: W
+      icon: "mdi:home-export-outline"
       min: 0
       max: 6000
       step: 100
@@ -186,12 +204,14 @@ holding:
     ha:
       platform: select
       name: MPPT
+      icon: "mdi:dip-switch"
   battery_awaken:
     address: 86
     write_value: 1
     ha:
       platform: button
       name: Battery Awaken
+      icon: "mdi:battery-alert-variant"
       enabled_by_default: false
   max_pv_output_power:
     address: 90
@@ -200,13 +220,19 @@ holding:
       name: Max PV Output Power
       device_class: power
       unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
       entity_category: diagnostic
+  bias_power_readback:
+    address: 93
+    internal: true
   selfuse_discharge_min_soc:
     address: 97
+    read_register: "{{ selfuse_discharge_min_soc_readback }}"
     ha:
       platform: number
       name: Selfuse Discharge Min SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-low"
       min: 10
       max: 100
       step: 1
@@ -218,48 +244,59 @@ holding:
     ha:
       platform: select
       name: Selfuse Night Charge Enable
+      icon: "mdi:dip-switch"
   selfuse_nightcharge_upper_soc:
     address: 99
+    read_register: "{{ selfuse_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
       name: Selfuse Nightcharge Upper SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-high"
       min: 10
       max: 100
       step: 1
   feedin_nightcharge_upper_soc:
     address: 100
+    read_register: "{{ feedin_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
       name: Feedin Nightcharge Upper SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-high"
       min: 10
       max: 100
       step: 1
   feedin_discharge_min_soc:
     address: 101
+    read_register: "{{ feedin_discharge_min_soc_readback }}"
     ha:
       platform: number
       name: Feedin Discharge Min SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-low"
       min: 10
       max: 100
       step: 1
   backup_nightcharge_upper_soc:
     address: 102
+    read_register: "{{ backup_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
       name: Backup Nightcharge Upper SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-high"
       min: 30
       max: 100
       step: 1
   backup_discharge_min_soc:
     address: 103
+    read_register: "{{ backup_discharge_min_soc_readback }}"
     ha:
       platform: number
       name: Backup Discharge Min SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-low"
       min: 15
       max: 100
       step: 1
@@ -271,9 +308,11 @@ holding:
     ha:
       platform: select
       name: Charge and Discharge Period2 Enable
+      icon: "mdi:battery-clock"
       entity_category: config
   main_breaker_current_limit:
     address: 113
+    read_register: "{{ main_breaker_current_limit_readback }}"
     ha:
       platform: number
       name: Main Breaker Current Limit
@@ -301,6 +340,7 @@ holding:
     ha:
       platform: select
       name: Modbus Power Control (direct)
+      icon: "mdi:transmission-tower"
   firmware_arm:
     address: 124
     internal: true
@@ -312,6 +352,7 @@ holding:
     ha:
       platform: select
       name: RemoteControl Target Set Type (mode 8/9; direct)
+      icon: "mdi:transmission-tower"
   remotecontrol_active_power_direct:
     address: 126
     type: int32
@@ -324,6 +365,13 @@ holding:
       min: -30000
       max: 30000
       step: 100
+  firmware_DSP_hardware_version:
+    address: 126
+    ha:
+      platform: sensor
+      name: Inverter DSP hardware version
+      icon: "mdi:information"
+      entity_category: diagnostic
   remotecontrol_reactive_power_direct:
     address: 128
     type: int32
@@ -342,9 +390,17 @@ holding:
       platform: number
       name: Remotecontrol Duration (mode 1; direct)
       unit_of_measurement: s
+      icon: "mdi:home-clock"
       min: 0
       max: 28800
       step: 60
+  modbus_protocol_version:
+    address: 130
+    ha:
+      platform: sensor
+      name: Modbus Protocol Version
+      icon: "mdi:information"
+      entity_category: diagnostic
   remotecontrol_target_soc_direct:
     address: 131
     ha:
@@ -366,6 +422,13 @@ holding:
       min: 0
       max: 30000
       step: 100
+  bootloader_version:
+    address: 132
+    ha:
+      platform: sensor
+      name: Bootloader Version
+      icon: "mdi:information"
+      entity_category: diagnostic
   remotecontrol_charge_discharge_power_direct:
     address: 134
     type: int32
@@ -384,6 +447,7 @@ holding:
       platform: number
       name: Remotecontrol TimeOut (mode 1-7; direct)
       unit_of_measurement: s
+      icon: "mdi:home-clock"
       min: 0
       max: 28800
       step: 60
@@ -399,15 +463,45 @@ holding:
       min: -30000
       max: 30000
       step: 100
+  charger_use_mode_readback:
+    address: 139
+    map:
+      0: Self Use Mode
+      1: Feedin Priority
+      2: Back Up Mode
+      3: Manual Mode
+      4: PeakShaving
+      5: Smart Schedule
+    internal: true
+  manual_mode_select_readback:
+    address: 140
+    map:
+      0: Stop Charge and Discharge
+      1: Force Charge
+      2: Force Discharge
+    internal: true
   pgrid_bias:
     address: 141
     map:
       0: Disabled
       1: Grid
       2: Inverter
+    read_register: "{{ pgrid_bias_readback }}"
     ha:
       platform: select
       name: Pgrid Bias
+      icon: "mdi:dip-switch"
+  battery_type:
+    address: 141
+    map:
+      0: Lead Acid
+      1: Lithium
+    ha:
+      platform: sensor
+      name: Battery Type
+      icon: "mdi:battery-unknown"
+      entity_category: diagnostic
+      enabled_by_default: false
   battery_charge_float_voltage:
     address: 142
     multiplier: 0.1
@@ -428,6 +522,37 @@ holding:
       unit_of_measurement: V
       enabled_by_default: false
       precision: 1
+  battery_charge_max_current_readback:
+    address: 144
+    multiplier: 0.1
+    internal: true
+  battery_discharge_max_current_readback:
+    address: 145
+    multiplier: 0.1
+    internal: true
+  selfuse_discharge_min_soc_readback:
+    address: 147
+    mask: 65280
+    internal: true
+  selfuse_nightcharge_upper_soc_readback:
+    address: 148
+    internal: true
+  feedin_discharge_min_soc_readback:
+    address: 149
+    mask: 255
+    internal: true
+  feedin_nightcharge_upper_soc_readback:
+    address: 149
+    mask: 65280
+    internal: true
+  backup_discharge_min_soc_readback:
+    address: 150
+    mask: 255
+    internal: true
+  backup_nightcharge_upper_soc_readback:
+    address: 150
+    mask: 65280
+    internal: true
   shadow_fix_function_level_pv2_gmppt:
     address: 152
     map:
@@ -435,17 +560,21 @@ holding:
       1: Low
       2: Middle
       3: High
+    read_register: "{{ shadow_fix_function_level_pv2_gmppt_readback }}"
     ha:
       platform: select
       name: Shadow Fix Function Level PV2 (GMPPT)
+      icon: "mdi:dip-switch"
   hotstandby:
     address: 153
     map:
       0: Enabled
       1: Disabled
+    read_register: "{{ hotstandby_readback }}"
     ha:
       platform: select
       name: HotStandBy
+      icon: "mdi:dip-switch"
   extend_bms_setting:
     address: 154
     map:
@@ -454,6 +583,7 @@ holding:
     ha:
       platform: select
       name: Extend BMS Setting
+      icon: "mdi:dip-switch"
   shadow_fix_function_level_pv1_gmppt:
     address: 156
     map:
@@ -461,17 +591,21 @@ holding:
       1: Low
       2: Middle
       3: High
+    read_register: "{{ shadow_fix_function_level_pv1_gmppt_readback }}"
     ha:
       platform: select
       name: Shadow Fix Function Level PV1 (GMPPT)
+      icon: "mdi:dip-switch"
   phase_power_balance_x3:
     address: 158
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ phase_power_balance_x3_readback }}"
     ha:
       platform: select
       name: Phase Power Balance X3
+      icon: "mdi:dip-switch"
       entity_category: config
   remote_control_power_control_mode_direct:
     address: 160
@@ -482,6 +616,13 @@ holding:
     ha:
       platform: select
       name: RemoteControl Power Control Mode (mode 8/9; direct)
+      icon: "mdi:transmission-tower"
+  hotstandby_readback:
+    address: 161
+    map:
+      0: Enabled
+      1: Disabled
+    internal: true
   power_control_mode_target_set_type_direct:
     address: 161
     map:
@@ -490,6 +631,7 @@ holding:
     ha:
       platform: select
       name: Power Control Mode Target Set Type (mode 8/9; direct)
+      icon: "mdi:transmission-tower"
   remotecontrol_pv_power_limit_direct:
     address: 162
     type: uint32
@@ -507,9 +649,11 @@ holding:
     map:
       0: Positive
       1: Negative
+    read_register: "{{ meter_1_direction_readback }}"
     ha:
       platform: select
       name: Meter 1 Direction
+      icon: "mdi:meter-electric"
       entity_category: config
       enabled_by_default: false
   remotecontrol_push_mode_power_8_9_direct:
@@ -529,9 +673,11 @@ holding:
     map:
       0: Positive
       1: Negative
+    read_register: "{{ meter_2_direction_readback }}"
     ha:
       platform: select
       name: Meter 2 Direction
+      icon: "mdi:meter-electric"
       entity_category: config
       enabled_by_default: false
   discharge_cut_off_point_different:
@@ -542,12 +688,14 @@ holding:
     ha:
       platform: select
       name: Discharge Cut Off Point Different
+      icon: "mdi:dip-switch"
   remotecontrol_duration_8_direct:
     address: 166
     ha:
       platform: number
       name: Remotecontrol Duration (mode 8; direct)
       unit_of_measurement: s
+      icon: "mdi:home-clock"
       min: 0
       max: 28800
       step: 60
@@ -566,6 +714,7 @@ holding:
       platform: number
       name: Remotecontrol TimeOut (mode 8/9; direct)
       unit_of_measurement: s
+      icon: "mdi:home-clock"
       min: 0
       max: 28800
       step: 60
@@ -576,8 +725,16 @@ holding:
     ha:
       platform: sensor
       name: Registration Code Pocket
+      icon: "mdi:information"
       entity_category: diagnostic
       enabled_by_default: false
+  pgrid_bias_readback:
+    address: 178
+    map:
+      0: Disabled
+      1: Grid
+      2: Inverter
+    internal: true
   lease_mode:
     address: 180
     map:
@@ -586,25 +743,44 @@ holding:
     ha:
       platform: select
       name: Lease Mode
+      icon: "mdi:dip-switch"
   device_lock:
     address: 181
     map:
       0: Unlock
       1: Lock
+    read_register: "{{ device_lock_readback }}"
     ha:
       platform: select
       name: Device Lock
+      icon: "mdi:lock"
       entity_category: diagnostic
+  export_control_factory_limit:
+    address: 181
+    ha:
+      platform: sensor
+      name: Export Control Factory Limit
+      device_class: power
+      unit_of_measurement: W
+      icon: "mdi:home-export-outline"
+      enabled_by_default: false
   manual_mode_control:
     address: 182
     map:
       0: "Off"
       1: "On"
+    read_register: "{{ manual_mode_control_readback }}"
     ha:
       platform: select
       name: Manual Mode Control
+      icon: "mdi:dip-switch"
+  export_control_user_limit_readback:
+    address: 182
+    multiplier: 10.0
+    internal: true
   feedin_on_power:
     address: 183
+    read_register: "{{ feedin_on_power_readback }}"
     ha:
       platform: number
       name: Feedin On Power
@@ -615,6 +791,7 @@ holding:
       step: 100
   consume_off_power:
     address: 185
+    read_register: "{{ consume_off_power_readback }}"
     ha:
       platform: number
       name: Consume Off Power
@@ -630,6 +807,7 @@ holding:
       name: Inverter Rated Output Power
       device_class: power
       unit_of_measurement: W
+      icon: "mdi:information"
       entity_category: diagnostic
   language:
     address: 187
@@ -645,6 +823,7 @@ holding:
     ha:
       platform: sensor
       name: Language
+      icon: "mdi:translate-variant"
       enabled_by_default: false
   selfuse_mode_backup:
     address: 196
@@ -654,12 +833,15 @@ holding:
     ha:
       platform: select
       name: Selfuse Mode Backup
+      icon: "mdi:dip-switch"
   selfuse_backup_soc:
     address: 197
+    read_register: "{{ selfuse_backup_soc_readback }}"
     ha:
       platform: number
       name: Selfuse Backup SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-sync"
       enabled_by_default: false
       min: 10
       max: 100
@@ -670,9 +852,11 @@ holding:
       0: Free
       1: Master
       2: Slave
+    read_register: "{{ parallel_setting_readback }}"
     ha:
       platform: select
       name: Parallel Setting
+      icon: "mdi:dip-switch"
       entity_category: config
   battery_heating:
     address: 207
@@ -682,12 +866,18 @@ holding:
     ha:
       platform: select
       name: Battery Heating
+      icon: "mdi:heating-coil"
+  main_breaker_current_limit_readback:
+    address: 215
+    internal: true
   battery_charge_upper_soc:
     address: 224
+    read_register: "{{ battery_charge_upper_soc_readback }}"
     ha:
       platform: number
       name: Battery Charge Upper SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-high"
       min: 10
       max: 100
       step: 1
@@ -696,13 +886,16 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ battery_to_ev_charger_readback }}"
     ha:
       platform: select
       name: Battery to EV Charger
+      icon: "mdi:dip-switch"
       entity_category: config
       enabled_by_default: false
   peakshaving_discharge_limit_1:
     address: 238
+    read_register: "{{ peakshaving_discharge_limit_1_readback }}"
     ha:
       platform: number
       name: PeakShaving Discharge Limit 1
@@ -713,6 +906,7 @@ holding:
       step: 100
   peakshaving_discharge_limit_2:
     address: 239
+    read_register: "{{ peakshaving_discharge_limit_2_readback }}"
     ha:
       platform: number
       name: PeakShaving Discharge Limit 2
@@ -729,8 +923,10 @@ holding:
     ha:
       platform: select
       name: PeakShaving Charge from Grid
+      icon: "mdi:dip-switch"
   peakshaving_charge_limit:
     address: 241
+    read_register: "{{ peakshaving_charge_limit_readback }}"
     ha:
       platform: number
       name: PeakShaving Charge Limit
@@ -741,15 +937,18 @@ holding:
       step: 100
   peakshaving_max_soc:
     address: 242
+    read_register: "{{ peakshaving_max_soc_readback }}"
     ha:
       platform: number
       name: PeakShaving Max SOC
       unit_of_measurement: "%"
+      icon: "mdi:battery-charging-high"
       min: 0
       max: 100
       step: 1
   peakshaving_reserved_soc:
     address: 243
+    read_register: "{{ peakshaving_reserved_soc_readback }}"
     ha:
       platform: number
       name: PeakShaving Reserved SOC
@@ -765,6 +964,7 @@ holding:
     ha:
       platform: select
       name: VPP Exit Idle Enable
+      icon: "mdi:power-plug"
       entity_category: config
       enabled_by_default: false
   fast_ct_check_enable:
@@ -775,13 +975,16 @@ holding:
     ha:
       platform: select
       name: Fast CT Check Enable
+      icon: "mdi:current-ac"
       entity_category: config
       enabled_by_default: false
   ev_charger_address:
     address: 249
+    read_register: "{{ ev_charger_address_readback }}"
     ha:
       platform: number
       name: EV Charger Address
+      icon: "mdi:ev-station"
       entity_category: config
       enabled_by_default: false
       min: 0
@@ -795,6 +998,7 @@ holding:
     ha:
       platform: select
       name: CT Cycle Detection
+      icon: "mdi:dip-switch"
   ct_type:
     address: 259
     map:
@@ -804,6 +1008,14 @@ holding:
       platform: sensor
       name: CT Type
       enabled_by_default: false
+  shadow_fix_function_level_pv1_gmppt_readback:
+    address: 260
+    map:
+      0: "Off"
+      1: Low
+      2: Middle
+      3: High
+    internal: true
   machine_type:
     address: 261
     map:
@@ -812,7 +1024,14 @@ holding:
     ha:
       platform: sensor
       name: Machine Type
+      icon: "mdi:information"
       entity_category: diagnostic
+  phase_power_balance_x3_readback:
+    address: 262
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   machine_style:
     address: 263
     map:
@@ -821,12 +1040,14 @@ holding:
     ha:
       platform: sensor
       name: Machine Style
+      icon: "mdi:information"
       entity_category: diagnostic
   meter_1_id:
     address: 265
     ha:
       platform: sensor
       name: Meter 1 ID
+      icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
   meter_2_id:
@@ -834,8 +1055,30 @@ holding:
     ha:
       platform: sensor
       name: Meter 2 ID
+      icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
+  meter_1_direction_readback:
+    address: 267
+    map:
+      0: Positive
+      1: Negative
+    internal: true
+  meter_2_direction_readback:
+    address: 268
+    map:
+      0: Positive
+      1: Negative
+    internal: true
+  battery_charge_upper_soc_readback:
+    address: 270
+    internal: true
+  battery_to_ev_charger_readback:
+    address: 271
+    map:
+      1: Enabled
+      0: Disabled
+    internal: true
   discharge_cut_off_voltage_grid_mode:
     address: 275
     multiplier: 0.1
@@ -846,6 +1089,14 @@ holding:
       unit_of_measurement: V
       enabled_by_default: false
       precision: 1
+  shadow_fix_function_level_pv2_gmppt_readback:
+    address: 276
+    map:
+      0: "Off"
+      1: Low
+      2: Middle
+      3: High
+    internal: true
   ct_meter_setting:
     address: 277
     map:
@@ -854,6 +1105,7 @@ holding:
     ha:
       platform: sensor
       name: CT Meter Setting
+      icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
   fvrt_vac_upper:
@@ -878,11 +1130,13 @@ holding:
       precision: 1
   bias_power:
     address: 281
+    read_register: "{{ bias_power_readback }}"
     ha:
       platform: number
       name: Bias Power
       device_class: power
       unit_of_measurement: W
+      icon: "mdi:tune-variant"
       entity_category: config
       enabled_by_default: false
       min: 1
@@ -894,6 +1148,52 @@ holding:
       platform: sensor
       name: PV Connection Mode
       enabled_by_default: false
+  selfuse_backup_soc_readback:
+    address: 287
+    internal: true
+  device_lock_readback:
+    address: 289
+    map:
+      0: Unlock
+      1: Lock
+    internal: true
+  manual_mode_control_readback:
+    address: 290
+    map:
+      0: "Off"
+      1: "On"
+    internal: true
+  feedin_on_power_readback:
+    address: 291
+    internal: true
+  consume_off_power_readback:
+    address: 293
+    internal: true
+  parallel_setting_readback:
+    address: 304
+    map:
+      0: Free
+      1: Master
+      2: Slave
+    internal: true
+  peakshaving_discharge_limit_1_readback:
+    address: 339
+    internal: true
+  peakshaving_discharge_limit_2_readback:
+    address: 340
+    internal: true
+  peakshaving_charge_limit_readback:
+    address: 342
+    internal: true
+  peakshaving_max_soc_readback:
+    address: 343
+    internal: true
+  peakshaving_reserved_soc_readback:
+    address: 344
+    internal: true
+  ev_charger_address_readback:
+    address: 348
+    internal: true
   remotecontrol_readback_mode:
     address: 416
     map:
@@ -910,6 +1210,7 @@ holding:
     ha:
       platform: sensor
       name: Remotecontrol Readback Mode
+      icon: "mdi:transmission-tower"
       entity_category: diagnostic
       enabled_by_default: false
   remotecontrol_mode8_pv_power_limit_readback:
@@ -922,6 +1223,7 @@ holding:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
       entity_category: diagnostic
       enabled_by_default: false
   remotecontrol_mode8_battery_power_target_readback:
@@ -934,6 +1236,7 @@ holding:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:battery-sync"
       entity_category: diagnostic
       enabled_by_default: false
   remotecontrol_mode8_timeout_readback:
@@ -944,6 +1247,7 @@ holding:
       device_class: duration
       state_class: measurement
       unit_of_measurement: s
+      icon: "mdi:timer"
       entity_category: diagnostic
       enabled_by_default: false
   remotecontrol_mode8_next_motion_readback:
@@ -954,6 +1258,7 @@ holding:
     ha:
       platform: sensor
       name: Remotecontrol Mode 8 Next Motion Readback
+      icon: "mdi:transmission-tower"
       entity_category: diagnostic
       enabled_by_default: false
 
@@ -1012,6 +1317,7 @@ input:
       name: PV Current 1
       device_class: current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       precision: 1
   pv_current_2:
     address: 6
@@ -1021,6 +1327,7 @@ input:
       name: PV Current 2
       device_class: current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       precision: 1
   inverter_frequency:
     address: 7
@@ -1067,6 +1374,7 @@ input:
     ha:
       platform: sensor
       name: Run Mode
+      icon: "mdi:run"
   pv_power_1:
     address: 10
     ha:
@@ -1075,6 +1383,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
   pv_power_2:
     address: 11
     ha:
@@ -1083,12 +1392,14 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
   time_count_down:
     address: 19
     multiplier: 0.001
     ha:
       platform: sensor
       name: Time Count Down
+      icon: "mdi:timer"
       enabled_by_default: false
   battery_voltage_charge:
     address: 20
@@ -1109,6 +1420,7 @@ input:
       name: Battery Current Charge
       device_class: current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       precision: 1
   battery_power_charge:
     address: 22
@@ -1119,6 +1431,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:battery-charging"
   bms_connect_state:
     address: 23
     map:
@@ -1127,6 +1440,7 @@ input:
     ha:
       platform: sensor
       name: BMS Connect State
+      icon: "mdi:state-machine"
       enabled_by_default: false
   battery_temperature:
     address: 24
@@ -1155,6 +1469,7 @@ input:
     ha:
       platform: sensor
       name: Grid Status
+      icon: "mdi:transmission-tower"
       enabled_by_default: false
   mppt_count:
     address: 27
@@ -1181,6 +1496,7 @@ input:
       device_class: energy
       state_class: total
       unit_of_measurement: kWh
+      icon: "mdi:battery-arrow-down"
       enabled_by_default: false
       precision: 1
   battery_output_energy_today:
@@ -1192,6 +1508,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:battery-arrow-down"
       precision: 1
   battery_input_energy_total:
     address: 33
@@ -1204,6 +1521,7 @@ input:
       device_class: energy
       state_class: total
       unit_of_measurement: kWh
+      icon: "mdi:battery-arrow-up"
       enabled_by_default: false
       precision: 1
   battery_input_energy_today:
@@ -1215,6 +1533,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:battery-arrow-up"
       precision: 1
   bms_charge_max_current:
     address: 36
@@ -1223,6 +1542,7 @@ input:
       platform: sensor
       name: Battery Charge Max Current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       enabled_by_default: false
       precision: 1
   bms_discharge_max_current:
@@ -1232,6 +1552,7 @@ input:
       platform: sensor
       name: Battery Discharge Max Current
       unit_of_measurement: A
+      icon: "mdi:current-dc"
       enabled_by_default: false
       precision: 1
   bms_battery_capacity:
@@ -1254,6 +1575,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
       enabled_by_default: false
   ongrid_power_total:
     address: 52
@@ -1265,6 +1587,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:home-lightning-bolt"
   battery_system_installed_capacity:
     address: 58
     type: uint32
@@ -1274,6 +1597,7 @@ input:
       name: Battery System Installed Capacity
       device_class: energy
       unit_of_measurement: Wh
+      icon: "mdi:battery"
       enabled_by_default: false
   grid_export_total:
     address: 72
@@ -1286,6 +1610,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-export-outline"
       enabled_by_default: false
       precision: 2
   grid_import_total:
@@ -1299,6 +1624,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-import-outline"
       enabled_by_default: false
       precision: 2
   today_s_yield:
@@ -1322,7 +1648,15 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:solar-power"
       precision: 2
+  lock_state_readback:
+    address: 84
+    map:
+      0: Locked
+      1: Unlocked
+      2: Unlocked - Advanced
+    internal: true
   bus_volt:
     address: 102
     multiplier: 0.1
@@ -1348,6 +1682,7 @@ input:
     ha:
       platform: sensor
       name: Overload Fault Val
+      icon: "mdi:alert-circle"
       enabled_by_default: false
   battery_volt_fault_val:
     address: 105
@@ -1509,6 +1844,7 @@ input:
       platform: sensor
       name: Grid Mode Runtime
       unit_of_measurement: h
+      icon: "mdi:timer"
       precision: 1
   e_charge_today:
     address: 145
@@ -1519,6 +1855,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:solar-power"
       enabled_by_default: false
       precision: 2
   e_charge_total:
@@ -1532,6 +1869,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:solar-power"
       enabled_by_default: false
       precision: 2
   total_solar_energy:
@@ -1545,6 +1883,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:solar-power"
       precision: 1
   today_s_solar_energy:
     address: 150
@@ -1555,6 +1894,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:solar-power"
       precision: 1
   today_s_export_energy:
     address: 152
@@ -1567,6 +1907,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-export-outline"
       precision: 2
   today_s_import_energy:
     address: 154
@@ -1579,6 +1920,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-import-outline"
       precision: 2
   ev_charger_communication_state:
     address: 160
@@ -1610,6 +1952,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:battery-charging-high"
   battery_max_discharge_power:
     address: 164
     type: uint32
@@ -1620,6 +1963,7 @@ input:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:battery-charging-low"
   meter_2_measured_power:
     address: 168
     type: int32
@@ -1642,6 +1986,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-export-outline"
       enabled_by_default: false
       precision: 2
   meter_2_import_total:
@@ -1655,6 +2000,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-import-outline"
       enabled_by_default: false
       precision: 2
   meter_2_export_today:
@@ -1668,6 +2014,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-export-outline"
       enabled_by_default: false
       precision: 2
   meter_2_import_today:
@@ -1681,6 +2028,7 @@ input:
       device_class: energy
       state_class: total_increasing
       unit_of_measurement: kWh
+      icon: "mdi:home-import-outline"
       enabled_by_default: false
       precision: 2
   meter_2_measured_power_l1:
@@ -1785,6 +2133,7 @@ input:
       name: Battery State of Health
       state_class: measurement
       unit_of_measurement: "%"
+      icon: "mdi:battery-heart"
       enabled_by_default: false
   grid_reactive_power_total:
     address: 192
@@ -1977,6 +2326,7 @@ input:
     ha:
       platform: sensor
       name: Modbus Power Control
+      icon: "mdi:dip-switch"
   target_finish_flag:
     address: 257
     map:
@@ -1985,6 +2335,7 @@ input:
     ha:
       platform: sensor
       name: Target Finish Flag
+      icon: "mdi:bullseye-arrow"
   active_power_target:
     address: 258
     type: int32
