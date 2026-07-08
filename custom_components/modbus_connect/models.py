@@ -148,6 +148,20 @@ class WriteTarget:
 
 
 @dataclass(frozen=True)
+class SwitchTarget:
+    """A template action whose target entity is chosen at write time.
+
+    ``selector`` is a Jinja template; its rendered value picks one of the
+    ``cases`` (each a plain :class:`WriteTarget`). This lets a single action
+    write to different entities depending on another register — e.g. writing
+    the active temperature setpoint chosen by a regulation-type selector.
+    """
+
+    selector: str  # Jinja template rendered to a case key at write time
+    cases: dict[str, WriteTarget]  # selector value -> target
+
+
+@dataclass(frozen=True)
 class TemplateDef:
     """One entry of the template: section.
 

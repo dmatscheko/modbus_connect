@@ -446,9 +446,12 @@ input:
       icon: mdi:water
       enabled_by_default: false
 
-# Template entities: the ventilation unit as a fan (on/off + stage presets).
-# The Lüftungsstufe select above stays for manual/dropdown control; both drive
-# register 2, so a change on one shows on the other within one poll.
+# Template entities:
+#  - luftung: the ventilation unit as a fan (on/off + stage presets). The
+#    Lüftungsstufe select above stays for manual control; both drive register 2,
+#    so a change on one shows on the other within one poll.
+#  - klima: a thermostat that follows Temperaturregelungsart, reading and writing
+#    whichever supply/room/exhaust setpoint is currently active.
 template:
   luftung:
     ha:
@@ -462,3 +465,27 @@ template:
     set_preset_mode:
       entity: luftungsstufe_raw
       map: {Grundlüftung: 4, Stufe 1: 1, Stufe 2: 2, Stufe 3: 3}   # preset -> stage register value
+
+  klima:
+    ha:
+      platform: climate
+      name: Klima
+    # current + target follow the Temperaturregelungsart selector (Abluft/Zuluft/Raum)
+    current_temperature: >-
+      {{ {'Zuluft': temperatur_zuluft,
+          'Raum': temperatur_raum_display,
+          'Abluft': temperatur_abluft}.get(temperaturregelungsart_select) }}
+    target_temperature: >-
+      {{ {'Zuluft': soll_zulufttemperatur_number,
+          'Raum': soll_raumlufttemperatur_number,
+          'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
+    hvac_mode: "{{ 'heat' }}"
+    min_temp: 15
+    max_temp: 30
+    temp_step: 0.5
+    set_temperature:                       # writes whichever setpoint is active right now
+      by: "{{ temperaturregelungsart_select }}"
+      cases:
+        Zuluft: {entity: soll_zulufttemperatur_number}
+        Raum: {entity: soll_raumlufttemperatur_number}
+        Abluft: {entity: soll_ablufttemperatur_number}

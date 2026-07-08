@@ -2,6 +2,7 @@
 
 import pytest
 
+from custom_components.modbus_connect.models import SwitchTarget
 from custom_components.modbus_connect.schema import DeviceSchemaError, parse_device
 
 DEVICE = {"device": {"manufacturer": "Acme", "model": "X1"}}
@@ -880,6 +881,30 @@ TEMPLATE_ERROR_CASES = [
                "ha": {"platform": "number"}}},
         "template numbers require ha.min and ha.max",
     ),
+    (
+        "switch_target_unknown_key",
+        {"x": {"set_temperature": {"by": "{{ 1 }}", "cases": {"A": {"entity": "t"}},
+                                   "bogus": 1}, "ha": {"platform": "climate"}}},
+        "unknown keys",
+    ),
+    (
+        "switch_target_empty_cases",
+        {"x": {"set_temperature": {"by": "{{ 1 }}", "cases": {}},
+               "ha": {"platform": "climate"}}},
+        "non-empty",
+    ),
+    (
+        "switch_target_missing_selector",
+        {"x": {"set_temperature": {"cases": {"A": {"entity": "t"}}},
+               "ha": {"platform": "climate"}}},
+        "template string",
+    ),
+    (
+        "switch_target_case_read_only",
+        {"x": {"set_temperature": {"by": "{{ 1 }}", "cases": {"A": {"entity": "ro"}}},
+               "ha": {"platform": "climate"}}},
+        "read-only",
+    ),
 ]
 
 
@@ -897,3 +922,23 @@ def test_template_error_branches(template, match):
     }
     with pytest.raises(DeviceSchemaError, match=match):
         parse_device(data, "t.yaml")
+
+
+def test_switch_target_parses_cases():
+    dev = parse_device(
+        tdoc(klima={
+            "ha": {"platform": "climate"},
+            "target_temperature": "{{ setpoint }}",
+            "set_temperature": {
+                "by": "{{ mode }}",
+                "cases": {"Auto": {"entity": "setpoint"}, "Off": {"entity": "temp"}},
+            },
+        }),
+        "t.yaml",
+    )
+    (t,) = dev.templates
+    st = t.config["set_temperature"]
+    assert isinstance(st, SwitchTarget)
+    assert st.selector == "{{ mode }}"
+    assert set(st.cases) == {"Auto", "Off"}
+    assert st.cases["Auto"].entity == "setpoint"

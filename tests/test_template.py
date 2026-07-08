@@ -3,6 +3,7 @@
 import pytest
 import yaml
 from homeassistant.components.climate import HVACMode
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.modbus_connect.binary_sensor import ModbusConnectTemplateBinarySensor
 from custom_components.modbus_connect.climate import ModbusConnectClimate
@@ -297,3 +298,89 @@ async def test_template_select_options_from_target_map(hass, monkeypatch):
     assert select.current_option == "Auto"
     await select.async_select_option("Off")
     assert client.written[-1] == (2, [0])  # written through the target's map
+
+
+# A ventilation unit whose active temperature setpoint is chosen by a
+# regulation-type selector: the climate must read AND write the right pair.
+SWITCH_YAML = """
+device: {manufacturer: Acme, model: HRV}
+holding:
+  regelungsart:
+    address: 0
+    map: {1: Abluft, 2: Zuluft, 3: Raum}
+    ha: {platform: select, name: Regelungsart}
+  soll_zuluft:
+    address: 1
+    multiplier: 0.1
+    ha: {platform: number, min: 10, max: 40, name: Soll Zuluft}
+  soll_raum:
+    address: 2
+    multiplier: 0.1
+    ha: {platform: number, min: 10, max: 40, name: Soll Raum}
+  t_zuluft: {address: 3, multiplier: 0.1, internal: true}
+  t_raum: {address: 4, multiplier: 0.1, internal: true}
+
+template:
+  klima:
+    ha: {platform: climate, name: Klima}
+    current_temperature: "{{ {'Zuluft': t_zuluft, 'Raum': t_raum}.get(regelungsart) }}"
+    target_temperature: "{{ {'Zuluft': soll_zuluft, 'Raum': soll_raum}.get(regelungsart) }}"
+    hvac_mode: "{{ 'heat' }}"
+    min_temp: 10
+    max_temp: 40
+    temp_step: 0.5
+    set_temperature:
+      by: "{{ regelungsart }}"
+      cases:
+        Zuluft: {entity: soll_zuluft}
+        Raum: {entity: soll_raum}
+"""
+
+# regelungsart=Zuluft, soll_zuluft=21.0, soll_raum=23.0, t_zuluft=20.0, t_raum=22.5
+SWITCH_REGISTERS = {0: 2, 1: 210, 2: 230, 3: 200, 4: 225}
+
+
+async def setup_switch_device(hass, monkeypatch):
+    device = parse_device(yaml.safe_load(SWITCH_YAML), "hrv.yaml")
+    client = FakeClient(dict(SWITCH_REGISTERS))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success
+    return device, client, coordinator
+
+
+async def _reselect(coordinator, client, register_value):
+    """Change the regulation-type register and re-poll everything."""
+    client.registers[0] = register_value
+    coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
+    await coordinator.async_refresh()
+
+
+async def test_climate_switch_target_follows_regulation_type(hass, monkeypatch):
+    device, client, coordinator = await setup_switch_device(hass, monkeypatch)
+    climate = make_entity(hass, ModbusConnectClimate, coordinator,
+                          template_def(device, "klima"))
+
+    # Zuluft selected -> the climate reads and writes the supply-air pair
+    assert climate.current_temperature == pytest.approx(20.0)
+    assert climate.target_temperature == pytest.approx(21.0)
+    await climate.async_set_temperature(temperature=25.0)
+    assert client.written[-1] == (1, [250])  # soll_zuluft, through its 0.1 codec
+    assert climate.target_temperature == pytest.approx(25.0)
+
+    # switch to Raum -> the same entity now follows the room pair, no reconfig
+    await _reselect(coordinator, client, 3)
+    assert climate.current_temperature == pytest.approx(22.5)
+    assert climate.target_temperature == pytest.approx(23.0)
+    await climate.async_set_temperature(temperature=24.0)
+    assert client.written[-1] == (2, [240])  # soll_raum
+
+
+async def test_climate_switch_target_unmatched_case_raises(hass, monkeypatch):
+    device, client, coordinator = await setup_switch_device(hass, monkeypatch)
+    climate = make_entity(hass, ModbusConnectClimate, coordinator,
+                          template_def(device, "klima"))
+    await _reselect(coordinator, client, 1)  # Abluft has no configured case
+    with pytest.raises(ServiceValidationError):
+        await climate.async_set_temperature(temperature=22.0)
+    assert client.written == []  # nothing written when no case matches

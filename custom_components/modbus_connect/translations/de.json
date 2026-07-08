@@ -92,6 +92,9 @@
     },
     "no_mapping": {
       "message": "{key} hat keine {action}-Zuordnung für {value}."
+    },
+    "no_case": {
+      "message": "{key}: {action} hat keinen Fall für {value}."
     }
   }
 }

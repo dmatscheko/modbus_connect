@@ -14,7 +14,14 @@ from homeassistant.util import slugify
 
 from .const import DOMAIN
 from .coordinator import ModbusConnectCoordinator
-from .models import BIT_TABLES, TYPE_STRING, EntityDef, TemplateDef
+from .models import (
+    BIT_TABLES,
+    TYPE_STRING,
+    EntityDef,
+    SwitchTarget,
+    TemplateDef,
+    WriteTarget,
+)
 from .schema import DESCRIPTION_CLASSES, description_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -166,16 +173,20 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         source = self._tdef.config.get(field)
         if source is None:
             return None
-        template = self._compiled.get(field)
+        return self._render_source(source, field)
+
+    def _render_source(self, source: str, cache_key: str) -> Any:
+        """Render a template string (compiled cache keyed by ``cache_key``)."""
+        template = self._compiled.get(cache_key)
         if template is None:
-            template = self._compiled[field] = Template(source, self.hass)
+            template = self._compiled[cache_key] = Template(source, self.hass)
         data = self.coordinator.data or {}
         try:
             return template.async_render(
                 variables={**data, "values": data}, parse_result=True
             )
         except TemplateError as err:
-            _LOGGER.debug("%s: template '%s' failed: %s", self._tdef.key, field, err)
+            _LOGGER.debug("%s: template '%s' failed: %s", self._tdef.key, cache_key, err)
             return None
 
     def render_number(self, field: str) -> float | None:
@@ -185,12 +196,30 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
             return float(value)
         return None
 
-    async def _run_action(self, name: str, value: Any | None = None) -> None:
-        """Execute a configured WriteTarget action.
+    def _resolve_switch(self, name: str, switch: SwitchTarget) -> WriteTarget:
+        """Pick a switch action's target by rendering its selector template."""
+        selected = self._render_source(switch.selector, f"{name}.by")
+        target = switch.cases.get(str(selected)) if selected is not None else None
+        if target is None:
+            raise ServiceValidationError(
+                f"{self._tdef.key}: '{name}' has no case for {selected!r}",
+                translation_domain=DOMAIN,
+                translation_key="no_case",
+                translation_placeholders={
+                    "key": self._tdef.key,
+                    "action": name,
+                    "value": str(selected),
+                },
+            )
+        return target
 
-        Fixed actions write their configured value; mapped actions translate
-        the UI value through their map; plain actions write the UI value —
-        always through the target entity's codec.
+    async def _run_action(self, name: str, value: Any | None = None) -> None:
+        """Execute a configured write action.
+
+        A switch action first renders its selector to pick a case. Then: fixed
+        actions write their configured value; mapped actions translate the UI
+        value through their map; plain actions write the UI value — always
+        through the target entity's codec.
         """
         target = self._tdef.config.get(name)
         if target is None:
@@ -200,6 +229,8 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
                 translation_key="no_action",
                 translation_placeholders={"key": self._tdef.key, "action": name},
             )
+        if isinstance(target, SwitchTarget):
+            target = self._resolve_switch(name, target)
         if target.value is not None:
             payload: Any = target.value
         elif target.value_map is not None:

@@ -92,6 +92,9 @@
     },
     "no_mapping": {
       "message": "{key} has no {action} mapping for {value}."
+    },
+    "no_case": {
+      "message": "{key}: {action} has no case for {value}."
     }
   }
 }

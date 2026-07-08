@@ -53,6 +53,7 @@ from .models import (
     WRITABLE_TABLES,
     DeviceDef,
     EntityDef,
+    SwitchTarget,
     TemplateDef,
     WriteTarget,
 )
@@ -761,6 +762,34 @@ def _collect_template_actions(
 
 def _parse_write_target(
     ctx: _Ctx, name: str, raw: Any, defs: dict[str, EntityDef], kind: str
+) -> WriteTarget | SwitchTarget:
+    """A single target, or a ``by``/``cases`` switch picking one at write time."""
+    if isinstance(raw, dict) and ("by" in raw or "cases" in raw):
+        return _parse_switch_target(ctx, name, raw, defs, kind)
+    return _parse_single_target(ctx, name, raw, defs, kind)
+
+
+def _parse_switch_target(
+    ctx: _Ctx, name: str, raw: dict[str, Any], defs: dict[str, EntityDef], kind: str
+) -> SwitchTarget:
+    unknown = set(raw) - {"by", "cases"}
+    if unknown:
+        raise ctx.fail(f"'{name}': unknown keys {sorted(unknown)} (valid: ['by', 'cases'])")
+    selector = raw.get("by")
+    if not isinstance(selector, str):
+        raise ctx.fail(f"'{name}.by' must be a template string selecting a case")
+    cases_raw = raw.get("cases")
+    if not isinstance(cases_raw, dict) or not cases_raw:
+        raise ctx.fail(f"'{name}.cases' must be a non-empty mapping of value -> target")
+    cases = {
+        str(key): _parse_single_target(ctx, f"{name}.cases.{key}", target, defs, kind)
+        for key, target in cases_raw.items()
+    }
+    return SwitchTarget(selector=selector, cases=cases)
+
+
+def _parse_single_target(
+    ctx: _Ctx, name: str, raw: Any, defs: dict[str, EntityDef], kind: str
 ) -> WriteTarget:
     if not isinstance(raw, dict) or "entity" not in raw:
         raise ctx.fail(f"'{name}' must be a mapping with an 'entity' key")
@@ -817,8 +846,8 @@ def _post_climate(
             )
         )
     modes = raw.get("hvac_modes")
-    if modes is None and (target := config.get("set_hvac_mode")) and target.value_map:
-        modes = list(target.value_map)
+    if modes is None and (vmap := getattr(config.get("set_hvac_mode"), "value_map", None)):
+        modes = list(vmap)
     if modes is not None:
         config["hvac_modes"] = [
             str(_coerce_enum(ctx, "hvac_modes", str(m).lower(), HVACMode))
@@ -836,11 +865,13 @@ def _post_select(
     ha: dict[str, Any],
 ) -> None:
     target = config["select_option"]
+    target_map = getattr(target, "value_map", None)
+    target_entity = getattr(target, "entity", None)
     if "options" in raw:
         options = _str_list(ctx, "options", raw["options"])
-    elif target.value_map:
-        options = list(target.value_map)
-    elif entity_map := defs[target.entity].value_map:
+    elif target_map:
+        options = list(target_map)
+    elif target_entity and (entity_map := defs[target_entity].value_map):
         options = list(entity_map.values())
     else:
         raise ctx.fail(
@@ -858,8 +889,8 @@ def _post_fan(
     ha: dict[str, Any],
 ) -> None:
     presets = raw.get("preset_modes")
-    if presets is None and (target := config.get("set_preset_mode")) and target.value_map:
-        presets = list(target.value_map)
+    if presets is None and (vmap := getattr(config.get("set_preset_mode"), "value_map", None)):
+        presets = list(vmap)
     if presets is not None:
         config["preset_modes"] = _str_list(ctx, "preset_modes", presets)
     if ("preset_mode" in config or "set_preset_mode" in config) and "preset_modes" not in config:
