@@ -483,9 +483,13 @@ template:
     # (bypass opens when it is warmer outside), Sommer = cool (bypass opens when
     # it is cooler outside); an open bypass is the active heating/cooling.
     hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+    # bypass open -> actively heating/cooling; fans running otherwise -> just
+    # ventilating; only a stopped fan (Standby / off / error) counts as idle.
     hvac_action: >-
-      {{ ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
-         if position_bypassklappe == 'Bypass' else 'idle' }}
+      {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
+         else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
+              if position_bypassklappe == 'Bypass'
+         else 'fan' }}
     min_temp: 15
     max_temp: 30
     temp_step: 0.5
