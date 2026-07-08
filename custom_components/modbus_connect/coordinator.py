@@ -9,7 +9,7 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -76,11 +76,16 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or self.entity_id_prefix
             or f"{device.manufacturer} {device.model}"
         )
+        # HA's device-info card has no free-form rows, so fold the connection
+        # (host:port and Modbus unit id) into model_id — it renders right after
+        # the model as "<model> (<host:port · Unit N>)".
+        connection = f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]} · Unit {self.slave_id}"
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
             manufacturer=device.manufacturer,
             model=device.model,
+            model_id=connection,
         )
 
         super().__init__(

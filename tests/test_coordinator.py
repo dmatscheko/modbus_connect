@@ -98,6 +98,17 @@ async def test_adjacent_entities_one_read(hass, monkeypatch):
     assert coordinator.data == {"a": 100, "b": 200, "c": 300}
 
 
+async def test_device_info_shows_connection(hass, monkeypatch):
+    """host:port and the Modbus unit id are surfaced via model_id."""
+    client = FakeClient({0: 1})
+    device = make_device(sensor("a", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    info = coordinator.device_info
+    assert info["model"] == "X1"
+    assert info["model_id"] == "127.0.0.1:502 · Unit 1"
+
+
 async def test_scan_interval_buckets(hass, monkeypatch):
     faketime = FakeTime()
     client = FakeClient({0: 1, 50: 2})
