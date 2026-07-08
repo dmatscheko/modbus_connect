@@ -30,6 +30,9 @@ holding:
       platform: select
       name: Lüftungsstufe
       icon: mdi:stairs
+  luftungsstufe_raw:         # raw numeric handle on the stage register (addr 2);
+    address: 2               # the Lüftung fan writes on/off/preset through this,
+    internal: true           # since fixed turn_on/off actions need numeric values
   temperaturregelungsart_select:
     address: 7
     map:
@@ -442,3 +445,20 @@ input:
       state_class: measurement
       icon: mdi:water
       enabled_by_default: false
+
+# Template entities: the ventilation unit as a fan (on/off + stage presets).
+# The Lüftungsstufe select above stays for manual/dropdown control; both drive
+# register 2, so a change on one shows on the other within one poll.
+template:
+  luftung:
+    ha:
+      platform: fan
+      name: Lüftung
+    state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
+    preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
+    preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
+    turn_on: {entity: luftungsstufe_raw, value: 2}     # nominal ventilation (Stufe 2)
+    turn_off: {entity: luftungsstufe_raw, value: 0}    # Standby
+    set_preset_mode:
+      entity: luftungsstufe_raw
+      map: {Grundlüftung: 4, Stufe 1: 1, Stufe 2: 2, Stufe 3: 3}   # preset -> stage register value
