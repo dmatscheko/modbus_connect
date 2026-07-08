@@ -10,7 +10,7 @@
         },
         "data_description": {
           "filename": "The YAML file describing the registers and entities of your device.",
-          "name": "Friendly name for this device. Leave empty to use manufacturer and model from the device file."
+          "name": "Friendly name for this device. Leave empty to use manufacturer, model, and entity ID prefix from the device file."
         }
       },
       "connection": {
@@ -38,7 +38,7 @@
         },
         "data_description": {
           "filename": "The YAML file describing the registers and entities of your device.",
-          "name": "Friendly name for this device. Leave empty to use manufacturer and model from the device file."
+          "name": "Friendly name for this device. Leave empty to use manufacturer, model, and entity ID prefix from the device file."
         }
       },
       "reconfigure_connection": {

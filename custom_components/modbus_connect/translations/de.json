@@ -10,7 +10,7 @@
         },
         "data_description": {
           "filename": "Die YAML-Datei, die Register und Entitäten des Geräts beschreibt.",
-          "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller und Modell aus der Gerätedatei zu verwenden."
+          "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller, Modell und Entitäts-ID-Präfix aus der Gerätedatei zu verwenden."
         }
       },
       "connection": {
@@ -38,7 +38,7 @@
         },
         "data_description": {
           "filename": "Die YAML-Datei, die Register und Entitäten des Geräts beschreibt.",
-          "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller und Modell aus der Gerätedatei zu verwenden."
+          "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller, Modell und Entitäts-ID-Präfix aus der Gerätedatei zu verwenden."
         }
       },
       "reconfigure_connection": {
