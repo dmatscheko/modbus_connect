@@ -450,8 +450,8 @@ input:
 #  - luftung: the ventilation unit as a fan (on/off + stage presets). The
 #    Lüftungsstufe select above stays for manual control; both drive register 2,
 #    so a change on one shows on the other within one poll.
-#  - klima: a thermostat that follows Temperaturregelungsart, reading and writing
-#    whichever supply/room/exhaust setpoint is currently active.
+#  - klima: a thermostat following Temperaturregelungsart (reads/writes whichever
+#    supply/room/exhaust setpoint is active), with heat = Winter, cool = Sommer.
 template:
   luftung:
     ha:
@@ -479,7 +479,13 @@ template:
       {{ {'Zuluft': soll_zulufttemperatur_number,
           'Raum': soll_raumlufttemperatur_number,
           'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
-    hvac_mode: "{{ 'heat' }}"
+    # No active heater: the unit conditions air with the bypass. Winter = heat
+    # (bypass opens when it is warmer outside), Sommer = cool (bypass opens when
+    # it is cooler outside); an open bypass is the active heating/cooling.
+    hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+    hvac_action: >-
+      {{ ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
+         if position_bypassklappe == 'Bypass' else 'idle' }}
     min_temp: 15
     max_temp: 30
     temp_step: 0.5
@@ -489,3 +495,6 @@ template:
         Zuluft: {entity: soll_zulufttemperatur_number}
         Raum: {entity: soll_raumlufttemperatur_number}
         Abluft: {entity: soll_ablufttemperatur_number}
+    set_hvac_mode:                         # heat/cool -> Winter/Sommer season mode
+      entity: betriebsmodus_sommer_winter_select
+      map: {heat: Winter, cool: Sommer}
