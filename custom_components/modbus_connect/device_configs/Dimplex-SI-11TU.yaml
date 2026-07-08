@@ -80,15 +80,9 @@ holding:
       icon: mdi:home-thermometer-outline
       entity_category: config
       enabled_by_default: false
-  heating_fixed_target:
+  heating_fixed_target:      # setpoint owned by the Heizung climate entity (see template:)
     address: 5037
-    ha:
-      platform: number
-      min: 18
-      max: 60
-      name: Heizung Festwertsolltemperatur
-      unit_of_measurement: °C
-      icon: mdi:home-thermometer
+    internal: true
   heating_curve_end_point:
     address: 5038
     ha:
@@ -134,15 +128,9 @@ holding:
       icon: mdi:water-thermometer-outline
       entity_category: config
       enabled_by_default: false
-  hot_water_fixed_target:
+  hot_water_fixed_target:      # setpoint owned by the Warmwasser climate entity (see template:)
     address: 5047
-    ha:
-      platform: number
-      min: 18
-      max: 60
-      name: Warmwasser Festwertsolltemperatur
-      unit_of_measurement: °C
-      icon: mdi:water-thermometer
+    internal: true
   hot_water_min_fixed_target:
     address: 5145
     ha:
@@ -681,3 +669,34 @@ discrete:
       device_class: running
       entity_category: diagnostic
       enabled_by_default: false
+
+# Template entities: thermostats composed from the device's decoded values.
+template:
+  warmwasser:                              # hot-water thermostat (R3 temp + fixed setpoint)
+    ha:
+      platform: climate
+      name: Warmwasser
+    current_temperature: "{{ hot_water_temp }}"
+    target_temperature: "{{ hot_water_fixed_target }}"
+    hvac_mode: "{{ 'heat' }}"              # no DHW on/off register — always heating
+    hvac_action: "{{ 'heating' if operation_status == 'Warmwasser' else 'idle' }}"
+    min_temp: 18
+    max_temp: 60
+    temp_step: 1
+    set_temperature: {entity: hot_water_fixed_target}
+
+  heizung:                                 # heating thermostat (flow temp + fixed setpoint)
+    ha:
+      platform: climate
+      name: Heizung
+    current_temperature: "{{ flow_temp }}"
+    target_temperature: "{{ heating_fixed_target }}"
+    hvac_mode: "{{ 'off' if operating_mode == 'Sommer' else 'heat' }}"
+    hvac_action: "{{ 'heating' if operation_status == 'Heizen' else 'idle' }}"
+    min_temp: 18
+    max_temp: 60
+    temp_step: 1
+    set_temperature: {entity: heating_fixed_target}
+    set_hvac_mode:
+      entity: operating_mode
+      map: {heat: Auto, "off": Sommer}     # hvac mode -> operating_mode value written
