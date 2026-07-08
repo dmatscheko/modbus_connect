@@ -77,9 +77,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or f"{device.manufacturer} {device.model}"
         )
         # HA's device-info card has no free-form rows, so fold the connection
-        # (host:port and Modbus unit id) into model_id — it renders right after
-        # the model as "<model> (<host:port · Unit N>)".
-        connection = f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]} · Unit {self.slave_id}"
+        # (host:port and Modbus id) into model_id — it renders right after
+        # the model as "<model> (<host:port · ID N>)".
+        connection = f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]} · ID {self.slave_id}"
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
