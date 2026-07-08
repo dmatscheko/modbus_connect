@@ -66,16 +66,22 @@ holding:
       icon: mdi:dip-switch
       entity_category: config
       enabled_by_default: false
-  filter_timer_control:
+  filter_reset_button:       # both write to the filter-timer register (addr 33)
     address: 33
-    map:
-      0: None
-      1: Reset
-      2: Snooze
+    write_value: 1
     ha:
-      platform: select
-      name: Filter Timer Control
+      platform: button
+      name: Filter zurücksetzen
       icon: mdi:timer-refresh-outline
+      entity_category: config
+  filter_snooze_button:
+    address: 33
+    write_value: 2
+    ha:
+      platform: button
+      name: Filter später erinnern
+      icon: mdi:alarm-snooze
+      entity_category: config
   volumenstrom_luftungsstufe_1_number:
     address: 9
     multiplier: 10

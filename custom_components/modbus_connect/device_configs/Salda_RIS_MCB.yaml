@@ -18,6 +18,9 @@ holding:
       platform: select
       name: Fan Speed
       icon: mdi:fan
+  fan_speed_raw:             # raw numeric handle on the fan-speed register (addr 0);
+    address: 0               # the Ventilation fan writes on/off/preset through this,
+    internal: true           # since fixed turn_on/off actions need numeric values
   temperature_setpoint_number:
     address: 1
     ha:
@@ -102,3 +105,34 @@ input:
       precision: 1
       icon: mdi:thermometer
       entity_category: diagnostic
+
+# Template entities:
+#  - ventilation: the unit as a fan (on/off + speed presets). The Fan Speed
+#    select above stays for manual control; both drive register 0.
+#  - thermostat: current inside temperature + the single setpoint. This unit
+#    exposes no season/bypass register, so it is a plain heat setpoint (see note).
+template:
+  ventilation:
+    ha:
+      platform: fan
+      name: Ventilation
+    state: "{{ fan_speed_raw is not none and fan_speed_raw > 0 }}"
+    preset_mode: "{{ {1: 'Building protection', 2: 'Economy', 3: 'Comfort'}.get(fan_speed_raw) }}"
+    preset_modes: [Building protection, Economy, Comfort]
+    turn_on: {entity: fan_speed_raw, value: 2}     # nominal (Economy)
+    turn_off: {entity: fan_speed_raw, value: 0}    # Off / Stand-by
+    set_preset_mode:
+      entity: fan_speed_raw
+      map: {Building protection: 1, Economy: 2, Comfort: 3}   # preset -> speed register value
+
+  thermostat:
+    ha:
+      platform: climate
+      name: Climate
+    current_temperature: "{{ inside_temperature }}"
+    target_temperature: "{{ temperature_setpoint_number }}"
+    hvac_mode: "{{ 'heat' }}"              # no season/mode register exposed on this unit
+    min_temp: 15
+    max_temp: 30
+    temp_step: 1
+    set_temperature: {entity: temperature_setpoint_number}

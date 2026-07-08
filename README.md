@@ -243,6 +243,27 @@ fixed (`{entity: x, value: 1}` — on/off/open/close/stop), value-carrying
 (`{entity: x}` — the UI value is written), and mapped
 (`{entity: x, map: {ui value: written value}}`).
 
+Instead of a single `entity`, any action may choose its target at write time
+with `by`/`cases`: the `by` template is rendered and its value selects a case,
+each case being an ordinary target (with its own optional `value`/`map`). Every
+case is validated and codec-routed like a normal target; a rendered value with
+no matching case raises an error instead of writing to the wrong register. This
+lets one control write to different registers depending on another value — e.g.
+a thermostat whose active setpoint follows a regulation-type selector:
+
+```yaml
+set_temperature:
+  by: "{{ regulation_mode }}"          # rendered on each write; its value picks a case
+  cases:
+    supply:  {entity: supply_setpoint}
+    room:    {entity: room_setpoint}
+    exhaust: {entity: exhaust_setpoint}
+```
+
+The read side needs no special construct — a template already sees every value,
+so `current_temperature`/`target_temperature` can switch inputs with a plain
+`{{ {'supply': t_supply, 'room': t_room}[regulation_mode] }}`.
+
 | Template platform | Templates | Actions | Statics |
 | --- | --- | --- | --- |
 | `sensor`, `binary_sensor` | `state` | — | — |

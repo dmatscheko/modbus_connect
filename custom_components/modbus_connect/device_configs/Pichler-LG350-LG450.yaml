@@ -28,6 +28,9 @@ holding:
       platform: select
       name: Lüftungsstufe
       icon: mdi:stairs
+  luftungsstufe_raw:         # raw numeric handle on the stage register (addr 2);
+    address: 2               # the Lüftung fan writes on/off/preset through this,
+    internal: true           # since fixed turn_on/off actions need numeric values
   ewt_sommer_number:
     address: 3
     multiplier: 0.1
@@ -204,16 +207,22 @@ holding:
       icon: mdi:thermometer
       entity_category: config
       enabled_by_default: false
-  filter_timer_control:
+  filter_reset_button:       # both write to the filter-timer register (addr 33)
     address: 33
-    map:
-      0: Keine Aktion
-      1: Reset
-      2: Später erinnern
+    write_value: 1
     ha:
-      platform: select
-      name: Filterintervall zurücksetzen
+      platform: button
+      name: Filter zurücksetzen
       icon: mdi:timer-refresh-outline
+      entity_category: config
+  filter_snooze_button:
+    address: 33
+    write_value: 2
+    ha:
+      platform: button
+      name: Filter später erinnern
+      icon: mdi:alarm-snooze
+      entity_category: config
   konfiguration_luftungsstufe_select:
     address: 34
     map:
@@ -1362,3 +1371,61 @@ input:
       unit_of_measurement: h
       icon: mdi:fan-speed-1
       entity_category: diagnostic
+
+# Template entities:
+#  - luftung: the ventilation unit as a fan (on/off + stage presets). The
+#    Lüftungsstufe select above stays for manual control; both drive register 2,
+#    so a change on one shows on the other within one poll.
+#  - klima: a thermostat following Temperaturregelungsart (reads/writes whichever
+#    supply/room/exhaust setpoint is active), with heat = Winter, cool = Sommer.
+#    This unit exposes no room sensor, so Raum regulation shows extract-air temp.
+template:
+  luftung:
+    ha:
+      platform: fan
+      name: Lüftung
+    state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
+    preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
+    preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
+    turn_on: {entity: luftungsstufe_raw, value: 2}     # nominal ventilation (Stufe 2)
+    turn_off: {entity: luftungsstufe_raw, value: 0}    # Standby
+    set_preset_mode:
+      entity: luftungsstufe_raw
+      map: {Grundlüftung: 4, Stufe 1: 1, Stufe 2: 2, Stufe 3: 3}   # preset -> stage register value
+
+  klima:
+    ha:
+      platform: climate
+      name: Klima
+    # current + target follow Temperaturregelungsart (Abluft/Zuluft/Raum); no room
+    # sensor on this unit, so Raum uses extract-air (Abluft) temperature.
+    current_temperature: >-
+      {{ {'Zuluft': temperatur_zuluft,
+          'Raum': temperatur_abluft,
+          'Abluft': temperatur_abluft}.get(temperaturregelungsart_select) }}
+    target_temperature: >-
+      {{ {'Zuluft': soll_zulufttemperatur_number,
+          'Raum': soll_raumlufttemperatur_number,
+          'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
+    # No active heater: the unit conditions air with the bypass. Winter = heat,
+    # Sommer = cool; an open bypass is the active heating/cooling.
+    hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+    # bypass open -> actively heating/cooling; fans running otherwise -> just
+    # ventilating; only a stopped fan (Standby / off / error) counts as idle.
+    hvac_action: >-
+      {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
+         else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
+              if bypassklappe_status
+         else 'fan' }}
+    min_temp: 15
+    max_temp: 30
+    temp_step: 0.5
+    set_temperature:                       # writes whichever setpoint is active right now
+      by: "{{ temperaturregelungsart_select }}"
+      cases:
+        Zuluft: {entity: soll_zulufttemperatur_number}
+        Raum: {entity: soll_raumlufttemperatur_number}
+        Abluft: {entity: soll_ablufttemperatur_number}
+    set_hvac_mode:                         # heat/cool -> Winter/Sommer season mode
+      entity: betriebsmodus_sommer_winter_select
+      map: {heat: Winter, cool: Sommer}
