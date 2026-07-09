@@ -623,9 +623,8 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
     if defn.read_register is not None and (not defn.writes or platform == "button"):
         raise ctx.fail("'read_register' is only valid on writable, readable platforms")
 
-    # optimistic (marked by optimistic_default): write-only register, shown from the
-    # seed and last write only.
-    if defn.optimistic:
+    # optimistic_default: write-only register, shown from the seed and last write only.
+    if defn.optimistic_default is not None:
         if not defn.writes or platform == "button":
             raise ctx.fail("'optimistic_default' is only valid on writable, readable platforms")
         if defn.read_register is not None:

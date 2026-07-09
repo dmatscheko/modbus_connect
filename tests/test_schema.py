@@ -996,7 +996,7 @@ def test_optimistic_select_parses():
         "t.yaml",
     )
     e = dev.entities[0]
-    assert e.optimistic and e.write_multiple and e.optimistic_default == "Off"
+    assert e.optimistic_default == "Off" and e.write_multiple
 
 
 def test_optimistic_requires_writable_platform():
@@ -1016,6 +1016,22 @@ def test_optimistic_and_read_register_mutually_exclusive():
             }),
             "t.yaml",
         )
+
+
+@pytest.mark.parametrize("seed", [0, False, "None", "unavailable", "0", "Off"])
+def test_optimistic_default_preserves_falsy_and_special_seeds(seed):
+    # the marker is "value present", not "value truthy": 0 / false / "None" /
+    # "unavailable" are real seeds, shown as-is, not treated as absent
+    dev = parse_device(
+        doc(pc={
+            "address": 1, "optimistic_default": seed,
+            "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
+        }),
+        "t.yaml",
+    )
+    e = dev.entities[0]
+    # value preserved as-is (present + correct type), not dropped as if absent
+    assert e.optimistic_default == seed and type(e.optimistic_default) is type(seed)
 
 
 def test_optimistic_default_null_rejected():

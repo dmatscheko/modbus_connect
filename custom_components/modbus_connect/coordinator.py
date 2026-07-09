@@ -80,15 +80,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or DEFAULT_SCAN_INTERVAL
         )
         # Buttons never read; read_register entities read via another entity's
-        # value (rendered below), not from their own (write) register; optimistic
-        # entities are write-only command registers seeded from ``default``.
+        # value (rendered below), not from their own (write) register; entities with
+        # an optimistic_default are write-only command registers.
         self._readers = [
             e
             for e in device.entities
-            if e.platform != "button" and e.read_register is None and not e.optimistic
+            if e.platform != "button" and e.read_register is None and e.optimistic_default is None
         ]
         self._linked = [e for e in device.entities if e.read_register is not None]
-        self._optimistic = [e for e in device.entities if e.optimistic]
+        self._optimistic = [e for e in device.entities if e.optimistic_default is not None]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
         self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
@@ -336,7 +336,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.slave_id, defn.address, payload, multiple=defn.write_multiple
                     )
                 if defn.platform != "button":
-                    if defn.read_register is not None or defn.optimistic:
+                    if defn.read_register is not None or defn.optimistic_default is not None:
                         confirmed = value  # optimistic; no read-back of this register
                     else:
                         self._store(
