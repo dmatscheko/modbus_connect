@@ -34,7 +34,9 @@ Failed bridged blocks fall back to unbridged reads automatically, and
 addresses a device refuses to serve are remembered and never bridged again.
 Offline devices back off exponentially (up to 5 min) instead of hammering the
 gateway. One failing entity does not take down the rest; it just becomes
-unavailable.
+unavailable — and a register that keeps failing while the device answers
+everything else is quarantined out of the read plan and re-probed every
+10 minutes, so a single bad address never costs permanent traffic.
 
 Typical use cases: energy meters (Eastron SDM), solar inverters and hybrid
 storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
@@ -216,12 +218,20 @@ count unrecovered failures only: a bridged block that fails once and teaches the
 planner a dead filler address is planning, not a device problem. A healthy
 device writes neither entity to the recorder.
 
+A register that keeps failing while the device answers everything else — the
+signature of a wrong address in a device file — is **quarantined**: after
+three consecutive misses, or immediately when the device reports the address
+as illegal, the entity goes unavailable and its registers leave the read plan.
+A standalone probe every 10 minutes (and any reload) lifts the quarantine the
+moment the device serves the register again. The quarantine is announced as a
+warning in the log naming the entity and its address.
+
 To find *which* register keeps failing: *Download diagnostics* lists
-`failed_reads_by_key` (failure counts per entity, worst first), and with debug
-logging enabled (device page → *Enable debug logging*, or logger
-`custom_components.modbus_connect`) every unrecovered failure logs the address
-range and the entities it covers. A register the device genuinely never serves
-is best removed from the config or declared in
+`quarantined` and `failed_reads_by_key` (failure counts per entity, worst
+first), and with debug logging enabled (device page → *Enable debug logging*,
+or logger `custom_components.modbus_connect`) every unrecovered failure logs
+the address range and the entities it covers. A register the device genuinely
+never serves is best removed from the config or declared in
 [`bad_addresses`](docs/device_files.md#read-planning-and-polling).
 
 ## Automation examples

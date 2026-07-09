@@ -52,3 +52,12 @@ MAX_BACKOFF_SECONDS: Final = 300
 
 # How far back the read-failures health indicator looks (seconds)
 HEALTH_WINDOW_SECONDS: Final = 300
+
+# Quarantine for a register the device keeps refusing while it answers other
+# reads (usually a wrong address in the device file): after this many
+# consecutive unread polls — or one explicit illegal-address answer — the
+# entity's registers leave the read plan ...
+QUARANTINE_AFTER: Final = 3
+# ... and are re-probed standalone this often (seconds); success lifts the
+# quarantine, as does reloading the entry.
+QUARANTINE_RETRY_SECONDS: Final = 600

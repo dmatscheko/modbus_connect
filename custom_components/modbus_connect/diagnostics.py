@@ -60,6 +60,7 @@ async def async_get_config_entry_diagnostics(
             "failed_reads_by_key": dict(
                 sorted(coordinator.failed_reads_by_key.items(), key=lambda kv: -kv[1])
             ),
+            "quarantined": coordinator.quarantine_status,
         },
         "entities": [
             {

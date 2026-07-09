@@ -31,6 +31,8 @@ from .const import (
     MAX_BACKOFF_SECONDS,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
+    QUARANTINE_AFTER,
+    QUARANTINE_RETRY_SECONDS,
 )
 from .models import TABLE_COIL, DeviceDef, EntityDef, Span, SwitchTarget, TemplateDef
 from .planner import bridged_addresses, plan_blocks, spans_in_block
@@ -242,6 +244,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.failed_read_total = 0
         self._failure_times: deque[float] = deque()
         self.failed_reads_by_key: dict[str, int] = {}
+        # Registers the device keeps refusing (while answering everything else)
+        # are quarantined out of the read plan and re-probed on a slow cadence:
+        # entity key → monotonic time of the next probe. Runtime state — a
+        # reload clears it, like the learned holes above.
+        self.quarantined: dict[str, float] = {}
+        self._fail_streak: dict[str, int] = {}
+        self._cycle_illegal: set[str] = set()
 
         # The prefix drives entity ids; the name is the device/entry title.
         # Old entries stored their device name in CONF_PREFIX.
@@ -287,15 +296,27 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Total entities that poll — the denominator for ``last_read_count``."""
         return len(self._readers)
 
-    def _record_read_failure(self, span: Span | None = None) -> None:
+    def _record_read_failure(
+        self, span: Span | None = None, *, illegal: bool = False, probe: bool = False
+    ) -> None:
         """Count one unrecovered failed read.
 
         With a ``span``, the failure covered entity registers (not just bridged
         filler), so it is also attributed to the entities in that range — the
         pointer needed to find a register the device genuinely does not serve.
+        ``illegal`` (the device explicitly refused the address) fast-tracks
+        those entities into quarantine. ``probe`` failures — scheduled re-probes
+        of already quarantined registers — stay out of the 5-minute health
+        window, so a known-bad register does not keep the problem indicator lit.
         """
         self.failed_read_total += 1
-        self._failure_times.append(time.monotonic())
+        # Trim on write, not only on read: the window must stay bounded even
+        # when nothing polls the health indicator (its entity can be disabled).
+        cutoff = time.monotonic() - HEALTH_WINDOW_SECONDS
+        while self._failure_times and self._failure_times[0] < cutoff:
+            self._failure_times.popleft()
+        if not probe:
+            self._failure_times.append(time.monotonic())
         if span is None:
             return
         keys = sorted(
@@ -307,6 +328,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         for key in keys:
             self.failed_reads_by_key[key] = self.failed_reads_by_key.get(key, 0) + 1
+        if illegal:
+            self._cycle_illegal.update(keys)
         if keys:
             _LOGGER.debug(
                 "Unrecovered read failure %s %d..%d; affected entities: %s",
@@ -316,6 +339,38 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ", ".join(keys),
             )
 
+    def _track_failure_streak(self, defn: EntityDef, now: float) -> None:
+        """Count an entity's consecutive unread cycles; quarantine when hopeless.
+
+        Only reached on partial failures — a cycle where nothing answers raises
+        before decoding, so an unreachable device or gateway never quarantines
+        anything. An explicit illegal-address answer skips the streak: the
+        device itself said the register does not exist.
+        """
+        key = defn.key
+        streak = self._fail_streak[key] = self._fail_streak.get(key, 0) + 1
+        if streak < QUARANTINE_AFTER and key not in self._cycle_illegal:
+            return
+        reason = (
+            "is an illegal address for the device"
+            if key in self._cycle_illegal
+            else f"failed {streak} consecutive polls"
+        )
+        self._fail_streak.pop(key, None)
+        self.quarantined[key] = now + QUARANTINE_RETRY_SECONDS
+        _LOGGER.warning(
+            "%s: %s (%s@%d+%d) %s while the device answers other reads; pausing "
+            "it and re-probing every %d s. If it never recovers, fix or remove "
+            "the entity in the device file",
+            self.name,
+            key,
+            defn.table,
+            defn.address,
+            defn.count,
+            reason,
+            QUARANTINE_RETRY_SECONDS,
+        )
+
     @property
     def read_failures_in_window(self) -> int:
         """Unrecovered read failures within the last HEALTH_WINDOW_SECONDS."""
@@ -323,6 +378,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         while self._failure_times and self._failure_times[0] < cutoff:
             self._failure_times.popleft()
         return len(self._failure_times)
+
+    @property
+    def quarantine_status(self) -> dict[str, int]:
+        """Quarantined entity keys → seconds until their next re-probe."""
+        now = time.monotonic()
+        return {k: max(0, round(t - now)) for k, t in sorted(self.quarantined.items())}
 
     @property
     def provided_unique_ids(self) -> set[str]:
@@ -415,8 +476,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         now = time.monotonic()
-        due = [e for e in self._readers if self._next_due[e.key] <= now]
-        if not due:
+        self._cycle_illegal.clear()
+        due = [
+            e
+            for e in self._readers
+            if e.key not in self.quarantined and self._next_due[e.key] <= now
+        ]
+        probes = sorted(k for k, t in self.quarantined.items() if t <= now)
+        if not due and not probes:
             return self._seeded_data()
 
         spans = {e.span for e in due}
@@ -443,13 +510,24 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 yielded, n = await self._read_with_fallback(block, spans)
             ok_blocks += yielded
             reads += n
+        # Quarantined registers re-probe standalone on their own slow cadence,
+        # never inside the healthy blocks; a recovered entity rejoins ``due``
+        # and decodes below like any other.
+        for key in probes:
+            if await self._probe_quarantined(key, now):
+                ok_blocks += 1
+                due.append(self.entity_defs[key])
+            reads += 1
         self.last_read_count = reads
         self.last_polled_count = len(due)
 
-        if not ok_blocks:
+        # Failing probes alone are no outage: with no regular block due, the
+        # cycle leaves the device's health untouched.
+        if blocks and not ok_blocks:
             self._register_failure()
             raise UpdateFailed(f"device {self.slave_id} did not answer any read")
-        self._register_success()
+        if ok_blocks:
+            self._register_success()
 
         # Copied only now: a write can interleave between the block reads above
         # and push its confirmed value into self.data — a copy taken at refresh
@@ -458,13 +536,20 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for defn in due:
             value = self._decode(defn)
             unread = value is None and self._missing(defn)
+            if unread:
+                self._track_failure_streak(defn, now)  # may quarantine the key
+            else:
+                self._fail_streak.pop(defn.key, None)
             if value is None and defn.optimistic_default is not None:
                 value = defn.optimistic_default  # keep the control usable
             data[defn.key] = self._postprocess(defn, data.get(defn.key), value)
             # An entity whose block read failed gets one quick retry on the next
             # tick instead of waiting out its whole interval (which can be long);
-            # if the retry fails too, it falls back to the normal cadence.
-            if unread and defn.key not in self._retried:
+            # if the retry fails too, it falls back to the normal cadence. A
+            # just-quarantined key gets neither: the slow probe owns it now.
+            if defn.key in self.quarantined:
+                self._retried.discard(defn.key)
+            elif unread and defn.key not in self._retried:
                 self._retried.add(defn.key)
             else:
                 self._retried.discard(defn.key)
@@ -498,7 +583,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         Returns ``(yielded, reads)``: ``yielded`` is 1 if anything was read (else
         0), and ``reads`` is how many Modbus read transactions were issued. If the
         block only failed because of bridged filler addresses, remember those as
-        holes so future plans avoid them.
+        holes so future plans avoid them. A failing retry that still covers
+        several spans is isolated once more into one read per span, so a single
+        dead register cannot take its readable neighbours down with it.
         """
         try:
             self._store(block, await self.client.read_block(self.slave_id, block))
@@ -508,28 +595,39 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # re-store their part, and whatever stays failed must not decode from
             # a previous cycle's words (a mixed-generation value).
             self._clear(block)
+            block_illegal = err.illegal_address
             _LOGGER.debug("Block %s failed (%s), retrying unbridged", block, err)
 
         needed = spans_in_block(block, spans)
         sub_blocks = plan_blocks(needed, max_read=self.device_def.max_read)
-        # No unbridged sub-plan to fall back to: either the block was a single
-        # span already, or it is a max_read-sized chunk of a larger span (no span
-        # lies fully inside it) — nothing smaller can be retried.
+        # No unbridged sub-plan to fall back to: the block was a single span, a
+        # run of adjacent spans that merge straight back into it, or a
+        # max_read-sized chunk of a larger span (no span fully inside it).
         if not sub_blocks or sub_blocks == [block]:
-            self._record_read_failure(block)
+            if len(needed) > 1:
+                any_ok, n = await self._read_spans_isolated(needed)
+                return (1 if any_ok else 0), 1 + n
+            self._record_read_failure(block, illegal=block_illegal)
             _LOGGER.debug("No fallback for failed block %s", block)
             return 0, 1  # the failed read still hit the wire
 
         all_ok = True
         any_ok = False
+        reads = 1 + len(sub_blocks)  # initial try + each sub-read
         for sub in sub_blocks:
             try:
                 self._store(sub, await self.client.read_block(self.slave_id, sub))
                 any_ok = True
             except ReadError as err:
-                self._record_read_failure(sub)
                 all_ok = False
                 _LOGGER.debug("Fallback read %s failed: %s", sub, err)
+                inner = spans_in_block(sub, needed)
+                if len(inner) > 1:
+                    sub_ok, n = await self._read_spans_isolated(inner)
+                    any_ok = any_ok or sub_ok
+                    reads += n
+                else:
+                    self._record_read_failure(sub, illegal=err.illegal_address)
 
         if any_ok and all_ok:
             # Every real span read fine on retry: the initial failure was only
@@ -545,7 +643,44 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     len(new_holes),
                     block.table,
                 )
-        return (1 if any_ok else 0), 1 + len(sub_blocks)  # initial try + each sub-read
+        return (1 if any_ok else 0), reads
+
+    async def _read_spans_isolated(self, needed: list[Span]) -> tuple[bool, int]:
+        """Read each span on its own to tell a dead register from its neighbours.
+
+        The last resort for a failed unbridged read covering several spans:
+        adjacent spans always plan into one block, so only reading them one by
+        one can pinpoint which register the device actually refuses.
+        """
+        any_ok = False
+        for span in needed:
+            try:
+                self._store(span, await self.client.read_block(self.slave_id, span))
+                any_ok = True
+            except ReadError as err:
+                self._record_read_failure(span, illegal=err.illegal_address)
+                _LOGGER.debug("Isolated read %s failed: %s", span, err)
+        return any_ok, len(needed)
+
+    async def _probe_quarantined(self, key: str, now: float) -> bool:
+        """One standalone re-probe of a quarantined register; True on recovery.
+
+        Kept out of the regular plan so the known-bad span never drags a healthy
+        block down. Success lifts the quarantine; failure schedules the next
+        probe and stays out of the health window (see _record_read_failure).
+        """
+        span = self.entity_defs[key].span
+        async with self.client.lock:
+            try:
+                self._store(span, await self.client.read_block(self.slave_id, span))
+            except ReadError as err:
+                self.quarantined[key] = now + QUARANTINE_RETRY_SECONDS
+                self._record_read_failure(span, probe=True)
+                _LOGGER.debug("Re-probe of quarantined %s failed: %s", key, err)
+                return False
+        del self.quarantined[key]
+        _LOGGER.info("%s: %s reads again; lifting its quarantine", self.name, key)
+        return True
 
     def _store(self, block: Span, values: list[int] | list[bool]) -> None:
         for i, addr in enumerate(range(block.start, block.end)):

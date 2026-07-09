@@ -52,6 +52,7 @@ class FakeClient:
         self.write_multiple_flags: list[bool] = []
         self.fail_spans: set[Span] = set()
         self.fail_addresses: set[int] = set()
+        self.illegal = False  # fail with the device's explicit illegal-address answer
         self.connected_ok = True
 
     async def ensure_connected(self) -> bool:
@@ -62,7 +63,7 @@ class FakeClient:
         if span in self.fail_spans or any(
             span.start <= a < span.end for a in self.fail_addresses
         ):
-            raise ReadError(f"fail {span}", illegal_address=True)
+            raise ReadError(f"fail {span}", illegal_address=self.illegal)
         return [self.registers.get(a, 0) for a in range(span.start, span.end)]
 
     async def write_registers(
@@ -1086,3 +1087,137 @@ async def test_read_health_entities(hass, monkeypatch):
     await coordinator.async_refresh()
     assert problem.is_on is False
     assert counter.native_value == 1
+
+
+# --- register quarantine ------------------------------------------------------
+
+
+async def test_persistently_failing_register_is_quarantined(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("good", 0), sensor("bad", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+
+    client.fail_addresses = {100}
+    for _ in range(3):  # initial failure, the quick retry, one cadence retry
+        await coordinator.async_refresh()
+        ft.now += 30
+    assert set(coordinator.quarantined) == {"bad"}
+    assert coordinator.data == {"good": 5, "bad": None}
+
+    client.reads.clear()
+    await coordinator.async_refresh()  # bad has left the read plan
+    assert client.reads == [Span("holding", 0, 1)]
+    assert coordinator.last_update_success
+
+
+async def test_illegal_address_answer_quarantines_immediately(hass, monkeypatch):
+    client = FakeClient({0: 5})
+    client.fail_addresses = {100}
+    client.illegal = True  # the device explicitly refuses the address
+    device = make_device(sensor("good", 0), sensor("bad", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert set(coordinator.quarantined) == {"bad"}
+    assert coordinator.failed_reads_by_key == {"bad": 1}
+
+
+async def test_quarantined_register_reprobes_and_recovers(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    client.fail_addresses = {100}
+    client.illegal = True
+    device = make_device(sensor("good", 0), sensor("bad", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    assert coordinator.quarantine_status == {"bad": 600}
+
+    ft.now += 630  # past the first probe due time; the health window has drained
+    await coordinator.async_refresh()  # the probe fails: quarantine stays
+    assert set(coordinator.quarantined) == {"bad"}
+    assert coordinator.failed_read_total == 2
+    assert coordinator.read_failures_in_window == 0  # probes stay out of the window
+
+    client.fail_addresses = set()
+    ft.now += 630
+    await coordinator.async_refresh()  # the probe succeeds: quarantine lifts
+    assert coordinator.quarantined == {}
+    assert coordinator.data["bad"] == 7
+
+    client.reads.clear()
+    ft.now += 30
+    await coordinator.async_refresh()  # back in the regular plan
+    assert Span("holding", 100, 1) in client.reads
+
+
+async def test_failing_probe_alone_is_not_an_outage(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    client.fail_addresses = {100}
+    client.illegal = True
+    device = make_device(sensor("slow", 0, scan_interval=3600), sensor("bad", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    assert set(coordinator.quarantined) == {"bad"}
+
+    client.reads.clear()
+    ft.now += 630  # only the probe is due; slow waits out its hour
+    await coordinator.async_refresh()
+    assert client.reads == [Span("holding", 100, 1)]  # the probe alone
+    assert coordinator.last_update_success  # a failing probe is no outage
+
+
+async def test_dead_register_isolated_from_adjacent_neighbour(hass, monkeypatch):
+    # a and b are adjacent, so the unbridged fallback merges them straight back
+    # into the failed block; only the per-span isolation can save b
+    client = FakeClient({0: 1, 1: 2})
+    client.fail_addresses = {0}
+    device = make_device(sensor("a", 0), sensor("b", 1))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success
+    assert coordinator.data == {"a": None, "b": 2}
+    assert coordinator.failed_reads_by_key == {"a": 1}  # b is not blamed
+    assert client.reads == [
+        Span("holding", 0, 2),  # merged read fails
+        Span("holding", 0, 1),  # isolated: the dead register
+        Span("holding", 1, 1),  # isolated: the healthy neighbour recovers
+    ]
+
+
+async def test_isolation_inside_bridged_fallback(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2, 6: 3})
+    client.fail_addresses = {0}
+    device = make_device(sensor("a", 0), sensor("b", 1), sensor("c", 6))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    assert coordinator.data == {"a": None, "b": 2, "c": 3}
+    assert coordinator.failed_reads_by_key == {"a": 1}
+    assert coordinator._holes == set()  # a real span failed: nothing learned
+    assert client.reads == [
+        Span("holding", 0, 7),  # bridged read fails
+        Span("holding", 0, 2),  # unbridged a+b still fails
+        Span("holding", 0, 1),  # isolated: a is the culprit
+        Span("holding", 1, 1),  # isolated: b recovers
+        Span("holding", 6, 1),  # c's unbridged read succeeds
+    ]
+
+
+async def test_failure_window_deque_trims_on_write(hass, monkeypatch):
+    # the window must stay bounded even if nothing ever reads the health
+    # indicator (its entity can be disabled)
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("good", 0), sensor("flaky", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    for _ in range(4):
+        client.fail_addresses = {100}
+        await coordinator.async_refresh()  # one failure recorded
+        client.fail_addresses = set()
+        ft.now += 400  # past the window; the recovery also resets the streak
+        await coordinator.async_refresh()
+        ft.now += 400
+    assert len(coordinator._failure_times) == 1  # older entries trimmed on write

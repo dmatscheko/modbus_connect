@@ -109,10 +109,16 @@ small unused holes up to `max_read_gap` are bridged (reading a few unneeded
 registers is cheaper than a second round trip), and no block exceeds
 `max_register_read` or the protocol limit of 125 registers.
 
-A failed bridged block falls back to unbridged reads automatically, and filler
+A failed bridged block falls back to unbridged reads automatically, filler
 addresses the device refuses to serve are learned as holes and never bridged
-again. Two device keys steer the planner up front when a device is known to be
-picky:
+again, and a failed retry covering several entities is read once more entity
+by entity, so one dead register cannot take its readable neighbours down. A
+register that keeps failing while the device answers everything else (three
+consecutive polls, or one explicit illegal-address answer) is quarantined: its
+entity goes unavailable, its registers leave the read plan, and a standalone
+probe every 10 minutes lifts the quarantine as soon as the device serves it
+again — a wrong `address:` costs a warning and a probe, not permanent traffic.
+Two device keys steer the planner up front when a device is known to be picky:
 
 - `bad_addresses:` — registers the device answers with an error, per table;
   never read and never bridged across.
@@ -128,10 +134,10 @@ config's fastest cadence). So `scan_interval` sets the actual rate, while
 confirmed by reading the register back immediately.
 
 To watch the plan at work: *Download diagnostics* shows the parsed definition,
-the planning state (including learned holes), and per-entity failure counts
-(`failed_reads_by_key`, worst first) — see the README's [read
-health](../README.md#how-data-is-updated) section for the entities that
-surface failures on the device page.
+the planning state (including learned holes and quarantined registers), and
+per-entity failure counts (`failed_reads_by_key`, worst first) — see the
+README's [read health](../README.md#how-data-is-updated) section for the
+entities that surface failures on the device page.
 
 ## Modbus keys (per entity)
 
