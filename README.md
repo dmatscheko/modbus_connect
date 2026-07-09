@@ -331,7 +331,7 @@ authentication, and no fixed entity set to translate).
 python3 -m venv .venv
 .venv/bin/pip install -r requirements_test.txt
 .venv/bin/python -m pytest tests/ --cov=custom_components.modbus_connect
-.venv/bin/ruff check custom_components tests converter
+.venv/bin/ruff check custom_components tests converter support
 .venv/bin/mypy custom_components/modbus_connect   # strict, see pyproject.toml
 ```
 
@@ -349,3 +349,9 @@ regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
 which Home Assistant ≥ 2026.3 serves locally), next to
 `support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
 with decoded views, write, register scan; see its `--help`).
+
+Releases are cut from the GitHub **Actions** tab: run the *Release* workflow
+and enter the version (e.g. `0.3.0`). It re-runs the full gate (ruff, mypy,
+tests), bumps `manifest.json`/`pyproject.toml` when the version is new, tags
+`vX.Y.Z`, and publishes a GitHub release with generated notes — the version
+HACS then offers to users.

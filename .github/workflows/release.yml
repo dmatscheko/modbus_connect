@@ -1,0 +1,108 @@
+name: Release
+
+# Cut a release from the GitHub web page: Actions -> Release -> Run workflow,
+# enter the version. Gates on ruff/mypy/pytest, bumps manifest.json +
+# pyproject.toml when the version is new, tags vX.Y.Z, and publishes a GitHub
+# release with generated notes (which HACS serves as the installable version).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.3.0 (the current manifest version releases HEAD as-is; a higher one bumps the version files first)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: gate + tag + publish
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Guard branch and version input
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error::releases are cut from main, not $GITHUB_REF_NAME"
+            exit 1
+          fi
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::version must look like 1.2.3, got '$VERSION'"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Refuse existing tags and version downgrades
+        run: |
+          if git ls-remote --exit-code origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "::error::tag v$VERSION already exists"
+            exit 1
+          fi
+          CURRENT=$(python3 -c "import json; print(json.load(open('custom_components/modbus_connect/manifest.json'))['version'])")
+          echo "CURRENT=$CURRENT" >> "$GITHUB_ENV"
+          if [ "$VERSION" != "$CURRENT" ] && [ "$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n1)" != "$VERSION" ]; then
+            echo "::error::$VERSION is lower than the current version $CURRENT"
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements_test.txt
+
+      # The same gate as test.yml, run here on purpose: pushes made with
+      # GITHUB_TOKEN never trigger other workflows, so the bump commit below
+      # would reach main untested otherwise.
+      - name: Ruff
+        run: ruff check custom_components tests converter support
+      - name: Mypy
+        run: mypy
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=custom_components.modbus_connect \
+            --cov-fail-under=95
+
+      - name: Bump version files
+        if: env.VERSION != env.CURRENT
+        run: |
+          python3 - "$VERSION" <<'EOF'
+          import pathlib
+          import re
+          import sys
+
+          # Surgical replacements keep both files byte-identical apart from
+          # the version (re-serializing the JSON would reformat it).
+          version = sys.argv[1]
+          manifest = pathlib.Path("custom_components/modbus_connect/manifest.json")
+          new, n = re.subn(
+              r'"version": "[^"]*"', f'"version": "{version}"', manifest.read_text()
+          )
+          assert n == 1, "manifest.json version key not found exactly once"
+          manifest.write_text(new)
+          pyproject = pathlib.Path("pyproject.toml")
+          new, n = re.subn(
+              r'(?m)^version = "[^"]*"$', f'version = "{version}"',
+              pyproject.read_text(),
+          )
+          assert n == 1, "pyproject.toml version key not found exactly once"
+          pyproject.write_text(new)
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "release $VERSION"
+          git push
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v$VERSION" --title "v$VERSION" --generate-notes --target "$(git rev-parse HEAD)"
