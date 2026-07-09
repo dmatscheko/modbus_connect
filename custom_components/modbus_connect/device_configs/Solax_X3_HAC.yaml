@@ -11,9 +11,6 @@ device:
   default_groups: [basic]
 
 holding:
-  firmware_version:
-    address: 37
-    internal: true
   meter_setting:
     address: 1548
     groups: [advanced, all]
@@ -755,6 +752,9 @@ input:
       icon: "mdi:monitor"
       entity_category: diagnostic
       enabled_by_default: false
+  firmware_version:
+    address: 37
+    internal: true
   rssi:
     address: 39
     scan_interval: 15

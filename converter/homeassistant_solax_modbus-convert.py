@@ -687,7 +687,9 @@ if __name__ == "__main__":
         },
         "Solax_X3_HAC.yaml",
         extras=[
-            internal("holding", "firmware_version", address=37),
+            # upstream reads FirmwareVersion from INPUT 0x25 (its callable scale
+            # blocks auto-conversion; the /100 lives in the sw_version template)
+            internal("input", "firmware_version", address=37),
             rtc_button(0x61D, RTC_UTC),  # value_function_sync_rtc_evc: tz + UTC time at 0x61D
         ],
         basic=HAC_BASIC,
