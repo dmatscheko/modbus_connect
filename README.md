@@ -443,6 +443,13 @@ count unrecovered failures only: a bridged block that fails once and teaches the
 planner a dead filler address is planning, not a device problem. A healthy
 device writes neither entity to the recorder.
 
+To find *which* register keeps failing: *Download diagnostics* lists
+`failed_reads_by_key` (failure counts per entity, worst first), and with debug
+logging enabled (device page → *Enable debug logging*, or logger
+`custom_components.modbus_connect`) every unrecovered failure logs the address
+range and the entities it covers. A register the device genuinely never serves
+is best removed from the config or declared in `bad_addresses`.
+
 ## Automation examples
 
 Entities behave like any other Home Assistant entities:

@@ -236,9 +236,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_polled_count = 0  # entities that refresh actually covered
         # Read health (diagnostic): unrecovered polling failures — failed read
         # transactions and failed connection attempts. The deque feeds the
-        # "failed in the last 5 minutes" indicator, the total its counter.
+        # "failed in the last 5 minutes" indicator, the total its counter, and
+        # the per-key counts (in diagnostics) point at the entity whose register
+        # the device refuses to serve.
         self.failed_read_total = 0
         self._failure_times: deque[float] = deque()
+        self.failed_reads_by_key: dict[str, int] = {}
 
         # The prefix drives entity ids; the name is the device/entry title.
         # Old entries stored their device name in CONF_PREFIX.
@@ -284,9 +287,34 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Total entities that poll — the denominator for ``last_read_count``."""
         return len(self._readers)
 
-    def _record_read_failure(self) -> None:
+    def _record_read_failure(self, span: Span | None = None) -> None:
+        """Count one unrecovered failed read.
+
+        With a ``span``, the failure covered entity registers (not just bridged
+        filler), so it is also attributed to the entities in that range — the
+        pointer needed to find a register the device genuinely does not serve.
+        """
         self.failed_read_total += 1
         self._failure_times.append(time.monotonic())
+        if span is None:
+            return
+        keys = sorted(
+            e.key
+            for e in self._readers
+            if e.table == span.table
+            and e.address < span.end
+            and e.address + e.count > span.start
+        )
+        for key in keys:
+            self.failed_reads_by_key[key] = self.failed_reads_by_key.get(key, 0) + 1
+        if keys:
+            _LOGGER.debug(
+                "Unrecovered read failure %s %d..%d; affected entities: %s",
+                span.table,
+                span.start,
+                span.end - 1,
+                ", ".join(keys),
+            )
 
     @property
     def read_failures_in_window(self) -> int:
@@ -488,7 +516,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # span already, or it is a max_read-sized chunk of a larger span (no span
         # lies fully inside it) — nothing smaller can be retried.
         if not sub_blocks or sub_blocks == [block]:
-            self._record_read_failure()
+            self._record_read_failure(block)
             _LOGGER.debug("No fallback for failed block %s", block)
             return 0, 1  # the failed read still hit the wire
 
@@ -499,7 +527,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._store(sub, await self.client.read_block(self.slave_id, sub))
                 any_ok = True
             except ReadError as err:
-                self._record_read_failure()
+                self._record_read_failure(sub)
                 all_ok = False
                 _LOGGER.debug("Fallback read %s failed: %s", sub, err)
 

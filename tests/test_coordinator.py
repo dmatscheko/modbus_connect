@@ -997,11 +997,13 @@ async def test_read_failures_counted_and_window_expires(hass, monkeypatch):
     await coordinator.async_refresh()  # bad fails
     assert coordinator.failed_read_total == 1
     assert coordinator.read_failures_in_window == 1
+    assert coordinator.failed_reads_by_key == {"bad": 1}
 
     ft.now += 30
     await coordinator.async_refresh()  # the quick retry fails too
     assert coordinator.failed_read_total == 2
     assert coordinator.read_failures_in_window == 2
+    assert coordinator.failed_reads_by_key == {"bad": 2}
 
     client.fail_addresses = set()
     ft.now += 301  # everything recovers and the window drains
@@ -1009,6 +1011,7 @@ async def test_read_failures_counted_and_window_expires(hass, monkeypatch):
     assert coordinator.data["bad"] == 7
     assert coordinator.read_failures_in_window == 0
     assert coordinator.failed_read_total == 2  # the total never decreases
+    assert coordinator.failed_reads_by_key == {"bad": 2}  # neither do the per-key counts
 
 
 async def test_connect_failure_counts_as_read_failure(hass, monkeypatch):
@@ -1020,6 +1023,7 @@ async def test_connect_failure_counts_as_read_failure(hass, monkeypatch):
     assert not coordinator.last_update_success
     assert coordinator.failed_read_total == 1
     assert coordinator.read_failures_in_window == 1
+    assert coordinator.failed_reads_by_key == {}  # no register was at fault
 
 
 async def test_bridge_learning_is_not_a_read_failure(hass, monkeypatch):
@@ -1033,6 +1037,21 @@ async def test_bridge_learning_is_not_a_read_failure(hass, monkeypatch):
     assert coordinator.data == {"a": 1, "b": 2}  # recovered via sub-reads
     assert coordinator.failed_read_total == 0
     assert coordinator.read_failures_in_window == 0
+    assert coordinator.failed_reads_by_key == {}
+
+
+async def test_failure_attributed_to_the_entity_at_the_bad_register(hass, monkeypatch):
+    # A merged block fails because one entity's own register is unreadable: the
+    # neighbour recovers via its sub-read and only the culprit is attributed.
+    client = FakeClient({0: 1, 4: 2})
+    client.fail_addresses = {4}  # b's own register, not bridged filler
+    device = make_device(sensor("a", 0), sensor("b", 4), max_gap=8)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.data["a"] == 1
+    assert coordinator.data["b"] is None
+    assert coordinator.failed_read_total == 1
+    assert coordinator.failed_reads_by_key == {"b": 1}
 
 
 async def test_read_health_entities(hass, monkeypatch):

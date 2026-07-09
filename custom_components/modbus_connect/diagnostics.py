@@ -57,6 +57,9 @@ async def async_get_config_entry_diagnostics(
             "read_entity_count": coordinator.read_entity_count,
             "failed_read_total": coordinator.failed_read_total,
             "read_failures_in_window": coordinator.read_failures_in_window,
+            "failed_reads_by_key": dict(
+                sorted(coordinator.failed_reads_by_key.items(), key=lambda kv: -kv[1])
+            ),
         },
         "entities": [
             {
