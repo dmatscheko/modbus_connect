@@ -449,10 +449,13 @@ async def test_solax_hybrid_writable_reads_via_readback(hass, monkeypatch):
     """A SolaX setting shows the value from its read-back register, and writes to its own."""
     device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
     by = {e.key: e for e in device.entities}
-    client = FakeClient({144: 250, 36: 275})  # read-back reg 144 = 25.0 A; write reg 36 differs
+    # number: read-back reg 144 = 25.0 A (write reg 36 differs);
+    # select: mppt read-back reg 188 = Enabled (write reg 72), map borrowed from the select
+    client = FakeClient({144: 250, 36: 275, 188: 1})
     coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
     await coordinator.async_refresh()
     assert coordinator.data["battery_charge_max_current"] == pytest.approx(25.0)  # from reg 144
+    assert coordinator.data["mppt"] == "Enabled"  # from reg 188, not its own write reg 72
     await coordinator.async_write(by["battery_charge_max_current"], 20.0)
     assert client.written == [(36, [200])]  # written to reg 36, the write register
 

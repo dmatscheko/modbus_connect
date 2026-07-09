@@ -201,6 +201,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ mppt_readback }}"
     ha:
       platform: select
       name: MPPT
@@ -241,6 +242,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ selfuse_night_charge_enable_readback }}"
     ha:
       platform: select
       name: Selfuse Night Charge Enable
@@ -305,6 +307,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ charge_and_discharge_period2_enable_readback }}"
     ha:
       platform: select
       name: Charge and Discharge Period2 Enable
@@ -530,6 +533,13 @@ holding:
     address: 145
     multiplier: 0.1
     internal: true
+  selfuse_night_charge_enable_readback:
+    address: 147
+    mask: 255
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   selfuse_discharge_min_soc_readback:
     address: 147
     mask: 65280
@@ -580,10 +590,17 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ extend_bms_setting_readback }}"
     ha:
       platform: select
       name: Extend BMS Setting
       icon: "mdi:dip-switch"
+  charge_and_discharge_period2_enable_readback:
+    address: 155
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   shadow_fix_function_level_pv1_gmppt:
     address: 156
     map:
@@ -632,6 +649,12 @@ holding:
       platform: select
       name: Power Control Mode Target Set Type (mode 8/9; direct)
       icon: "mdi:transmission-tower"
+  extend_bms_setting_readback:
+    address: 162
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   remotecontrol_pv_power_limit_direct:
     address: 162
     type: uint32
@@ -644,6 +667,12 @@ holding:
       min: 0
       max: 30000
       step: 100
+  battery_heating_readback:
+    address: 163
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   meter_1_direction:
     address: 164
     map:
@@ -685,6 +714,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ discharge_cut_off_point_different_readback }}"
     ha:
       platform: select
       name: Discharge Cut Off Point Different
@@ -735,11 +765,24 @@ holding:
       1: Grid
       2: Inverter
     internal: true
+  fast_ct_check_enable_readback:
+    address: 179
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
+  vpp_exit_idle_enable_readback:
+    address: 180
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   lease_mode:
     address: 180
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ lease_mode_readback }}"
     ha:
       platform: select
       name: Lease Mode
@@ -825,11 +868,18 @@ holding:
       name: Language
       icon: "mdi:translate-variant"
       enabled_by_default: false
+  mppt_readback:
+    address: 188
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   selfuse_mode_backup:
     address: 196
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ selfuse_mode_backup_readback }}"
     ha:
       platform: select
       name: Selfuse Mode Backup
@@ -863,6 +913,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ battery_heating_readback }}"
     ha:
       platform: select
       name: Battery Heating
@@ -920,6 +971,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ peakshaving_charge_from_grid_readback }}"
     ha:
       platform: select
       name: PeakShaving Charge from Grid
@@ -961,6 +1013,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ vpp_exit_idle_enable_readback }}"
     ha:
       platform: select
       name: VPP Exit Idle Enable
@@ -972,6 +1025,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ fast_ct_check_enable_readback }}"
     ha:
       platform: select
       name: Fast CT Check Enable
@@ -995,6 +1049,7 @@ holding:
     map:
       0: Disabled
       1: Enabled
+    read_register: "{{ ct_cycle_detection_readback }}"
     ha:
       platform: select
       name: CT Cycle Detection
@@ -1079,6 +1134,12 @@ holding:
       1: Enabled
       0: Disabled
     internal: true
+  discharge_cut_off_point_different_readback:
+    address: 273
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   discharge_cut_off_voltage_grid_mode:
     address: 275
     multiplier: 0.1
@@ -1148,8 +1209,20 @@ holding:
       platform: sensor
       name: PV Connection Mode
       enabled_by_default: false
+  selfuse_mode_backup_readback:
+    address: 286
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   selfuse_backup_soc_readback:
     address: 287
+    internal: true
+  lease_mode_readback:
+    address: 288
+    map:
+      0: Disabled
+      1: Enabled
     internal: true
   device_lock_readback:
     address: 289
@@ -1182,6 +1255,12 @@ holding:
   peakshaving_discharge_limit_2_readback:
     address: 340
     internal: true
+  peakshaving_charge_from_grid_readback:
+    address: 341
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
   peakshaving_charge_limit_readback:
     address: 342
     internal: true
@@ -1193,6 +1272,12 @@ holding:
     internal: true
   ev_charger_address_readback:
     address: 348
+    internal: true
+  ct_cycle_detection_readback:
+    address: 352
+    map:
+      0: Disabled
+      1: Enabled
     internal: true
   remotecontrol_readback_mode:
     address: 416
