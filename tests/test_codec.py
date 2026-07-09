@@ -148,6 +148,24 @@ def test_time_rectify_clamps_out_of_range():
     assert decode(defn, [3102]) == time(12, 30)  # in-range value untouched
 
 
+def test_time_two_register_roundtrip():
+    # two registers, first = hour, second = minute (SolaX EV charger separate form)
+    defn = e(type="time", platform="time", count=2)
+    assert decode(defn, [12, 30]) == time(12, 30)
+    assert encode(defn, time(12, 30)) == [12, 30]
+    assert decode(defn, [0, 0]) == time(0, 0)
+    assert decode(defn, [23, 59]) == time(23, 59)
+
+
+def test_time_two_register_invalid_and_rectify():
+    defn = e(type="time", platform="time", count=2)
+    assert decode(defn, [24, 0]) is None  # 24:00 without rectify_time drops out
+    assert decode(defn, [12, 60]) is None  # minute out of range
+    rect = e(type="time", platform="time", count=2, rectify_time=True)
+    assert decode(rect, [24, 0]) == time(23, 59)  # 24:00 -> end of day
+    assert decode(rect, [12, 60]) == time(12, 59)  # minute overflow, hour kept
+
+
 # --- swaps -------------------------------------------------------------------
 
 

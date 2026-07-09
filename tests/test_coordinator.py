@@ -592,6 +592,25 @@ async def test_time_entity_reads_and_writes(hass, monkeypatch):
     assert coordinator.data["charge_start"] == time(6, 15)  # confirmed by read-back
 
 
+async def test_two_register_time_reads_and_writes(hass, monkeypatch):
+    from datetime import time
+
+    # SolaX EV charger form: hour at 0x634, minute at 0x635
+    client = FakeClient({0x634: 12, 0x635: 30})
+    defn = EntityDef(
+        key="boost_start", platform="time", address=0x634, type="time", count=2, ha={}
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["boost_start"] == time(12, 30)
+    assert client.reads == [Span("holding", 0x634, 2)]  # both registers, one block
+    await coordinator.async_write(defn, time(6, 15))
+    assert client.written == [(0x634, [6, 15])]  # hour then minute, consecutive registers
+    assert coordinator.data["boost_start"] == time(6, 15)  # confirmed by read-back
+
+
 async def test_nothing_due_returns_cache(hass, monkeypatch):
     faketime = FakeTime()
     client = FakeClient({0: 5})

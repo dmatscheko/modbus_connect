@@ -207,6 +207,36 @@ holding:
       min: 6
       max: 32
       step: 0.1
+  timer_boost_start_time:
+    address: 1588
+    type: time
+    count: 2
+    rectify_time: true
+    ha:
+      platform: time
+      name: Timer Boost Start Time
+      icon: "mdi:clock-start"
+      entity_category: config
+  timer_boost_end_time:
+    address: 1590
+    type: time
+    count: 2
+    rectify_time: true
+    ha:
+      platform: time
+      name: Timer Boost End Time
+      icon: "mdi:clock-end"
+      entity_category: config
+  smart_boost_end_time:
+    address: 1592
+    type: time
+    count: 2
+    rectify_time: true
+    ha:
+      platform: time
+      name: Smart Boost End Time
+      icon: "mdi:clock-end"
+      entity_category: config
   smart_boost_energy:
     address: 1594
     ha:

@@ -476,6 +476,8 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     put("inverter_power", 3000)
     put("measured_power", -800)         # grid: negative = importing 800 W
     put("battery_power_charge", -500)   # battery: negative = discharging 500 W
+    put("battery_voltage_charge", 204.8)   # V
+    put("bms_charge_max_current", 25.0)    # A -> charge ceiling 204.8 * 25 = 5120 W
     coordinator = await make_coordinator(hass, device, FakeClient(regs), monkeypatch, FakeTime())
     await coordinator.async_refresh()
 
@@ -489,3 +491,31 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     assert value("house_load") == 3800                 # inverter_power - measured_power
     assert value("battery_charge_power") == 0          # not charging
     assert value("battery_discharge_power") == 500     # discharging
+    assert value("bms_max_charge") == 5120             # battery voltage x BMS max current
+
+
+async def test_bms_max_charge_falls_back_when_bms_current_missing(hass, monkeypatch):
+    """bms_max_charge falls back to the settable charge limit when the BMS current
+    sensor reads as None (mirrors SolaX value_function_bms_max_charge)."""
+    doc = yaml.safe_load(
+        """
+device: {manufacturer: T, model: BMS, max_register_read: 100, max_read_gap: 8}
+holding:
+  battery_voltage_charge: {address: 0, multiplier: 0.1, ha: {platform: sensor}}
+  bms_charge_max_current: {address: 100, multiplier: 0.1, ha: {platform: sensor}}
+  battery_charge_max_current: {address: 200, multiplier: 0.1, ha: {platform: sensor}}
+template:
+  bms_max_charge:
+    ha: {platform: sensor}
+    state: "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}"
+"""
+    )
+    device = parse_device(doc, "bms.yaml")
+    client = FakeClient({0: 2048, 200: 300})  # 204.8 V; fallback limit 30.0 A
+    client.fail_addresses.add(100)  # BMS current sensor unreadable -> decodes to None
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.data["bms_charge_max_current"] is None  # its own block failed
+    tdef = next(t for t in device.templates if t.key == "bms_max_charge")
+    entity = make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef)
+    assert entity.native_value == 6144  # 204.8 V x 30.0 A fallback limit

@@ -2846,3 +2846,11 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ [-(battery_power_charge or 0), 0] | max }}"
+  bms_max_charge:
+    ha:
+      platform: sensor
+      name: BMS max charge
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+    state: "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}"

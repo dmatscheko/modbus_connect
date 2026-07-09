@@ -189,7 +189,7 @@ rendered once from the first read.
 | Key | Meaning |
 | --- | --- |
 | `address` | Start address (0–65535, hex `0x…` works) |
-| `type` | Value type; determines register count. `string` needs `count`. Sub-word types (`uint8`/`int8` = low byte, `bit` = least significant bit) read one register. `time` is a one-register HH:MM (high byte hour, low byte minute; add `swap: byte` for the reverse) on a `time` platform. Bit tables are implicitly `bool` |
+| `type` | Value type; determines register count. `string` needs `count`. Sub-word types (`uint8`/`int8` = low byte, `bit` = least significant bit) read one register. `time` is HH:MM on a `time` platform — one register (high byte hour, low byte minute; add `swap: byte` for the reverse), or `count: 2` for the two-register form (first register hour, second minute). Bit tables are implicitly `bool` |
 | `count` | Register count — only for `string` (2 characters per register) |
 | `swap` | `byte`, `word`, or `word_byte` for little-endian devices |
 | `sum_scale` | List of per-element weights: `value = Σ element[i] · scale[i]`, where each element has the entity's `type` (default `uint16` — one register per weight). Example `[1, 10000, 100000000]` for a counter spread over 3 registers. With `type: uint8` each register holds two elements (low byte first — combine with `swap: byte` for devices that pack high byte first), so the same weights cover 1.5 registers (2 are read); with `type: bit` each register holds sixteen (LSB first). Writable when the weights are positive integers and the type is an unsigned integer |

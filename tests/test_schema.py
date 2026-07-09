@@ -1179,6 +1179,24 @@ def test_time_entity_parses():
     assert e.platform == "time" and e.type == "time" and e.count == 1
 
 
+def test_time_two_register_parses():
+    # SolaX EV charger form: hour in the first register, minute in the second
+    dev = parse_device(
+        doc(t={"address": 0x634, "type": "time", "count": 2, "ha": {"platform": "time"}}),
+        "t.yaml",
+    )
+    e = dev.entities[0]
+    assert e.type == "time" and e.count == 2
+
+
+def test_time_count_over_two_rejected():
+    with pytest.raises(DeviceSchemaError, match="time occupies one register"):
+        parse_device(
+            doc(t={"address": 1, "type": "time", "count": 3, "ha": {"platform": "time"}}),
+            "t.yaml",
+        )
+
+
 def test_time_platform_requires_time_type():
     with pytest.raises(DeviceSchemaError, match="time entities require type"):
         parse_device(doc(t={"address": 1, "ha": {"platform": "time"}}), "t.yaml")

@@ -120,7 +120,10 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
         return text.split("\x00", 1)[0].strip()
 
     if defn.type == TYPE_TIME:
-        hour, minute = (words[0] >> 8) & 0xFF, words[0] & 0xFF
+        if defn.count == 2:  # separate registers: first = hour, second = minute
+            hour, minute = words[0], words[1]
+        else:  # packed into one register: high byte = hour, low byte = minute
+            hour, minute = (words[0] >> 8) & 0xFF, words[0] & 0xFF
         if hour < 24 and minute < 60:
             return dt_time(hour, minute)
         if not defn.rectify_time:
@@ -188,9 +191,15 @@ def encode(
 
 
 def _encode_time(defn: EntityDef, value: object) -> list[int]:
-    """Pack a time-of-day into one register (high byte hour, low byte minute)."""
+    """Pack a time-of-day into registers.
+
+    Two-register form (``count == 2``): hour in the first register, minute in the
+    second. Single-register form: high byte hour, low byte minute.
+    """
     if not isinstance(value, dt_time):
         raise CodecError(f"{defn.key}: expected a time, got {value!r}")
+    if defn.count == 2:
+        return _swap_words([value.hour, value.minute], defn.swap)
     return _swap_words([(value.hour << 8) | value.minute], defn.swap)
 
 

@@ -560,9 +560,12 @@ def _derive_count(
     if typ == TYPE_TIME:
         if sum_scale:
             raise ctx.fail("sum_scale is not valid for time")
-        if explicit is not None and explicit != 1:
-            raise ctx.fail("time occupies a single register")
-        return 1
+        if explicit is not None and explicit not in (1, 2):
+            raise ctx.fail(
+                "time occupies one register (packed hour*256+minute) or two "
+                "(hour, then minute)"
+            )
+        return explicit or 1
     if sum_scale is not None:
         derived = (TYPE_BITS[typ] * len(sum_scale) + 15) // 16
         if explicit is not None and explicit != derived:

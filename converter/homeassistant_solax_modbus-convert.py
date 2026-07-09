@@ -303,7 +303,8 @@ class _Converter:
         self._emit_writable(e, b, ha, None)
 
     def add_time(self, e):
-        """A time: HH:MM packed into one register (GEN4 is hour*256 + minute)."""
+        """A time. GEN4 packs HH:MM in one register (hour*256 + minute); the EV
+        charger uses two registers (hour, then minute) -> our ``count: 2`` form."""
         if not self.match(e):
             return
         if e.key in self.seen:
@@ -313,14 +314,16 @@ class _Converter:
         if reg is None or reg < 0:
             self.skipped["time:no-register"] += 1
             return
-        if getattr(e, "wordcount", None) not in (None, 1):
-            self.skipped["time:multi-register"] += 1  # 2-register form unsupported
+        wordcount = getattr(e, "wordcount", None) or 1
+        if wordcount not in (1, 2):
+            self.skipped["time:multi-register"] += 1  # only 1- and 2-register forms handled
             return
         # rectify_time: a stop time of 24:00 (end of day) shows as 23:59 rather than
         # dropping out — otherwise that slot would be unavailable.
-        self.add("holding", e.key,
-                 {"address": reg, "type": "time", "rectify_time": True,
-                  "ha": ha_common(e, "time")})
+        b = {"address": reg, "type": "time", "rectify_time": True, "ha": ha_common(e, "time")}
+        if wordcount == 2:  # separate registers: first = hour, second = minute
+            b["count"] = 2
+        self.add("holding", e.key, b)
 
     def add_button(self, e):
         """A button: no read register; write to its own register."""
@@ -533,6 +536,12 @@ if __name__ == "__main__":
             {"key": "house_load", "state": "{{ (inverter_power or 0) - (measured_power or 0) }}", "ha": PW("House load")},
             {"key": "battery_charge_power", "state": "{{ [battery_power_charge or 0, 0] | max }}", "ha": PW("Battery charge power")},
             {"key": "battery_discharge_power", "state": "{{ [-(battery_power_charge or 0), 0] | max }}", "ha": PW("Battery discharge power")},
+            # BMS charge-power ceiling = battery voltage x BMS max charge current (SolaX
+            # value_function_bms_max_charge), falling back to the settable limit if the
+            # BMS current sensor is unavailable.
+            {"key": "bms_max_charge",
+             "state": "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}",
+             "ha": PW("BMS max charge")},
         ],
     )
     # Charger firmware "ARM v{version/100}" from reg 37; hardware fixed "Gen2".

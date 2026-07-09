@@ -46,8 +46,9 @@ TYPE_ALIASES = {"int1": "bit"}
 # Registers occupied by one value of each type
 TYPE_WIDTH = {t: max(1, bits // 16) for t, bits in TYPE_BITS.items()}
 TYPE_STRING = "string"
-# A time-of-day packed into one register: high byte = hour, low byte = minute
-# (use ``swap: byte`` for devices that pack minute high / hour low).
+# A time-of-day. One register (default): high byte = hour, low byte = minute
+# (use ``swap: byte`` for devices that pack minute high / hour low). Two registers
+# (``count: 2``): first register = hour, second = minute (SolaX separate-register form).
 TYPE_TIME = "time"
 TYPE_BOOL = "bool"
 FLOAT_TYPES = frozenset({"float16", "float32", "float64"})
