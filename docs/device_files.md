@@ -323,6 +323,15 @@ the file, the entity, and the reason — enum fields even list every valid
 value. Once a file loads, *Download diagnostics* on the device page shows the
 parsed definition, the read-planning state, and the current values, and the
 README's [troubleshooting](../README.md#troubleshooting) section covers wrong
-values (byte order, multipliers) and unreachable registers. Pull requests with
+values (byte order, multipliers) and unreachable registers.
+
+To poke the device directly — before a file exists, or when a register
+misbehaves — the repo ships a standalone CLI (needs only `pymodbus`):
+`python3 support/modbus_cli.py --host <gateway> --help`. It can `probe` the
+connection, `read` registers with every common decoding shown next to the raw
+words (so the right `type`/`swap` can be read straight off), `write` via FC6,
+FC16, or FC5, and `scan` an address range — the scan prints unreadable
+registers and forced block boundaries as ready-to-paste `bad_addresses:` /
+`split_before:` device keys. `--debug` logs every Modbus frame on the wire. Pull requests with
 new device files are welcome — see the [bundled
 files](../README.md#bundled-device-files).

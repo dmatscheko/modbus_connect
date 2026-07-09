@@ -346,4 +346,6 @@ a real TCP server. The device-file YAML format is documented in
 
 Brand assets live in `support/` (SVG sources and `build_brand.py` to
 regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
-which Home Assistant ≥ 2026.3 serves locally).
+which Home Assistant ≥ 2026.3 serves locally), next to
+`support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
+with decoded views, write, register scan; see its `--help`).
