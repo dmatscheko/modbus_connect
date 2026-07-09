@@ -135,6 +135,63 @@ async def test_scan_interval_buckets(hass, monkeypatch):
     assert coordinator.data["slow"] == 2  # kept from previous cycle
 
 
+async def test_last_read_count_reports_block_merge(hass, monkeypatch):
+    # three adjacent registers merge into a single block -> one read covers three entities
+    client = FakeClient({0: 1, 1: 2, 2: 3})
+    device = make_device(sensor("a", 0), sensor("b", 1), sensor("c", 2))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.last_read_count == 1  # one block covered all three
+    assert coordinator.last_polled_count == 3
+    assert coordinator.read_entity_count == 3
+    assert len(client.reads) == 1  # a single Modbus transaction
+
+
+async def test_last_read_count_counts_separate_blocks(hass, monkeypatch):
+    # a gap wider than max_gap forces two separate reads
+    client = FakeClient({0: 1, 100: 2})
+    device = make_device(sensor("a", 0), sensor("b", 100), max_gap=8)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.last_read_count == 2
+    assert coordinator.last_polled_count == 2
+    assert len(client.reads) == 2
+
+
+async def test_last_polled_count_tracks_due_subset(hass, monkeypatch):
+    # when only the fast entity is due, both counts drop to that subset
+    faketime = FakeTime()
+    client = FakeClient({0: 1, 50: 2})
+    device = make_device(sensor("fast", 0), sensor("slow", 50, scan_interval=300))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    await coordinator.async_refresh()  # both due
+    assert coordinator.last_polled_count == 2
+    assert coordinator.last_read_count == 2  # gap > max_gap -> two blocks
+
+    faketime.now += 60  # only "fast" is due now
+    await coordinator.async_refresh()
+    assert coordinator.last_polled_count == 1
+    assert coordinator.last_read_count == 1
+    assert coordinator.read_entity_count == 2  # total is constant
+
+
+async def test_read_count_sensor_surfaces_coordinator_metrics(hass, monkeypatch):
+    from homeassistant.const import EntityCategory
+
+    from custom_components.modbus_connect.sensor import ModbusConnectReadCountSensor
+
+    client = FakeClient({0: 1, 1: 2})
+    device = make_device(sensor("a", 0), sensor("b", 1))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+
+    entity = ModbusConnectReadCountSensor(coordinator)
+    assert entity.native_value == 1  # both entities served by one block read
+    assert entity.extra_state_attributes == {"polled_entities": 2, "read_entities": 2}
+    assert entity.entity_category == EntityCategory.DIAGNOSTIC
+    assert entity.unique_id.endswith("_reads_per_refresh")
+
+
 async def test_min_scan_interval_clamps_intervals(hass, monkeypatch):
     client = FakeClient({0: 1, 1: 2})
     # a fast cadence (5 s), but the device declares a 60 s floor

@@ -109,6 +109,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._holes: set[tuple[str, int]] = set(device.bad_addresses)
         self._cache: dict[tuple[str, int], int | bool] = {}
         self._consecutive_failures = 0
+        # Read efficiency (diagnostic): block merging lets one Modbus read cover many
+        # entities, so these are typically far below read_entity_count.
+        self.last_read_count = 0    # block reads issued in the last refresh
+        self.last_polled_count = 0  # entities that refresh actually covered
 
         # The prefix drives entity ids; the name is the device/entry title.
         # Old entries stored their device name in CONF_PREFIX.
@@ -137,6 +141,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name=f"{DOMAIN} {self.device_info['name']}",
             update_interval=timedelta(seconds=self._tick),
         )
+
+    @property
+    def read_entity_count(self) -> int:
+        """Total entities that poll — the denominator for ``last_read_count``."""
+        return len(self._readers)
 
     # --- device info ----------------------------------------------------------
 
@@ -186,6 +195,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             boundaries=self.device_def.boundaries,
         )
         ok_blocks = 0
+        reads = 0
         async with self.client.lock:
             if not await self.client.ensure_connected():
                 self._register_failure()
@@ -193,7 +203,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     f"cannot connect to gateway {self.client.host}:{self.client.port}"
                 )
             for block in blocks:
-                ok_blocks += await self._read_with_fallback(block, spans)
+                yielded, n = await self._read_with_fallback(block, spans)
+                ok_blocks += yielded
+                reads += n
+        self.last_read_count = reads
+        self.last_polled_count = len(due)
 
         if not ok_blocks:
             self._register_failure()
@@ -221,16 +235,17 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             template = self._link_templates[defn.key] = Template(source, self.hass)
         return render_over_values(template, data)
 
-    async def _read_with_fallback(self, block: Span, spans: set[Span]) -> int:
+    async def _read_with_fallback(self, block: Span, spans: set[Span]) -> tuple[int, int]:
         """Read one block; on failure retry its spans without gap bridging.
 
-        Returns 1 if at least something was read, else 0. If the block only
-        failed because of bridged filler addresses, remember those as holes so
-        future plans avoid them.
+        Returns ``(yielded, reads)``: ``yielded`` is 1 if anything was read (else
+        0), and ``reads`` is how many Modbus read transactions were issued. If the
+        block only failed because of bridged filler addresses, remember those as
+        holes so future plans avoid them.
         """
         try:
             self._store(block, await self.client.read_block(self.slave_id, block))
-            return 1
+            return 1, 1
         except ReadError as err:
             _LOGGER.debug("Block %s failed (%s), retrying unbridged", block, err)
 
@@ -239,7 +254,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if sub_blocks == [block]:
             self._clear(block)
             _LOGGER.debug("Unbridged read %s failed too", block)
-            return 0
+            return 0, 1  # the failed read still hit the wire
 
         all_ok = True
         any_ok = False
@@ -263,7 +278,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     len(new_holes),
                     block.table,
                 )
-        return 1 if any_ok else 0
+        return (1 if any_ok else 0), 1 + len(sub_blocks)  # initial try + each sub-read
 
     def _store(self, block: Span, values: list[int] | list[bool]) -> None:
         for i, addr in enumerate(range(block.start, block.end)):

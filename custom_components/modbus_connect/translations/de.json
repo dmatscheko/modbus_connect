@@ -80,6 +80,13 @@
       }
     }
   },
+  "entity": {
+    "sensor": {
+      "reads_per_refresh": {
+        "name": "Lesevorgänge pro Abfrage"
+      }
+    }
+  },
   "exceptions": {
     "cannot_connect": {
       "message": "Keine Verbindung zum Modbus-Gateway {host}:{port} möglich."

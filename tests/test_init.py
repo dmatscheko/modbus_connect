@@ -341,6 +341,14 @@ async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
     assert mirror is not None
     assert mirror.state == "42"
 
+    # integration-level diagnostic: one reads-per-refresh sensor per device
+    reads = hass.states.get(eid(hass, entry, "sensor", "reads_per_refresh"))
+    assert reads is not None
+    assert int(reads.state) >= 1  # at least one block read happened on setup
+    assert reads.attributes["read_entities"] >= 1
+    assert reads.attributes["read_entities"] >= reads.attributes["polled_entities"]
+    assert reads.attributes["state_class"] == "measurement"
+
 
 async def test_unload_releases_client(hass: HomeAssistant) -> None:
     entry = make_entry()

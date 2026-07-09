@@ -31,7 +31,9 @@ ROOT = os.environ.get(
 def load_plugin(modname):
     for name, sub in (("custom_components", ""), ("custom_components.solax_modbus", "/solax_modbus")):
         if name not in sys.modules:
-            m = types.ModuleType(name); m.__path__ = [ROOT + "/custom_components" + sub]; sys.modules[name] = m
+            m = types.ModuleType(name)
+            m.__path__ = [ROOT + "/custom_components" + sub]
+            sys.modules[name] = m
     return importlib.import_module(f"custom_components.solax_modbus.{modname}")
 
 
@@ -217,7 +219,7 @@ class _Converter:
             rbase["multiplier"] = wbase["multiplier"]
         rkey = key + "_readback"
         self.add(rtable, rkey, {**rbase, "internal": True})
-        wbase["read_register"] = "{{ %s }}" % rkey
+        wbase["read_register"] = "{{ " + rkey + " }}"
 
     def _emit_writable(self, e, b, ha, omap):
         """Wire a select/number's write path (FC16 direct command -> static seed, else

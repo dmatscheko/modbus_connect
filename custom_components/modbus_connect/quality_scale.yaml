@@ -127,7 +127,9 @@ rules:
     status: exempt
     comment: >-
       Entity names come from user-authored device YAML files, so there is no
-      fixed set of entity names the integration could ship translations for.
+      fixed set of entity names the integration could ship translations for. The
+      one code-defined entity (the reads-per-refresh diagnostic) does ship en/de
+      names via translation_key.
   exception-translations:
     status: done
     comment: User-facing errors carry translation_domain/translation_key (strings.json, en + de).

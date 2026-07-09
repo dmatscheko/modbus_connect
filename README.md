@@ -368,6 +368,13 @@ fastest cadence). So `scan_interval` sets the actual rate, while
 `min_scan_interval` and the option only ever slow polling down, never below the
 floor. Writes are confirmed by reading the register back immediately.
 
+Each device also gets a **Reads per refresh** diagnostic sensor (in the device
+page's *Diagnostic* section) showing how many Modbus reads the last poll
+actually issued. Thanks to block merging this is usually far below the entity
+count — its `polled_entities` and `read_entities` attributes show how many
+entities that refresh covered versus the total that poll, so the gap is the
+merge win made visible.
+
 ## Automation examples
 
 Entities behave like any other Home Assistant entities:

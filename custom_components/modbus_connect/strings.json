@@ -80,6 +80,13 @@
       }
     }
   },
+  "entity": {
+    "sensor": {
+      "reads_per_refresh": {
+        "name": "Reads per refresh"
+      }
+    }
+  },
   "exceptions": {
     "cannot_connect": {
       "message": "Cannot connect to Modbus gateway {host}:{port}."
