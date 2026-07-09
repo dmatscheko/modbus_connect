@@ -189,6 +189,23 @@ def test_planning_hints_invalid(hints, match):
         parse_device(data, "t.yaml")
 
 
+def test_button_single_template_write_value_parsed():
+    dev = parse_device(
+        doc(b={"address": 0, "write_value": "{{ now().hour }}",
+               "ha": {"platform": "button"}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].write_value == "{{ now().hour }}"
+
+
+def test_button_blank_template_write_value_rejected():
+    with pytest.raises(DeviceSchemaError, match="must not be empty"):
+        parse_device(
+            doc(b={"address": 0, "write_value": "  ", "ha": {"platform": "button"}}),
+            "t.yaml",
+        )
+
+
 def test_button_list_write_value_parsed():
     dev = parse_device(
         doc(sync={"address": 0, "write_value": [1, "{{ now().hour }}"],
@@ -766,8 +783,8 @@ ERROR_CASES = [
         "'on' must be an integer or boolean",
     ),
     (
-        "write_value_not_number",
-        doc(x={"address": 0, "write_value": "go", "ha": {"platform": "button"}}),
+        "write_value_bad_type",
+        doc(x={"address": 0, "write_value": {"a": 1}, "ha": {"platform": "button"}}),
         "write_value must be a number",
     ),
     (

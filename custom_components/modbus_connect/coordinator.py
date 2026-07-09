@@ -373,6 +373,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.slave_id, defn.address, words, multiple=True
                     )
                 else:
+                    if defn.platform == "button" and isinstance(value, str):
+                        # a single Jinja template write_value: render it, then encode
+                        # through the codec (honouring the entity's type/map/etc.).
+                        value = render_over_values(Template(value, self.hass), self.data)
+                        if value is None:
+                            raise WriteError(
+                                f"{defn.key}: write_value template rendered to nothing"
+                            )
                     current_raw: int | None = None
                     if defn.mask is not None and defn.read_modify_write:
                         raw = await self.client.read_block(self.slave_id, defn.span)

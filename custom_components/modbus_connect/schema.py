@@ -594,9 +594,19 @@ def _on_off(ctx: _Ctx, raw: dict[str, Any], name: str) -> int | bool | None:
 
 
 def _parse_write_value(ctx: _Ctx, raw: Any) -> Any:
-    """A button's press payload: a fixed number/bool, or a list of numbers and Jinja
-    template strings written to consecutive registers (FC16) — e.g. an RTC sync."""
+    """A button's press payload. Three forms:
+
+    * a fixed number/bool, or a single Jinja template string — rendered, then written
+      through the entity's codec, so it honours ``type``/``map``/``multiplier``/``count``
+      (int32, float, mapped labels, strings all work);
+    * a list of numbers and template strings — each written as one raw 16-bit register
+      to consecutive addresses in a single FC16 transaction (e.g. an RTC sync).
+    """
     if raw is None or isinstance(raw, (int, float, bool)):
+        return raw
+    if isinstance(raw, str):
+        if not raw.strip():
+            raise ctx.fail("write_value template string must not be empty")
         return raw
     if isinstance(raw, list):
         if not raw:
@@ -610,7 +620,7 @@ def _parse_write_value(ctx: _Ctx, raw: Any) -> Any:
             items.append(item)
         return tuple(items)
     raise ctx.fail(
-        "write_value must be a number, boolean, or a list of numbers/template strings"
+        "write_value must be a number, boolean, template string, or a list of those"
     )
 
 

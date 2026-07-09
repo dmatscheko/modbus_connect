@@ -429,6 +429,43 @@ async def test_button_list_write_value_non_numeric_raises(hass, monkeypatch):
     assert client.written == []  # nothing written when a value can't render
 
 
+async def test_button_single_template_write_value_through_codec(hass, monkeypatch):
+    client = FakeClient()
+    btn = EntityDef(
+        key="set_hour", platform="button", table="holding", address=5,
+        write_value="{{ 3 + 4 }}", ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    await coordinator.async_write(btn, btn.write_value)
+    assert client.written == [(5, [7])]
+    assert client.write_multiple_flags == [False]  # single register -> FC06
+
+
+async def test_button_single_template_respects_type(hass, monkeypatch):
+    client = FakeClient()
+    btn = EntityDef(
+        key="big", platform="button", table="holding", address=0,
+        type="int32", count=2, write_value="{{ 70000 }}", ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    await coordinator.async_write(btn, btn.write_value)
+    assert client.written == [(0, [1, 4464])]  # 70000 spans two registers via the codec
+
+
+async def test_button_single_template_render_failure_raises(hass, monkeypatch):
+    from homeassistant.exceptions import HomeAssistantError
+
+    client = FakeClient()
+    btn = EntityDef(
+        key="x", platform="button", table="holding", address=0,
+        write_value="{{ 1 / 0 }}", ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    with pytest.raises(HomeAssistantError):
+        await coordinator.async_write(btn, btn.write_value)
+    assert client.written == []
+
+
 async def test_rtc_local_template_renders_to_valid_registers(hass, monkeypatch):
     # the exact templates the SolaX converter emits for the hybrid's Sync RTC button
     client = FakeClient()
