@@ -34,12 +34,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
     # Fill firmware/hardware/serial from the first read before entities (and the
     # device registry entry) are created.
     coordinator.apply_device_info()
-    # Register the main device up front: the meta device (group toggles,
-    # diagnostics) points at it via_device, and it must exist even when every
-    # entity of the device happens to be group-hidden.
-    dr.async_get(hass).async_get_or_create(
+    # Register both devices up front: the meta device (group toggles,
+    # diagnostics) must exist even when every entity of the device happens to
+    # be group-hidden, and the main device must exist for its via_device link.
+    # Cross-linking the pair puts a "Connected via" jump on both info cards.
+    registry = dr.async_get(hass)
+    main_device = registry.async_get_or_create(
         config_entry_id=entry.entry_id, **coordinator.device_info
     )
+    meta_device = registry.async_get_or_create(
+        config_entry_id=entry.entry_id, **coordinator.meta_device_info
+    )
+    registry.async_update_device(main_device.id, via_device_id=meta_device.id)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))

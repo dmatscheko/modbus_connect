@@ -7,6 +7,7 @@ import math
 import re
 import struct
 import time
+from collections import deque
 from datetime import timedelta
 from typing import Any
 
@@ -26,6 +27,7 @@ from .const import (
     CONF_SLAVE_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    HEALTH_WINDOW_SECONDS,
     MAX_BACKOFF_SECONDS,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
@@ -232,6 +234,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # entities, so these are typically far below read_entity_count.
         self.last_read_count = 0    # block reads issued in the last refresh
         self.last_polled_count = 0  # entities that refresh actually covered
+        # Read health (diagnostic): unrecovered polling failures — failed read
+        # transactions and failed connection attempts. The deque feeds the
+        # "failed in the last 5 minutes" indicator, the total its counter.
+        self.failed_read_total = 0
+        self._failure_times: deque[float] = deque()
 
         # The prefix drives entity ids; the name is the device/entry title.
         # Old entries stored their device name in CONF_PREFIX.
@@ -277,6 +284,18 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Total entities that poll — the denominator for ``last_read_count``."""
         return len(self._readers)
 
+    def _record_read_failure(self) -> None:
+        self.failed_read_total += 1
+        self._failure_times.append(time.monotonic())
+
+    @property
+    def read_failures_in_window(self) -> int:
+        """Unrecovered read failures within the last HEALTH_WINDOW_SECONDS."""
+        cutoff = time.monotonic() - HEALTH_WINDOW_SECONDS
+        while self._failure_times and self._failure_times[0] < cutoff:
+            self._failure_times.popleft()
+        return len(self._failure_times)
+
     @property
     def provided_unique_ids(self) -> set[str]:
         """Unique ids of every entity the current configuration provides.
@@ -300,6 +319,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         ids.add(f"{self.entry_id}_reads_per_refresh")
         ids.add(f"{self.entry_id}_remove_hidden_entities")
+        ids.add(f"{self.entry_id}_read_failures")
+        ids.add(f"{self.entry_id}_failed_reads")
         return ids
 
     @property
@@ -380,6 +401,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         async with self.client.lock:
             if not await self.client.ensure_connected():
+                self._record_read_failure()
                 self._register_failure()
                 raise UpdateFailed(
                     f"cannot connect to gateway {self.client.host}:{self.client.port}"
@@ -466,6 +488,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # span already, or it is a max_read-sized chunk of a larger span (no span
         # lies fully inside it) — nothing smaller can be retried.
         if not sub_blocks or sub_blocks == [block]:
+            self._record_read_failure()
             _LOGGER.debug("No fallback for failed block %s", block)
             return 0, 1  # the failed read still hit the wire
 
@@ -476,10 +499,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._store(sub, await self.client.read_block(self.slave_id, sub))
                 any_ok = True
             except ReadError as err:
+                self._record_read_failure()
                 all_ok = False
                 _LOGGER.debug("Fallback read %s failed: %s", sub, err)
 
         if any_ok and all_ok:
+            # Every real span read fine on retry: the initial failure was only
+            # bridged filler (learned as holes below, so it will not repeat) —
+            # a planning artifact, not a device problem, so it is not recorded.
             new_holes = bridged_addresses(block, needed)
             if new_holes:
                 self._holes |= new_holes

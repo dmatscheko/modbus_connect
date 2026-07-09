@@ -258,7 +258,9 @@ lives in.
 
 The group switches and the *Reads per refresh* diagnostic don't clutter the
 device itself: they live on a companion **_device name_ Configuration** service
-device, linked to the real one on the same config entry.
+device on the same config entry. The two devices are cross-linked — each shows
+the other as its "Connected via" device, so you can jump between them from
+either info card.
 
 Toggling a switch reloads the entry and **rebuilds the entity set**. Hidden
 entities are not merely disabled — they stop being provided, so Home Assistant
@@ -425,13 +427,21 @@ fastest cadence). So `scan_interval` sets the actual rate, while
 `min_scan_interval` and the option only ever slow polling down, never below the
 floor. Writes are confirmed by reading the register back immediately.
 
-Each device also gets a **Reads per refresh** diagnostic sensor (in the device
-page's *Diagnostic* section) showing how many Modbus block reads a full refresh
-issues. Thanks to block merging this is usually far below the entity count — its
-`read_entities` attribute is the total that poll, so the gap is the merge win
-made visible. It reports the stable full-refresh figure (it moves only when the
-read plan does), so it costs the recorder almost nothing; the live per-cycle read
-and poll counts are in *Download diagnostics* instead.
+Each device also gets a **Reads per refresh** diagnostic sensor (on its
+*Configuration* companion device) showing how many Modbus block reads a full
+refresh issues. Thanks to block merging this is usually far below the entity
+count — its `read_entities` attribute is the total that poll, so the gap is the
+merge win made visible. It reports the stable full-refresh figure (it moves only
+when the read plan does), so it costs the recorder almost nothing; the live
+per-cycle read and poll counts are in *Download diagnostics* instead.
+
+Read health lives next to it: a **Read failures** problem indicator that turns
+on while any read failed in the last 5 minutes (its attributes carry the count
+in that window and the running total), and a **Failed reads** counter of failed
+read transactions since the last reload — chart it or alert on its rate. Both
+count unrecovered failures only: a bridged block that fails once and teaches the
+planner a dead filler address is planning, not a device problem. A healthy
+device writes neither entity to the recorder.
 
 ## Automation examples
 

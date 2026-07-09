@@ -982,3 +982,88 @@ async def test_write_between_blocks_not_clobbered_by_refresh(hass, monkeypatch):
     await write
     await refresh
     assert coordinator.data["setpoint"] == 5  # not reverted to 7
+
+
+# --- read-failure health tracking --------------------------------------------
+
+
+async def test_read_failures_counted_and_window_expires(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("good", 0), sensor("bad", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+
+    client.fail_addresses = {100}
+    await coordinator.async_refresh()  # bad fails
+    assert coordinator.failed_read_total == 1
+    assert coordinator.read_failures_in_window == 1
+
+    ft.now += 30
+    await coordinator.async_refresh()  # the quick retry fails too
+    assert coordinator.failed_read_total == 2
+    assert coordinator.read_failures_in_window == 2
+
+    client.fail_addresses = set()
+    ft.now += 301  # everything recovers and the window drains
+    await coordinator.async_refresh()
+    assert coordinator.data["bad"] == 7
+    assert coordinator.read_failures_in_window == 0
+    assert coordinator.failed_read_total == 2  # the total never decreases
+
+
+async def test_connect_failure_counts_as_read_failure(hass, monkeypatch):
+    client = FakeClient({0: 5})
+    client.connected_ok = False
+    device = make_device(sensor("a", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert not coordinator.last_update_success
+    assert coordinator.failed_read_total == 1
+    assert coordinator.read_failures_in_window == 1
+
+
+async def test_bridge_learning_is_not_a_read_failure(hass, monkeypatch):
+    # A bridged block that fails once, whose spans then all read fine, only
+    # teaches the planner a hole — the device is healthy.
+    client = FakeClient({0: 1, 4: 2})
+    client.fail_addresses = {2}  # the bridged filler address is unreadable
+    device = make_device(sensor("a", 0), sensor("b", 4), max_gap=8)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.data == {"a": 1, "b": 2}  # recovered via sub-reads
+    assert coordinator.failed_read_total == 0
+    assert coordinator.read_failures_in_window == 0
+
+
+async def test_read_health_entities(hass, monkeypatch):
+    from custom_components.modbus_connect.binary_sensor import (
+        ModbusConnectReadHealthBinarySensor,
+    )
+    from custom_components.modbus_connect.sensor import ModbusConnectFailedReadsSensor
+
+    ft = FakeTime()
+    client = FakeClient({0: 1})
+    device = make_device(sensor("a", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    problem = ModbusConnectReadHealthBinarySensor(coordinator)
+    counter = ModbusConnectFailedReadsSensor(coordinator)
+
+    await coordinator.async_refresh()
+    assert problem.is_on is False
+    assert counter.native_value == 0
+
+    client.fail_addresses = {0}
+    ft.now += 30
+    await coordinator.async_refresh()
+    assert problem.is_on is True
+    assert problem.extra_state_attributes == {
+        "failed_reads_last_5_min": 1,
+        "failed_reads_total": 1,
+    }
+    assert counter.native_value == 1
+
+    client.fail_addresses = set()
+    ft.now += 301  # window drains after recovery
+    await coordinator.async_refresh()
+    assert problem.is_on is False
+    assert counter.native_value == 1

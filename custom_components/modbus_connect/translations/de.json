@@ -81,6 +81,11 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "read_failures": {
+        "name": "Lesefehler"
+      }
+    },
     "button": {
       "remove_hidden": {
         "name": "Ausgeblendete Entitäten entfernen"
@@ -89,6 +94,9 @@
     "sensor": {
       "reads_per_refresh": {
         "name": "Lesevorgänge pro Abfrage"
+      },
+      "failed_reads": {
+        "name": "Fehlgeschlagene Lesevorgänge"
       }
     },
     "switch": {

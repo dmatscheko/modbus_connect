@@ -81,6 +81,11 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "read_failures": {
+        "name": "Read failures"
+      }
+    },
     "button": {
       "remove_hidden": {
         "name": "Remove hidden entities"
@@ -89,6 +94,9 @@
     "sensor": {
       "reads_per_refresh": {
         "name": "Reads per refresh"
+      },
+      "failed_reads": {
+        "name": "Failed reads"
       }
     },
     "switch": {

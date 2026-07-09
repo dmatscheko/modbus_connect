@@ -49,3 +49,6 @@ USER_CONFIG_DIR: Final = DOMAIN
 
 # Backoff cap for repeatedly failing devices (seconds)
 MAX_BACKOFF_SECONDS: Final = 300
+
+# How far back the read-failures health indicator looks (seconds)
+HEALTH_WINDOW_SECONDS: Final = 300

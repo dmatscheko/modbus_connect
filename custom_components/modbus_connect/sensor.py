@@ -52,6 +52,7 @@ async def async_setup_entry(
         if tdef.platform == "sensor"
     )
     entities.append(ModbusConnectReadCountSensor(coordinator))
+    entities.append(ModbusConnectFailedReadsSensor(coordinator))
     async_add_entities(entities)
 
 
@@ -111,3 +112,31 @@ class ModbusConnectReadCountSensor(
     @property
     def extra_state_attributes(self) -> dict[str, int]:
         return {"read_entities": self.coordinator.read_entity_count}
+
+
+class ModbusConnectFailedReadsSensor(SensorEntity):
+    """Diagnostic: failed read transactions since the entry was (re)loaded.
+
+    The ever-increasing companion to the "Read failures" problem indicator —
+    chart it or alert on its rate. A plain polled entity (see the binary
+    sensor's docstring): available during outages, catches up within one 30 s
+    poll, and writes state only when the count actually moved. Deliberately no
+    ``state_class``: that would add 5-minute statistics writes for a value that
+    should stay at 0.
+    """
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = "reads"
+    _attr_translation_key = "failed_reads"
+    _attr_icon = "mdi:alert-circle-outline"
+
+    def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{coordinator.entry_id}_failed_reads"
+        self._attr_device_info = coordinator.meta_device_info
+        suggest_entity_id(self, coordinator, "sensor", "failed_reads")
+
+    @property
+    def native_value(self) -> int:
+        return self._coordinator.failed_read_total

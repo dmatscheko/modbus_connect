@@ -871,8 +871,9 @@ async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -
         main = dev_reg.async_get_device({(DOMAIN, entry.entry_id)})
         meta = dev_reg.async_get_device({(DOMAIN, f"{entry.entry_id}_meta")})
         assert main is not None and meta is not None
-        # the meta device is a service device linked below the real one
+        # the pair is cross-linked: both info cards show a "Connected via" jump
         assert meta.via_device_id == main.id
+        assert main.via_device_id == meta.id
         assert meta.entry_type is dr.DeviceEntryType.SERVICE
         assert meta.name == "Acme Grouped Configuration"
 

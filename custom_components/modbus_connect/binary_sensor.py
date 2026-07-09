@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from typing import Any
+
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import result_as_boolean
 
-from .coordinator import ModbusConnectConfigEntry
+from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
     resolve_on_off,
+    suggest_entity_id,
 )
 
 # Read-only platform; all data comes through the coordinator.
@@ -38,6 +45,7 @@ async def async_setup_entry(
         for tdef in coordinator.visible_templates
         if tdef.platform == "binary_sensor"
     )
+    entities.append(ModbusConnectReadHealthBinarySensor(coordinator))
     async_add_entities(entities)
 
 
@@ -56,3 +64,36 @@ class ModbusConnectTemplateBinarySensor(ModbusConnectTemplateEntity, BinarySenso
     def is_on(self) -> bool | None:
         value = self.render("state")
         return None if value is None else result_as_boolean(value)
+
+
+class ModbusConnectReadHealthBinarySensor(BinarySensorEntity):
+    """Health check: on (problem) while a read failed in the last 5 minutes.
+
+    Deliberately a plain polled entity, not a CoordinatorEntity: it must stay
+    available exactly when the coordinator is failing, and Home Assistant's
+    default 30 s entity poll re-evaluates the window so the problem clears on
+    time even when no register value changes. Unchanged polls write no state,
+    so a healthy device costs nothing in the recorder.
+    """
+
+    _attr_has_entity_name = True
+    _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_translation_key = "read_failures"
+
+    def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{coordinator.entry_id}_read_failures"
+        self._attr_device_info = coordinator.meta_device_info
+        suggest_entity_id(self, coordinator, "binary_sensor", "read_failures")
+
+    @property
+    def is_on(self) -> bool:
+        return self._coordinator.read_failures_in_window > 0
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "failed_reads_last_5_min": self._coordinator.read_failures_in_window,
+            "failed_reads_total": self._coordinator.failed_read_total,
+        }
