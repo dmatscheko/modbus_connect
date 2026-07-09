@@ -187,6 +187,7 @@ class _Converter:
         self.consumed = set()  # read keys merged into a writable
         self.entities = []     # (table, key, base) output rows
         self.seen = set()      # emitted keys, for dedupe
+        self.boundaries = set()  # (table, address) of SolaX newblock flags
 
     def match(self, e):
         return self.pi.matchInverterWithMask(self.spec, e.allowedtypes)
@@ -235,6 +236,13 @@ class _Converter:
         """Index one convertible sensor as a read source (the read side)."""
         if not self.match(e):
             return
+        # SolaX newblock = the device fails a block read that runs into this
+        # register from an earlier start; kept as a split_before boundary even
+        # when the sensor itself is unconvertible.
+        if getattr(e, "newblock", False):
+            reg = getattr(e, "register", None)
+            if isinstance(reg, int) and reg >= 0:
+                self.boundaries.add((table_of(e), reg))
         if getattr(e, "value_function", None) is not None:
             self.skipped["sensor:value_function"] += 1
             return
@@ -362,7 +370,7 @@ class _Converter:
             self.add_button(e)
         for key in self.order:  # remaining sensors, in discovery order
             self.add_remaining_sensor(key)
-        return self.entities, self.skipped
+        return self.entities, self.skipped, self.boundaries
 
 
 def convert(pi, spec):
@@ -510,7 +518,14 @@ def emit_yaml(meta, entities, templates=()):
     buf.write("device:\n")
     meta = dict(meta)
     default_groups = meta.pop("default_groups", None)
+    split_before = meta.pop("split_before", None)
     _emit_mapping(buf, "  ", meta)
+    if split_before:
+        inner = ", ".join(
+            f"{table}: [{', '.join(str(a) for a in addrs)}]"
+            for table, addrs in split_before.items()
+        )
+        buf.write(f"  split_before: {{ {inner} }}\n")
     if default_groups:
         buf.write(f"  default_groups: [{', '.join(default_groups)}]\n")
     for table in ("holding", "input"):
@@ -568,12 +583,18 @@ def validate_output(text, filename):
 
 def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset()):
     P = load_plugin(module)
-    ents, skipped = convert(P.plugin_instance, spec_fn(P))
+    ents, skipped, boundaries = convert(P.plugin_instance, spec_fn(P))
     ents = list(ents) + list(extras)  # device-info + computed registers, appended post-dedupe
     dupes = [k for k, n in Counter(k for _, k, _ in ents).items() if n > 1]
     if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
         raise SystemExit(f"{filename}: duplicate entity keys {sorted(dupes)}")
     annotate_groups(ents, templates, basic)
+    if boundaries:
+        meta = dict(meta)
+        split = {}
+        for table, addr in sorted(boundaries):
+            split.setdefault(table, []).append(addr)
+        meta["split_before"] = split
     text = emit_yaml(meta, ents, templates)
     validate_output(text, filename)
     with open(f"{DEST}/{filename}", "w", encoding="utf-8") as f:
