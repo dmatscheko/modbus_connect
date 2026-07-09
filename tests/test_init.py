@@ -838,6 +838,12 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         assert hass.states.get(advanced).attributes["friendly_name"].endswith(
             "Enable Advanced entities"
         )
+        # the switch icon lives in icons.json (resolved by the frontend, not
+        # the state machine), keyed by the entity's translation_key
+        from homeassistant.helpers.icon import async_get_icons
+
+        icons = await async_get_icons(hass, "entity", integrations=[DOMAIN])
+        assert icons[DOMAIN]["switch"]["group_enable"]["default"] == "mdi:eye-check"
         assert (
             hass.states.get(eid(hass, entry, "switch", "group_all"))
             .attributes["friendly_name"]

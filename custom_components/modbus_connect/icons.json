@@ -1,0 +1,25 @@
+{
+  "entity": {
+    "button": {
+      "remove_hidden": {
+        "default": "mdi:broom"
+      }
+    },
+    "sensor": {
+      "failed_reads": {
+        "default": "mdi:alert-circle-outline"
+      },
+      "reads_per_refresh": {
+        "default": "mdi:download-network"
+      }
+    },
+    "switch": {
+      "group_enable": {
+        "default": "mdi:eye-check"
+      },
+      "group_enable_all": {
+        "default": "mdi:eye-check"
+      }
+    }
+  }
+}

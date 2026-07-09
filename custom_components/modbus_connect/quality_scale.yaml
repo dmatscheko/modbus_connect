@@ -127,17 +127,18 @@ rules:
     status: exempt
     comment: >-
       Entity names come from user-authored device YAML files, so there is no
-      fixed set of entity names the integration could ship translations for. The
-      one code-defined entity (the reads-per-refresh diagnostic) does ship en/de
-      names via translation_key.
+      fixed set of entity names the integration could ship translations for.
+      All code-defined entities (read diagnostics, group toggles, registry
+      cleanup button) do ship en/de names via translation_key.
   exception-translations:
     status: done
     comment: User-facing errors carry translation_domain/translation_key (strings.json, en + de).
   icon-translations:
-    status: exempt
+    status: done
     comment: >-
-      There is no fixed entity set; icons are configured per entity in the
-      device YAML files instead.
+      Code-defined entities take their icons from icons.json via
+      translation_key; YAML-defined entities configure icons per entity in the
+      device file instead (there is no fixed set to ship icons for).
   reconfiguration-flow:
     status: done
     comment: Gateway connection and device file can be changed without removing the entry.

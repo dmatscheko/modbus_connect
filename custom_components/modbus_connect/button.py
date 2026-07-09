@@ -56,7 +56,6 @@ class ModbusConnectRemoveHiddenButton(ButtonEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
     _attr_translation_key = "remove_hidden"
-    _attr_icon = "mdi:broom"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         self._coordinator = coordinator

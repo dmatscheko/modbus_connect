@@ -97,7 +97,6 @@ class ModbusConnectReadCountSensor(
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = "reads"
     _attr_translation_key = "reads_per_refresh"
-    _attr_icon = "mdi:download-network"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         super().__init__(coordinator)
@@ -129,7 +128,6 @@ class ModbusConnectFailedReadsSensor(SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = "reads"
     _attr_translation_key = "failed_reads"
-    _attr_icon = "mdi:alert-circle-outline"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         self._coordinator = coordinator
