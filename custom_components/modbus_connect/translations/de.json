@@ -81,6 +81,11 @@
     }
   },
   "entity": {
+    "button": {
+      "remove_hidden": {
+        "name": "Ausgeblendete Entitäten entfernen"
+      }
+    },
     "sensor": {
       "reads_per_refresh": {
         "name": "Lesevorgänge pro Abfrage"

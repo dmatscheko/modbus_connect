@@ -81,6 +81,11 @@
     }
   },
   "entity": {
+    "button": {
+      "remove_hidden": {
+        "name": "Remove hidden entities"
+      }
+    },
     "sensor": {
       "reads_per_refresh": {
         "name": "Reads per refresh"

@@ -278,6 +278,31 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return len(self._readers)
 
     @property
+    def provided_unique_ids(self) -> set[str]:
+        """Unique ids of every entity the current configuration provides.
+
+        The registry-cleanup button keeps exactly these; any other registry
+        entry of this config entry is a leftover — a group-hidden entity or a
+        stale key from an earlier device file — and may be removed. Must cover
+        every unique id any platform module creates.
+        """
+        ids = {f"{self.entry_id}_{e.key}" for e in self.visible_entities}
+        ids.update(
+            f"{self.entry_id}_{e.key}_sensor"
+            for e in self.visible_entities
+            if e.duplicate_as_sensor and e.platform != "sensor"
+        )
+        ids.update(f"{self.entry_id}_{t.key}" for t in self.visible_templates)
+        ids.update(
+            f"{self.entry_id}_group_{group}"
+            for group in self.all_groups
+            if group != BASIC_GROUP
+        )
+        ids.add(f"{self.entry_id}_reads_per_refresh")
+        ids.add(f"{self.entry_id}_remove_hidden_entities")
+        return ids
+
+    @property
     def full_refresh_read_count(self) -> int:
         """Modbus block reads a complete refresh issues — every reader due at once.
 

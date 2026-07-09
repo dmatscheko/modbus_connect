@@ -899,3 +899,75 @@ def test_time_mirror_sensor_has_no_state_class() -> None:
         EntityDef(key="limit", platform="number", duplicate_as_sensor=True)
     )
     assert numeric.state_class is not None
+
+
+async def test_provided_unique_ids_match_registry(hass: HomeAssistant) -> None:
+    # provided_unique_ids drives the cleanup button; it must mirror exactly what
+    # the platform modules register, or the button would delete live entities.
+    write_device_file(hass)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    assert await setup_entry(hass, entry, FakeClient())
+
+    registered = {
+        e.unique_id
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+    }
+    assert registered == entry.runtime_data.provided_unique_ids
+
+
+async def test_remove_hidden_entities_button(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "grouped.yaml").write_text(GROUPED_YAML, encoding="utf-8")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.9",
+            "port": 502,
+            CONF_SLAVE_ID: 3,
+            CONF_FILENAME: "grouped.yaml",
+        },
+        unique_id="192.0.2.9:502:3",
+        title="Grouped",
+    )
+    entry.add_to_hass(hass)
+    reg = er.async_get(hass)
+
+    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        # bring 'extra' into being, then hide it again -> grayed registry row
+        advanced = eid(hass, entry, "switch", "group_advanced")
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": advanced}, blocking=True
+        )
+        await hass.async_block_till_done()
+        await hass.services.async_call(
+            "switch", "turn_off", {"entity_id": advanced}, blocking=True
+        )
+        await hass.async_block_till_done()
+        assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_extra")
+
+        # a live entity the user disabled stays provided and must survive
+        core_id = reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_core")
+        reg.async_update_entity(core_id, disabled_by=er.RegistryEntryDisabler.USER)
+
+        await hass.services.async_call(
+            "button",
+            "press",
+            {"entity_id": eid(hass, entry, "button", "remove_hidden_entities")},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+
+    # the hidden leftover is gone ...
+    assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_extra") is None
+    # ... but the provided-though-disabled entity kept its row and customization
+    core = reg.async_get(core_id)
+    assert core is not None
+    assert core.disabled_by is er.RegistryEntryDisabler.USER
+    # the meta entities themselves survive too
+    assert reg.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_group_advanced")
+    assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_reads_per_refresh")

@@ -270,6 +270,14 @@ source registers polled even when those sources are hidden. The bundled SolaX
 Hybrid file, for instance, goes from 232 entities / 210 register reads on *all*
 down to 27 / 29 on *basic*.
 
+If you'd rather be rid of the greyed-out leftovers, the Configuration device has
+a **Remove hidden entities** button: it deletes every registry entry the current
+group selection no longer provides (including stale ones from an earlier device
+file), without touching anything that is provided — customizations on live
+entities, even manually disabled ones, are safe. It's a deliberate action
+precisely because those rows hold your renames and settings; nothing is ever
+deleted just by flipping a group switch.
+
 ## The `template:` section
 
 Composite entities built from the device's values with real Home Assistant

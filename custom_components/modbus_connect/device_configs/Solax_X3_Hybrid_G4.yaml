@@ -1673,7 +1673,7 @@ input:
     address: 0
     multiplier: 0.1
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Voltage
@@ -1685,7 +1685,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Current

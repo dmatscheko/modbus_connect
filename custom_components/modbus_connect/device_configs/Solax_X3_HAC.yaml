@@ -216,7 +216,7 @@ holding:
   charge_current:
     address: 1576
     multiplier: 0.01
-    groups: [advanced, all]
+    groups: [basic, advanced, all]
     ha:
       platform: number
       name: Charge Current
