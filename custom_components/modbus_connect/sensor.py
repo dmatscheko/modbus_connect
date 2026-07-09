@@ -101,7 +101,7 @@ class ModbusConnectReadCountSensor(
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.entry_id}_reads_per_refresh"
-        self._attr_device_info = coordinator.device_info
+        self._attr_device_info = coordinator.meta_device_info
         suggest_entity_id(self, coordinator, "sensor", "reads_per_refresh")
 
     @property

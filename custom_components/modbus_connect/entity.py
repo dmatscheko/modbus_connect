@@ -16,6 +16,7 @@ from .coordinator import ModbusConnectCoordinator, render_over_values
 from .models import (
     BIT_TABLES,
     TYPE_STRING,
+    TYPE_TIME,
     EntityDef,
     SwitchTarget,
     TemplateDef,
@@ -47,7 +48,7 @@ def build_mirror_description(defn: EntityDef) -> EntityDescription:
     """A sensor description mirroring a writable entity (duplicate_as_sensor)."""
     overrides: dict[str, Any] = {"name": f"{defn.ha.get('name') or defn.key} (sensor)"}
     numeric = (
-        defn.type != TYPE_STRING
+        defn.type not in (TYPE_STRING, TYPE_TIME)  # a time mirror's state is "HH:MM:SS"
         and defn.table not in BIT_TABLES
         and defn.value_map is None
         and defn.flags is None

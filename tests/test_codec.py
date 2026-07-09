@@ -417,3 +417,40 @@ def test_coil_decode_encode():
     assert decode(defn, [0]) is False
     assert encode(defn, 1) is True
     assert encode(defn, False) is False
+
+
+# --- regressions: masked-write swap, encode robustness, float artifacts -----
+
+
+def test_masked_write_honours_byte_swap():
+    # decode: wire 0x3412 -> byte-swap -> 0x1234 -> mask 0x0F00 -> 2
+    defn = e(type="uint16", mask=0x0F00, swap="byte", read_modify_write=True)
+    assert decode(defn, [0x3412]) == 2
+    # encode must merge in the swapped domain and swap back for the wire
+    words = encode(defn, 5, current_raw=0x3412)
+    assert words == [0x3415]  # logical 0x1534, byte-swapped
+    assert decode(defn, words) == 5
+
+
+def test_masked_write_without_swap_unchanged():
+    defn = e(type="uint16", mask=0x0F00, read_modify_write=True)
+    words = encode(defn, 5, current_raw=0x1234)
+    assert words == [0x1534]
+    assert decode(defn, words) == 5
+
+
+def test_encode_string_non_ascii_raises_codec_error():
+    with pytest.raises(CodecError, match="non-ASCII"):
+        encode(e(type="string", count=4), "Grüße")
+
+
+def test_encode_non_finite_number_raises_codec_error():
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(CodecError):
+            encode(e(type="uint16"), bad)
+
+
+def test_decode_multiplier_drops_binary_float_artifacts():
+    assert decode(e(type="uint16", multiplier=0.1), [127]) == 12.7
+    assert decode(e(type="uint16", multiplier=0.001), [1234]) == 1.234
+    assert decode(e(type="int16", multiplier=0.1, offset=-40), [123]) == -27.7

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import re
 import struct
 import time
@@ -13,13 +14,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, TemplateError
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.template import Template
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from . import codec
 from .client import ModbusBlockClient, ReadError, WriteError
 from .const import (
+    BASIC_GROUP,
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DEFAULT_SCAN_INTERVAL,
@@ -28,7 +30,7 @@ from .const import (
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
-from .models import TABLE_COIL, DeviceDef, EntityDef, Span, TemplateDef
+from .models import TABLE_COIL, DeviceDef, EntityDef, Span, SwitchTarget, TemplateDef
 from .planner import bridged_addresses, plan_blocks, spans_in_block
 
 _LOGGER = logging.getLogger(__name__)
@@ -80,12 +82,14 @@ def resolve_enabled_groups(
     The config-entry option wins when set; otherwise the device file's
     ``default_groups``; otherwise (nothing configured either place) every group,
     so a device that declares no default still shows everything and one that uses
-    no groups at all is unaffected.
+    no groups at all is unaffected. The ``basic`` group is special: it is always
+    enabled (and gets no toggle switch), so a device's baseline entities cannot
+    be hidden.
     """
     chosen = (options or {}).get(OPTION_ENABLED_GROUPS)
     if chosen is None:
         chosen = device.default_groups or device.group_names
-    return frozenset(chosen)
+    return frozenset(chosen) | {BASIC_GROUP}
 
 
 def is_group_visible(groups: tuple[str, ...], enabled: frozenset[str]) -> bool:
@@ -102,17 +106,25 @@ def referenced_read_keys(
 
     A shown template or ``read_register`` entity reads other keys through Jinja —
     and those source entities may themselves be hidden (e.g. a basic ``grid_import``
-    template reading a hidden ``measured_power`` sensor). This returns the transitive
-    closure of such references, seeded from the visible items and from the
-    device-info templates (which always render), so nothing a shown value depends on
-    gets pruned from the read plan.
+    template reading a hidden ``measured_power`` sensor). Write-time templates read
+    too: a button's ``write_value`` and an action's ``by:`` selector render over the
+    current values. This returns the transitive closure of all such references,
+    seeded from the visible items and from the device-info templates (which always
+    render), so nothing a shown value depends on gets pruned from the read plan.
     """
     sources: dict[str, list[str]] = {}
     for e in device.entities:
         if e.read_register is not None:
             sources.setdefault(e.key, []).append(e.read_register)
+        if isinstance(e.write_value, str):
+            sources.setdefault(e.key, []).append(e.write_value)
+        elif isinstance(e.write_value, tuple):
+            sources.setdefault(e.key, []).extend(
+                item for item in e.write_value if isinstance(item, str)
+            )
     for t in device.templates:
         strings = [v for v in t.config.values() if isinstance(v, str)]
+        strings += [v.selector for v in t.config.values() if isinstance(v, SwitchTarget)]
         if strings:
             sources.setdefault(t.key, []).extend(strings)
 
@@ -211,6 +223,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # failed reads, so they are never read or bridged across.
         self._holes: set[tuple[str, int]] = set(device.bad_addresses)
         self._cache: dict[tuple[str, int], int | bool] = {}
+        # Keys whose last read failed and that already got their one quick retry;
+        # see _async_update_data.
+        self._retried: set[str] = set()
+        self._full_plan_cache: tuple[int, int] | None = None
         self._consecutive_failures = 0
         # Read efficiency (diagnostic): block merging lets one Modbus read cover many
         # entities, so these are typically far below read_entity_count.
@@ -236,6 +252,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             model=device.model,
             model_id=connection,
         )
+        # Meta entities (group toggles, read diagnostics) live on their own
+        # service device so the real device shows only the device's entities.
+        self.meta_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"{entry.entry_id}_meta")},
+            name=f"{name} Configuration",
+            manufacturer=device.manufacturer,
+            entry_type=DeviceEntryType.SERVICE,
+            via_device=(DOMAIN, entry.entry_id),
+        )
 
         super().__init__(
             hass,
@@ -243,6 +268,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             config_entry=entry,
             name=f"{DOMAIN} {self.device_info['name']}",
             update_interval=timedelta(seconds=self._tick),
+            # Skip listener/state updates on cycles where no value changed.
+            always_update=False,
         )
 
     @property
@@ -262,14 +289,18 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if not self._readers:
             return 0
-        blocks = plan_blocks(
-            {e.span for e in self._readers},
-            max_read=self.device_def.max_read,
-            max_gap=self.device_def.max_gap,
-            holes=self._holes,
-            boundaries=self.device_def.boundaries,
-        )
-        return len(blocks)
+        # The plan only shifts when a hole is learned; cache on the hole count so
+        # the sensor's state reads don't re-plan every cycle.
+        if self._full_plan_cache is None or self._full_plan_cache[0] != len(self._holes):
+            blocks = plan_blocks(
+                {e.span for e in self._readers},
+                max_read=self.device_def.max_read,
+                max_gap=self.device_def.max_gap,
+                holes=self._holes,
+                boundaries=self.device_def.boundaries,
+            )
+            self._full_plan_cache = (len(self._holes), len(blocks))
+        return self._full_plan_cache[1]
 
     # --- device info ----------------------------------------------------------
 
@@ -300,15 +331,19 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     # --- reading -------------------------------------------------------------
 
+    def _seeded_data(self) -> dict[str, Any]:
+        """A mutable copy of the current data, with write-only statics seeded
+        so they are available before the first write."""
+        data: dict[str, Any] = dict(self.data) if self.data else {}
+        for defn in self._static:
+            data.setdefault(defn.key, defn.static_value)
+        return data
+
     async def _async_update_data(self) -> dict[str, Any]:
         now = time.monotonic()
         due = [e for e in self._readers if self._next_due[e.key] <= now]
-        data: dict[str, Any] = dict(self.data) if self.data else {}
-        # Seed write-only entities so they are available before the first write.
-        for defn in self._static:
-            data.setdefault(defn.key, defn.static_value)
         if not due:
-            return data
+            return self._seeded_data()
 
         spans = {e.span for e in due}
         blocks = plan_blocks(
@@ -318,18 +353,21 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             holes=self._holes,
             boundaries=self.device_def.boundaries,
         )
-        ok_blocks = 0
-        reads = 0
         async with self.client.lock:
             if not await self.client.ensure_connected():
                 self._register_failure()
                 raise UpdateFailed(
                     f"cannot connect to gateway {self.client.host}:{self.client.port}"
                 )
-            for block in blocks:
+        ok_blocks = 0
+        reads = 0
+        # The lock is taken per block, not around the whole refresh, so a user
+        # write never waits behind a long (or timing-out) poll cycle.
+        for block in blocks:
+            async with self.client.lock:
                 yielded, n = await self._read_with_fallback(block, spans)
-                ok_blocks += yielded
-                reads += n
+            ok_blocks += yielded
+            reads += n
         self.last_read_count = reads
         self.last_polled_count = len(due)
 
@@ -338,16 +376,36 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"device {self.slave_id} did not answer any read")
         self._register_success()
 
+        # Copied only now: a write can interleave between the block reads above
+        # and push its confirmed value into self.data — a copy taken at refresh
+        # start would revert that value for every entity not due this cycle.
+        data = self._seeded_data()
         for defn in due:
             value = self._decode(defn)
+            unread = value is None and self._missing(defn)
             if value is None and defn.optimistic_default is not None:
                 value = defn.optimistic_default  # keep the control usable
             data[defn.key] = self._postprocess(defn, data.get(defn.key), value)
-            self._next_due[defn.key] = now + self._interval_for[defn.key]
+            # An entity whose block read failed gets one quick retry on the next
+            # tick instead of waiting out its whole interval (which can be long);
+            # if the retry fails too, it falls back to the normal cadence.
+            if unread and defn.key not in self._retried:
+                self._retried.add(defn.key)
+            else:
+                self._retried.discard(defn.key)
+                self._next_due[defn.key] = now + self._interval_for[defn.key]
         # read_register entities take their value from other (just-decoded) values
         for defn in self._linked:
             data[defn.key] = self._render_link(defn, data)
         return data
+
+    def _missing(self, defn: EntityDef) -> bool:
+        """Whether any of the entity's addresses is absent from the raw cache
+        (i.e. its last block read failed, as opposed to a decode error)."""
+        return any(
+            (defn.table, a) not in self._cache
+            for a in range(defn.address, defn.address + defn.count)
+        )
 
     def _render_link(self, defn: EntityDef, data: dict[str, Any]) -> Any:
         """Render a read_register template to this entity's current value."""
@@ -371,13 +429,19 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._store(block, await self.client.read_block(self.slave_id, block))
             return 1, 1
         except ReadError as err:
+            # Drop the whole failed range before retrying: successful sub-reads
+            # re-store their part, and whatever stays failed must not decode from
+            # a previous cycle's words (a mixed-generation value).
+            self._clear(block)
             _LOGGER.debug("Block %s failed (%s), retrying unbridged", block, err)
 
         needed = spans_in_block(block, spans)
         sub_blocks = plan_blocks(needed, max_read=self.device_def.max_read)
-        if sub_blocks == [block]:
-            self._clear(block)
-            _LOGGER.debug("Unbridged read %s failed too", block)
+        # No unbridged sub-plan to fall back to: either the block was a single
+        # span already, or it is a max_read-sized chunk of a larger span (no span
+        # lies fully inside it) — nothing smaller can be retried.
+        if not sub_blocks or sub_blocks == [block]:
+            _LOGGER.debug("No fallback for failed block %s", block)
             return 0, 1  # the failed read still hit the wire
 
         all_ok = True
@@ -387,7 +451,6 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._store(sub, await self.client.read_block(self.slave_id, sub))
                 any_ok = True
             except ReadError as err:
-                self._clear(sub)
                 all_ok = False
                 _LOGGER.debug("Fallback read %s failed: %s", sub, err)
 
@@ -476,10 +539,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if isinstance(item, str)
                 else item
             )
-            if isinstance(rendered, bool) or not isinstance(rendered, (int, float)):
+            if (
+                isinstance(rendered, bool)
+                or not isinstance(rendered, (int, float))
+                or not math.isfinite(rendered)
+            ):
                 raise WriteError(
                     f"{defn.key}: write_value item {item!r} rendered to {rendered!r}, "
-                    "expected a number"
+                    "expected a finite number"
                 )
             num = round(rendered)
             if not -0x8000 <= num <= 0xFFFF:

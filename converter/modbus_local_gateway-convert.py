@@ -102,6 +102,10 @@ def warn(filename: str, message: str) -> None:
     print(f"  WARNING {filename}: {message}", file=sys.stderr)
 
 
+class SkipEntity(Exception):
+    """This entity cannot be represented in the new format; skip it with a warning."""
+
+
 def _convert_type(old: dict, filename: str, key: str) -> dict[str, Any]:
     """Old float/signed/string/size flags -> new type/count."""
     out: dict[str, Any] = {}
@@ -160,7 +164,12 @@ def _convert_uom(old: dict, platform: str, filename: str, key: str) -> dict[str,
     if platform != "sensor" or old.get("string") or device_class is None:
         state_class = None
     if unit is not None:
-        ha["unit_of_measurement"] = unit
+        # Only sensor and number entities carry a unit in HA; the old format
+        # allowed it anywhere, but emitting it elsewhere makes an invalid file.
+        if platform in ("sensor", "number"):
+            ha["unit_of_measurement"] = unit
+        else:
+            warn(filename, f"{key}: {platform} entities have no unit in HA, dropped")
     if device_class is not None:
         ha["device_class"] = device_class
     if state_class is not None:
@@ -198,7 +207,9 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
             width = 16 * old.get("size", 1)
             flags = {}
             for k, v in old["flags"].items():
-                if 1 <= k <= width:
+                if not isinstance(k, int) or isinstance(k, bool):
+                    warn(filename, f"{key}: flag bit {k!r} is not an integer, dropped")
+                elif 1 <= k <= width:
                     flags[k - 1] = v
                 else:
                     warn(filename, f"{key}: flag bit {k} exceeds the {width}-bit value "
@@ -221,6 +232,8 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
             new["off"] = switch["off"]
     elif platform == "select":
         options = old.get("options") or {}
+        if not options:
+            raise SkipEntity("select without 'options' cannot be converted")
         new["map"] = options
     elif platform == "number":
         number = old.get("number") or {}
@@ -245,11 +258,14 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
         ha["name"] = old["name"]
     ha.update(_convert_uom(old, platform, filename, key))
     if old.get("precision") is not None:
-        if platform == "number":
+        if platform == "sensor":
+            ha["precision"] = old["precision"]
+        elif platform == "number":
             warn(filename, f"{key}: numbers have no display precision in HA "
                            f"(use ha.step for input granularity), dropped")
         else:
-            ha["precision"] = old["precision"]
+            warn(filename, f"{key}: {platform} entities have no display precision "
+                           f"in HA, dropped")
     if old.get("icon"):
         ha["icon"] = old["icon"]
     if old.get("entity_category"):
@@ -281,9 +297,12 @@ def convert_device(doc: dict, filename: str) -> dict[str, Any]:
                 warn(filename, f"{key}: not a mapping, skipped")
                 continue
             if key in seen:
+                renamed = f"{key}_{new_section}"
+                while renamed in seen:
+                    renamed += "_"
                 warn(filename, f"{key}: duplicate entity key across sections, "
-                               f"renamed to {key}_{new_section}")
-                key = f"{key}_{new_section}"
+                               f"renamed to {renamed}")
+                key = renamed
             seen.add(key)
             try:
                 sections.setdefault(new_section, {})[key] = convert_entity(
@@ -291,6 +310,8 @@ def convert_device(doc: dict, filename: str) -> dict[str, Any]:
                 )
             except KeyError as err:
                 warn(filename, f"{key}: missing required key {err}, skipped")
+            except SkipEntity as err:
+                warn(filename, f"{key}: {err}, skipped")
 
     return {"device": device, **sections}
 
@@ -325,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
     files: list[Path] = []
     for inp in args.inputs:
         if inp.is_dir():
-            files.extend(sorted(inp.glob("*.yaml")))
+            files.extend(sorted([*inp.glob("*.yaml"), *inp.glob("*.yml")]))
         elif inp.is_file():
             files.append(inp)
         else:

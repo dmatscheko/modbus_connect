@@ -562,11 +562,13 @@ def _parse_conversions(
     value_map = _parse_int_str_map(ctx, "map", raw.get("map"))
     flags = _parse_int_str_map(ctx, "flags", raw.get("flags"), max_key=16 * count - 1)
 
-    if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or sum_scale):
-        raise ctx.fail("strings cannot be combined with numeric conversions")
-    if typ == TYPE_TIME and (mask or multiplier or offset or value_map or flags or sum_scale):
-        raise ctx.fail("time cannot be combined with numeric conversions")
-    if typ in FLOAT_TYPES and (mask or flags):
+    numeric_conversions = [
+        conv for conv in (mask, multiplier, offset, value_map, flags, sum_scale)
+        if conv is not None
+    ]
+    if typ in (TYPE_STRING, TYPE_TIME) and numeric_conversions:
+        raise ctx.fail(f"{typ} cannot be combined with numeric conversions")
+    if typ in FLOAT_TYPES and (mask is not None or flags is not None):
         raise ctx.fail("floats cannot be combined with mask/flags")
     if value_map and flags:
         raise ctx.fail("'map' and 'flags' are mutually exclusive")
@@ -695,9 +697,11 @@ def _parse_ha(ctx: _Ctx, platform: str, ha_raw: dict[str, Any]) -> dict[str, Any
             continue
         name = HA_ALIASES.get(raw_name, raw_name)
         if name not in allowed:
+            # Only offer aliases whose target field this platform actually has.
+            aliases = {a for a, target in HA_ALIASES.items() if target in allowed}
             raise ctx.fail(
                 f"ha.{raw_name} is not a {platform} entity field "
-                f"(valid: {', '.join(sorted(allowed | set(HA_ALIASES)))})"
+                f"(valid: {', '.join(sorted(allowed | aliases))})"
             )
         if name == "entity_category" and isinstance(value, str):
             value = _coerce_enum(ctx, f"ha.{raw_name}", value, EntityCategory)
@@ -762,6 +766,17 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
     if defn.write_multiple and defn.table in BIT_TABLES:
         raise ctx.fail("'write_multiple' applies to register writes, not coils")
 
+    # A masked write must merge into the register's other bits, which requires
+    # read_modify_write; without it every write would fail at runtime. A button
+    # with a list write_value bypasses the codec, so the mask is decode-only there.
+    if (
+        defn.writes
+        and defn.mask is not None
+        and not defn.read_modify_write
+        and not isinstance(defn.write_value, tuple)
+    ):
+        raise ctx.fail("writable entities with 'mask' require 'read_modify_write: true'")
+
     if platform == "select":
         if not defn.value_map:
             raise ctx.fail("selects require 'map' (register value -> option)")
@@ -790,8 +805,13 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             raise ctx.fail("numbers cannot use map/flags")
 
     if platform in ("switch", "binary_sensor"):
-        if defn.type == TYPE_STRING or defn.flags:
-            raise ctx.fail(f"{platform} entities need a plain numeric or bit value")
+        # A 'map' decodes to a label string, which the integer/boolean 'on'/'off'
+        # comparison can never match — the entity would be stuck on.
+        if defn.type == TYPE_STRING or defn.flags or defn.value_map:
+            raise ctx.fail(
+                f"{platform} entities need a plain numeric or bit value "
+                "(no map/flags/string; use 'on'/'off' to pick the raw values)"
+            )
     elif defn.on_value is not None or defn.off_value is not None:
         raise ctx.fail("'on'/'off' are only valid for switch and binary_sensor")
 

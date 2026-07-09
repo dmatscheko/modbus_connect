@@ -48,7 +48,6 @@ def enum_str(v):
 # (default_input_scangroup on the hybrid) and applies it uniformly to the EV charger
 # too, whose live values would otherwise inherit its slower default group.
 FAST_INTERVAL = 15
-DEFAULT_INTERVAL = 30
 # Units SolaX treats as slow-changing (auto_slow_scangroup); everything else is fast.
 SLOW_UNITS = {"Wh", "kWh", "Hz", "°C", "°F", "K", "h"}
 
@@ -83,7 +82,6 @@ WRITE_LOCAL = 3
 # write_method 2 (MULTISINGLE) and 4 (MULTI) both use FC16. Registers written this
 # way are "direct" command registers with no read-back — write-only in our terms.
 WRITE_FC16 = (2, 4)
-UNDEF = object()
 
 
 def make_static(e, b, ha, option_map):
@@ -212,10 +210,11 @@ class _Converter:
         rbase = dict(rbase)
         # If the read source has no scale conversion (SolaX's value_function scales
         # are dropped, leaving just the register/mask), borrow the writable's — the
-        # two ends of a setting share the same map/multiplier.
-        if "map" not in rbase and "map" in wbase:
+        # two ends of a setting share the same map/multiplier. Never borrow onto a
+        # source that already has the other kind: map+multiplier cannot combine.
+        if "map" not in rbase and "map" in wbase and "multiplier" not in rbase:
             rbase["map"] = wbase["map"]
-        elif "multiplier" not in rbase and "multiplier" in wbase:
+        elif "multiplier" not in rbase and "multiplier" in wbase and "map" not in rbase:
             rbase["multiplier"] = wbase["multiplier"]
         rkey = key + "_readback"
         self.add(rtable, rkey, {**rbase, "internal": True})
@@ -227,7 +226,8 @@ class _Converter:
         if getattr(e, "write_method", 1) in WRITE_FC16:
             make_static(e, b, ha, omap)
         else:
-            self.link_readback(e.key, "holding", b)
+            # A writable may name its companion read-back sensor via sensor_key.
+            self.link_readback(getattr(e, "sensor_key", None) or e.key, "holding", b)
         b["ha"] = ha
         self.add("holding", e.key, b)
 
@@ -332,8 +332,13 @@ class _Converter:
         if getattr(e, "value_function", None) is not None or getattr(e, "command", None) is None:
             self.skipped["button:computed"] += 1
             return
-        self.add("holding", e.key,
-                 {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")})
+        if getattr(e, "register", None) is None:
+            self.skipped["button:no-register"] += 1
+            return
+        b = {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")}
+        if getattr(e, "write_method", 1) in WRITE_FC16:
+            b["write_multiple"] = True
+        self.add("holding", e.key, b)
 
     def add_remaining_sensor(self, key):
         """Emit a sensor that wasn't merged into a writable."""
@@ -513,11 +518,30 @@ def emit_yaml(meta, entities, templates=()):
 def yaml_str(v):
     if isinstance(v, bool):
         return "true" if v else "false"
-    if isinstance(v, (int, float)):
+    if isinstance(v, float):
+        s = repr(v)
+        # YAML's float syntax needs a dot in the mantissa and a signed exponent;
+        # repr(1e-05) = '1e-05' would load back as a *string*.
+        if "e" in s:
+            mantissa, _, exponent = s.partition("e")
+            if "." not in mantissa:
+                mantissa += ".0"
+            if exponent[0] not in "+-":
+                exponent = "+" + exponent
+            s = f"{mantissa}e{exponent}"
+        return s
+    if isinstance(v, int):
         return str(v)
     s = str(v)
-    if s == "" or any(c in s for c in ":#%°'\"{}[],&*!|>@") or s[0].isdigit() or s.lower() in ("null", "true", "false", "yes", "no", "on", "off"):
-        return '"' + s.replace('"', '\\"') + '"'
+    if (
+        s == ""
+        or any(c in s for c in ":#%°'\"\\{}[],&*!|>@")
+        or s[0] in "-+. "
+        or s[-1] == " "
+        or s[0].isdigit()
+        or s.lower() in ("null", "true", "false", "yes", "no", "on", "off")
+    ):
+        return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
     return s
 
 
@@ -527,13 +551,29 @@ DEST = str(
 )
 
 
+def validate_output(text, filename):
+    """Round-trip the emitted YAML through the integration's schema, so an emitter
+    bug fails the conversion loudly instead of the config entry later."""
+    import yaml
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "custom_components"))
+    from modbus_connect.schema import parse_device
+
+    parse_device(yaml.safe_load(text), filename=filename)
+
+
 def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset()):
     P = load_plugin(module)
     ents, skipped = convert(P.plugin_instance, spec_fn(P))
     ents = list(ents) + list(extras)  # device-info + computed registers, appended post-dedupe
+    dupes = [k for k, n in Counter(k for _, k, _ in ents).items() if n > 1]
+    if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
+        raise SystemExit(f"{filename}: duplicate entity keys {sorted(dupes)}")
     annotate_groups(ents, templates, basic)
-    with open(f"{DEST}/{filename}", "w") as f:
-        f.write(emit_yaml(meta, ents, templates))
+    text = emit_yaml(meta, ents, templates)
+    validate_output(text, filename)
+    with open(f"{DEST}/{filename}", "w", encoding="utf-8") as f:
+        f.write(text)
     plat = Counter(b.get("ha", {}).get("platform", "internal") for _, _, b in ents)
     print(f"\nWROTE {filename}: {dict(plat)} +{len(templates)} template total {len(ents) + len(templates)}")
     print("  skipped:", {k: v for k, v in skipped.items() if v})

@@ -826,8 +826,9 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
             reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
         )
 
-        # one config switch per group, reflecting the enabled set
-        assert hass.states.get(eid(hass, entry, "switch", "group_basic")).state == "on"
+        # one config switch per group except 'basic', which is always enabled
+        # and cannot be toggled off
+        assert reg.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_group_basic") is None
         advanced = eid(hass, entry, "switch", "group_advanced")
         assert hass.states.get(advanced).state == "off"
         assert hass.states.get(eid(hass, entry, "switch", "group_all")).state == "off"
@@ -839,7 +840,62 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         )
         await hass.async_block_till_done()
 
-    assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced", "basic"]
+    # the implicit basic group is not persisted in the option
+    assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced"]
     assert hass.states.get(eid(hass, entry, "sensor", "extra")) is not None
     assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
     assert hass.states.get(eid(hass, entry, "switch", "group_advanced")).state == "on"
+
+
+async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "grouped.yaml").write_text(GROUPED_YAML, encoding="utf-8")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.9",
+            "port": 502,
+            CONF_SLAVE_ID: 3,
+            CONF_FILENAME: "grouped.yaml",
+        },
+        unique_id="192.0.2.9:502:3",
+        title="Grouped",
+    )
+    entry.add_to_hass(hass)
+    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        dev_reg = dr.async_get(hass)
+        main = dev_reg.async_get_device({(DOMAIN, entry.entry_id)})
+        meta = dev_reg.async_get_device({(DOMAIN, f"{entry.entry_id}_meta")})
+        assert main is not None and meta is not None
+        # the meta device is a service device linked below the real one
+        assert meta.via_device_id == main.id
+        assert meta.entry_type is dr.DeviceEntryType.SERVICE
+        assert meta.name == "Acme Grouped Configuration"
+
+        reg = er.async_get(hass)
+        for domain_, unique in (
+            ("switch", f"{entry.entry_id}_group_advanced"),
+            ("sensor", f"{entry.entry_id}_reads_per_refresh"),
+        ):
+            entity = reg.async_get(reg.async_get_entity_id(domain_, DOMAIN, unique))
+            assert entity is not None and entity.device_id == meta.id
+        core = reg.async_get(reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_core"))
+        assert core is not None and core.device_id == main.id
+
+
+def test_time_mirror_sensor_has_no_state_class() -> None:
+    from custom_components.modbus_connect.entity import build_mirror_description
+    from custom_components.modbus_connect.models import EntityDef
+
+    mirror = build_mirror_description(
+        EntityDef(key="wake", platform="time", type="time", duplicate_as_sensor=True)
+    )
+    assert mirror.state_class is None  # "07:30:00" is not a measurement
+    numeric = build_mirror_description(
+        EntityDef(key="limit", platform="number", duplicate_as_sensor=True)
+    )
+    assert numeric.state_class is not None

@@ -54,6 +54,12 @@ class ModbusBlockClient:
         self.port = port
         self.lock = asyncio.Lock()
         self._client = AsyncModbusTcpClient(host, port=port, timeout=2.0, retries=1)
+        self._read_funcs = {
+            TABLE_HOLDING: self._client.read_holding_registers,
+            TABLE_INPUT: self._client.read_input_registers,
+            TABLE_COIL: self._client.read_coils,
+            TABLE_DISCRETE: self._client.read_discrete_inputs,
+        }
         self._refs: set[str] = set()
 
     # --- instance sharing ------------------------------------------------------
@@ -87,14 +93,8 @@ class ModbusBlockClient:
 
     async def read_block(self, device_id: int, span: Span) -> list[int] | list[bool]:
         """Read one planned block; caller holds ``self.lock``."""
-        funcs = {
-            TABLE_HOLDING: self._client.read_holding_registers,
-            TABLE_INPUT: self._client.read_input_registers,
-            TABLE_COIL: self._client.read_coils,
-            TABLE_DISCRETE: self._client.read_discrete_inputs,
-        }
         try:
-            response = await funcs[span.table](
+            response = await self._read_funcs[span.table](
                 address=span.start, count=span.count, device_id=device_id
             )
         except (TimeoutError, ModbusException, OSError) as exc:

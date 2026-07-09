@@ -31,6 +31,10 @@ OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
 # List of enabled group names; absent means "use the device file's default_groups".
 OPTION_ENABLED_GROUPS: Final = "enabled_groups"
 
+# The one reserved group name: always enabled, no toggle switch. Tagging an
+# entity ``groups: [basic]`` keeps it out of other groups without ever hiding it.
+BASIC_GROUP: Final = "basic"
+
 DEFAULT_PORT: Final = 502
 DEFAULT_SLAVE_ID: Final = 1
 DEFAULT_SCAN_INTERVAL: Final = 30

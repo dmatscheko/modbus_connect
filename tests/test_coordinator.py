@@ -18,7 +18,14 @@ from custom_components.modbus_connect.coordinator import (
     is_group_visible,
     resolve_enabled_groups,
 )
-from custom_components.modbus_connect.models import DeviceDef, EntityDef, Span, TemplateDef
+from custom_components.modbus_connect.models import (
+    DeviceDef,
+    EntityDef,
+    Span,
+    SwitchTarget,
+    TemplateDef,
+    WriteTarget,
+)
 
 
 class FakeTime:
@@ -223,17 +230,22 @@ def test_is_group_visible_untagged_always_shown():
 
 def test_resolve_enabled_groups_precedence():
     dev = make_device(sensor("a", 0, groups=("basic", "all")), default_groups=("basic",))
-    # option wins
-    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["all"]}) == frozenset({"all"})
+    # option wins; 'basic' is always enabled on top of whatever is chosen
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["all"]}) == frozenset(
+        {"all", "basic"}
+    )
     # else the device default
     assert resolve_enabled_groups(dev, None) == frozenset({"basic"})
     assert resolve_enabled_groups(dev, {}) == frozenset({"basic"})
     # no default set -> every declared group (shows everything)
     dev2 = make_device(sensor("a", 0, groups=("x", "y")))
-    assert resolve_enabled_groups(dev2, None) == frozenset({"x", "y"})
-    # no groups at all -> empty (feature inactive; every entity is untagged anyway)
+    assert resolve_enabled_groups(dev2, None) == frozenset({"x", "y", "basic"})
+    # no groups at all -> only the implicit basic (feature inactive; every
+    # entity is untagged anyway)
     dev3 = make_device(sensor("a", 0))
-    assert resolve_enabled_groups(dev3, None) == frozenset()
+    assert resolve_enabled_groups(dev3, None) == frozenset({"basic"})
+    # an explicitly emptied selection still cannot disable basic
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: []}) == frozenset({"basic"})
 
 
 async def test_groups_hide_and_prune_hidden_reads(hass, monkeypatch):
@@ -815,3 +827,158 @@ async def test_undecodable_value_becomes_none(hass, monkeypatch):
     await coordinator.async_refresh()
     assert coordinator.last_update_success
     assert coordinator.data["broken"] is None
+
+
+# --- regressions: failed-read handling, retry cadence, write-time closure ----
+
+
+async def test_failed_chunk_of_wide_span_does_not_mix_generations(hass, monkeypatch):
+    # A string wider than max_read is read in chunks. When one chunk fails, the
+    # value must go unavailable — not decode half-new, half-stale words.
+    client = FakeClient(dict.fromkeys(range(100, 106), 16705))  # "AA" x 6
+    device = make_device(
+        sensor("serial", 100, type="string", count=6),
+        max_read=4,  # -> chunks [100..104) + [104..106)
+    )
+    ft = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    assert coordinator.data["serial"] == "AAAAAAAAAAAA"
+
+    client.registers = dict.fromkeys(range(100, 106), 16962)  # now "BB" x 6
+    client.fail_addresses = {104}  # second chunk fails this cycle
+    ft.now += 60
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success  # chunk 1 still answered
+    assert coordinator.data["serial"] is None  # not "BBBBBBBBAAAA"
+
+
+async def test_failed_read_gets_one_quick_retry(hass, monkeypatch):
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("fast", 0), sensor("slow", 100, scan_interval=3600))
+    ft = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    client.fail_addresses = {100}
+    await coordinator.async_refresh()
+    assert coordinator.data["slow"] is None
+
+    # retried on the next tick, not after its full hour-long interval
+    client.fail_addresses = set()
+    ft.now += 30
+    await coordinator.async_refresh()
+    assert coordinator.data["slow"] == 7
+
+
+async def test_failed_read_backs_off_to_cadence_after_one_retry(hass, monkeypatch):
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("fast", 0), sensor("slow", 100, scan_interval=3600))
+    ft = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    client.fail_addresses = {100}
+    await coordinator.async_refresh()  # initial failure
+    ft.now += 30
+    await coordinator.async_refresh()  # the one quick retry fails too
+
+    client.fail_addresses = set()
+    ft.now += 30
+    await coordinator.async_refresh()  # no third quick retry: waits out the hour
+    assert coordinator.data["slow"] is None
+    slow_reads = [s for s in client.reads if s.start == 100]
+    assert len(slow_reads) == 2  # initial + one retry only
+
+    ft.now += 3600
+    await coordinator.async_refresh()
+    assert coordinator.data["slow"] == 7
+
+
+async def test_write_time_template_sources_stay_polled(hass, monkeypatch):
+    # Button write_value templates and action 'by:' selectors render over the
+    # current values at write time; their internal sources must stay in the
+    # read plan even though nothing displays them.
+    client = FakeClient({50: 1, 60: 2, 70: 3})
+    device = make_device(
+        EntityDef(key="rtc_seed", platform="internal", address=50),
+        EntityDef(key="mode_raw", platform="internal", address=60),
+        EntityDef(
+            key="sync", platform="button", address=10,
+            write_value=("{{ rtc_seed + 1 }}",),
+        ),
+        EntityDef(key="target", platform="number", address=70),
+        templates=(
+            TemplateDef(
+                key="setpoint",
+                platform="number",
+                config={
+                    "state": "{{ target }}",
+                    "set_value": SwitchTarget(
+                        selector="{{ mode_raw }}",
+                        cases={"2": WriteTarget(entity="target")},
+                    ),
+                },
+            ),
+        ),
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator.read_entity_count == 3  # rtc_seed, mode_raw, target
+    await coordinator.async_refresh()
+    read_addrs = {a for span in client.reads for a in range(span.start, span.end)}
+    assert {50, 60, 70} <= read_addrs
+
+
+async def test_unchanged_data_skips_listener_updates(hass, monkeypatch):
+    client = FakeClient({0: 5})
+    device = make_device(sensor("a", 0))
+    ft = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    calls: list[int] = []
+    unsub = coordinator.async_add_listener(lambda: calls.append(1))
+
+    await coordinator.async_refresh()
+    first = len(calls)
+    ft.now += 60
+    await coordinator.async_refresh()  # identical values -> no state churn
+    assert len(calls) == first
+    client.registers[0] = 6
+    ft.now += 60
+    await coordinator.async_refresh()
+    assert len(calls) == first + 1
+    unsub()
+
+
+async def test_write_between_blocks_not_clobbered_by_refresh(hass, monkeypatch):
+    # The client lock is per block, so a write can land between two reads of a
+    # running refresh. Its confirmed value must survive when the refresh
+    # publishes its result (the written entity is not due this cycle).
+    client = FakeClient({0: 1, 100: 2, 200: 7})
+    gate = asyncio.Event()
+    orig = client.read_block
+
+    async def gated(device_id, span):
+        if span.start == 0 and not gate.is_set():
+            await gate.wait()
+        return await orig(device_id, span)
+
+    client.read_block = gated
+    device = make_device(
+        sensor("a", 0),
+        sensor("b", 100),
+        EntityDef(key="setpoint", platform="number", address=200, scan_interval=3600),
+    )
+    ft = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    gate.set()
+    await coordinator.async_refresh()
+    assert coordinator.data["setpoint"] == 7
+
+    gate.clear()
+    ft.now += 30  # only a and b due; setpoint would wait an hour
+    refresh = hass.async_create_task(coordinator.async_refresh())
+    await asyncio.sleep(0)  # refresh now holds the lock, parked in block 1
+    write = hass.async_create_task(
+        coordinator.async_write(coordinator.entity_defs["setpoint"], 5)
+    )
+    await asyncio.sleep(0)  # the write queues on the client lock
+    gate.set()  # block 1 completes; the write slots in before block 2
+    await write
+    await refresh
+    assert coordinator.data["setpoint"] == 5  # not reverted to 7

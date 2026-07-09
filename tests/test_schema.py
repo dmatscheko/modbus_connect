@@ -741,7 +741,7 @@ ERROR_CASES = [
         "string_with_conversion",
         doc(x={"address": 0, "type": "string", "count": 2, "multiplier": 2,
                "ha": {"platform": "sensor"}}),
-        "strings cannot be combined",
+        "string cannot be combined",
     ),
     (
         "float_with_flags",
@@ -1283,3 +1283,73 @@ def test_default_groups_unknown_group_rejected():
     }
     with pytest.raises(DeviceSchemaError, match="name groups no entity uses"):
         parse_device(data, "t.yaml")
+
+
+# --- regressions: newly rejected combinations, alias error message -----------
+
+
+def test_switch_with_map_rejected():
+    with pytest.raises(DeviceSchemaError, match="plain numeric or bit value"):
+        parse_device(
+            doc(x={"address": 0, "map": {0: "Off", 1: "On"}, "ha": {"platform": "switch"}}),
+            "t.yaml",
+        )
+
+
+def test_binary_sensor_with_map_rejected():
+    with pytest.raises(DeviceSchemaError, match="plain numeric or bit value"):
+        parse_device(
+            doc(x={"address": 0, "map": {0: "No", 1: "Yes"},
+                   "ha": {"platform": "binary_sensor"}}),
+            "t.yaml",
+        )
+
+
+def test_writable_mask_without_rmw_rejected():
+    # would raise NotWritableError on every write; catch it at parse time
+    with pytest.raises(DeviceSchemaError, match="read_modify_write"):
+        parse_device(
+            doc(x={"address": 0, "mask": 0xFF,
+                   "ha": {"platform": "number", "min": 0, "max": 10}}),
+            "t.yaml",
+        )
+
+
+def test_sensor_mask_without_rmw_still_valid():
+    dev = parse_device(
+        doc(x={"address": 0, "mask": 0xFF, "ha": {"platform": "sensor"}}), "t.yaml"
+    )
+    assert dev.entities[0].mask == 0xFF
+
+
+def test_button_list_write_value_with_mask_still_valid():
+    # a list write_value bypasses the codec, so the mask stays decode-only
+    dev = parse_device(
+        doc(x={"address": 0, "mask": 0xFF, "write_value": [1, 2],
+               "ha": {"platform": "button"}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].write_value == (1, 2)
+
+
+def test_string_with_zero_offset_rejected():
+    # offset 0 is still a conversion; truthiness must not let it slip through
+    with pytest.raises(DeviceSchemaError, match="string cannot be combined"):
+        parse_device(
+            doc(x={"address": 0, "type": "string", "count": 2, "offset": 0,
+                   "ha": {"platform": "sensor"}}),
+            "t.yaml",
+        )
+
+
+def test_ha_field_error_lists_only_applicable_aliases():
+    with pytest.raises(DeviceSchemaError, match="not a select entity field") as err:
+        parse_device(
+            doc(x={"address": 0, "map": {0: "A", 1: "B"},
+                   "ha": {"platform": "select", "unit": "V"}}),
+            "t.yaml",
+        )
+    valid = str(err.value).split("valid: ")[1].rstrip(")")
+    names = {n.strip() for n in valid.split(",")}
+    assert "unit" not in names  # aliases native_unit_of_measurement: not on selects
+    assert "enabled_by_default" in names  # its target exists on every platform

@@ -23,7 +23,7 @@ from .schema import DeviceSchemaError, parse_device
 try:
     from yaml import CSafeLoader as _YamlLoader
 except ImportError:  # pragma: no cover - depends on the libyaml build
-    from yaml import SafeLoader as _YamlLoader
+    from yaml import SafeLoader as _YamlLoader  # type: ignore[assignment]
 
 _LOGGER = logging.getLogger(__name__)
 

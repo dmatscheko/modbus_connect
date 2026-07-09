@@ -10,11 +10,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.modbus_connect.config_flow import _unique_id
 from custom_components.modbus_connect.const import (
     CONF_FILENAME,
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
+    OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
 
@@ -357,3 +359,80 @@ async def test_reconfigure_no_device_files_aborts(hass: HomeAssistant) -> None:
         result = await start_reconfigure(hass, entry)
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "no_device_files"
+
+
+# --- regressions: option preservation, stale groups, host normalization ------
+
+
+async def test_options_flow_preserves_other_options(hass: HomeAssistant) -> None:
+    # Saving the polling form must not wipe the group selection: an options
+    # flow's create_entry replaces the whole dict, so it has to merge.
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        entry, options={OPTION_ENABLED_GROUPS: ["extra"]}
+    )
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {OPTION_MIN_SCAN_INTERVAL: 10}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options == {
+        OPTION_ENABLED_GROUPS: ["extra"],
+        OPTION_MIN_SCAN_INTERVAL: 10,
+    }
+
+
+async def test_reconfigure_to_new_device_file_clears_group_selection(
+    hass: HomeAssistant,
+) -> None:
+    write_device_file(hass)
+    write_device_file(hass, "acme_x2.yaml", DEVICE_YAML_DEFAULTS)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        entry,
+        options={OPTION_ENABLED_GROUPS: ["stale"], OPTION_MIN_SCAN_INTERVAL: 10},
+    )
+
+    result = await start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_FILENAME: "acme_x2.yaml", CONF_NAME: ""}
+    )
+    with patch_probe(True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], CONNECTION
+        )
+    assert result["type"] is FlowResultType.ABORT
+    # a different file has different groups: the stale selection is dropped,
+    # everything else survives
+    assert OPTION_ENABLED_GROUPS not in entry.options
+    assert entry.options[OPTION_MIN_SCAN_INTERVAL] == 10
+
+
+async def test_reconfigure_same_device_file_keeps_group_selection(
+    hass: HomeAssistant,
+) -> None:
+    write_device_file(hass)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        entry, options={OPTION_ENABLED_GROUPS: ["extra"]}
+    )
+
+    result = await start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
+    with patch_probe(True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], CONNECTION
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert entry.options[OPTION_ENABLED_GROUPS] == ["extra"]
+
+
+def test_unique_id_normalizes_host() -> None:
+    connection = {"host": " GW.Local ", "port": 502, CONF_SLAVE_ID: 7}
+    assert _unique_id(connection) == "gw.local:502:7"

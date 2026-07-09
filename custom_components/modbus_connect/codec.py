@@ -160,6 +160,8 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
         num = num * defn.multiplier
     if defn.offset is not None:
         num = num + defn.offset
+    if isinstance(num, float):
+        num = round(num, 10)  # drop binary artifacts of decimal multipliers (0.1 etc.)
     return _int_if_whole(num)
 
 
@@ -215,7 +217,10 @@ def _unmap(defn: EntityDef, value: object) -> int:
 
 
 def _encode_string(defn: EntityDef, value: object) -> list[int]:
-    data = str(value).encode("ascii")
+    try:
+        data = str(value).encode("ascii")
+    except UnicodeEncodeError as err:
+        raise CodecError(f"{defn.key}: {value!r} contains non-ASCII characters") from err
     if len(data) > defn.count * 2:
         raise CodecError(
             f"{defn.key}: string longer than {defn.count * 2} characters"
@@ -257,7 +262,11 @@ def _pack_number(
     int_num = _whole_number(defn, num, value)
 
     if defn.mask is not None:
-        return [_encode_masked(defn, int_num, current_raw)]
+        # The mask is defined against the decoded (swap-applied) word; swap the
+        # raw register into that domain, merge, and swap back for the wire.
+        if current_raw is not None:
+            current_raw = _swap_words([current_raw], defn.swap)[0]
+        return _swap_words([_encode_masked(defn, int_num, current_raw)], defn.swap)
 
     bits = TYPE_BITS[defn.type]
     if defn.type in SIGNED_TYPES:
@@ -272,6 +281,8 @@ def _pack_number(
 
 
 def _whole_number(defn: EntityDef, num: float | int, value: object) -> int:
+    if isinstance(num, float) and not math.isfinite(num):
+        raise CodecError(f"{defn.key}: {value!r} is not a finite number")
     int_num = round(num)
     if abs(num - int_num) > 1e-6:
         raise CodecError(f"{defn.key}: {value!r} does not map to a whole register value")

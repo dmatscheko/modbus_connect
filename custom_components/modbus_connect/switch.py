@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import result_as_boolean
 
-from .const import OPTION_ENABLED_GROUPS
+from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
@@ -43,10 +43,11 @@ async def async_setup_entry(
         if tdef.platform == "switch"
     )
     # Group toggles are integration-level config controls, always present and never
-    # themselves group-filtered.
+    # themselves group-filtered. The basic group is always on and gets no toggle.
     entities.extend(
         ModbusConnectGroupSwitch(coordinator, entry, group)
         for group in coordinator.all_groups
+        if group != BASIC_GROUP
     )
     async_add_entities(entities)
 
@@ -115,7 +116,7 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._group = group
         self._attr_translation_placeholders = {"group": group}
         self._attr_unique_id = f"{entry.entry_id}_group_{group}"
-        self._attr_device_info = coordinator.device_info
+        self._attr_device_info = coordinator.meta_device_info
         suggest_entity_id(self, coordinator, "switch", f"enable_{group}_entities")
 
     @property
@@ -136,6 +137,7 @@ class ModbusConnectGroupSwitch(SwitchEntity):
             groups.discard(self._group)
         if frozenset(groups) == self._coordinator.enabled_groups:
             return
+        groups.discard(BASIC_GROUP)  # implicit everywhere, never persisted
         # The entry's update listener (see __init__.py) reloads and rebuilds entities.
         self.hass.config_entries.async_update_entry(
             self._entry,

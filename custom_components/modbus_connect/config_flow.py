@@ -28,6 +28,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
+    OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
 from .coordinator import resolve_scan_intervals
@@ -81,7 +82,10 @@ def _connection_schema(defaults: dict[str, Any]) -> vol.Schema:
 
 
 def _unique_id(connection: dict[str, Any]) -> str:
-    return f"{connection[CONF_HOST]}:{connection[CONF_PORT]}:{connection[CONF_SLAVE_ID]}"
+    # Hostnames are case-insensitive; normalize so "GW" and "gw" don't create
+    # two entries for the same device.
+    host = str(connection[CONF_HOST]).strip().lower()
+    return f"{host}:{connection[CONF_PORT]}:{connection[CONF_SLAVE_ID]}"
 
 
 class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -146,6 +150,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
             await self.async_set_unique_id(_unique_id(user_input))
             self._abort_if_unique_id_configured()
             if await async_probe(user_input[CONF_HOST], user_input[CONF_PORT]):
@@ -188,15 +193,26 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         entry = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
         if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
             await self.async_set_unique_id(_unique_id(user_input))
             if self.unique_id != entry.unique_id:
                 self._abort_if_unique_id_configured()
             if await async_probe(user_input[CONF_HOST], user_input[CONF_PORT]):
+                kwargs: dict[str, Any] = {}
+                if self._filename != entry.data.get(CONF_FILENAME):
+                    # A different device file has different groups; a stale
+                    # selection would hide every tagged entity.
+                    kwargs["options"] = {
+                        k: v
+                        for k, v in entry.options.items()
+                        if k != OPTION_ENABLED_GROUPS
+                    }
                 return self.async_update_reload_and_abort(
                     entry,
                     unique_id=self.unique_id,
                     title=self._title,
                     data=self._entry_data(user_input),
+                    **kwargs,
                 )
             errors["base"] = "cannot_connect"
         defaults = user_input or {
@@ -226,7 +242,11 @@ class ModbusConnectOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            # Merge: async_create_entry replaces the whole options dict, and
+            # other keys (the group selection) must survive this form.
+            return self.async_create_entry(
+                data={**self.config_entry.options, **user_input}
+            )
         current = self.config_entry.options.get(OPTION_MIN_SCAN_INTERVAL)
         if current is None:
             current = await self._device_default() or DEFAULT_SCAN_INTERVAL

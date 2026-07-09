@@ -180,3 +180,67 @@ def test_dump_round_trips_and_keeps_hex_mask():
     assert yaml.safe_load(text) == doc
     # masks stay hex-formatted for humans (0x00F0 from bits/shift_bits)
     assert "mask: 0xF0" in text
+
+
+# --- regressions: outputs that used to fail schema validation ----------------
+
+
+def _mini(section: str, **entities) -> dict:
+    return {"device": {"manufacturer": "Acme", "model": "X1"}, section: entities}
+
+
+def test_select_without_options_is_skipped():
+    doc = convert_device(
+        _mini(
+            "read_write_word",
+            bad={"address": 1, "control": "select"},
+            ok={"address": 2},
+        ),
+        "old.yaml",
+    )
+    assert "bad" not in doc.get("holding", {})
+    assert "ok" in doc["holding"]
+    parse_device(doc, "old.yaml")  # and the rest still validates
+
+
+def test_unit_and_precision_dropped_for_control_platforms():
+    # old files legally carried unit/precision on any control; HA selects have
+    # neither, and emitting them made a file the integration refused to load
+    doc = convert_device(
+        _mini(
+            "read_write_word",
+            mode={
+                "address": 1,
+                "control": "select",
+                "options": {0: "Off", 1: "On"},
+                "unit_of_measurement": "Celsius",
+                "precision": 1,
+            },
+        ),
+        "old.yaml",
+    )
+    dev = parse_device(doc, "old.yaml")
+    ha = dev.entities[0].ha
+    assert "native_unit_of_measurement" not in ha
+    assert "suggested_display_precision" not in ha
+
+
+def test_non_integer_flag_bits_dropped():
+    doc = convert_device(
+        _mini("read_only_word", f={"address": 1, "flags": {"x": "Bad", 2: "Good"}}),
+        "old.yaml",
+    )
+    dev = parse_device(doc, "old.yaml")
+    assert dev.entities[0].flags == {1: "Good"}  # 1-indexed 2 -> 0-indexed 1
+
+
+def test_duplicate_key_rename_is_collision_checked():
+    old = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "read_write_word": {"x": {"address": 1}, "x_input": {"address": 2}},
+        "read_only_word": {"x": {"address": 3}},
+    }
+    doc = convert_device(old, "old.yaml")
+    keys = set(doc["holding"]) | set(doc["input"])
+    assert len(keys) == 3  # nothing silently overwritten
+    parse_device(doc, "old.yaml")
