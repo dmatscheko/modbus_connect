@@ -4,6 +4,7 @@ device:
   model: X3-Hybrid G4
   max_register_read: 100
   max_read_gap: 64
+  scan_interval: 30
   prefix: Solax X3-Hybrid
   sw_version: "DSP {{ firmware_dsp // 100 }}.{{ '%02d' | format(firmware_dsp % 100) }} ARM {{ firmware_arm // 100 }}.{{ '%02d' | format(firmware_arm % 100) }}"
   hw_version: Gen4
@@ -1541,6 +1542,7 @@ input:
   inverter_voltage:
     address: 0
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Voltage
@@ -1551,6 +1553,7 @@ input:
     address: 1
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Current
@@ -1560,6 +1563,7 @@ input:
   inverter_power:
     address: 2
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Power
@@ -1569,6 +1573,7 @@ input:
   pv_voltage_1:
     address: 3
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Voltage 1
@@ -1578,6 +1583,7 @@ input:
   pv_voltage_2:
     address: 4
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Voltage 2
@@ -1587,6 +1593,7 @@ input:
   pv_current_1:
     address: 5
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Current 1
@@ -1597,6 +1604,7 @@ input:
   pv_current_2:
     address: 6
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Current 2
@@ -1625,6 +1633,7 @@ input:
       entity_category: diagnostic
   run_mode:
     address: 9
+    scan_interval: 15
     map:
       0: Waiting
       1: Checking
@@ -1652,6 +1661,7 @@ input:
       icon: "mdi:run"
   pv_power_1:
     address: 10
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Power 1
@@ -1661,6 +1671,7 @@ input:
       icon: "mdi:solar-power-variant"
   pv_power_2:
     address: 11
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Power 2
@@ -1671,6 +1682,7 @@ input:
   time_count_down:
     address: 19
     multiplier: 0.001
+    scan_interval: 15
     ha:
       platform: sensor
       name: Time Count Down
@@ -1680,6 +1692,7 @@ input:
     address: 20
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Battery Voltage Charge
@@ -1690,6 +1703,7 @@ input:
     address: 21
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Battery Current Charge
@@ -1700,6 +1714,7 @@ input:
   battery_power_charge:
     address: 22
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Battery Power Charge
@@ -1729,6 +1744,7 @@ input:
       entity_category: diagnostic
   bdc_status:
     address: 25
+    scan_interval: 15
     map:
       0: Discharge
       1: Charge
@@ -1738,6 +1754,7 @@ input:
       name: BDC Status
   grid_status:
     address: 26
+    scan_interval: 15
     map:
       0: OnGrid
       1: OffGrid
@@ -1748,12 +1765,14 @@ input:
       enabled_by_default: false
   mppt_count:
     address: 27
+    scan_interval: 15
     ha:
       platform: sensor
       name: MPPT Count
       entity_category: diagnostic
   battery_capacity:
     address: 28
+    scan_interval: 15
     ha:
       platform: sensor
       name: Battery Capacity
@@ -1844,6 +1863,7 @@ input:
     address: 50
     type: uint32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: PV Power Total
@@ -1856,6 +1876,7 @@ input:
     address: 52
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Total On-Grid Power
@@ -1972,6 +1993,7 @@ input:
   inverter_voltage_l1:
     address: 106
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Voltage L1
@@ -1982,6 +2004,7 @@ input:
     address: 107
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Current L1
@@ -1991,6 +2014,7 @@ input:
   inverter_power_l1:
     address: 108
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Power L1
@@ -2009,6 +2033,7 @@ input:
   inverter_voltage_l2:
     address: 110
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Voltage L2
@@ -2019,6 +2044,7 @@ input:
     address: 111
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Current L2
@@ -2028,6 +2054,7 @@ input:
   inverter_power_l2:
     address: 112
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Power L2
@@ -2046,6 +2073,7 @@ input:
   inverter_voltage_l3:
     address: 114
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Voltage L3
@@ -2056,6 +2084,7 @@ input:
     address: 115
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Current L3
@@ -2065,6 +2094,7 @@ input:
   inverter_power_l3:
     address: 116
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Inverter Power L3
@@ -2084,6 +2114,7 @@ input:
     address: 130
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Measured Power L1
@@ -2094,6 +2125,7 @@ input:
     address: 132
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Measured Power L2
@@ -2104,6 +2136,7 @@ input:
     address: 134
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Measured Power L3
@@ -2199,6 +2232,7 @@ input:
       precision: 2
   ev_charger_communication_state:
     address: 160
+    scan_interval: 15
     map:
       0: Disconnected
       1: Connected
@@ -2209,6 +2243,7 @@ input:
       enabled_by_default: false
   adapt_box_communication_state:
     address: 161
+    scan_interval: 15
     map:
       0: Disconnected
       1: Connected
@@ -2243,6 +2278,7 @@ input:
     address: 168
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Meter 2 Measured Power
@@ -2310,6 +2346,7 @@ input:
     address: 178
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Meter 2 Measured Power L1
@@ -2321,6 +2358,7 @@ input:
     address: 180
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Meter 2 Measured Power L2
@@ -2332,6 +2370,7 @@ input:
     address: 182
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Meter 2 Measured Power L3
@@ -2341,6 +2380,7 @@ input:
       enabled_by_default: false
   meter_1_communication_state:
     address: 184
+    scan_interval: 15
     map:
       0: Communication Error
       1: Normal
@@ -2351,6 +2391,7 @@ input:
       enabled_by_default: false
   meter_2_communication_state:
     address: 185
+    scan_interval: 15
     map:
       0: Communication Error
       1: Normal
@@ -2414,6 +2455,7 @@ input:
     address: 192
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Reactive Power Total
@@ -2424,6 +2466,7 @@ input:
   grid_reactive_power_l1:
     address: 193
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Reactive Power L1
@@ -2434,6 +2477,7 @@ input:
   grid_reactive_power_l2:
     address: 194
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Reactive Power L2
@@ -2444,6 +2488,7 @@ input:
   grid_reactive_power_l3:
     address: 195
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Reactive Power L3
@@ -2454,6 +2499,7 @@ input:
   grid_power_factor_total:
     address: 196
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power Factor Total
@@ -2462,6 +2508,7 @@ input:
   grid_power_factor_l1:
     address: 197
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power Factor L1
@@ -2470,6 +2517,7 @@ input:
   grid_power_factor_l2:
     address: 198
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power Factor L2
@@ -2478,6 +2526,7 @@ input:
   grid_power_factor_l3:
     address: 199
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power Factor L3
@@ -2496,6 +2545,7 @@ input:
   grid_voltage:
     address: 201
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Voltage
@@ -2507,6 +2557,7 @@ input:
   grid_voltage_l1:
     address: 202
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Voltage L1
@@ -2518,6 +2569,7 @@ input:
   grid_voltage_l2:
     address: 203
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Voltage L2
@@ -2529,6 +2581,7 @@ input:
   grid_voltage_l3:
     address: 204
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Voltage L3
@@ -2541,6 +2594,7 @@ input:
     address: 205
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current Total
@@ -2553,6 +2607,7 @@ input:
     address: 206
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L1
@@ -2565,6 +2620,7 @@ input:
     address: 207
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L2
@@ -2577,6 +2633,7 @@ input:
     address: 208
     type: int16
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L3
@@ -2587,6 +2644,7 @@ input:
       precision: 1
   modbus_power_control:
     address: 256
+    scan_interval: 15
     map:
       0: Disabled
       1: Enabled Power Control
@@ -2604,6 +2662,7 @@ input:
       icon: "mdi:dip-switch"
   target_finish_flag:
     address: 257
+    scan_interval: 15
     map:
       0: Unfinished
       1: Finished
@@ -2615,6 +2674,7 @@ input:
     address: 258
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Active Power Target
@@ -2625,6 +2685,7 @@ input:
     address: 260
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Reactive Power Target
@@ -2635,6 +2696,7 @@ input:
     address: 262
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Active Power Real
@@ -2645,6 +2707,7 @@ input:
     address: 264
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Reactive Power Real
@@ -2655,6 +2718,7 @@ input:
     address: 266
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Active Power Upper
@@ -2665,6 +2729,7 @@ input:
     address: 268
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Active Power Lower
@@ -2695,6 +2760,7 @@ input:
     address: 276
     type: int32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Discharge Power

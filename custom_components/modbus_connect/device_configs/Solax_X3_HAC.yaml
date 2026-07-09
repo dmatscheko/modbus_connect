@@ -4,6 +4,7 @@ device:
   model: X3-HAC (11 kW)
   max_register_read: 32
   max_read_gap: 64
+  scan_interval: 30
   prefix: Solax X3-HAC
   sw_version: "ARM v{{ '%.2f' | format(firmware_version / 100) }}"
   hw_version: Gen2
@@ -252,6 +253,7 @@ input:
   charge_voltage_l1:
     address: 0
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Voltage L1
@@ -261,6 +263,7 @@ input:
   charge_voltage_l2:
     address: 1
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Voltage L2
@@ -270,6 +273,7 @@ input:
   charge_voltage_l3:
     address: 2
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Voltage L3
@@ -279,6 +283,7 @@ input:
   charge_pe_voltage:
     address: 3
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge PE Voltage
@@ -290,6 +295,7 @@ input:
   charge_current_l1:
     address: 4
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Current L1
@@ -299,6 +305,7 @@ input:
   charge_current_l2:
     address: 5
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Current L2
@@ -308,6 +315,7 @@ input:
   charge_current_l3:
     address: 6
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Current L3
@@ -316,6 +324,7 @@ input:
       precision: 1
   charge_pe_current:
     address: 7
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge PE Current
@@ -325,6 +334,7 @@ input:
       enabled_by_default: false
   charge_power_l1:
     address: 8
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L1
@@ -334,6 +344,7 @@ input:
       enabled_by_default: false
   charge_power_l2:
     address: 9
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L2
@@ -343,6 +354,7 @@ input:
       enabled_by_default: false
   charge_power_l3:
     address: 10
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L3
@@ -352,6 +364,7 @@ input:
       enabled_by_default: false
   charge_power_total:
     address: 11
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power Total
@@ -414,6 +427,7 @@ input:
     address: 18
     type: int16
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L1
@@ -426,6 +440,7 @@ input:
     address: 19
     type: int16
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L2
@@ -438,6 +453,7 @@ input:
     address: 20
     type: int16
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Current L3
@@ -449,6 +465,7 @@ input:
   grid_power_l1:
     address: 21
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power L1
@@ -460,6 +477,7 @@ input:
   grid_power_l2:
     address: 22
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power L2
@@ -471,6 +489,7 @@ input:
   grid_power_l3:
     address: 23
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power L3
@@ -482,6 +501,7 @@ input:
   grid_power_total:
     address: 24
     type: int16
+    scan_interval: 15
     ha:
       platform: sensor
       name: Grid Power Total
@@ -491,6 +511,7 @@ input:
   cc_voltage:
     address: 25
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: CC Voltage
@@ -503,6 +524,7 @@ input:
   cp_voltage:
     address: 26
     multiplier: 0.01
+    scan_interval: 15
     ha:
       platform: sensor
       name: CP Voltage
@@ -515,6 +537,7 @@ input:
   pwm_duty_cycle:
     address: 27
     multiplier: 0.1
+    scan_interval: 15
     ha:
       platform: sensor
       name: PWM Duty Cycle
@@ -534,6 +557,7 @@ input:
       entity_category: diagnostic
   run_mode:
     address: 29
+    scan_interval: 15
     map:
       0: Available
       1: Preparing
@@ -557,6 +581,7 @@ input:
     address: 30
     type: uint32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Fault Code
@@ -564,6 +589,7 @@ input:
       entity_category: diagnostic
   case_type:
     address: 32
+    scan_interval: 15
     map:
       0: Case B
       1: Case C
@@ -575,6 +601,7 @@ input:
       enabled_by_default: false
   power_rating:
     address: 33
+    scan_interval: 15
     map:
       0: "7.2 kW"
       1: "11 kW"
@@ -588,6 +615,7 @@ input:
       enabled_by_default: false
   phase_type:
     address: 34
+    scan_interval: 15
     map:
       0: Single Phase
       1: Three Phase
@@ -599,6 +627,7 @@ input:
       enabled_by_default: false
   model_type:
     address: 35
+    scan_interval: 15
     map:
       0: PV Mode
       1: Standard Mode
@@ -610,6 +639,7 @@ input:
       entity_category: diagnostic
   screen_fitted:
     address: 36
+    scan_interval: 15
     map:
       0: "No"
       1: "Yes"
@@ -621,6 +651,7 @@ input:
       enabled_by_default: false
   rssi:
     address: 39
+    scan_interval: 15
     ha:
       platform: sensor
       name: RSSI
@@ -630,6 +661,7 @@ input:
       enabled_by_default: false
   active_charge_phase:
     address: 40
+    scan_interval: 15
     map:
       0: Three Phase
       1: L1 Phase
@@ -641,6 +673,7 @@ input:
       icon: "mdi:cable-data"
   unbalanced_power_limit:
     address: 41
+    scan_interval: 15
     ha:
       platform: sensor
       name: Unbalanced Power Limit
@@ -651,6 +684,7 @@ input:
       enabled_by_default: false
   phase_unbalance:
     address: 42
+    scan_interval: 15
     map:
       0: "Off"
       1: "On"
@@ -664,6 +698,7 @@ input:
     address: 43
     type: uint32
     swap: word
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charging Duration
@@ -673,6 +708,7 @@ input:
       icon: "mdi:timer"
   lock_state:
     address: 45
+    scan_interval: 15
     map:
       0: Unlocked
       1: Locked
@@ -682,6 +718,7 @@ input:
       icon: "mdi:lock"
   mainbrk_limit:
     address: 46
+    scan_interval: 15
     map:
       0: Not Limited
       1: "Limited, Charging"
@@ -692,6 +729,7 @@ input:
       icon: "mdi:car-speed-limiter"
   delay_state:
     address: 47
+    scan_interval: 15
     map:
       0: Not in Delay
       1: In Random Delay
@@ -703,6 +741,7 @@ input:
       enabled_by_default: false
   ban_state:
     address: 48
+    scan_interval: 15
     map:
       0: Okay
       1: Charge Prohibited
@@ -712,6 +751,7 @@ input:
       icon: "mdi:hand-back-left"
   charge_power_l1_alt:
     address: 256
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L1 Alt
@@ -721,6 +761,7 @@ input:
       enabled_by_default: false
   charge_power_l2_alt:
     address: 257
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L2 Alt
@@ -730,6 +771,7 @@ input:
       enabled_by_default: false
   charge_power_l3_alt:
     address: 258
+    scan_interval: 15
     ha:
       platform: sensor
       name: Charge Power L3 Alt
@@ -739,6 +781,7 @@ input:
       enabled_by_default: false
   max_power_charging:
     address: 259
+    scan_interval: 15
     map:
       0: "No"
       1: "Yes"
@@ -749,6 +792,7 @@ input:
       entity_category: diagnostic
   charge_mode_active:
     address: 260
+    scan_interval: 15
     map:
       0: Fast
       1: ECO
@@ -759,6 +803,7 @@ input:
       icon: "mdi:dip-switch"
   green_mode_start_power:
     address: 261
+    scan_interval: 15
     ha:
       platform: sensor
       name: Green Mode Start Power
@@ -769,6 +814,7 @@ input:
       entity_category: diagnostic
   charger_status:
     address: 262
+    scan_interval: 15
     map:
       0: Available
       1: Preparing
