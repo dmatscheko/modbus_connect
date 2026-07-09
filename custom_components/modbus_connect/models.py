@@ -118,12 +118,14 @@ class EntityDef:
     # own address/table/codec are then used only for writing.
     read_register: str | None = None
     # Write-only command registers (e.g. SolaX "direct" power control) are never
-    # read: the entity shows ``default`` until written, then optimistically its
-    # last written value. ``write_multiple`` forces FC16 for the write, which some
-    # devices require even for a single register (SolaX WRITE_MULTISINGLE).
-    optimistic: bool = False
+    # read: the entity shows ``optimistic_default`` until written, then
+    # optimistically its last written value. Giving this seed value is what marks
+    # the entity optimistic (see the ``optimistic`` property) — there is no seedless
+    # optimistic entity to forget a default for.
+    optimistic_default: Any = None
+    # Force FC16 for the write, even for a single register — some devices require
+    # it on certain registers (SolaX WRITE_MULTISINGLE).
     write_multiple: bool = False
-    default: Any = None
     read_modify_write: bool = False
     max_change: float | None = None
     never_resets: bool = False
@@ -146,6 +148,11 @@ class EntityDef:
     def internal(self) -> bool:
         """Polled for templates only; no Home Assistant entity is created."""
         return self.platform == "internal"
+
+    @property
+    def optimistic(self) -> bool:
+        """Write-only: shown from ``optimistic_default`` and writes, never read."""
+        return self.optimistic_default is not None
 
 
 @dataclass(frozen=True)

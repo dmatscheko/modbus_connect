@@ -990,19 +990,20 @@ def test_switch_target_parses_cases():
 def test_optimistic_select_parses():
     dev = parse_device(
         doc(pc={
-            "address": 124, "optimistic": True, "write_multiple": True, "default": "Off",
+            "address": 124, "optimistic_default": "Off", "write_multiple": True,
             "map": {0: "Off", 1: "On"}, "ha": {"platform": "select"},
         }),
         "t.yaml",
     )
     e = dev.entities[0]
-    assert e.optimistic and e.write_multiple and e.default == "Off"
+    assert e.optimistic and e.write_multiple and e.optimistic_default == "Off"
 
 
 def test_optimistic_requires_writable_platform():
-    with pytest.raises(DeviceSchemaError, match="optimistic"):
+    with pytest.raises(DeviceSchemaError, match="optimistic_default"):
         parse_device(
-            doc(x={"address": 1, "optimistic": True, "ha": {"platform": "sensor"}}), "t.yaml"
+            doc(x={"address": 1, "optimistic_default": "x", "ha": {"platform": "sensor"}}),
+            "t.yaml",
         )
 
 
@@ -1010,18 +1011,19 @@ def test_optimistic_and_read_register_mutually_exclusive():
     with pytest.raises(DeviceSchemaError, match="mutually exclusive"):
         parse_device(
             doc(x={
-                "address": 1, "optimistic": True, "read_register": "{{ y }}",
+                "address": 1, "optimistic_default": "a", "read_register": "{{ y }}",
                 "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
             }),
             "t.yaml",
         )
 
 
-def test_default_requires_optimistic():
-    with pytest.raises(DeviceSchemaError, match="default"):
+def test_optimistic_default_null_rejected():
+    # a present-but-null seed is a likely mistake (it would silently not be optimistic)
+    with pytest.raises(DeviceSchemaError, match="optimistic_default"):
         parse_device(
             doc(x={
-                "address": 1, "default": "a", "map": {0: "a", 1: "b"},
+                "address": 1, "optimistic_default": None, "map": {0: "a", 1: "b"},
                 "ha": {"platform": "select"},
             }),
             "t.yaml",

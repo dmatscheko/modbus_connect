@@ -288,7 +288,7 @@ async def test_optimistic_entity_seeds_default_and_writes_fc16(hass, monkeypatch
     defn = EntityDef(
         key="power_control", platform="select", address=124,
         value_map={0: "Disabled", 1: "Enabled"},
-        optimistic=True, write_multiple=True, default="Disabled", ha={},
+        optimistic_default="Disabled", write_multiple=True, ha={},
     )
     coordinator = await make_coordinator(
         hass, make_device(defn), client, monkeypatch, FakeTime()

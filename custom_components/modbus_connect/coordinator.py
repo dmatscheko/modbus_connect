@@ -161,7 +161,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data: dict[str, Any] = dict(self.data) if self.data else {}
         # Seed write-only entities so they are available before the first write.
         for defn in self._optimistic:
-            data.setdefault(defn.key, defn.default)
+            data.setdefault(defn.key, defn.optimistic_default)
         if not due:
             return data
 

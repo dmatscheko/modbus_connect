@@ -393,8 +393,7 @@ holding:
     internal: true
   modbus_power_control_direct:
     address: 124
-    default: Disabled
-    optimistic: true
+    optimistic_default: Disabled
     write_multiple: true
     map:
       0: Disabled
@@ -417,8 +416,7 @@ holding:
     internal: true
   remote_control_target_set_type_direct:
     address: 125
-    default: Set
-    optimistic: true
+    optimistic_default: Set
     write_multiple: true
     map:
       1: Set
@@ -432,8 +430,7 @@ holding:
     address: 126
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -455,8 +452,7 @@ holding:
     address: 128
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -497,8 +493,7 @@ holding:
     address: 132
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -520,8 +515,7 @@ holding:
     address: 134
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -534,8 +528,7 @@ holding:
       enabled_by_default: false
   remotecontrol_timeout_direct:
     address: 136
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -550,8 +543,7 @@ holding:
     address: 137
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -722,8 +714,7 @@ holding:
       entity_category: config
   remote_control_power_control_mode_direct:
     address: 160
-    default: Disabled
-    optimistic: true
+    optimistic_default: Disabled
     write_multiple: true
     map:
       0: Disabled
@@ -742,8 +733,7 @@ holding:
     internal: true
   power_control_mode_target_set_type_direct:
     address: 161
-    default: Set
-    optimistic: true
+    optimistic_default: Set
     write_multiple: true
     map:
       1: Set
@@ -763,8 +753,7 @@ holding:
     address: 162
     type: uint32
     swap: word
-    default: 15000
-    optimistic: true
+    optimistic_default: 15000
     write_multiple: true
     ha:
       platform: number
@@ -797,8 +786,7 @@ holding:
     address: 164
     type: int32
     swap: word
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -833,8 +821,7 @@ holding:
       icon: "mdi:dip-switch"
   remotecontrol_duration_8_direct:
     address: 166
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
@@ -847,8 +834,7 @@ holding:
       enabled_by_default: false
   remotecontrol_target_soc_9_direct:
     address: 166
-    default: 100
-    optimistic: true
+    optimistic_default: 100
     write_multiple: true
     ha:
       platform: number
@@ -860,8 +846,7 @@ holding:
       enabled_by_default: false
   remotecontrol_timeout_8_9_direct:
     address: 167
-    default: 0
-    optimistic: true
+    optimistic_default: 0
     write_multiple: true
     ha:
       platform: number
