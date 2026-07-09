@@ -985,3 +985,51 @@ def test_switch_target_parses_cases():
     assert st.selector == "{{ mode }}"
     assert set(st.cases) == {"Auto", "Off"}
     assert st.cases["Auto"].entity == "setpoint"
+
+
+def test_optimistic_select_parses():
+    dev = parse_device(
+        doc(pc={
+            "address": 124, "optimistic": True, "write_multiple": True, "default": "Off",
+            "map": {0: "Off", 1: "On"}, "ha": {"platform": "select"},
+        }),
+        "t.yaml",
+    )
+    e = dev.entities[0]
+    assert e.optimistic and e.write_multiple and e.default == "Off"
+
+
+def test_optimistic_requires_writable_platform():
+    with pytest.raises(DeviceSchemaError, match="optimistic"):
+        parse_device(
+            doc(x={"address": 1, "optimistic": True, "ha": {"platform": "sensor"}}), "t.yaml"
+        )
+
+
+def test_optimistic_and_read_register_mutually_exclusive():
+    with pytest.raises(DeviceSchemaError, match="mutually exclusive"):
+        parse_device(
+            doc(x={
+                "address": 1, "optimistic": True, "read_register": "{{ y }}",
+                "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
+            }),
+            "t.yaml",
+        )
+
+
+def test_default_requires_optimistic():
+    with pytest.raises(DeviceSchemaError, match="default"):
+        parse_device(
+            doc(x={
+                "address": 1, "default": "a", "map": {0: "a", 1: "b"},
+                "ha": {"platform": "select"},
+            }),
+            "t.yaml",
+        )
+
+
+def test_write_multiple_rejected_on_non_writable():
+    with pytest.raises(DeviceSchemaError, match="write_multiple"):
+        parse_device(
+            doc(x={"address": 1, "write_multiple": True, "ha": {"platform": "sensor"}}), "t.yaml"
+        )

@@ -187,6 +187,9 @@ rendered once from the first read.
 | `write_value` | Value a `button` writes when pressed |
 | `read_register` | Take the current value from elsewhere instead of this entity's own register — a Jinja template like the `template:` section (e.g. `"{{ other_key }}"`). For settings a device echoes on a different register (or table) than it accepts writes on: this entity writes to its own `address`/table, while the referenced entity — often `internal:`, with its own `type`/`mask`/`multiplier`, and free to live in `input:`/`discrete:` — supplies the read-back |
 | `read_modify_write` | Allow writing a `mask`ed field by merging into the current register |
+| `optimistic` | Write-only command register: never read it. The entity shows `default` until written, then optimistically its last written value. For "direct control" registers that echo nothing useful (or share an address with an unrelated read). Cannot be combined with `read_register` |
+| `default` | Initial value an `optimistic` entity shows before the first write (an option label for a `select`, a number for a `number`) |
+| `write_multiple` | Force FC16 (write-multiple) for the write, even for a single register — some devices reject FC6 on certain registers (e.g. SolaX `WRITE_MULTISINGLE`) |
 | `max_change` | Reject changes larger than this between two polls (spike filter) |
 | `never_resets` | Ignore decreasing values (for `total_increasing` counters) |
 | `scan_interval` | Per-entity poll interval in seconds (overrides the default) |

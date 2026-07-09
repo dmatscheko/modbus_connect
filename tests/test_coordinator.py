@@ -37,6 +37,7 @@ class FakeClient:
         self.registers = registers or {}
         self.reads: list[Span] = []
         self.written: list[tuple[int, list[int]]] = []
+        self.write_multiple_flags: list[bool] = []
         self.fail_spans: set[Span] = set()
         self.fail_addresses: set[int] = set()
         self.connected_ok = True
@@ -52,8 +53,11 @@ class FakeClient:
             raise ReadError(f"fail {span}", illegal_address=True)
         return [self.registers.get(a, 0) for a in range(span.start, span.end)]
 
-    async def write_registers(self, device_id: int, address: int, words: list[int]) -> None:
+    async def write_registers(
+        self, device_id: int, address: int, words: list[int], *, multiple: bool = False
+    ) -> None:
         self.written.append((address, words))
+        self.write_multiple_flags.append(multiple)
         for i, w in enumerate(words):
             self.registers[address + i] = w
 
@@ -276,6 +280,26 @@ async def test_read_register_packed_read_full_write(hass, monkeypatch):
     assert coordinator.data["min_soc"] == 25  # low byte of reg 150 via the readback entity
     await coordinator.async_write(defn, 40)
     assert client.written == [(103, [40])]  # full value written to reg 103
+
+
+async def test_optimistic_entity_seeds_default_and_writes_fc16(hass, monkeypatch):
+    # a write-only command register: shown from `default`, never read, written via FC16
+    client = FakeClient({})
+    defn = EntityDef(
+        key="power_control", platform="select", address=124,
+        value_map={0: "Disabled", 1: "Enabled"},
+        optimistic=True, write_multiple=True, default="Disabled", ha={},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["power_control"] == "Disabled"  # seeded default
+    assert client.reads == []  # its register is never read
+    await coordinator.async_write(defn, "Enabled")
+    assert client.written == [(124, [1])]  # encoded through the map
+    assert client.write_multiple_flags == [True]  # forced FC16
+    assert coordinator.data["power_control"] == "Enabled"  # optimistic update
 
 
 async def test_nothing_due_returns_cache(hass, monkeypatch):

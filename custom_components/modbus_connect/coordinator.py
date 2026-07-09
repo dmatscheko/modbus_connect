@@ -80,11 +80,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or DEFAULT_SCAN_INTERVAL
         )
         # Buttons never read; read_register entities read via another entity's
-        # value (rendered below), not from their own (write) register.
+        # value (rendered below), not from their own (write) register; optimistic
+        # entities are write-only command registers seeded from ``default``.
         self._readers = [
-            e for e in device.entities if e.platform != "button" and e.read_register is None
+            e
+            for e in device.entities
+            if e.platform != "button" and e.read_register is None and not e.optimistic
         ]
         self._linked = [e for e in device.entities if e.read_register is not None]
+        self._optimistic = [e for e in device.entities if e.optimistic]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
         self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
@@ -155,6 +159,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = time.monotonic()
         due = [e for e in self._readers if self._next_due[e.key] <= now]
         data: dict[str, Any] = dict(self.data) if self.data else {}
+        # Seed write-only entities so they are available before the first write.
+        for defn in self._optimistic:
+            data.setdefault(defn.key, defn.default)
         if not due:
             return data
 
@@ -325,10 +332,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     await self.client.write_coil(self.slave_id, defn.address, bool(payload))
                 else:
                     assert isinstance(payload, list)
-                    await self.client.write_registers(self.slave_id, defn.address, payload)
+                    await self.client.write_registers(
+                        self.slave_id, defn.address, payload, multiple=defn.write_multiple
+                    )
                 if defn.platform != "button":
-                    if defn.read_register is not None:
-                        confirmed = value  # optimistic; the read register echoes it next poll
+                    if defn.read_register is not None or defn.optimistic:
+                        confirmed = value  # optimistic; no read-back of this register
                     else:
                         self._store(
                             defn.span, await self.client.read_block(self.slave_id, defn.span)

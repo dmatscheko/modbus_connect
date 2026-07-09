@@ -235,7 +235,9 @@ class FakeClient:
             for a in range(span.start, span.end)
         ]
 
-    async def write_registers(self, device_id: int, address: int, words: list[int]) -> None:
+    async def write_registers(
+        self, device_id: int, address: int, words: list[int], *, multiple: bool = False
+    ) -> None:
         for i, word in enumerate(words):
             self.values[("holding", address + i)] = word
 

@@ -119,14 +119,18 @@ class ModbusBlockClient:
         # Bit responses are padded to full bytes; trim to what was asked for.
         return values[: span.count]
 
-    async def write_registers(self, device_id: int, address: int, words: list[int]) -> None:
+    async def write_registers(
+        self, device_id: int, address: int, words: list[int], *, multiple: bool = False
+    ) -> None:
         """Write holding registers; caller holds ``self.lock``.
 
-        Uses FC6 for a single register, FC16 otherwise, and falls back to
-        register-by-register FC6 for devices that do not implement FC16.
+        Uses FC6 for a single register, FC16 for several — or for one when
+        ``multiple`` is set, which some devices require even for a single
+        register (SolaX WRITE_MULTISINGLE). A genuine multi-register FC16 that
+        fails falls back to register-by-register FC6 for devices without FC16.
         """
         try:
-            if len(words) == 1:
+            if len(words) == 1 and not multiple:
                 response = await self._client.write_register(
                     address=address, value=words[0], device_id=device_id
                 )
@@ -134,7 +138,7 @@ class ModbusBlockClient:
                 response = await self._client.write_registers(
                     address=address, values=words, device_id=device_id
                 )
-                if response.isError():
+                if response.isError() and len(words) > 1:
                     _LOGGER.debug(
                         "FC16 failed at %s, retrying as single writes", address
                     )

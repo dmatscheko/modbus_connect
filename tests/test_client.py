@@ -63,3 +63,18 @@ async def test_multi_register_falls_back_to_single_writes():
     fake = _FakeClient(fc16_error=True)
     await _client(fake).write_registers(1, 103, [1, 2])
     assert fake.calls == [("fc16", 103, [1, 2]), ("fc6", 103, 1), ("fc6", 104, 2)]
+
+
+async def test_forced_multiple_single_register_uses_fc16():
+    # SolaX WRITE_MULTISINGLE registers need FC16 even for one register
+    fake = _FakeClient()
+    await _client(fake).write_registers(1, 124, [3], multiple=True)
+    assert fake.calls == [("fc16", 124, [3])]
+
+
+async def test_forced_multiple_does_not_fall_back_to_fc6():
+    # a forced single-register FC16 must not silently downgrade to FC6 on error
+    fake = _FakeClient(fc16_error=True)
+    with pytest.raises(WriteError):
+        await _client(fake).write_registers(1, 124, [3], multiple=True)
+    assert fake.calls == [("fc16", 124, [3])]

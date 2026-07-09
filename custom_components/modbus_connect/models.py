@@ -114,6 +114,13 @@ class EntityDef:
     # template: section) whose result is the entity's current value; this entity's
     # own address/table/codec are then used only for writing.
     read_register: str | None = None
+    # Write-only command registers (e.g. SolaX "direct" power control) are never
+    # read: the entity shows ``default`` until written, then optimistically its
+    # last written value. ``write_multiple`` forces FC16 for the write, which some
+    # devices require even for a single register (SolaX WRITE_MULTISINGLE).
+    optimistic: bool = False
+    write_multiple: bool = False
+    default: Any = None
     read_modify_write: bool = False
     max_change: float | None = None
     never_resets: bool = False

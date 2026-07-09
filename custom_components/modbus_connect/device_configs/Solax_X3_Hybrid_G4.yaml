@@ -329,6 +329,9 @@ holding:
     internal: true
   modbus_power_control_direct:
     address: 124
+    default: Disabled
+    optimistic: true
+    write_multiple: true
     map:
       0: Disabled
       1: Enable Power Control Mode
@@ -344,11 +347,15 @@ holding:
       platform: select
       name: Modbus Power Control (direct)
       icon: "mdi:transmission-tower"
+      enabled_by_default: false
   firmware_arm:
     address: 124
     internal: true
   remote_control_target_set_type_direct:
     address: 125
+    default: Set
+    optimistic: true
+    write_multiple: true
     map:
       1: Set
       2: Update
@@ -356,10 +363,14 @@ holding:
       platform: select
       name: RemoteControl Target Set Type (mode 8/9; direct)
       icon: "mdi:transmission-tower"
+      enabled_by_default: false
   remotecontrol_active_power_direct:
     address: 126
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Active Power (mode 1; direct)
@@ -368,6 +379,7 @@ holding:
       min: -30000
       max: 30000
       step: 100
+      enabled_by_default: false
   firmware_DSP_hardware_version:
     address: 126
     ha:
@@ -379,6 +391,9 @@ holding:
     address: 128
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Reactive Power (mode 1; direct)
@@ -387,6 +402,7 @@ holding:
       min: -4000
       max: 4000
       step: 100
+      enabled_by_default: false
   remotecontrol_duration_direct:
     address: 130
     ha:
@@ -417,6 +433,9 @@ holding:
     address: 132
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Target Energy (mode 2; direct)
@@ -425,6 +444,7 @@ holding:
       min: 0
       max: 30000
       step: 100
+      enabled_by_default: false
   bootloader_version:
     address: 132
     ha:
@@ -436,6 +456,9 @@ holding:
     address: 134
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Charge/Discharge Power (mode 2/3; direct)
@@ -444,8 +467,12 @@ holding:
       min: -30000
       max: 30000
       step: 100
+      enabled_by_default: false
   remotecontrol_timeout_direct:
     address: 136
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol TimeOut (mode 1-7; direct)
@@ -454,10 +481,14 @@ holding:
       min: 0
       max: 28800
       step: 60
+      enabled_by_default: false
   remotecontrol_push_mode_power_direct:
     address: 137
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Push Mode Power (mode 4; direct)
@@ -466,6 +497,7 @@ holding:
       min: -30000
       max: 30000
       step: 100
+      enabled_by_default: false
   charger_use_mode_readback:
     address: 139
     map:
@@ -626,6 +658,9 @@ holding:
       entity_category: config
   remote_control_power_control_mode_direct:
     address: 160
+    default: Disabled
+    optimistic: true
+    write_multiple: true
     map:
       0: Disabled
       8: Individual Setting - Duration Mode
@@ -634,6 +669,7 @@ holding:
       platform: select
       name: RemoteControl Power Control Mode (mode 8/9; direct)
       icon: "mdi:transmission-tower"
+      enabled_by_default: false
   hotstandby_readback:
     address: 161
     map:
@@ -642,6 +678,9 @@ holding:
     internal: true
   power_control_mode_target_set_type_direct:
     address: 161
+    default: Set
+    optimistic: true
+    write_multiple: true
     map:
       1: Set
       2: Update
@@ -649,6 +688,7 @@ holding:
       platform: select
       name: Power Control Mode Target Set Type (mode 8/9; direct)
       icon: "mdi:transmission-tower"
+      enabled_by_default: false
   extend_bms_setting_readback:
     address: 162
     map:
@@ -659,6 +699,9 @@ holding:
     address: 162
     type: uint32
     swap: word
+    default: 15000
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: "Remotecontrol PV Power Limit (mode 8/9, direct)"
@@ -667,6 +710,7 @@ holding:
       min: 0
       max: 30000
       step: 100
+      enabled_by_default: false
   battery_heating_readback:
     address: 163
     map:
@@ -689,6 +733,9 @@ holding:
     address: 164
     type: int32
     swap: word
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Push Mode Power (mode 8/9; direct)
@@ -697,6 +744,7 @@ holding:
       min: -30000
       max: 30000
       step: 100
+      enabled_by_default: false
   meter_2_direction:
     address: 165
     map:
@@ -721,6 +769,9 @@ holding:
       icon: "mdi:dip-switch"
   remotecontrol_duration_8_direct:
     address: 166
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Duration (mode 8; direct)
@@ -729,8 +780,12 @@ holding:
       min: 0
       max: 28800
       step: 60
+      enabled_by_default: false
   remotecontrol_target_soc_9_direct:
     address: 166
+    default: 100
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol Target SOC (mode 9; direct)
@@ -738,8 +793,12 @@ holding:
       min: 0
       max: 100
       step: 1
+      enabled_by_default: false
   remotecontrol_timeout_8_9_direct:
     address: 167
+    default: 0
+    optimistic: true
+    write_multiple: true
     ha:
       platform: number
       name: Remotecontrol TimeOut (mode 8/9; direct)
@@ -748,6 +807,7 @@ holding:
       min: 0
       max: 28800
       step: 60
+      enabled_by_default: false
   registration_code_pocket:
     address: 170
     type: string
