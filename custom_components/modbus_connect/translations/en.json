@@ -85,6 +85,11 @@
       "reads_per_refresh": {
         "name": "Reads per refresh"
       }
+    },
+    "switch": {
+      "group_enable": {
+        "name": "Enable {group} entities"
+      }
     }
   },
   "exceptions": {

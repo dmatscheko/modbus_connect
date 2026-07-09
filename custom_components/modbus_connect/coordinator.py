@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import struct
 import time
 from datetime import timedelta
@@ -24,9 +25,10 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_BACKOFF_SECONDS,
+    OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
-from .models import TABLE_COIL, DeviceDef, EntityDef, Span
+from .models import TABLE_COIL, DeviceDef, EntityDef, Span, TemplateDef
 from .planner import bridged_addresses, plan_blocks, spans_in_block
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,6 +72,80 @@ def resolve_scan_intervals(
     return {key: max(floor, cadence) for key, cadence in cadences.items()}, floor
 
 
+def resolve_enabled_groups(
+    device: DeviceDef, options: dict[str, Any] | None
+) -> frozenset[str]:
+    """Which entity groups are active for this entry.
+
+    The config-entry option wins when set; otherwise the device file's
+    ``default_groups``; otherwise (nothing configured either place) every group,
+    so a device that declares no default still shows everything and one that uses
+    no groups at all is unaffected.
+    """
+    chosen = (options or {}).get(OPTION_ENABLED_GROUPS)
+    if chosen is None:
+        chosen = device.default_groups or device.group_names
+    return frozenset(chosen)
+
+
+def is_group_visible(groups: tuple[str, ...], enabled: frozenset[str]) -> bool:
+    """An item with no groups is always shown; otherwise any overlap suffices."""
+    return not groups or bool(enabled.intersection(groups))
+
+
+def referenced_read_keys(
+    device: DeviceDef,
+    visible_entities: list[EntityDef],
+    visible_templates: list[TemplateDef],
+) -> set[str]:
+    """Keys whose registers must stay polled to serve the visible items.
+
+    A shown template or ``read_register`` entity reads other keys through Jinja —
+    and those source entities may themselves be hidden (e.g. a basic ``grid_import``
+    template reading a hidden ``measured_power`` sensor). This returns the transitive
+    closure of such references, seeded from the visible items and from the
+    device-info templates (which always render), so nothing a shown value depends on
+    gets pruned from the read plan.
+    """
+    sources: dict[str, list[str]] = {}
+    for e in device.entities:
+        if e.read_register is not None:
+            sources.setdefault(e.key, []).append(e.read_register)
+    for t in device.templates:
+        strings = [v for v in t.config.values() if isinstance(v, str)]
+        if strings:
+            sources.setdefault(t.key, []).extend(strings)
+
+    all_keys = {e.key for e in device.entities} | {t.key for t in device.templates}
+    if not all_keys:
+        return set()
+    pattern = re.compile(
+        r"\b(" + "|".join(re.escape(k) for k in sorted(all_keys, key=len, reverse=True)) + r")\b"
+    )
+
+    referenced: set[str] = set()
+    stack: list[str] = []
+
+    def visit(texts: list[str]) -> None:
+        for text in texts:
+            for key in pattern.findall(text):
+                if key not in referenced:
+                    referenced.add(key)
+                    stack.append(key)
+
+    for info in (device.sw_version, device.hw_version, device.serial_number):
+        if info:
+            visit([info])
+    for key in (
+        *(e.key for e in visible_entities),
+        *(t.key for t in visible_templates),
+    ):
+        visit(sources.get(key, []))
+    while stack:
+        visit(sources.get(stack.pop(), []))
+    return referenced
+
+
 class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """One coordinator per configured device (gateway + slave id).
 
@@ -91,17 +167,44 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.slave_id: int = entry.data[CONF_SLAVE_ID]
         self.entry_id = entry.entry_id
 
+        # Group visibility. Only entities/templates in an enabled group are created,
+        # and only the registers those (and their data dependencies) need are polled.
+        # An item with no groups is always shown; a device with no groups behaves as
+        # before. See resolve_enabled_groups / referenced_read_keys.
+        self.enabled_groups = resolve_enabled_groups(device, dict(entry.options))
+        self.all_groups = device.group_names
+        # Internal entities never become HA entities; they are read only when a
+        # visible item depends on them (via the closure below), so a readback for a
+        # now-hidden setting is not polled. Non-internal entities show per their group.
+        self.visible_entities = tuple(
+            e
+            for e in device.entities
+            if not e.internal and is_group_visible(e.groups, self.enabled_groups)
+        )
+        self.visible_templates = tuple(
+            t for t in device.templates if is_group_visible(t.groups, self.enabled_groups)
+        )
+        needed = {e.key for e in self.visible_entities} | referenced_read_keys(
+            device, list(self.visible_entities), list(self.visible_templates)
+        )
+
         # Buttons never read; read_register entities read via another entity's value
         # (rendered below), not from their own (write) register; static_value entities
         # are write-only command registers. optimistic_default entities do read (with
-        # a fallback), so they stay in _readers.
-        self._readers = [e for e in device.entities if e.polls]
-        self._linked = [e for e in device.entities if e.read_register is not None]
-        self._static = [e for e in device.entities if e.static_value is not None]
+        # a fallback), so they stay in _readers. Each is kept only when a visible item
+        # (or a data dependency of one) needs its key.
+        self._readers = [e for e in device.entities if e.polls and e.key in needed]
+        self._linked = [
+            e for e in device.entities if e.read_register is not None and e.key in needed
+        ]
+        self._static = [
+            e for e in device.entities if e.static_value is not None and e.key in needed
+        ]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
         user_min: int = entry.options.get(OPTION_MIN_SCAN_INTERVAL) or 0
-        self._interval_for, floor = resolve_scan_intervals(device, user_min)
+        interval_for, floor = resolve_scan_intervals(device, user_min)
+        self._interval_for = {e.key: interval_for[e.key] for e in self._readers}
         self._tick: int = min(self._interval_for.values(), default=floor)
         self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
         # Device-declared dead registers seed the same set the planner grows from

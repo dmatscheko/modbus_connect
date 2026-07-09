@@ -33,7 +33,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator = entry.runtime_data
     entities: list[SensorEntity] = []
-    for defn in coordinator.device_def.entities:
+    for defn in coordinator.visible_entities:
         if defn.platform == "sensor":
             entities.append(ModbusConnectSensor(coordinator, defn, build_description(defn)))
         elif defn.duplicate_as_sensor:
@@ -48,7 +48,7 @@ async def async_setup_entry(
             )
     entities.extend(
         ModbusConnectTemplateSensor(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.device_def.templates
+        for tdef in coordinator.visible_templates
         if tdef.platform == "sensor"
     )
     entities.append(ModbusConnectReadCountSensor(coordinator))

@@ -28,6 +28,8 @@ CONF_PREFIX: Final = "prefix"
 
 # Config entry option keys
 OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
+# List of enabled group names; absent means "use the device file's default_groups".
+OPTION_ENABLED_GROUPS: Final = "enabled_groups"
 
 DEFAULT_PORT: Final = 502
 DEFAULT_SLAVE_ID: Final = 1

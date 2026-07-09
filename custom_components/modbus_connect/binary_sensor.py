@@ -28,14 +28,14 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[BinarySensorEntity] = [
         ModbusConnectBinarySensor(coordinator, defn, build_description(defn))
-        for defn in coordinator.device_def.entities
+        for defn in coordinator.visible_entities
         if defn.platform == "binary_sensor"
     ]
     entities.extend(
         ModbusConnectTemplateBinarySensor(
             coordinator, tdef, build_template_description(tdef)
         )
-        for tdef in coordinator.device_def.templates
+        for tdef in coordinator.visible_templates
         if tdef.platform == "binary_sensor"
     )
     async_add_entities(entities)

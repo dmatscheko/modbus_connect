@@ -85,6 +85,11 @@
       "reads_per_refresh": {
         "name": "Lesevorgänge pro Abfrage"
       }
+    },
+    "switch": {
+      "group_enable": {
+        "name": "{group}-Entitäten aktivieren"
+      }
     }
   },
   "exceptions": {

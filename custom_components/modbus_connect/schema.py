@@ -133,6 +133,7 @@ _MODBUS_KEYS = {
     "never_resets",
     "scan_interval",
     "duplicate_as_sensor",
+    "groups",
     "ha",
 }
 
@@ -179,6 +180,16 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     entities = _parse_sections(ctx, data, filename)
     templates = _parse_templates(ctx, data, entities, filename)
 
+    declared_groups = {g for e in entities for g in e.groups} | {
+        g for t in templates for g in t.groups
+    }
+    unknown_defaults = set(device_fields["default_groups"]) - declared_groups
+    if unknown_defaults:
+        raise ctx.fail(
+            f"device.default_groups {sorted(unknown_defaults)} name groups no entity "
+            f"uses (declared groups: {sorted(declared_groups)})"
+        )
+
     return DeviceDef(
         entities=tuple(entities),
         templates=tuple(templates),
@@ -206,6 +217,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "sw_version",
         "hw_version",
         "serial_number",
+        "default_groups",
     }
     if unknown:
         raise ctx.fail(f"unknown device keys: {sorted(unknown)}")
@@ -232,6 +244,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         if value is not None and (not isinstance(value, str) or not value):
             raise ctx.fail(f"device.{key} must be a non-empty string (may be a template)")
         info[key] = value
+    default_groups = _parse_groups(ctx, "device.default_groups", device.get("default_groups"))
     return {
         "manufacturer": device["manufacturer"],
         "model": device["model"],
@@ -245,6 +258,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "min_scan_interval": min_scan_interval,
         "modbus_id": modbus_id,
         "prefix": prefix,
+        "default_groups": default_groups,
         **info,
     }
 
@@ -332,6 +346,20 @@ def _number(ctx: _Ctx, name: str, value: Any) -> float:
     return value
 
 
+def _parse_groups(ctx: _Ctx, name: str, raw: Any) -> tuple[str, ...]:
+    """A list of group names (deduped, order preserved); () when absent."""
+    if raw is None:
+        return ()
+    if not isinstance(raw, list) or not raw:
+        raise ctx.fail(f"'{name}' must be a non-empty list of group names")
+    seen: dict[str, None] = {}
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            raise ctx.fail(f"'{name}' entries must be non-empty strings, got {item!r}")
+        seen.setdefault(item, None)
+    return tuple(seen)
+
+
 def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     if not isinstance(raw, dict):
         raise ctx.fail("entity must be a mapping")
@@ -397,6 +425,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         )
 
     duplicate_as_sensor = _bool(ctx, raw, "duplicate_as_sensor")
+    groups = _parse_groups(ctx, "groups", raw.get("groups"))
 
     defn = EntityDef(
         key=key,
@@ -425,6 +454,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         never_resets=_bool(ctx, raw, "never_resets"),
         scan_interval=scan_interval,
         duplicate_as_sensor=duplicate_as_sensor,
+        groups=groups,
         ha=parsed_ha,
     )
     if not defn.internal:
@@ -801,6 +831,7 @@ class _TplSpec:
     def allowed(self) -> set[str]:
         return {
             "ha",
+            "groups",
             *self.req_templates,
             *self.opt_templates,
             *self.req_fixed,
@@ -883,7 +914,8 @@ def _parse_template(
     if post:
         post(ctx, raw, config, defs, ha)
 
-    return TemplateDef(key=key, platform=platform, ha=ha, config=config)
+    groups = _parse_groups(ctx, "groups", raw.get("groups"))
+    return TemplateDef(key=key, platform=platform, ha=ha, config=config, groups=groups)
 
 
 def _collect_template_strings(

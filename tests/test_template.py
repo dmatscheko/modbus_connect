@@ -7,6 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.modbus_connect.binary_sensor import ModbusConnectTemplateBinarySensor
 from custom_components.modbus_connect.climate import ModbusConnectClimate
+from custom_components.modbus_connect.const import OPTION_ENABLED_GROUPS
 from custom_components.modbus_connect.cover import ModbusConnectCover
 from custom_components.modbus_connect.entity import build_template_description
 from custom_components.modbus_connect.fan import ModbusConnectFan
@@ -452,7 +453,11 @@ async def test_solax_hybrid_writable_reads_via_readback(hass, monkeypatch):
     # number: read-back reg 144 = 25.0 A (write reg 36 differs);
     # select: mppt read-back reg 188 = Enabled (write reg 72), map borrowed from the select
     client = FakeClient({144: 250, 36: 275, 188: 1})
-    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    # exercise the whole config, not just the default 'basic' view
+    coordinator = await make_coordinator(
+        hass, device, client, monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["all"]},
+    )
     await coordinator.async_refresh()
     assert coordinator.data["battery_charge_max_current"] == pytest.approx(25.0)  # from reg 144
     assert coordinator.data["mppt"] == "Enabled"  # from reg 188, not its own write reg 72
@@ -478,7 +483,10 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     put("battery_power_charge", -500)   # battery: negative = discharging 500 W
     put("battery_voltage_charge", 204.8)   # V
     put("bms_charge_max_current", 25.0)    # A -> charge ceiling 204.8 * 25 = 5120 W
-    coordinator = await make_coordinator(hass, device, FakeClient(regs), monkeypatch, FakeTime())
+    coordinator = await make_coordinator(
+        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["all"]},
+    )
     await coordinator.async_refresh()
 
     def value(key):

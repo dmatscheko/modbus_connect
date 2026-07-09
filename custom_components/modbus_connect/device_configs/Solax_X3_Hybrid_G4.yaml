@@ -9,10 +9,12 @@ device:
   sw_version: "DSP {{ firmware_dsp // 100 }}.{{ '%02d' | format(firmware_dsp % 100) }} ARM {{ firmware_arm // 100 }}.{{ '%02d' | format(firmware_arm % 100) }}"
   hw_version: Gen4
   serial_number: "{{ serial }}"
+  default_groups: [basic]
 
 holding:
   lock_state:
     address: 0
+    groups: [advanced, all]
     map:
       0: Locked
       2014: Unlocked
@@ -37,6 +39,7 @@ holding:
       - "{{ now().day }}"
       - "{{ now().month }}"
       - "{{ now().year % 100 }}"
+    groups: [advanced, all]
     ha:
       platform: button
       name: Sync RTC
@@ -46,6 +49,7 @@ holding:
     address: 7
     type: string
     count: 7
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Manufacturer
@@ -55,6 +59,7 @@ holding:
     address: 14
     type: string
     count: 7
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Model Number
@@ -62,6 +67,7 @@ holding:
       entity_category: diagnostic
   inverter_id:
     address: 21
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter ID Number
@@ -70,6 +76,7 @@ holding:
   system_on:
     address: 28
     write_value: 1
+    groups: [advanced, all]
     ha:
       platform: button
       name: System On
@@ -77,12 +84,14 @@ holding:
   system_off:
     address: 28
     write_value: 0
+    groups: [advanced, all]
     ha:
       platform: button
       name: System Off
       icon: "mdi:power-off"
   safety_code:
     address: 29
+    groups: [all]
     map:
       0: VDE0126
       1: VDE4105
@@ -140,6 +149,7 @@ holding:
       enabled_by_default: false
   charger_use_mode:
     address: 31
+    groups: [advanced, all]
     map:
       0: Self Use Mode
       1: Feedin Priority
@@ -154,6 +164,7 @@ holding:
       icon: "mdi:dip-switch"
   manual_mode_select:
     address: 32
+    groups: [advanced, all]
     map:
       0: Stop Charge and Discharge
       1: Force Charge
@@ -166,6 +177,7 @@ holding:
   battery_charge_max_current:
     address: 36
     multiplier: 0.1
+    groups: [advanced, all]
     read_register: "{{ battery_charge_max_current_readback }}"
     ha:
       platform: number
@@ -179,6 +191,7 @@ holding:
   battery_discharge_max_current:
     address: 37
     multiplier: 0.1
+    groups: [advanced, all]
     read_register: "{{ battery_discharge_max_current_readback }}"
     ha:
       platform: number
@@ -192,6 +205,7 @@ holding:
   export_control_user_limit:
     address: 66
     multiplier: 10.0
+    groups: [advanced, all]
     read_register: "{{ export_control_user_limit_readback }}"
     ha:
       platform: number
@@ -206,6 +220,7 @@ holding:
     address: 70
     type: int32
     swap: word
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Measured power
@@ -214,6 +229,7 @@ holding:
       unit_of_measurement: W
   mppt:
     address: 72
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -225,6 +241,7 @@ holding:
   battery_awaken:
     address: 86
     write_value: 1
+    groups: [all]
     ha:
       platform: button
       name: Battery Awaken
@@ -232,6 +249,7 @@ holding:
       enabled_by_default: false
   max_pv_output_power:
     address: 90
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Max PV Output Power
@@ -244,6 +262,7 @@ holding:
     internal: true
   selfuse_discharge_min_soc:
     address: 97
+    groups: [advanced, all]
     read_register: "{{ selfuse_discharge_min_soc_readback }}"
     ha:
       platform: number
@@ -255,6 +274,7 @@ holding:
       step: 1
   selfuse_night_charge_enable:
     address: 98
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -265,6 +285,7 @@ holding:
       icon: "mdi:dip-switch"
   selfuse_nightcharge_upper_soc:
     address: 99
+    groups: [advanced, all]
     read_register: "{{ selfuse_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
@@ -276,6 +297,7 @@ holding:
       step: 1
   feedin_nightcharge_upper_soc:
     address: 100
+    groups: [advanced, all]
     read_register: "{{ feedin_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
@@ -287,6 +309,7 @@ holding:
       step: 1
   feedin_discharge_min_soc:
     address: 101
+    groups: [advanced, all]
     read_register: "{{ feedin_discharge_min_soc_readback }}"
     ha:
       platform: number
@@ -298,6 +321,7 @@ holding:
       step: 1
   backup_nightcharge_upper_soc:
     address: 102
+    groups: [advanced, all]
     read_register: "{{ backup_nightcharge_upper_soc_readback }}"
     ha:
       platform: number
@@ -309,6 +333,7 @@ holding:
       step: 1
   backup_discharge_min_soc:
     address: 103
+    groups: [advanced, all]
     read_register: "{{ backup_discharge_min_soc_readback }}"
     ha:
       platform: number
@@ -322,6 +347,7 @@ holding:
     address: 104
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Charge Start 1
@@ -331,6 +357,7 @@ holding:
     address: 105
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Charge End 1
@@ -340,6 +367,7 @@ holding:
     address: 106
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Discharge Start 1
@@ -349,6 +377,7 @@ holding:
     address: 107
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Discharge End 1
@@ -356,6 +385,7 @@ holding:
       entity_category: config
   charge_and_discharge_period2_enable:
     address: 108
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -369,6 +399,7 @@ holding:
     address: 109
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Charge Start 2
@@ -378,6 +409,7 @@ holding:
     address: 110
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Charge End 2
@@ -387,6 +419,7 @@ holding:
     address: 111
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Discharge Start 2
@@ -396,6 +429,7 @@ holding:
     address: 112
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Discharge End 2
@@ -403,6 +437,7 @@ holding:
       entity_category: config
   main_breaker_current_limit:
     address: 113
+    groups: [advanced, all]
     read_register: "{{ main_breaker_current_limit_readback }}"
     ha:
       platform: number
@@ -419,6 +454,7 @@ holding:
     address: 124
     static_value: Disabled
     write_multiple: true
+    groups: [all]
     map:
       0: Disabled
       1: Enable Power Control Mode
@@ -442,6 +478,7 @@ holding:
     address: 125
     static_value: Set
     write_multiple: true
+    groups: [all]
     map:
       1: Set
       2: Update
@@ -456,6 +493,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Active Power (mode 1; direct)
@@ -467,6 +505,7 @@ holding:
       enabled_by_default: false
   firmware_DSP_hardware_version:
     address: 126
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter DSP hardware version
@@ -478,6 +517,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Reactive Power (mode 1; direct)
@@ -489,6 +529,7 @@ holding:
       enabled_by_default: false
   remotecontrol_duration_direct:
     address: 130
+    groups: [advanced, all]
     ha:
       platform: number
       name: Remotecontrol Duration (mode 1; direct)
@@ -499,6 +540,7 @@ holding:
       step: 60
   modbus_protocol_version:
     address: 130
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Modbus Protocol Version
@@ -506,6 +548,7 @@ holding:
       entity_category: diagnostic
   remotecontrol_target_soc_direct:
     address: 131
+    groups: [advanced, all]
     ha:
       platform: number
       name: Remotecontrol Target SOC (mode 3; direct)
@@ -519,6 +562,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Target Energy (mode 2; direct)
@@ -530,6 +574,7 @@ holding:
       enabled_by_default: false
   bootloader_version:
     address: 132
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Bootloader Version
@@ -541,6 +586,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Charge/Discharge Power (mode 2/3; direct)
@@ -554,6 +600,7 @@ holding:
     address: 136
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol TimeOut (mode 1-7; direct)
@@ -569,6 +616,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Push Mode Power (mode 4; direct)
@@ -597,6 +645,7 @@ holding:
     internal: true
   pgrid_bias:
     address: 141
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Grid
@@ -608,6 +657,7 @@ holding:
       icon: "mdi:dip-switch"
   battery_type:
     address: 141
+    groups: [all]
     map:
       0: Lead Acid
       1: Lithium
@@ -620,6 +670,7 @@ holding:
   battery_charge_float_voltage:
     address: 142
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Charge Float Voltage
@@ -630,6 +681,7 @@ holding:
   battery_discharge_cut_off_voltage:
     address: 143
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Discharge Cut Off Voltage
@@ -677,6 +729,7 @@ holding:
     internal: true
   shadow_fix_function_level_pv2_gmppt:
     address: 152
+    groups: [advanced, all]
     map:
       0: "Off"
       1: Low
@@ -689,6 +742,7 @@ holding:
       icon: "mdi:dip-switch"
   hotstandby:
     address: 153
+    groups: [advanced, all]
     map:
       0: Enabled
       1: Disabled
@@ -699,6 +753,7 @@ holding:
       icon: "mdi:dip-switch"
   extend_bms_setting:
     address: 154
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -715,6 +770,7 @@ holding:
     internal: true
   shadow_fix_function_level_pv1_gmppt:
     address: 156
+    groups: [advanced, all]
     map:
       0: "Off"
       1: Low
@@ -727,6 +783,7 @@ holding:
       icon: "mdi:dip-switch"
   phase_power_balance_x3:
     address: 158
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -740,6 +797,7 @@ holding:
     address: 160
     static_value: Disabled
     write_multiple: true
+    groups: [all]
     map:
       0: Disabled
       8: Individual Setting - Duration Mode
@@ -759,6 +817,7 @@ holding:
     address: 161
     static_value: Set
     write_multiple: true
+    groups: [all]
     map:
       1: Set
       2: Update
@@ -779,6 +838,7 @@ holding:
     swap: word
     static_value: 15000
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: "Remotecontrol PV Power Limit (mode 8/9, direct)"
@@ -796,6 +856,7 @@ holding:
     internal: true
   meter_1_direction:
     address: 164
+    groups: [all]
     map:
       0: Positive
       1: Negative
@@ -812,6 +873,7 @@ holding:
     swap: word
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Push Mode Power (mode 8/9; direct)
@@ -823,6 +885,7 @@ holding:
       enabled_by_default: false
   meter_2_direction:
     address: 165
+    groups: [all]
     map:
       0: Positive
       1: Negative
@@ -835,6 +898,7 @@ holding:
       enabled_by_default: false
   discharge_cut_off_point_different:
     address: 166
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -847,6 +911,7 @@ holding:
     address: 166
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Duration (mode 8; direct)
@@ -860,6 +925,7 @@ holding:
     address: 166
     static_value: 100
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Target SOC (mode 9; direct)
@@ -872,6 +938,7 @@ holding:
     address: 167
     static_value: 0
     write_multiple: true
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol TimeOut (mode 8/9; direct)
@@ -885,6 +952,7 @@ holding:
     address: 170
     type: string
     count: 5
+    groups: [all]
     ha:
       platform: sensor
       name: Registration Code Pocket
@@ -912,6 +980,7 @@ holding:
     internal: true
   lease_mode:
     address: 180
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -922,6 +991,7 @@ holding:
       icon: "mdi:dip-switch"
   device_lock:
     address: 181
+    groups: [advanced, all]
     map:
       0: Unlock
       1: Lock
@@ -933,6 +1003,7 @@ holding:
       entity_category: diagnostic
   export_control_factory_limit:
     address: 181
+    groups: [all]
     ha:
       platform: sensor
       name: Export Control Factory Limit
@@ -942,6 +1013,7 @@ holding:
       enabled_by_default: false
   manual_mode_control:
     address: 182
+    groups: [advanced, all]
     map:
       0: "Off"
       1: "On"
@@ -956,6 +1028,7 @@ holding:
     internal: true
   feedin_on_power:
     address: 183
+    groups: [advanced, all]
     read_register: "{{ feedin_on_power_readback }}"
     ha:
       platform: number
@@ -967,6 +1040,7 @@ holding:
       step: 100
   consume_off_power:
     address: 185
+    groups: [advanced, all]
     read_register: "{{ consume_off_power_readback }}"
     ha:
       platform: number
@@ -978,6 +1052,7 @@ holding:
       step: 100
   inverter_power_type:
     address: 186
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Rated Output Power
@@ -987,6 +1062,7 @@ holding:
       entity_category: diagnostic
   language:
     address: 187
+    groups: [all]
     map:
       0: English
       1: Deutsche
@@ -1009,6 +1085,7 @@ holding:
     internal: true
   selfuse_mode_backup:
     address: 196
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -1019,6 +1096,7 @@ holding:
       icon: "mdi:dip-switch"
   selfuse_backup_soc:
     address: 197
+    groups: [all]
     read_register: "{{ selfuse_backup_soc_readback }}"
     ha:
       platform: number
@@ -1031,6 +1109,7 @@ holding:
       step: 1
   parallel_setting:
     address: 198
+    groups: [advanced, all]
     map:
       0: Free
       1: Master
@@ -1043,6 +1122,7 @@ holding:
       entity_category: config
   battery_heating:
     address: 207
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -1055,6 +1135,7 @@ holding:
     address: 208
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Battery Heating Start Time 1
@@ -1064,6 +1145,7 @@ holding:
     address: 209
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Battery Heating End Time 1
@@ -1073,6 +1155,7 @@ holding:
     address: 210
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Battery Heating Start Time 2
@@ -1082,6 +1165,7 @@ holding:
     address: 211
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: Battery Heating End Time 2
@@ -1092,6 +1176,7 @@ holding:
     internal: true
   battery_charge_upper_soc:
     address: 224
+    groups: [advanced, all]
     read_register: "{{ battery_charge_upper_soc_readback }}"
     ha:
       platform: number
@@ -1103,6 +1188,7 @@ holding:
       step: 1
   battery_to_ev_charger:
     address: 225
+    groups: [all]
     map:
       0: Disabled
       1: Enabled
@@ -1117,6 +1203,7 @@ holding:
     address: 234
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 1
@@ -1126,6 +1213,7 @@ holding:
     address: 235
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 1
@@ -1135,6 +1223,7 @@ holding:
     address: 236
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 2
@@ -1144,6 +1233,7 @@ holding:
     address: 237
     type: time
     rectify_time: true
+    groups: [advanced, all]
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 2
@@ -1151,6 +1241,7 @@ holding:
       entity_category: config
   peakshaving_discharge_limit_1:
     address: 238
+    groups: [advanced, all]
     read_register: "{{ peakshaving_discharge_limit_1_readback }}"
     ha:
       platform: number
@@ -1162,6 +1253,7 @@ holding:
       step: 100
   peakshaving_discharge_limit_2:
     address: 239
+    groups: [advanced, all]
     read_register: "{{ peakshaving_discharge_limit_2_readback }}"
     ha:
       platform: number
@@ -1173,6 +1265,7 @@ holding:
       step: 100
   peakshaving_charge_from_grid:
     address: 240
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -1183,6 +1276,7 @@ holding:
       icon: "mdi:dip-switch"
   peakshaving_charge_limit:
     address: 241
+    groups: [advanced, all]
     read_register: "{{ peakshaving_charge_limit_readback }}"
     ha:
       platform: number
@@ -1194,6 +1288,7 @@ holding:
       step: 100
   peakshaving_max_soc:
     address: 242
+    groups: [advanced, all]
     read_register: "{{ peakshaving_max_soc_readback }}"
     ha:
       platform: number
@@ -1205,6 +1300,7 @@ holding:
       step: 1
   peakshaving_reserved_soc:
     address: 243
+    groups: [advanced, all]
     read_register: "{{ peakshaving_reserved_soc_readback }}"
     ha:
       platform: number
@@ -1215,6 +1311,7 @@ holding:
       step: 1
   vpp_exit_idle_enable:
     address: 244
+    groups: [all]
     map:
       0: Disabled
       1: Enabled
@@ -1227,6 +1324,7 @@ holding:
       enabled_by_default: false
   fast_ct_check_enable:
     address: 245
+    groups: [all]
     map:
       0: Disabled
       1: Enabled
@@ -1239,6 +1337,7 @@ holding:
       enabled_by_default: false
   ev_charger_address:
     address: 249
+    groups: [all]
     read_register: "{{ ev_charger_address_readback }}"
     ha:
       platform: number
@@ -1251,6 +1350,7 @@ holding:
       step: 1
   ct_cycle_detection:
     address: 253
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled
@@ -1261,6 +1361,7 @@ holding:
       icon: "mdi:dip-switch"
   ct_type:
     address: 259
+    groups: [all]
     map:
       0: "100A"
       1: "200A"
@@ -1278,6 +1379,7 @@ holding:
     internal: true
   machine_type:
     address: 261
+    groups: [advanced, all]
     map:
       1: X1
       3: X3
@@ -1294,6 +1396,7 @@ holding:
     internal: true
   machine_style:
     address: 263
+    groups: [advanced, all]
     map:
       0: Hybrid
       1: Fit
@@ -1304,6 +1407,7 @@ holding:
       entity_category: diagnostic
   meter_1_id:
     address: 265
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 1 ID
@@ -1312,6 +1416,7 @@ holding:
       enabled_by_default: false
   meter_2_id:
     address: 266
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 ID
@@ -1348,6 +1453,7 @@ holding:
   discharge_cut_off_voltage_grid_mode:
     address: 275
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Discharge Cut Off Voltage Grid Mode
@@ -1365,6 +1471,7 @@ holding:
     internal: true
   ct_meter_setting:
     address: 277
+    groups: [all]
     map:
       0: Meter
       1: CT
@@ -1377,6 +1484,7 @@ holding:
   fvrt_vac_upper:
     address: 279
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: FVRT Vac Upper
@@ -1387,6 +1495,7 @@ holding:
   fvrt_vac_lower:
     address: 280
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: FVRT Vac Lower
@@ -1396,6 +1505,7 @@ holding:
       precision: 1
   bias_power:
     address: 281
+    groups: [all]
     read_register: "{{ bias_power_readback }}"
     ha:
       platform: number
@@ -1410,6 +1520,7 @@ holding:
       step: 1
   pv_connection_mode:
     address: 283
+    groups: [all]
     ha:
       platform: sensor
       name: PV Connection Mode
@@ -1486,6 +1597,7 @@ holding:
     internal: true
   remotecontrol_readback_mode:
     address: 416
+    groups: [all]
     map:
       0: Disabled
       1: Power Control Mode
@@ -1507,6 +1619,7 @@ holding:
     address: 418
     type: uint32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Remotecontrol Mode 8 PV Power Limit Readback
@@ -1520,6 +1633,7 @@ holding:
     address: 420
     type: int32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Remotecontrol Mode 8 Battery Power Target Readback
@@ -1531,6 +1645,7 @@ holding:
       enabled_by_default: false
   remotecontrol_mode8_timeout_readback:
     address: 422
+    groups: [all]
     ha:
       platform: sensor
       name: Remotecontrol Mode 8 Timeout Readback
@@ -1542,6 +1657,7 @@ holding:
       enabled_by_default: false
   remotecontrol_mode8_next_motion_readback:
     address: 423
+    groups: [all]
     map:
       160: Exit current VPP mode and switch to user work mode
       161: Exit current VPP mode and switch to VPP mode 6
@@ -1557,6 +1673,7 @@ input:
     address: 0
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Voltage
@@ -1568,6 +1685,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Current
@@ -1578,6 +1696,7 @@ input:
     address: 2
     type: int16
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Power
@@ -1588,6 +1707,7 @@ input:
     address: 3
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: PV Voltage 1
@@ -1598,6 +1718,7 @@ input:
     address: 4
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: PV Voltage 2
@@ -1608,6 +1729,7 @@ input:
     address: 5
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: PV Current 1
@@ -1619,6 +1741,7 @@ input:
     address: 6
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: PV Current 2
@@ -1629,6 +1752,7 @@ input:
   inverter_frequency:
     address: 7
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Frequency
@@ -1638,6 +1762,7 @@ input:
   inverter_temperature:
     address: 8
     type: int16
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Temperature
@@ -1648,6 +1773,7 @@ input:
   run_mode:
     address: 9
     scan_interval: 15
+    groups: [basic, advanced, all]
     map:
       0: Waiting
       1: Checking
@@ -1676,6 +1802,7 @@ input:
   pv_power_1:
     address: 10
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: PV Power 1
@@ -1686,6 +1813,7 @@ input:
   pv_power_2:
     address: 11
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: PV Power 2
@@ -1697,6 +1825,7 @@ input:
     address: 19
     multiplier: 0.001
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Time Count Down
@@ -1707,6 +1836,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Battery Voltage Charge
@@ -1718,6 +1848,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Battery Current Charge
@@ -1729,6 +1860,7 @@ input:
     address: 22
     type: int16
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Battery Power Charge
@@ -1738,6 +1870,7 @@ input:
       icon: "mdi:battery-charging"
   bms_connect_state:
     address: 23
+    groups: [all]
     map:
       0: Disconnected
       1: Connected
@@ -1749,6 +1882,7 @@ input:
   battery_temperature:
     address: 24
     type: int16
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Battery Temperature
@@ -1759,6 +1893,7 @@ input:
   bdc_status:
     address: 25
     scan_interval: 15
+    groups: [basic, advanced, all]
     map:
       0: Discharge
       1: Charge
@@ -1769,6 +1904,7 @@ input:
   grid_status:
     address: 26
     scan_interval: 15
+    groups: [all]
     map:
       0: OnGrid
       1: OffGrid
@@ -1780,6 +1916,7 @@ input:
   mppt_count:
     address: 27
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: MPPT Count
@@ -1787,6 +1924,7 @@ input:
   battery_capacity:
     address: 28
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Battery Capacity
@@ -1798,6 +1936,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Output Energy Total
@@ -1810,6 +1949,7 @@ input:
   battery_output_energy_today:
     address: 32
     multiplier: 0.1
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Battery Output Energy Today
@@ -1823,6 +1963,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Input Energy Total
@@ -1835,6 +1976,7 @@ input:
   battery_input_energy_today:
     address: 35
     multiplier: 0.1
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Battery Input Energy Today
@@ -1846,6 +1988,7 @@ input:
   bms_charge_max_current:
     address: 36
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Charge Max Current
@@ -1856,6 +1999,7 @@ input:
   bms_discharge_max_current:
     address: 37
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Discharge Max Current
@@ -1867,6 +2011,7 @@ input:
     address: 38
     type: uint32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Total Energy
@@ -1878,6 +2023,7 @@ input:
     type: uint32
     swap: word
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: PV Power Total
@@ -1885,12 +2031,12 @@ input:
       state_class: measurement
       unit_of_measurement: W
       icon: "mdi:solar-power-variant"
-      enabled_by_default: false
   ongrid_power_total:
     address: 52
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Total On-Grid Power
@@ -1902,6 +2048,7 @@ input:
     address: 58
     type: uint32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Battery System Installed Capacity
@@ -1914,6 +2061,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Export Total
@@ -1928,6 +2076,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Import Total
@@ -1940,6 +2089,7 @@ input:
   today_s_yield:
     address: 80
     multiplier: 0.1
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: "Today's Yield"
@@ -1952,6 +2102,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Total Yield
@@ -1970,6 +2121,7 @@ input:
   bus_volt:
     address: 102
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Bus Volt
@@ -1980,6 +2132,7 @@ input:
   dc_fault_val:
     address: 103
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: DC Fault Val
@@ -1989,6 +2142,7 @@ input:
       precision: 1
   overload_fault_val:
     address: 104
+    groups: [all]
     ha:
       platform: sensor
       name: Overload Fault Val
@@ -1997,6 +2151,7 @@ input:
   battery_volt_fault_val:
     address: 105
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Volt Fault Val
@@ -2008,6 +2163,7 @@ input:
     address: 106
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Voltage L1
@@ -2019,6 +2175,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Current L1
@@ -2029,6 +2186,7 @@ input:
     address: 108
     type: int16
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Power L1
@@ -2038,6 +2196,7 @@ input:
   inverter_frequency_l1:
     address: 109
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Frequency L1
@@ -2048,6 +2207,7 @@ input:
     address: 110
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Voltage L2
@@ -2059,6 +2219,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Current L2
@@ -2069,6 +2230,7 @@ input:
     address: 112
     type: int16
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Power L2
@@ -2078,6 +2240,7 @@ input:
   inverter_frequency_l2:
     address: 113
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Frequency L2
@@ -2088,6 +2251,7 @@ input:
     address: 114
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Voltage L3
@@ -2099,6 +2263,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Current L3
@@ -2109,6 +2274,7 @@ input:
     address: 116
     type: int16
     scan_interval: 15
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Inverter Power L3
@@ -2118,6 +2284,7 @@ input:
   inverter_frequency_l3:
     address: 117
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Inverter Frequency L3
@@ -2129,6 +2296,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Measured Power L1
@@ -2140,6 +2308,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Measured Power L2
@@ -2151,6 +2320,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Measured Power L3
@@ -2162,6 +2332,7 @@ input:
     type: int32
     swap: word
     multiplier: 0.1
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Grid Mode Runtime
@@ -2171,6 +2342,7 @@ input:
   e_charge_today:
     address: 145
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: E Charge Today
@@ -2185,6 +2357,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: E Charge Total
@@ -2199,6 +2372,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: Total Solar Energy
@@ -2210,6 +2384,7 @@ input:
   today_s_solar_energy:
     address: 150
     multiplier: 0.1
+    groups: [basic, advanced, all]
     ha:
       platform: sensor
       name: "Today's Solar Energy"
@@ -2223,6 +2398,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: "Today's Export Energy"
@@ -2236,6 +2412,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: "Today's Import Energy"
@@ -2247,6 +2424,7 @@ input:
   ev_charger_communication_state:
     address: 160
     scan_interval: 15
+    groups: [all]
     map:
       0: Disconnected
       1: Connected
@@ -2258,6 +2436,7 @@ input:
   adapt_box_communication_state:
     address: 161
     scan_interval: 15
+    groups: [all]
     map:
       0: Disconnected
       1: Connected
@@ -2270,6 +2449,7 @@ input:
     address: 162
     type: uint32
     swap: word
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Battery Max Charge Power
@@ -2281,6 +2461,7 @@ input:
     address: 164
     type: uint32
     swap: word
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Battery Max Discharge Power
@@ -2293,6 +2474,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Measured Power
@@ -2305,6 +2487,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Export Total
@@ -2319,6 +2502,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Import Total
@@ -2333,6 +2517,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Export Today
@@ -2347,6 +2532,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Import Today
@@ -2361,6 +2547,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Measured Power L1
@@ -2373,6 +2560,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Measured Power L2
@@ -2385,6 +2573,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Meter 2 Measured Power L3
@@ -2395,6 +2584,7 @@ input:
   meter_1_communication_state:
     address: 184
     scan_interval: 15
+    groups: [all]
     map:
       0: Communication Error
       1: Normal
@@ -2406,6 +2596,7 @@ input:
   meter_2_communication_state:
     address: 185
     scan_interval: 15
+    groups: [all]
     map:
       0: Communication Error
       1: Normal
@@ -2418,6 +2609,7 @@ input:
     address: 186
     type: int16
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Temp High
@@ -2429,6 +2621,7 @@ input:
     address: 187
     type: int16
     multiplier: 0.1
+    groups: [all]
     ha:
       platform: sensor
       name: Battery Temp Low
@@ -2439,6 +2632,7 @@ input:
   cell_voltage_high:
     address: 188
     multiplier: 0.001
+    groups: [all]
     ha:
       platform: sensor
       name: Cell Voltage High
@@ -2449,6 +2643,7 @@ input:
   cell_voltage_low:
     address: 189
     multiplier: 0.001
+    groups: [all]
     ha:
       platform: sensor
       name: Cell Voltage Low
@@ -2458,6 +2653,7 @@ input:
       precision: 3
   battery_soh:
     address: 191
+    groups: [all]
     ha:
       platform: sensor
       name: Battery State of Health
@@ -2470,6 +2666,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Reactive Power Total
@@ -2481,6 +2678,7 @@ input:
     address: 193
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Reactive Power L1
@@ -2492,6 +2690,7 @@ input:
     address: 194
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Reactive Power L2
@@ -2503,6 +2702,7 @@ input:
     address: 195
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Reactive Power L3
@@ -2514,6 +2714,7 @@ input:
     address: 196
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Power Factor Total
@@ -2523,6 +2724,7 @@ input:
     address: 197
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Power Factor L1
@@ -2532,6 +2734,7 @@ input:
     address: 198
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Power Factor L2
@@ -2541,6 +2744,7 @@ input:
     address: 199
     type: int16
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Power Factor L3
@@ -2549,6 +2753,7 @@ input:
   grid_frequency:
     address: 200
     multiplier: 0.01
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Frequency
@@ -2560,6 +2765,7 @@ input:
     address: 201
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Voltage
@@ -2572,6 +2778,7 @@ input:
     address: 202
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Voltage L1
@@ -2584,6 +2791,7 @@ input:
     address: 203
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Voltage L2
@@ -2596,6 +2804,7 @@ input:
     address: 204
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Voltage L3
@@ -2609,6 +2818,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Current Total
@@ -2622,6 +2832,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L1
@@ -2635,6 +2846,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L2
@@ -2648,6 +2860,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L3
@@ -2659,6 +2872,7 @@ input:
   modbus_power_control:
     address: 256
     scan_interval: 15
+    groups: [advanced, all]
     map:
       0: Disabled
       1: Enabled Power Control
@@ -2677,6 +2891,7 @@ input:
   target_finish_flag:
     address: 257
     scan_interval: 15
+    groups: [advanced, all]
     map:
       0: Unfinished
       1: Finished
@@ -2689,6 +2904,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Active Power Target
@@ -2700,6 +2916,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Reactive Power Target
@@ -2711,6 +2928,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Active Power Real
@@ -2722,6 +2940,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Reactive Power Real
@@ -2733,6 +2952,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Active Power Upper
@@ -2744,6 +2964,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Active Power Lower
@@ -2754,6 +2975,7 @@ input:
     address: 270
     type: int32
     swap: word
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Reactive Power Upper
@@ -2764,6 +2986,7 @@ input:
     address: 272
     type: int32
     swap: word
+    groups: [advanced, all]
     ha:
       platform: sensor
       name: Reactive Power Lower
@@ -2775,6 +2998,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
+    groups: [all]
     ha:
       platform: sensor
       name: Charge Discharge Power
@@ -2786,6 +3010,7 @@ input:
     address: 278
     type: uint32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Chargeable Battery Energy
@@ -2796,6 +3021,7 @@ input:
     address: 280
     type: uint32
     swap: word
+    groups: [all]
     ha:
       platform: sensor
       name: Remaining Battery Energy
@@ -2814,6 +3040,7 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ [-(measured_power or 0), 0] | max }}"
+    groups: [basic, advanced, all]
   grid_export:
     ha:
       platform: sensor
@@ -2822,6 +3049,7 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ [measured_power or 0, 0] | max }}"
+    groups: [basic, advanced, all]
   house_load:
     ha:
       platform: sensor
@@ -2830,6 +3058,7 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ (inverter_power or 0) - (measured_power or 0) }}"
+    groups: [advanced, all]
   battery_charge_power:
     ha:
       platform: sensor
@@ -2838,6 +3067,7 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ [battery_power_charge or 0, 0] | max }}"
+    groups: [advanced, all]
   battery_discharge_power:
     ha:
       platform: sensor
@@ -2846,6 +3076,7 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ [-(battery_power_charge or 0), 0] | max }}"
+    groups: [advanced, all]
   bms_max_charge:
     ha:
       platform: sensor
@@ -2854,3 +3085,4 @@ template:
       state_class: measurement
       unit_of_measurement: W
     state: "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}"
+    groups: [advanced, all]

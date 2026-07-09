@@ -136,6 +136,8 @@ device:
   sw_version: "DSP {{ dsp }} ARM {{ arm }}"  # firmware / hardware / serial for the
   hw_version: "{{ hardware_gen }}"           #   device page (all optional); each is a
   serial_number: "{{ serial }}"             #   template over register values (below)
+  default_groups: [basic]  # which entity groups start enabled (optional; see below).
+                           #   Unset shows every group — i.e. all entities
 
 input:
   phase_1_voltage:
@@ -210,6 +212,7 @@ rendered once from the first read.
 | `scan_interval` | Per-entity poll interval in seconds, overriding the device default. Still raised to `min_scan_interval` if that is longer |
 | `duplicate_as_sensor` | Also create a read-only sensor twin of this writable entity, so its history lands in the recorder/long-term statistics |
 | `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block). Internal entities can still be write targets of template actions. If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
+| `groups` | Tag the entity (or `template:` entry) into named groups, e.g. `[basic, advanced, all]`. The entity is created — and its register polled — only while at least one of its groups is enabled; an entity with no `groups` is always shown. See [Entity groups](#entity-groups) |
 
 ### The `ha:` block
 
@@ -220,6 +223,40 @@ platform's `EntityDescription`. Friendly aliases: `unit_of_measurement`/`unit`
 `entity_registry_enabled_default`. Enum fields (`device_class`,
 `state_class`, `entity_category`, number/text `mode`) are validated with the
 full list of valid values in the error message.
+
+### Entity groups
+
+Big devices expose far more settings and sensors than most people want. Tag
+entities (and `template:` entries) with `groups:` to let the user switch whole
+sets on and off from the device page:
+
+```yaml
+device:
+  default_groups: [basic]        # what a fresh install (and existing ones) start with
+holding:
+  battery_soc:
+    address: 0
+    groups: [basic, advanced, all]   # everyday view
+  cell_voltage_16:
+    address: 20
+    groups: [all]                    # expert-only
+```
+
+For every group that appears in the file, the integration adds one **Enable
+_group_ entities** switch under the device's *Configuration* section. An entity
+is shown when **any** of its groups is enabled — groups are independent, so
+tiers like basic ⊆ advanced ⊆ all are expressed by listing every tier an entity
+belongs to (a basic entity is written `[basic, advanced, all]`). `default_groups`
+picks which groups start enabled; leave it out and everything shows.
+
+Toggling a switch reloads the entry and **rebuilds the entity set**. Hidden
+entities are not merely disabled — they stop being provided, so Home Assistant
+greys them out as "no longer provided", *keeps their registry row* (your renames,
+areas, and enabled/disabled state), and restores them the moment the group is
+turned back on. Hidden entities also drop out of the Modbus read plan — though a
+shown template or `read_register` keeps its own source registers polled even when
+those sources are hidden. The bundled SolaX Hybrid file, for instance, goes from
+232 entities / 210 register reads on *all* down to 27 / 29 on *basic*.
 
 ## The `template:` section
 

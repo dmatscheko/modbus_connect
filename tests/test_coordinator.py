@@ -11,9 +11,14 @@ from custom_components.modbus_connect.const import (
     CONF_FILENAME,
     CONF_SLAVE_ID,
     DOMAIN,
+    OPTION_ENABLED_GROUPS,
 )
-from custom_components.modbus_connect.coordinator import ModbusConnectCoordinator
-from custom_components.modbus_connect.models import DeviceDef, EntityDef, Span
+from custom_components.modbus_connect.coordinator import (
+    ModbusConnectCoordinator,
+    is_group_visible,
+    resolve_enabled_groups,
+)
+from custom_components.modbus_connect.models import DeviceDef, EntityDef, Span, TemplateDef
 
 
 class FakeTime:
@@ -203,6 +208,129 @@ async def test_read_count_sensor_reports_stable_full_refresh(hass, monkeypatch):
     await coordinator.async_refresh()
     assert coordinator.last_read_count == 1  # only the fast block was issued
     assert entity.native_value == 2  # ...but the full-refresh figure is unchanged
+
+
+# --- entity groups -----------------------------------------------------------
+
+
+def test_is_group_visible_untagged_always_shown():
+    assert is_group_visible((), frozenset({"basic"})) is True  # no groups -> always
+    assert is_group_visible((), frozenset()) is True
+    assert is_group_visible(("basic",), frozenset({"basic"})) is True
+    assert is_group_visible(("advanced",), frozenset({"basic"})) is False
+    assert is_group_visible(("basic", "all"), frozenset({"all"})) is True
+
+
+def test_resolve_enabled_groups_precedence():
+    dev = make_device(sensor("a", 0, groups=("basic", "all")), default_groups=("basic",))
+    # option wins
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["all"]}) == frozenset({"all"})
+    # else the device default
+    assert resolve_enabled_groups(dev, None) == frozenset({"basic"})
+    assert resolve_enabled_groups(dev, {}) == frozenset({"basic"})
+    # no default set -> every declared group (shows everything)
+    dev2 = make_device(sensor("a", 0, groups=("x", "y")))
+    assert resolve_enabled_groups(dev2, None) == frozenset({"x", "y"})
+    # no groups at all -> empty (feature inactive; every entity is untagged anyway)
+    dev3 = make_device(sensor("a", 0))
+    assert resolve_enabled_groups(dev3, None) == frozenset()
+
+
+async def test_groups_hide_and_prune_hidden_reads(hass, monkeypatch):
+    client = FakeClient({0: 1, 2: 3, 100: 2})
+    device = make_device(
+        sensor("core", 0, groups=("basic", "all")),
+        sensor("untagged", 2),  # no groups -> always visible
+        sensor("extra", 100, groups=("advanced", "all")),  # hidden under basic
+        default_groups=("basic",),
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    assert coordinator.enabled_groups == frozenset({"basic"})
+    assert coordinator.all_groups == ("basic", "all", "advanced")  # first-seen order
+    assert {e.key for e in coordinator.visible_entities} == {"core", "untagged"}
+    assert coordinator.read_entity_count == 2  # 'extra' is not polled
+
+    await coordinator.async_refresh()
+    assert set(coordinator.data) == {"core", "untagged"}
+    read_addrs = {a for span in client.reads for a in range(span.start, span.end)}
+    assert 100 not in read_addrs  # the advanced-only block is pruned entirely
+
+
+async def test_enabling_group_via_option_shows_and_reads(hass, monkeypatch):
+    client = FakeClient({0: 1, 100: 2})
+    device = make_device(
+        sensor("core", 0, groups=("basic", "all")),
+        sensor("extra", 100, groups=("advanced", "all")),
+        default_groups=("basic",),
+    )
+    coordinator = await make_coordinator(
+        hass, device, client, monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["basic", "advanced"]},
+    )
+    assert {e.key for e in coordinator.visible_entities} == {"core", "extra"}
+    await coordinator.async_refresh()
+    read_addrs = {a for span in client.reads for a in range(span.start, span.end)}
+    assert 100 in read_addrs
+    assert coordinator.data == {"core": 1, "extra": 2}
+
+
+async def test_group_closure_keeps_hidden_template_source_polled(hass, monkeypatch):
+    # A basic template reads a sensor that is itself advanced-only (hidden). The
+    # closure must keep that source register polled even though its entity is gone.
+    client = FakeClient({0: 5})
+    device = make_device(
+        sensor("measured_power", 0, groups=("advanced", "all")),
+        default_groups=("basic",),
+        templates=(
+            TemplateDef(
+                key="grid_import",
+                platform="sensor",
+                ha={"name": "Grid import"},
+                config={"state": "{{ [-(measured_power or 0), 0] | max }}"},
+                groups=("basic", "all"),
+            ),
+        ),
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    assert {t.key for t in coordinator.visible_templates} == {"grid_import"}
+    assert coordinator.visible_entities == ()  # measured_power is hidden
+    assert "measured_power" in {e.key for e in coordinator._readers}  # kept by closure
+
+    await coordinator.async_refresh()
+    assert coordinator.data["measured_power"] == 5  # polled despite being hidden
+
+
+async def test_group_closure_keeps_device_info_source_polled(hass, monkeypatch):
+    # sw_version templates an advanced-only internal register; device-info always
+    # renders, so the seed must keep that register in the read plan under basic.
+    client = FakeClient({0: 1, 10: 42})
+    device = make_device(
+        sensor("core", 0, groups=("basic", "all")),
+        EntityDef(key="fw", platform="internal", address=10, groups=("advanced", "all")),
+        default_groups=("basic",),
+        sw_version="{{ fw }}",
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert "fw" in {e.key for e in coordinator._readers}
+
+    await coordinator.async_refresh()
+    coordinator.apply_device_info()
+    assert coordinator.device_info["sw_version"] == "42"
+
+
+async def test_hidden_fast_entity_does_not_speed_up_tick(hass, monkeypatch):
+    client = FakeClient({0: 1, 100: 2})
+    device = make_device(
+        sensor("slow", 0, groups=("basic", "all"), scan_interval=300),
+        sensor("fast", 100, groups=("advanced", "all"), scan_interval=5),
+        default_groups=("basic",),
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    # 'fast' is hidden under basic, so its 5 s cadence must not drive the tick
+    assert [e.key for e in coordinator._readers] == ["slow"]
+    assert coordinator._tick == 300
 
 
 async def test_min_scan_interval_clamps_intervals(hass, monkeypatch):

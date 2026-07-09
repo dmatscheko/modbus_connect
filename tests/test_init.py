@@ -18,6 +18,7 @@ from custom_components.modbus_connect.const import (
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
+    OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
 from custom_components.modbus_connect.diagnostics import (
@@ -766,3 +767,79 @@ async def test_multiple_entities_share_a_register(hass: HomeAssistant) -> None:
         state = hass.states.get(eid(hass, entry, "sensor", key))
         assert state is not None
         assert state.state == expected
+
+
+GROUPED_YAML = """
+device:
+  manufacturer: Acme
+  model: Grouped
+  default_groups: [basic]
+holding:
+  core:
+    address: 0
+    groups: [basic, advanced, all]
+    ha:
+      platform: sensor
+      name: Core
+  extra:
+    address: 1
+    groups: [advanced, all]
+    ha:
+      platform: sensor
+      name: Extra
+  hidden_only:
+    address: 2
+    groups: [all]
+    ha:
+      platform: sensor
+      name: Hidden only
+"""
+
+
+async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "grouped.yaml").write_text(GROUPED_YAML, encoding="utf-8")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.9",
+            "port": 502,
+            CONF_SLAVE_ID: 3,
+            CONF_FILENAME: "grouped.yaml",
+        },
+        unique_id="192.0.2.9:502:3",
+        title="Grouped",
+    )
+    entry.add_to_hass(hass)
+    reg = er.async_get(hass)
+
+    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        # default_groups is [basic]: only 'core' is provided; the rest are absent
+        # from the registry entirely (never created, not merely disabled).
+        assert hass.states.get(eid(hass, entry, "sensor", "core")) is not None
+        assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_extra") is None
+        assert (
+            reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
+        )
+
+        # one config switch per group, reflecting the enabled set
+        assert hass.states.get(eid(hass, entry, "switch", "group_basic")).state == "on"
+        advanced = eid(hass, entry, "switch", "group_advanced")
+        assert hass.states.get(advanced).state == "off"
+        assert hass.states.get(eid(hass, entry, "switch", "group_all")).state == "off"
+
+        # enabling 'advanced' reloads the entry and brings 'extra' into being,
+        # while an all-only entity stays hidden
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": advanced}, blocking=True
+        )
+        await hass.async_block_till_done()
+
+    assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced", "basic"]
+    assert hass.states.get(eid(hass, entry, "sensor", "extra")) is not None
+    assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
+    assert hass.states.get(eid(hass, entry, "switch", "group_advanced")).state == "on"

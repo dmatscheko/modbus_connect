@@ -1222,3 +1222,64 @@ def test_rectify_time_rejected_on_non_time():
         parse_device(
             doc(x={"address": 1, "rectify_time": True, "ha": {"platform": "sensor"}}), "t.yaml"
         )
+
+
+# --- entity groups -----------------------------------------------------------
+
+
+def test_entity_groups_parse_and_dedup():
+    dev = parse_device(
+        doc(x={"address": 0, "groups": ["basic", "all", "basic"], "ha": {"platform": "sensor"}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].groups == ("basic", "all")
+
+
+def test_entity_without_groups_defaults_empty():
+    dev = parse_device(doc(x={"address": 0, "ha": {"platform": "sensor"}}), "t.yaml")
+    assert dev.entities[0].groups == ()
+
+
+def test_groups_must_be_nonempty_string_list():
+    with pytest.raises(DeviceSchemaError, match="non-empty list"):
+        parse_device(doc(x={"address": 0, "groups": [], "ha": {"platform": "sensor"}}), "t.yaml")
+    with pytest.raises(DeviceSchemaError, match="non-empty strings"):
+        parse_device(doc(x={"address": 0, "groups": [1], "ha": {"platform": "sensor"}}), "t.yaml")
+
+
+def test_template_groups_parse():
+    data = {
+        **DEVICE,
+        "holding": {"x": {"address": 0, "ha": {"platform": "sensor"}}},
+        "template": {
+            "y": {
+                "ha": {"platform": "sensor", "name": "Y"},
+                "state": "{{ x }}",
+                "groups": ["basic", "all"],
+            }
+        },
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.templates[0].groups == ("basic", "all")
+
+
+def test_default_groups_parse_and_group_names():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["basic"]},
+        "holding": {
+            "x": {"address": 0, "groups": ["basic", "all"], "ha": {"platform": "sensor"}},
+            "y": {"address": 1, "groups": ["advanced", "all"], "ha": {"platform": "sensor"}},
+        },
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.default_groups == ("basic",)
+    assert dev.group_names == ("basic", "all", "advanced")  # first-seen order
+
+
+def test_default_groups_unknown_group_rejected():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["nope"]},
+        "holding": {"x": {"address": 0, "groups": ["basic"], "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match="name groups no entity uses"):
+        parse_device(data, "t.yaml")

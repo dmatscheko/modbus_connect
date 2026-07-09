@@ -23,7 +23,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectTime(coordinator, defn, build_description(defn))
-        for defn in coordinator.device_def.entities
+        for defn in coordinator.visible_entities
         if defn.platform == "time"
     )
 

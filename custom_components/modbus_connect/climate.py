@@ -34,7 +34,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectClimate(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.device_def.templates
+        for tdef in coordinator.visible_templates
         if tdef.platform == "climate"
     )
 

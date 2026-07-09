@@ -5,17 +5,20 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import result_as_boolean
 
-from .coordinator import ModbusConnectConfigEntry
+from .const import OPTION_ENABLED_GROUPS
+from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
     resolve_on_off,
+    suggest_entity_id,
 )
 from .models import BIT_TABLES
 
@@ -31,13 +34,19 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[SwitchEntity] = [
         ModbusConnectSwitch(coordinator, defn, build_description(defn))
-        for defn in coordinator.device_def.entities
+        for defn in coordinator.visible_entities
         if defn.platform == "switch"
     ]
     entities.extend(
         ModbusConnectTemplateSwitch(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.device_def.templates
+        for tdef in coordinator.visible_templates
         if tdef.platform == "switch"
+    )
+    # Group toggles are integration-level config controls, always present and never
+    # themselves group-filtered.
+    entities.extend(
+        ModbusConnectGroupSwitch(coordinator, entry, group)
+        for group in coordinator.all_groups
     )
     async_add_entities(entities)
 
@@ -77,3 +86,58 @@ class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._run_action("turn_off")
+
+
+class ModbusConnectGroupSwitch(SwitchEntity):
+    """Config toggle that creates or removes the entities of one group.
+
+    Toggling rewrites the entry's enabled-groups option, which reloads the entry
+    and rebuilds the entity set. Hidden entities become "no longer provided" (gray)
+    rather than deleted, so the registry keeps the user's customizations and
+    restores them when the group is re-enabled. Removed entities also drop out of
+    the Modbus read plan.
+    """
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_should_poll = False
+    _attr_translation_key = "group_enable"
+    _attr_icon = "mdi:eye-check"
+
+    def __init__(
+        self,
+        coordinator: ModbusConnectCoordinator,
+        entry: ModbusConnectConfigEntry,
+        group: str,
+    ) -> None:
+        self._coordinator = coordinator
+        self._entry = entry
+        self._group = group
+        self._attr_translation_placeholders = {"group": group}
+        self._attr_unique_id = f"{entry.entry_id}_group_{group}"
+        self._attr_device_info = coordinator.device_info
+        suggest_entity_id(self, coordinator, "switch", f"enable_{group}_entities")
+
+    @property
+    def is_on(self) -> bool:
+        return self._group in self._coordinator.enabled_groups
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(enabled=True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(enabled=False)
+
+    async def _set(self, *, enabled: bool) -> None:
+        groups = set(self._coordinator.enabled_groups)
+        if enabled:
+            groups.add(self._group)
+        else:
+            groups.discard(self._group)
+        if frozenset(groups) == self._coordinator.enabled_groups:
+            return
+        # The entry's update listener (see __init__.py) reloads and rebuilds entities.
+        self.hass.config_entries.async_update_entry(
+            self._entry,
+            options={**self._entry.options, OPTION_ENABLED_GROUPS: sorted(groups)},
+        )

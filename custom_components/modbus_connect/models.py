@@ -141,6 +141,11 @@ class EntityDef:
     # effective minimum (device.min_scan_interval / the config-entry option).
     scan_interval: int | None = None
     duplicate_as_sensor: bool = False
+    # Group tags. The entity is created (and its register polled) only when at
+    # least one of these groups is enabled; an entity with no groups is always
+    # shown. Groups are independent (OR) — tiers like basic/advanced are expressed
+    # by listing every tier an entity belongs to, e.g. ``[basic, advanced, all]``.
+    groups: tuple[str, ...] = ()
     # Validated Home Assistant EntityDescription passthrough (aliases resolved)
     ha: dict[str, Any] = field(default_factory=dict)
 
@@ -214,6 +219,8 @@ class TemplateDef:
     platform: str  # one of TEMPLATE_PLATFORMS
     ha: dict[str, Any] = field(default_factory=dict)
     config: dict[str, Any] = field(default_factory=dict)
+    # Group tags, same meaning as EntityDef.groups.
+    groups: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -242,4 +249,19 @@ class DeviceDef:
     sw_version: str | None = None
     hw_version: str | None = None
     serial_number: str | None = None
+    # Groups enabled by default when the config entry has no explicit choice yet.
+    # Empty means "no default set" — the coordinator then shows every group.
+    default_groups: tuple[str, ...] = ()
     filename: str = ""
+
+    @property
+    def group_names(self) -> tuple[str, ...]:
+        """All group names used by any entity or template, in first-seen order."""
+        seen: dict[str, None] = {}
+        for groups in (
+            *(e.groups for e in self.entities),
+            *(t.groups for t in self.templates),
+        ):
+            for group in groups:
+                seen.setdefault(group, None)
+        return tuple(seen)

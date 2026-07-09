@@ -367,11 +367,64 @@ def convert(pi, spec):
     return _Converter(pi, spec).run()
 
 
+# --- entity groups -----------------------------------------------------------
+#
+# Each entity/template is tagged with the tiers it belongs to so the integration's
+# group switches can show a subset. Tiers are independent groups (an entity is
+# shown if any of its groups is enabled); nesting is expressed by listing every
+# tier it belongs to. A hand-curated "basic" set is the minimal everyday view;
+# everything SolaX enables by default is "advanced"; everything (incl. the hidden
+# expert entities) is in "all". The device defaults to showing only "basic".
+
+# The keys that make up the everyday view of each device (basic ⊆ advanced ⊆ all).
+HYBRID_BASIC = frozenset({
+    "run_mode", "pv_power_total", "pv_power_1", "pv_power_2",
+    "pv_voltage_1", "pv_voltage_2", "inverter_power", "inverter_temperature",
+    "battery_power_charge", "battery_capacity", "bdc_status",
+    "today_s_solar_energy", "total_solar_energy", "total_yield",
+    "battery_input_energy_today", "battery_output_energy_today",
+    "grid_import", "grid_export",
+    "inverter_current_l1", "inverter_current_l2", "inverter_current_l3",
+    "inverter_power_l1", "inverter_power_l2", "inverter_power_l3",
+    "inverter_voltage_l1", "inverter_voltage_l2", "inverter_voltage_l3",
+})
+HAC_BASIC = frozenset({
+    "charge_power_total", "charge_added", "charge_added_cum",
+    "charge_current_l1", "charge_current_l2", "charge_current_l3",
+    "charger_use_mode",
+})
+
+
+def tier_groups(key, ha, basic):
+    """The group tags for one entity/template: basic (also advanced, all) if it is
+    in the curated set, else advanced (and all) if enabled by default, else all."""
+    if key in basic:
+        return ["basic", "advanced", "all"]
+    enabled = ha.get("enabled_by_default", True) is not False
+    return ["advanced", "all"] if enabled else ["all"]
+
+
+def annotate_groups(entities, templates, basic):
+    """Attach group tags to every non-internal entity and every template in place.
+    Internal read-only entities carry none (never shown; always polled when needed).
+    A curated basic entity is forced enabled — SolaX ships a few of them disabled,
+    but if we put one in the everyday view it should show without extra clicks."""
+    for _table, key, b in entities:
+        if b.get("internal"):
+            continue
+        ha = b.get("ha", {})
+        if key in basic:
+            ha.pop("enabled_by_default", None)
+        b["groups"] = tier_groups(key, ha, basic)
+    for t in templates:
+        t["groups"] = tier_groups(t["key"], t.get("ha", {}), basic)
+
+
 # Entity fields emitted (in order) before the map / read_register / ha blocks.
 EMIT_FIELDS = (
     "address", "type", "count", "swap", "mask", "sum_scale", "multiplier",
     "write_value", "static_value", "optimistic_default", "write_multiple",
-    "rectify_time", "scan_interval",
+    "rectify_time", "scan_interval", "groups",
 )
 
 
@@ -382,11 +435,14 @@ def _emit_mapping(buf, indent, mapping):
 
 
 def _emit_field(buf, name, value):
-    """One entity field. A list write_value becomes a YAML sequence (multi-register button)."""
+    """One entity field. A list write_value becomes a YAML sequence (multi-register
+    button); groups become an inline flow list."""
     if name == "write_value" and isinstance(value, list):
         buf.write("    write_value:\n")
         for item in value:
             buf.write(f"      - {yaml_str(item)}\n")
+    elif name == "groups":
+        buf.write(f"    groups: [{', '.join(value)}]\n")
     else:
         buf.write(f"    {name}: {yaml_str(value)}\n")
 
@@ -434,6 +490,8 @@ def _emit_templates(buf, templates):
         buf.write("    ha:\n")
         _emit_mapping(buf, "      ", t["ha"])
         buf.write(f"    state: {yaml_str(t['state'])}\n")
+        if t.get("groups"):
+            buf.write(f"    groups: [{', '.join(t['groups'])}]\n")
 
 
 def emit_yaml(meta, entities, templates=()):
@@ -441,7 +499,11 @@ def emit_yaml(meta, entities, templates=()):
     buf = io.StringIO()
     buf.write("# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.\n")
     buf.write("device:\n")
+    meta = dict(meta)
+    default_groups = meta.pop("default_groups", None)
     _emit_mapping(buf, "  ", meta)
+    if default_groups:
+        buf.write(f"  default_groups: [{', '.join(default_groups)}]\n")
     for table in ("holding", "input"):
         _emit_table(buf, table, entities)
     _emit_templates(buf, templates)
@@ -465,10 +527,11 @@ DEST = str(
 )
 
 
-def run(module, spec_fn, meta, filename, extras=(), templates=()):
+def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset()):
     P = load_plugin(module)
     ents, skipped = convert(P.plugin_instance, spec_fn(P))
     ents = list(ents) + list(extras)  # device-info + computed registers, appended post-dedupe
+    annotate_groups(ents, templates, basic)
     with open(f"{DEST}/{filename}", "w") as f:
         f.write(emit_yaml(meta, ents, templates))
     plat = Counter(b.get("ha", {}).get("platform", "internal") for _, _, b in ents)
@@ -518,6 +581,7 @@ if __name__ == "__main__":
                           "ARM {{ firmware_arm // 100 }}.{{ '%02d' | format(firmware_arm % 100) }}",
             "hw_version": "Gen4",
             "serial_number": "{{ serial }}",
+            "default_groups": ["basic"],
         },
         "Solax_X3_Hybrid_G4.yaml",
         extras=[
@@ -543,6 +607,7 @@ if __name__ == "__main__":
              "state": "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}",
              "ha": PW("BMS max charge")},
         ],
+        basic=HYBRID_BASIC,
     )
     # Charger firmware "ARM v{version/100}" from reg 37; hardware fixed "Gen2".
     run(
@@ -553,10 +618,12 @@ if __name__ == "__main__":
             "prefix": "Solax X3-HAC",
             "sw_version": "ARM v{{ '%.2f' | format(firmware_version / 100) }}",
             "hw_version": "Gen2",
+            "default_groups": ["basic"],
         },
         "Solax_X3_HAC.yaml",
         extras=[
             internal("holding", "firmware_version", address=37),
             rtc_button(0x61D, RTC_UTC),  # value_function_sync_rtc_evc: tz + UTC time at 0x61D
         ],
+        basic=HAC_BASIC,
     )

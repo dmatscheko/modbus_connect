@@ -38,9 +38,13 @@ async def async_get_config_entry_diagnostics(
             "min_scan_interval": device.min_scan_interval,
             "entity_count": len(device.entities),
             "template_count": len(device.templates),
+            "groups": list(device.group_names),
+            "default_groups": list(device.default_groups),
         },
         "polling": {
             "last_update_success": coordinator.last_update_success,
+            "enabled_groups": sorted(coordinator.enabled_groups),
+            "visible_entity_count": len(coordinator.visible_entities),
             "update_interval": (
                 coordinator.update_interval.total_seconds()
                 if coordinator.update_interval
