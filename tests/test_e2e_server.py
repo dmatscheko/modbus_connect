@@ -39,12 +39,19 @@ ERROR_ZONE = 65280  # answers every request with ILLEGAL DATA ADDRESS
 
 
 @pytest.fixture
-async def modbus_server():
+async def modbus_server(socket_enabled: None):
     """A zero-filled Modbus/TCP server that records every request.
 
     Addresses >= ERROR_ZONE answer with exception code 2 (illegal data
     address); FC16 writes to >= NO_FC16_ZONE are refused so the client's
     single-write fallback can be exercised.
+
+    Depends on pytest-socket's ``socket_enabled`` fixture, NOT the
+    ``enable_socket`` marker: the marker is honored in pytest-socket's setup
+    hook, while the HA test harness disables sockets in its own setup hook —
+    which of the two wins depends on plugin registration order, which differs
+    between environments. Fixtures run after all setup hooks, so this always
+    wins.
     """
     requests: list[tuple[int, int, int]] = []  # (function_code, address, count/value)
 
@@ -80,7 +87,6 @@ async def modbus_server():
     await server.wait_closed()
 
 
-@pytest.mark.enable_socket
 async def test_sdm630_polls_in_few_transactions(modbus_server):
     port, requests = modbus_server
 
@@ -127,7 +133,6 @@ async def test_sdm630_polls_in_few_transactions(modbus_server):
         client.release("e2e-test")
 
 
-@pytest.mark.enable_socket
 async def test_probe(modbus_server):
     port, _ = modbus_server
     assert await async_probe("127.0.0.1", port) is True
@@ -140,7 +145,6 @@ async def test_probe(modbus_server):
     assert await async_probe("127.0.0.1", free_port, timeout=1.0) is False
 
 
-@pytest.mark.enable_socket
 async def test_client_is_shared_and_refcounted(modbus_server):
     port, _ = modbus_server
     a = ModbusBlockClient.acquire("127.0.0.1", port, "entry-a")
@@ -154,7 +158,6 @@ async def test_client_is_shared_and_refcounted(modbus_server):
     ModbusBlockClient._instances[("127.0.0.1", port)].release("entry-d")
 
 
-@pytest.mark.enable_socket
 async def test_writes_and_errors(modbus_server):
     port, requests = modbus_server
     client = ModbusBlockClient.acquire("127.0.0.1", port, "e2e-writes")
