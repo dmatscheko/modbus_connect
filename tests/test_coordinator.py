@@ -175,21 +175,34 @@ async def test_last_polled_count_tracks_due_subset(hass, monkeypatch):
     assert coordinator.read_entity_count == 2  # total is constant
 
 
-async def test_read_count_sensor_surfaces_coordinator_metrics(hass, monkeypatch):
+async def test_read_count_sensor_reports_stable_full_refresh(hass, monkeypatch):
     from homeassistant.const import EntityCategory
 
     from custom_components.modbus_connect.sensor import ModbusConnectReadCountSensor
 
-    client = FakeClient({0: 1, 1: 2})
-    device = make_device(sensor("a", 0), sensor("b", 1))
-    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
-    await coordinator.async_refresh()
+    faketime = FakeTime()
+    client = FakeClient({0: 1, 1: 2, 50: 3})
+    # two adjacent fast entities (one merged block) + a distant slow one (a second)
+    device = make_device(
+        sensor("a", 0), sensor("b", 1), sensor("slow", 50, scan_interval=300)
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    await coordinator.async_refresh()  # all due -> two blocks
 
     entity = ModbusConnectReadCountSensor(coordinator)
-    assert entity.native_value == 1  # both entities served by one block read
-    assert entity.extra_state_attributes == {"polled_entities": 2, "read_entities": 2}
+    assert entity.native_value == 2  # full refresh: a+b in one block, slow in another
+    assert entity.extra_state_attributes == {"read_entities": 3}
     assert entity.entity_category == EntityCategory.DIAGNOSTIC
     assert entity.unique_id.endswith("_reads_per_refresh")
+    # diagnostic gauge -> no long-term statistics
+    assert entity.state_class is None
+
+    # a partial cycle (only the fast block due) leaves the reported figure put,
+    # so it does not churn the recorder even though fewer reads actually happened
+    faketime.now += 60
+    await coordinator.async_refresh()
+    assert coordinator.last_read_count == 1  # only the fast block was issued
+    assert entity.native_value == 2  # ...but the full-refresh figure is unchanged
 
 
 async def test_min_scan_interval_clamps_intervals(hass, monkeypatch):

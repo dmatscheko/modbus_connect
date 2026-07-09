@@ -369,11 +369,12 @@ fastest cadence). So `scan_interval` sets the actual rate, while
 floor. Writes are confirmed by reading the register back immediately.
 
 Each device also gets a **Reads per refresh** diagnostic sensor (in the device
-page's *Diagnostic* section) showing how many Modbus reads the last poll
-actually issued. Thanks to block merging this is usually far below the entity
-count — its `polled_entities` and `read_entities` attributes show how many
-entities that refresh covered versus the total that poll, so the gap is the
-merge win made visible.
+page's *Diagnostic* section) showing how many Modbus block reads a full refresh
+issues. Thanks to block merging this is usually far below the entity count — its
+`read_entities` attribute is the total that poll, so the gap is the merge win
+made visible. It reports the stable full-refresh figure (it moves only when the
+read plan does), so it costs the recorder almost nothing; the live per-cycle read
+and poll counts are in *Download diagnostics* instead.
 
 ## Automation examples
 

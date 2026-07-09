@@ -147,6 +147,27 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Total entities that poll — the denominator for ``last_read_count``."""
         return len(self._readers)
 
+    @property
+    def full_refresh_read_count(self) -> int:
+        """Modbus block reads a complete refresh issues — every reader due at once.
+
+        Block merging keeps this well below :attr:`read_entity_count`. Unlike
+        ``last_read_count`` (which dips on cycles where only the fast entities are
+        due), it is stable — it shifts only when the read plan does: a config
+        reload, or a rejected bridge address teaching the planner a new hole. That
+        stability is what keeps the diagnostic sensor cheap for the recorder.
+        """
+        if not self._readers:
+            return 0
+        blocks = plan_blocks(
+            {e.span for e in self._readers},
+            max_read=self.device_def.max_read,
+            max_gap=self.device_def.max_gap,
+            holes=self._holes,
+            boundaries=self.device_def.boundaries,
+        )
+        return len(blocks)
+
     # --- device info ----------------------------------------------------------
 
     def apply_device_info(self) -> None:

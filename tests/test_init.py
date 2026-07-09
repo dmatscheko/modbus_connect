@@ -344,10 +344,13 @@ async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
     # integration-level diagnostic: one reads-per-refresh sensor per device
     reads = hass.states.get(eid(hass, entry, "sensor", "reads_per_refresh"))
     assert reads is not None
-    assert int(reads.state) >= 1  # at least one block read happened on setup
-    assert reads.attributes["read_entities"] >= 1
-    assert reads.attributes["read_entities"] >= reads.attributes["polled_entities"]
-    assert reads.attributes["state_class"] == "measurement"
+    assert int(reads.state) >= 1  # a full refresh needs at least one block read
+    # block merging: reads never exceed the entities they cover
+    assert reads.attributes["read_entities"] >= int(reads.state)
+    # per-cycle count lives in Download Diagnostics, not as a churning attribute
+    assert "polled_entities" not in reads.attributes
+    # diagnostic gauge -> no long-term statistics
+    assert "state_class" not in reads.attributes
 
 
 async def test_unload_releases_client(hass: HomeAssistant) -> None:

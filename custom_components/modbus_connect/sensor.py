@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -80,16 +80,20 @@ class ModbusConnectTemplateSensor(ModbusConnectTemplateEntity, SensorEntity):
 class ModbusConnectReadCountSensor(
     CoordinatorEntity[ModbusConnectCoordinator], SensorEntity
 ):
-    """Diagnostic: Modbus block reads issued in the last refresh.
+    """Diagnostic: Modbus block reads a full refresh issues.
 
-    Block merging lets one read cover many entities, so this is usually far below
-    the entity count. The ``polled_entities`` attribute is how many entities that
-    refresh covered and ``read_entities`` the total that poll — the gap is the win.
+    Block merging lets one read cover many entities, so this sits well below the
+    ``read_entities`` attribute (the total that poll) — the gap is the merge win.
+    It reports the full-refresh figure, which is stable (it moves only when the
+    read plan does), so it stays near-silent in the recorder rather than churning
+    every cycle; the live per-cycle read and poll counts are in Download
+    Diagnostics. Deliberately carries no ``state_class`` — a read gauge has no
+    meaningful long-term statistics, and omitting it avoids the 5-minute
+    statistics writes.
     """
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "reads"
     _attr_translation_key = "reads_per_refresh"
     _attr_icon = "mdi:download-network"
@@ -102,11 +106,8 @@ class ModbusConnectReadCountSensor(
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.last_read_count
+        return self.coordinator.full_refresh_read_count
 
     @property
     def extra_state_attributes(self) -> dict[str, int]:
-        return {
-            "polled_entities": self.coordinator.last_polled_count,
-            "read_entities": self.coordinator.read_entity_count,
-        }
+        return {"read_entities": self.coordinator.read_entity_count}
