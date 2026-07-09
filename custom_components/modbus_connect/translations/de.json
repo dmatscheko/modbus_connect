@@ -101,7 +101,10 @@
     },
     "switch": {
       "group_enable": {
-        "name": "{group}-Entitäten aktivieren"
+        "name": "{group} Entitäten aktivieren"
+      },
+      "group_enable_all": {
+        "name": "Alle Entitäten aktivieren"
       }
     }
   },

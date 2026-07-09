@@ -102,6 +102,9 @@
     "switch": {
       "group_enable": {
         "name": "Enable {group} entities"
+      },
+      "group_enable_all": {
+        "name": "Enable all entities"
       }
     }
   },

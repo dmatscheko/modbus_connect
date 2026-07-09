@@ -102,7 +102,6 @@ class ModbusConnectGroupSwitch(SwitchEntity):
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
-    _attr_translation_key = "group_enable"
     _attr_icon = "mdi:eye-check"
 
     def __init__(
@@ -114,7 +113,10 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._coordinator = coordinator
         self._entry = entry
         self._group = group
-        self._attr_translation_placeholders = {"group": group}
+        # "all" gets its own key so languages can translate the word ("Alle
+        # Entitäten…"); other group names are shown as-is, first letter upper.
+        self._attr_translation_key = "group_enable_all" if group == "all" else "group_enable"
+        self._attr_translation_placeholders = {"group": group[:1].upper() + group[1:]}
         self._attr_unique_id = f"{entry.entry_id}_group_{group}"
         self._attr_device_info = coordinator.meta_device_info
         suggest_entity_id(self, coordinator, "switch", f"enable_{group}_entities")

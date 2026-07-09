@@ -833,6 +833,17 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         assert hass.states.get(advanced).state == "off"
         assert hass.states.get(eid(hass, entry, "switch", "group_all")).state == "off"
 
+        # switch names: group names show capitalized without a joiner, and the
+        # "all" group is translated as a whole phrase
+        assert hass.states.get(advanced).attributes["friendly_name"].endswith(
+            "Enable Advanced entities"
+        )
+        assert (
+            hass.states.get(eid(hass, entry, "switch", "group_all"))
+            .attributes["friendly_name"]
+            .endswith("Enable all entities")
+        )
+
         # enabling 'advanced' reloads the entry and brings 'extra' into being,
         # while an all-only entity stays hidden
         await hass.services.async_call(
