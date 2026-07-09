@@ -18,7 +18,7 @@ from custom_components.modbus_connect.const import (
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
-    OPTION_SCAN_INTERVAL,
+    OPTION_MIN_SCAN_INTERVAL,
 )
 from custom_components.modbus_connect.diagnostics import (
     async_get_config_entry_diagnostics,
@@ -490,13 +490,14 @@ async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
+        # the option is a floor above the device default, so it raises the interval
         hass.config_entries.async_update_entry(
-            entry, options={OPTION_SCAN_INTERVAL: 5}
+            entry, options={OPTION_MIN_SCAN_INTERVAL: 120}
         )
         await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.runtime_data.update_interval.total_seconds() == pytest.approx(5)
+    assert entry.runtime_data.update_interval.total_seconds() == pytest.approx(120)
 
 
 async def test_diagnostics(hass: HomeAssistant) -> None:

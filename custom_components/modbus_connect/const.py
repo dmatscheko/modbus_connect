@@ -27,7 +27,7 @@ CONF_FILENAME: Final = "filename"
 CONF_PREFIX: Final = "prefix"
 
 # Config entry option keys
-OPTION_SCAN_INTERVAL: Final = "scan_interval"
+OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
 
 DEFAULT_PORT: Final = 502
 DEFAULT_SLAVE_ID: Final = 1

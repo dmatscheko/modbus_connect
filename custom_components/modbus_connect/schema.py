@@ -197,7 +197,10 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "model",
         "max_register_read",
         "max_read_gap",
+        "bad_addresses",
+        "split_before",
         "scan_interval",
+        "min_scan_interval",
         "modbus_id",
         "prefix",
         "sw_version",
@@ -209,6 +212,13 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
     scan_interval = device.get("scan_interval")
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "device.scan_interval", scan_interval, 1, 86400)
+    min_scan_interval = device.get("min_scan_interval")
+    if min_scan_interval is not None:
+        min_scan_interval = _int_in_range(
+            ctx, "device.min_scan_interval", min_scan_interval, 1, 86400
+        )
+    bad_addresses = _parse_address_hints(ctx, device, "bad_addresses")
+    boundaries = _parse_address_hints(ctx, device, "split_before")
     modbus_id = device.get("modbus_id")
     if modbus_id is not None:
         modbus_id = _int_in_range(ctx, "device.modbus_id", modbus_id, 0, 255)
@@ -229,11 +239,39 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
                                   device.get("max_register_read", DEFAULT_MAX_READ), 1, 2000),
         "max_gap": _int_in_range(ctx, "device.max_read_gap",
                                  device.get("max_read_gap", DEFAULT_MAX_GAP), 0, 1000),
+        "bad_addresses": bad_addresses,
+        "boundaries": boundaries,
         "scan_interval": scan_interval,
+        "min_scan_interval": min_scan_interval,
         "modbus_id": modbus_id,
         "prefix": prefix,
         **info,
     }
+
+
+def _parse_address_hints(
+    ctx: _Ctx, device: dict[str, Any], key: str
+) -> frozenset[tuple[str, int]]:
+    """Parse a ``{table: [addresses]}`` read-planning hint into (table, addr) pairs."""
+    raw = device.get(key)
+    if raw is None:
+        return frozenset()
+    if not isinstance(raw, dict) or not raw:
+        raise ctx.fail(
+            f"device.{key} must be a mapping of table -> address list, "
+            f"e.g. {{holding: [5, 7]}}"
+        )
+    out: set[tuple[str, int]] = set()
+    for table, addrs in raw.items():
+        if table not in SECTIONS:
+            raise ctx.fail(
+                f"device.{key}: unknown table {table!r} (expected one of {list(SECTIONS)})"
+            )
+        if not isinstance(addrs, list) or not addrs:
+            raise ctx.fail(f"device.{key}.{table} must be a non-empty list of addresses")
+        for addr in addrs:
+            out.add((table, _int_in_range(ctx, f"device.{key}.{table}", addr, 0, 0xFFFF)))
+    return frozenset(out)
 
 
 def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[EntityDef]:

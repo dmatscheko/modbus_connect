@@ -6,8 +6,10 @@ Pure functions, no Home Assistant imports.
 list of read requests. Overlapping and adjacent spans always merge; holes of
 unused addresses up to ``max_gap`` are bridged (reading a few unneeded
 registers is far cheaper than an extra round trip). Blocks never exceed
-``max_read`` or the Modbus protocol limit, and never bridge across addresses
-that are known to be unreadable (``holes``, learned from failed reads).
+``max_read`` or the Modbus protocol limit, never bridge across addresses that
+are known to be unreadable (``holes``, learned from failed reads or declared in
+the device file), and never span a forced ``boundary`` address (which must
+always begin a new block).
 """
 
 from __future__ import annotations
@@ -44,6 +46,7 @@ def plan_blocks(
     max_read: int,
     max_gap: int = 0,
     holes: frozenset[Hole] | set[Hole] = frozenset(),
+    boundaries: frozenset[Hole] | set[Hole] = frozenset(),
 ) -> list[Span]:
     """Plan the read requests covering all ``spans``."""
     blocks: list[Span] = []
@@ -51,7 +54,7 @@ def plan_blocks(
     for table in sorted({s.table for s in unique}):
         table_spans = [s for s in unique if s.table == table]
         cap = _table_cap(table, max_read)
-        blocks.extend(_plan_table(table, table_spans, cap, max_gap, holes))
+        blocks.extend(_plan_table(table, table_spans, cap, max_gap, holes, boundaries))
     return blocks
 
 
@@ -61,6 +64,7 @@ def _plan_table(
     cap: int,
     max_gap: int,
     holes: frozenset[Hole] | set[Hole],
+    boundaries: frozenset[Hole] | set[Hole],
 ) -> list[Span]:
     """Merge one table's sorted spans into blocks of at most ``cap`` addresses."""
     blocks: list[Span] = []
@@ -69,7 +73,7 @@ def _plan_table(
     for span in spans:
         if cur_start is None:
             cur_start, cur_end = span.start, span.end
-        elif _can_merge(table, cur_start, cur_end, span, cap, max_gap, holes):
+        elif _can_merge(table, cur_start, cur_end, span, cap, max_gap, holes, boundaries):
             cur_end = max(cur_end, span.end)
         else:
             blocks.extend(_split(table, cur_start, cur_end, cap))
@@ -87,9 +91,14 @@ def _can_merge(
     cap: int,
     max_gap: int,
     holes: frozenset[Hole] | set[Hole],
+    boundaries: frozenset[Hole] | set[Hole],
 ) -> bool:
-    """Whether ``span`` may join the current block (size cap, gap, no holes)."""
+    """Whether ``span`` may join the current block (size cap, gap, holes, boundaries)."""
     if max(cur_end, span.end) - cur_start > cap:
+        return False
+    # A boundary address must begin a block: reject a merge that would pull one
+    # into the interior (anywhere after the current start, up to the new span).
+    if any((table, b) in boundaries for b in range(cur_start + 1, span.start + 1)):
         return False
     bridged = range(cur_end, span.start) if span.start > cur_end else range(0)
     return len(bridged) <= max_gap and not any((table, a) in holes for a in bridged)

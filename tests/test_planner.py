@@ -43,6 +43,32 @@ def test_holes_prevent_bridging():
     assert blocks == [s(0, 2), s(6, 2)]
 
 
+def test_boundary_forces_new_block():
+    boundaries = {("holding", 4)}
+    blocks = plan_blocks([s(0, 2), s(4, 2)], max_read=100, max_gap=8, boundaries=boundaries)
+    assert blocks == [s(0, 2), s(4, 2)]
+
+
+def test_boundary_in_bridge_forces_split():
+    # a boundary sitting in the gap that would otherwise be bridged still splits
+    boundaries = {("holding", 3)}
+    blocks = plan_blocks([s(0, 2), s(6, 2)], max_read=100, max_gap=8, boundaries=boundaries)
+    assert blocks == [s(0, 2), s(6, 2)]
+
+
+def test_boundary_at_block_start_changes_nothing():
+    # a boundary that already begins the first block does not split it
+    boundaries = {("holding", 0)}
+    blocks = plan_blocks([s(0, 2), s(2, 2)], max_read=100, boundaries=boundaries)
+    assert blocks == [s(0, 4)]
+
+
+def test_boundary_other_table_ignored():
+    boundaries = {("input", 4)}
+    blocks = plan_blocks([s(0, 2), s(4, 2)], max_read=100, max_gap=8, boundaries=boundaries)
+    assert blocks == [s(0, 6)]
+
+
 def test_cap_prevents_merge():
     blocks = plan_blocks([s(0, 60), s(60, 60)], max_read=100)
     assert blocks == [s(0, 60), s(60, 60)]

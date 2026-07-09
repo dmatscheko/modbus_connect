@@ -150,6 +150,45 @@ def test_device_defaults_parsed():
     assert dev.scan_interval == 15
 
 
+def test_interval_and_planning_hints_parsed():
+    data = {
+        "device": {
+            "manufacturer": "Acme",
+            "model": "X1",
+            "min_scan_interval": 10,
+            "scan_interval": 30,
+            "bad_addresses": {"holding": [0x99], "input": [5]},
+            "split_before": {"holding": [0x30, 400]},
+        },
+        "holding": {"x": {"address": 1, "scan_interval": 60,
+                          "ha": {"platform": "sensor"}}},
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.min_scan_interval == 10
+    assert dev.scan_interval == 30
+    assert dev.bad_addresses == frozenset({("holding", 0x99), ("input", 5)})
+    assert dev.boundaries == frozenset({("holding", 0x30), ("holding", 400)})
+    assert dev.entities[0].scan_interval == 60
+
+
+@pytest.mark.parametrize(
+    ("hints", "match"),
+    [
+        ({"bad_addresses": {"nosuch": [1]}}, "unknown table"),
+        ({"bad_addresses": {"holding": []}}, "non-empty list"),
+        ({"bad_addresses": [1, 2]}, "mapping of table"),
+        ({"split_before": {"holding": [70000]}}, "between 0 and 65535"),
+    ],
+)
+def test_planning_hints_invalid(hints, match):
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", **hints},
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(data, "t.yaml")
+
+
 def test_device_defaults_absent():
     dev = parse_device(doc(x={"address": 1, "ha": {"platform": "sensor"}}), "t.yaml")
     assert dev.modbus_id is None

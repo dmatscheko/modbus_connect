@@ -65,7 +65,9 @@ class FakeClient:
         self.written.append((address, [int(value)]))
 
 
-def make_device(*entities: EntityDef, max_read: int = 100, max_gap: int = 8) -> DeviceDef:
+def make_device(
+    *entities: EntityDef, max_read: int = 100, max_gap: int = 8, **kwargs: Any
+) -> DeviceDef:
     return DeviceDef(
         manufacturer="Acme",
         model="X1",
@@ -73,6 +75,7 @@ def make_device(*entities: EntityDef, max_read: int = 100, max_gap: int = 8) -> 
         max_read=max_read,
         max_gap=max_gap,
         filename="test.yaml",
+        **kwargs,
     )
 
 
@@ -81,11 +84,14 @@ def sensor(key: str, address: int, **kwargs: Any) -> EntityDef:
     return EntityDef(key=key, address=address, **kwargs)
 
 
-async def make_coordinator(hass, device: DeviceDef, client: FakeClient, monkeypatch, faketime):
+async def make_coordinator(
+    hass, device: DeviceDef, client: FakeClient, monkeypatch, faketime, options=None
+):
     monkeypatch.setattr("custom_components.modbus_connect.coordinator.time", faketime)
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={"host": "127.0.0.1", "port": 502, CONF_SLAVE_ID: 1, CONF_FILENAME: "test.yaml"},
+        options=options or {},
     )
     entry.add_to_hass(hass)
     return ModbusConnectCoordinator(hass, entry, client, device)
@@ -127,6 +133,85 @@ async def test_scan_interval_buckets(hass, monkeypatch):
     await coordinator.async_refresh()
     assert client.reads == [Span("holding", 0, 1)]
     assert coordinator.data["slow"] == 2  # kept from previous cycle
+
+
+async def test_min_scan_interval_clamps_intervals(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2})
+    # a fast cadence (5 s), but the device declares a 60 s floor
+    device = make_device(
+        sensor("a", 0),
+        sensor("b", 1, scan_interval=5),
+        scan_interval=5,
+        min_scan_interval=60,
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator._interval_for == {"a": 60, "b": 60}
+    assert coordinator.update_interval.total_seconds() == 60
+
+
+async def test_scan_interval_defaults_to_30_when_nothing_set(hass, monkeypatch):
+    client = FakeClient({0: 1})
+    device = make_device(sensor("a", 0))  # no scan_interval, no min_scan_interval
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator._interval_for == {"a": 30}
+
+
+async def test_min_scan_interval_is_only_a_floor(hass, monkeypatch):
+    client = FakeClient({0: 1})
+    # a min below the 30 s default cadence changes nothing (min never sets the cadence)
+    device = make_device(sensor("a", 0), min_scan_interval=10)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator._interval_for == {"a": 30}
+
+
+async def test_scan_interval_below_30_is_honored(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2})
+    # an explicit sub-30 scan_interval is respected; an unset min imposes no floor
+    device = make_device(sensor("a", 0, scan_interval=5), sensor("b", 1), scan_interval=15)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator._interval_for == {"a": 5, "b": 15}
+
+
+async def test_user_option_raises_floor(hass, monkeypatch):
+    client = FakeClient({0: 1})
+    device = make_device(sensor("a", 0), scan_interval=30)
+    coordinator = await make_coordinator(
+        hass, device, client, monkeypatch, FakeTime(),
+        options={"min_scan_interval": 120},
+    )
+    assert coordinator._interval_for == {"a": 120}
+
+
+async def test_bad_addresses_seed_holes(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2, 6: 3, 7: 4})
+    device = make_device(
+        sensor("a", 0, type="uint32", count=2),
+        sensor("b", 6, type="uint32", count=2),
+        bad_addresses={("holding", 3)},
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    # the gap 2..6 is within max_gap, but declared-bad address 3 stops the bridge
+    assert client.reads == [Span("holding", 0, 2), Span("holding", 6, 2)]
+    assert coordinator.data["a"] is not None
+    assert coordinator.data["b"] is not None
+
+
+async def test_split_before_forces_new_block(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2, 4: 3, 5: 4})
+    device = make_device(
+        sensor("a", 0),
+        sensor("b", 1),
+        sensor("c", 4),
+        sensor("d", 5),
+        boundaries={("holding", 4)},
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+
+    await coordinator.async_refresh()
+    # without the boundary the gap 2..4 would bridge into one block
+    assert client.reads == [Span("holding", 0, 2), Span("holding", 4, 2)]
 
 
 async def test_bridged_hole_learned(hass, monkeypatch):

@@ -15,7 +15,7 @@ from custom_components.modbus_connect.const import (
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
-    OPTION_SCAN_INTERVAL,
+    OPTION_MIN_SCAN_INTERVAL,
 )
 
 DEVICE_YAML = """
@@ -328,10 +328,10 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result["step_id"] == "init"
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {OPTION_SCAN_INTERVAL: 10}
+        result["flow_id"], {OPTION_MIN_SCAN_INTERVAL: 10}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {OPTION_SCAN_INTERVAL: 10}
+    assert entry.options == {OPTION_MIN_SCAN_INTERVAL: 10}
 
 
 async def test_options_flow_defaults_to_device_scan_interval(
@@ -342,7 +342,8 @@ async def test_options_flow_defaults_to_device_scan_interval(
     entry.add_to_hass(hass)
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert form_defaults(result)[OPTION_SCAN_INTERVAL] == 15
+    # the device file's 'scan_interval: 15' seeds the floor default
+    assert form_defaults(result)[OPTION_MIN_SCAN_INTERVAL] == 15
 
 
 async def test_reconfigure_no_device_files_aborts(hass: HomeAssistant) -> None:

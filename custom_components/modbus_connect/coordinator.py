@@ -24,7 +24,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_BACKOFF_SECONDS,
-    OPTION_SCAN_INTERVAL,
+    OPTION_MIN_SCAN_INTERVAL,
 )
 from .models import TABLE_COIL, DeviceDef, EntityDef, Span
 from .planner import bridged_addresses, plan_blocks, spans_in_block
@@ -53,6 +53,23 @@ def render_over_values(
         return None
 
 
+def resolve_scan_intervals(
+    device: DeviceDef, user_min: int = 0
+) -> tuple[dict[str, int], int]:
+    """Each polling entity's effective poll interval, and the floor applied.
+
+    Cadence resolves per entity: its own ``scan_interval``, else the device's
+    ``scan_interval``, else 30 s. The floor is ``max(user_min, device.min_scan_interval
+    or the config's lowest cadence)`` — an unset ``min_scan_interval`` imposes no floor
+    (it equals the fastest cadence, so nothing is clamped); only ``min_scan_interval``
+    or the config-entry option can raise it. Every interval is ``max(floor, cadence)``.
+    """
+    device_scan = device.scan_interval or DEFAULT_SCAN_INTERVAL
+    cadences = {e.key: e.scan_interval or device_scan for e in device.entities if e.polls}
+    floor = max(user_min, device.min_scan_interval or min([device_scan, *cadences.values()]))
+    return {key: max(floor, cadence) for key, cadence in cadences.items()}, floor
+
+
 class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """One coordinator per configured device (gateway + slave id).
 
@@ -74,28 +91,22 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.slave_id: int = entry.data[CONF_SLAVE_ID]
         self.entry_id = entry.entry_id
 
-        base: int = (
-            entry.options.get(OPTION_SCAN_INTERVAL)
-            or device.scan_interval
-            or DEFAULT_SCAN_INTERVAL
-        )
         # Buttons never read; read_register entities read via another entity's value
         # (rendered below), not from their own (write) register; static_value entities
         # are write-only command registers. optimistic_default entities do read (with
         # a fallback), so they stay in _readers.
-        self._readers = [
-            e
-            for e in device.entities
-            if e.platform != "button" and e.read_register is None and e.static_value is None
-        ]
+        self._readers = [e for e in device.entities if e.polls]
         self._linked = [e for e in device.entities if e.read_register is not None]
         self._static = [e for e in device.entities if e.static_value is not None]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
-        self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
-        self._tick: int = min([base, *self._interval_for.values()])
+        user_min: int = entry.options.get(OPTION_MIN_SCAN_INTERVAL) or 0
+        self._interval_for, floor = resolve_scan_intervals(device, user_min)
+        self._tick: int = min(self._interval_for.values(), default=floor)
         self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
-        self._holes: set[tuple[str, int]] = set()
+        # Device-declared dead registers seed the same set the planner grows from
+        # failed reads, so they are never read or bridged across.
+        self._holes: set[tuple[str, int]] = set(device.bad_addresses)
         self._cache: dict[tuple[str, int], int | bool] = {}
         self._consecutive_failures = 0
 
@@ -172,6 +183,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             max_read=self.device_def.max_read,
             max_gap=self.device_def.max_gap,
             holes=self._holes,
+            boundaries=self.device_def.boundaries,
         )
         ok_blocks = 0
         async with self.client.lock:

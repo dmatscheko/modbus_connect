@@ -72,10 +72,10 @@
       "init": {
         "title": "Abfrage",
         "data": {
-          "scan_interval": "Aktualisierungsintervall"
+          "min_scan_interval": "Minimales Aktualisierungsintervall"
         },
         "data_description": {
-          "scan_interval": "Standard-Abfrageintervall in Sekunden. Gerätedatei und einzelne Entitäten können es überschreiben."
+          "min_scan_interval": "Untergrenze in Sekunden dafür, wie oft ein Register überhaupt abgefragt wird. Gerätedatei und einzelne Entitäten legen die tatsächlichen Intervalle fest; dieser Wert hebt sie nur an — schneller wird nie abgefragt."
         }
       }
     }

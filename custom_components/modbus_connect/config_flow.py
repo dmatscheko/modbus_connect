@@ -28,8 +28,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
-    OPTION_SCAN_INTERVAL,
+    OPTION_MIN_SCAN_INTERVAL,
 )
+from .coordinator import resolve_scan_intervals
 from .loader import async_load_all, async_load_device
 from .models import DeviceDef
 from .schema import DeviceSchemaError
@@ -219,21 +220,21 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class ModbusConnectOptionsFlow(OptionsFlow):
-    """Update interval override."""
+    """Set the minimum poll interval (a floor the device file / entities sit above)."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
-        current = self.config_entry.options.get(OPTION_SCAN_INTERVAL)
+        current = self.config_entry.options.get(OPTION_MIN_SCAN_INTERVAL)
         if current is None:
             current = await self._device_default() or DEFAULT_SCAN_INTERVAL
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required(OPTION_SCAN_INTERVAL, default=current): vol.All(
+                    vol.Required(OPTION_MIN_SCAN_INTERVAL, default=current): vol.All(
                         vol.Coerce(int), vol.Range(min=1, max=86400)
                     )
                 }
@@ -241,11 +242,14 @@ class ModbusConnectOptionsFlow(OptionsFlow):
         )
 
     async def _device_default(self) -> int | None:
-        """The device file's scan_interval, if the file still loads."""
+        """The device's current poll-interval floor, if the file still loads.
+
+        Prefilling with this makes accepting the form without changes a no-op.
+        """
         try:
             device = await async_load_device(
                 self.hass, self.config_entry.data[CONF_FILENAME]
             )
         except DeviceSchemaError:
             return None
-        return device.scan_interval
+        return resolve_scan_intervals(device)[1]

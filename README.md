@@ -13,7 +13,9 @@ around three ideas:
    registers combine, small unused holes are bridged (cheaper to read than to
    ask twice), and blocks respect the device's `max_register_read` and the
    protocol limit of 125 registers. Real device files: an Eastron SDM630 drops
-   from 85 transactions per poll to 7; a Pichler LG350 from 129 to 5.
+   from 85 transactions per poll to 7; a Pichler LG350 from 129 to 5. Registers
+   the device chokes on are learned from failed reads and routed around; stubborn
+   ones can be declared up front (`bad_addresses`, `split_before`).
 2. **Home Assistant is not shadowed.** Every entity has an `ha:` block that is
    passed to the real per-platform `EntityDescription` and validated against
    it — any entity feature HA supports (today or in a future release) can be
@@ -83,9 +85,9 @@ up. Clear the prefix to let Home Assistant derive entity IDs from the device
 name instead. Entity IDs are only assigned when an entity is first created —
 changing the prefix later does not rename existing entities.
 
-**Options** (gear icon on the integration entry): the default poll interval
-in seconds (1–86400; default from the device file, else 30). Individual
-entities can override it, see below.
+**Options** (gear icon on the integration entry): the *minimum* poll interval
+in seconds (1–86400) — a floor. The device file and individual entities set the
+actual per-entity cadences; this only raises them, it never polls faster.
 
 **Reconfigure** (three-dot menu → *Reconfigure*): change the device file,
 name, gateway address, device ID, or prefix without removing the entry.
@@ -114,7 +116,14 @@ device:
   model: SDM630
   max_register_read: 100   # max registers per read request (default 8, cap 125)
   max_read_gap: 8          # bridge unused holes up to this many registers (default 8)
-  scan_interval: 30        # default poll interval in seconds (optional)
+  bad_addresses:           # never read or bridge across these (optional), by table —
+    holding: [0x99]        #   registers the device answers with an error
+  split_before:            # force a fresh read block to start at these (optional),
+    holding: [0x30, 400]   #   by table — for devices that dislike spanning them
+  scan_interval: 30        # default poll interval in seconds; entities without
+                           #   their own inherit this (optional, default 30)
+  min_scan_interval: 10    # floor: never poll faster than this (optional; unset
+                           #   imposes no floor). The options dialog can only raise it
   modbus_id: 1             # factory-default Modbus device ID (optional);
                            #   prefills the config flow for this device
   prefix: sdm630           # default entity-id prefix (optional); the config
@@ -193,7 +202,7 @@ rendered once from the first read.
 | `rectify_time` | `time` entities only: show an out-of-range time (e.g. `24:00`, an end-of-day stop time HA's `time` type cannot represent) as `23:59` instead of dropping the entity — so the slot stays usable |
 | `max_change` | Reject changes larger than this between two polls (spike filter) |
 | `never_resets` | Ignore decreasing values (for `total_increasing` counters) |
-| `scan_interval` | Per-entity poll interval in seconds (overrides the default) |
+| `scan_interval` | Per-entity poll interval in seconds, overriding the device default. Still raised to `min_scan_interval` if that is longer |
 | `duplicate_as_sensor` | Also create a read-only sensor twin of this writable entity, so its history lands in the recorder/long-term statistics |
 | `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block). Internal entities can still be write targets of template actions. If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
 
@@ -346,10 +355,13 @@ Modbus TCP device not listed here works too — write a device file for it.
 The integration polls. Each cycle collects every entity that is due, plans
 the minimal set of block reads (see the top of this page), executes them over
 one shared TCP connection per gateway, and decodes all values from the
-result. The effective interval per entity is, in order of precedence: the
-entity's `scan_interval` → the config entry option → the device file's
-`device.scan_interval` → 30 s. Writes are confirmed by reading the register
-back immediately.
+result. The effective interval per entity is `max(floor, cadence)`: the *cadence*
+is the entity's `scan_interval`, else the device file's `scan_interval`, else
+30 s; the *floor* is the larger of the config-entry option and the device file's
+`min_scan_interval` (unset, it imposes no floor — it defaults to the config's
+fastest cadence). So `scan_interval` sets the actual rate, while
+`min_scan_interval` and the option only ever slow polling down, never below the
+floor. Writes are confirmed by reading the register back immediately.
 
 ## Automation examples
 

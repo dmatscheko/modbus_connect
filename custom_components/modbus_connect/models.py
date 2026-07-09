@@ -134,6 +134,8 @@ class EntityDef:
     read_modify_write: bool = False
     max_change: float | None = None
     never_resets: bool = False
+    # Per-entity poll cadence; overrides the device default, then clamped up by the
+    # effective minimum (device.min_scan_interval / the config-entry option).
     scan_interval: int | None = None
     duplicate_as_sensor: bool = False
     # Validated Home Assistant EntityDescription passthrough (aliases resolved)
@@ -153,6 +155,20 @@ class EntityDef:
     def internal(self) -> bool:
         """Polled for templates only; no Home Assistant entity is created."""
         return self.platform == "internal"
+
+    @property
+    def polls(self) -> bool:
+        """Whether the coordinator reads this entity's own register each cycle.
+
+        False for buttons (write-only), ``read_register`` entities (value comes
+        from another entity), and ``static_value`` entities (write-only command
+        registers). ``optimistic_default`` entities still poll.
+        """
+        return (
+            self.platform != "button"
+            and self.read_register is None
+            and self.static_value is None
+        )
 
 
 @dataclass(frozen=True)
@@ -207,7 +223,16 @@ class DeviceDef:
     templates: tuple[TemplateDef, ...] = ()
     max_read: int = 8  # max registers/bits per read request
     max_gap: int = 8  # bridge unused holes up to this many addresses
-    scan_interval: int | None = None  # device default poll interval
+    # (table, address) pairs the planner must never read or bridge across
+    # (device-declared dead registers), and addresses that must always start a
+    # new read block (a forced boundary between two otherwise-mergeable spans).
+    bad_addresses: frozenset[tuple[str, int]] = frozenset()
+    boundaries: frozenset[tuple[str, int]] = frozenset()
+    # Poll cadence. ``scan_interval`` is the device default that entities without
+    # their own inherit; ``min_scan_interval`` is a hard floor the config-entry
+    # option can raise further but never lower.
+    scan_interval: int | None = None
+    min_scan_interval: int | None = None
     modbus_id: int | None = None  # factory-default Modbus device id
     prefix: str | None = None  # default entity-id prefix
     # Device-info templates, rendered once from the first read (see coordinator).

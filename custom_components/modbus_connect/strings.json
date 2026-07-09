@@ -72,10 +72,10 @@
       "init": {
         "title": "Polling",
         "data": {
-          "scan_interval": "Update interval"
+          "min_scan_interval": "Minimum update interval"
         },
         "data_description": {
-          "scan_interval": "Default polling interval in seconds. The device file and individual entities can override this."
+          "min_scan_interval": "Lower bound in seconds for how often any register is polled. The device file and individual entities set the actual per-entity intervals; this only raises them — it never polls faster."
         }
       }
     }
