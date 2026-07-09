@@ -350,6 +350,56 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             words.append(num & 0xFFFF)
         return words
 
+    async def _perform_write(self, defn: EntityDef, value: Any) -> Any:
+        """Write ``value`` for ``defn``; the client lock is held and connected.
+
+        Returns the value to confirm with — a single-template button resolves its
+        template here so the caller can echo the rendered value back.
+        """
+        if isinstance(value, tuple):
+            # button list write_value: render each item to a register word and
+            # write them to consecutive registers in one FC16 transaction.
+            words = self._render_write_words(defn, value)
+            await self.client.write_registers(
+                self.slave_id, defn.address, words, multiple=True
+            )
+            return value
+        if defn.platform == "button" and isinstance(value, str):
+            # a single Jinja template write_value: render it, then encode through
+            # the codec below (honouring the entity's type/map/etc.).
+            value = render_over_values(Template(value, self.hass), self.data)
+            if value is None:
+                raise WriteError(
+                    f"{defn.key}: write_value template rendered to nothing"
+                )
+        current_raw: int | None = None
+        if defn.mask is not None and defn.read_modify_write:
+            raw = await self.client.read_block(self.slave_id, defn.span)
+            current_raw = int(raw[0])
+        payload = codec.encode(defn, value, current_raw=current_raw)
+        if defn.table == TABLE_COIL:
+            await self.client.write_coil(self.slave_id, defn.address, bool(payload))
+        else:
+            assert isinstance(payload, list)
+            await self.client.write_registers(
+                self.slave_id, defn.address, payload, multiple=defn.write_multiple
+            )
+        return value
+
+    async def _confirm_write(self, defn: EntityDef, value: Any) -> Any:
+        """Read a just-written non-button entity back to confirm it (lock held).
+
+        Entities with no own read-back (read_register / static_value) echo the
+        written value instead.
+        """
+        if defn.read_register is not None or defn.static_value is not None:
+            return value  # no read-back; read elsewhere or not at all
+        self._store(defn.span, await self.client.read_block(self.slave_id, defn.span))
+        confirmed = self._decode(defn)
+        if confirmed is None and defn.optimistic_default is not None:
+            confirmed = defn.optimistic_default
+        return confirmed
+
     async def async_write(self, defn: EntityDef, value: Any) -> None:
         """Encode and write a value, then read it back to confirm."""
         confirmed: Any = None
@@ -365,44 +415,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             "port": str(self.client.port),
                         },
                     )
-                if isinstance(value, tuple):
-                    # button list write_value: render each item to a register word and
-                    # write them to consecutive registers in one FC16 transaction.
-                    words = self._render_write_words(defn, value)
-                    await self.client.write_registers(
-                        self.slave_id, defn.address, words, multiple=True
-                    )
-                else:
-                    if defn.platform == "button" and isinstance(value, str):
-                        # a single Jinja template write_value: render it, then encode
-                        # through the codec (honouring the entity's type/map/etc.).
-                        value = render_over_values(Template(value, self.hass), self.data)
-                        if value is None:
-                            raise WriteError(
-                                f"{defn.key}: write_value template rendered to nothing"
-                            )
-                    current_raw: int | None = None
-                    if defn.mask is not None and defn.read_modify_write:
-                        raw = await self.client.read_block(self.slave_id, defn.span)
-                        current_raw = int(raw[0])
-                    payload = codec.encode(defn, value, current_raw=current_raw)
-                    if defn.table == TABLE_COIL:
-                        await self.client.write_coil(self.slave_id, defn.address, bool(payload))
-                    else:
-                        assert isinstance(payload, list)
-                        await self.client.write_registers(
-                            self.slave_id, defn.address, payload, multiple=defn.write_multiple
-                        )
+                value = await self._perform_write(defn, value)
                 if defn.platform != "button":
-                    if defn.read_register is not None or defn.static_value is not None:
-                        confirmed = value  # no read-back; read elsewhere or not at all
-                    else:
-                        self._store(
-                            defn.span, await self.client.read_block(self.slave_id, defn.span)
-                        )
-                        confirmed = self._decode(defn)
-                        if confirmed is None and defn.optimistic_default is not None:
-                            confirmed = defn.optimistic_default
+                    confirmed = await self._confirm_write(defn, value)
         except (ReadError, WriteError, codec.CodecError) as err:
             raise HomeAssistantError(
                 f"Writing {defn.key} failed: {err}",

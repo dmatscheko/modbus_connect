@@ -412,7 +412,7 @@ async def test_button_list_write_value_renders_over_current_values(hass, monkeyp
     )
     await coordinator.async_refresh()  # decode src -> 7
     await coordinator.async_write(btn, btn.write_value)
-    assert client.written[-1] == (20, [7, 14])
+    assert client.written == [(20, [7, 14])]  # refresh reads only; the write is the sole entry
 
 
 async def test_button_list_write_value_non_numeric_raises(hass, monkeypatch):
@@ -478,7 +478,7 @@ async def test_rtc_local_template_renders_to_valid_registers(hass, monkeypatch):
     )
     coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
     await coordinator.async_write(btn, btn.write_value)
-    (addr, words) = client.written[0]
+    [(addr, words)] = client.written  # exactly one write; unpack without indexing
     assert addr == 0 and len(words) == 6
     sec, minute, hour, day, month, yy = words
     assert 0 <= sec < 60 and 0 <= minute < 60 and 0 <= hour < 24
@@ -498,7 +498,7 @@ async def test_rtc_utc_tz_template_renders_to_valid_registers(hass, monkeypatch)
     )
     coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
     await coordinator.async_write(btn, btn.write_value)
-    (addr, words) = client.written[0]
+    [(addr, words)] = client.written  # exactly one write; unpack without indexing
     assert addr == 0x61D and len(words) == 7
     assert all(0 <= w <= 0xFFFF for w in words)  # tz offset wraps into a valid uint16
 

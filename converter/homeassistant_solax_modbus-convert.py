@@ -143,67 +143,68 @@ def ha_common(e, platform):
     return ha
 
 
-def convert(pi, spec):
-    """SolaX gives each writable setting a read-back *sensor* and a *number/select*
-    at DIFFERENT registers. We read from the sensor's register and write to the
-    number/select's (address / write_address), rather than dropping either."""
-    skipped = Counter()
+def table_of(e):
+    return "holding" if e.register_type == 1 else "input"
 
-    def match(e):
-        return pi.matchInverterWithMask(spec, e.allowedtypes)
 
-    # --- read side: convertible sensors, indexed by key ---
-    # read_of also indexes SolaX's `internal` read-back mirrors (used to display a
-    # setting's current value) so writables can read through them; they are never
-    # emitted as their own entity.
-    read_of, sensor_ha, order = {}, {}, []
-    for e in pi.SENSOR_TYPES:
-        if not match(e):
-            continue
-        if getattr(e, "value_function", None) is not None:
-            skipped["sensor:value_function"] += 1; continue
-        b = base_fields(e)
-        if b is None:
-            skipped["sensor:no-register"] += 1; continue
-        scale = getattr(e, "scale", 1)
-        callable_scale = callable(scale)  # a value_function scale we can't express
-        ha = ha_common(e, "sensor")
-        if callable_scale:
-            pass  # register-only read source; a merging writable supplies the conversion
-        elif isinstance(scale, dict):
-            b["map"] = {int(k): str(v) for k, v in scale.items()}
-        else:
-            mult = float(scale) * float(getattr(e, "read_scale", 1) or 1)
-            if mult != 1:
-                b["multiplier"] = round(mult, 10)
-            if 0 < mult < 1 and ha.get("unit_of_measurement") is not None:
-                ha["precision"] = getattr(e, "rounding", 1)
-        if e.key in read_of:  # first wins (prefer the real register over variants)
-            continue
-        table = "holding" if e.register_type == 1 else "input"
-        if fast_tier(e):  # live value: poll faster than the device default
-            b["scan_interval"] = FAST_INTERVAL
-        read_of[e.key] = (table, b)
-        if callable_scale or getattr(e, "internal", False):
-            skipped["sensor:read-source-only"] += 1  # a read source, not emitted alone
-        else:
-            sensor_ha[e.key] = ha
-            order.append(e.key)
+def apply_scale(e, b, ha):
+    """Fold SolaX's scale onto the modbus base + ha block. Returns True if the scale
+    is a value_function (callable) we can't express, making this a read source only."""
+    scale = getattr(e, "scale", 1)
+    if callable(scale):
+        return True  # register-only read source; a merging writable supplies the conversion
+    if isinstance(scale, dict):
+        b["map"] = {int(k): str(v) for k, v in scale.items()}
+        return False
+    mult = float(scale) * float(getattr(e, "read_scale", 1) or 1)
+    if mult != 1:
+        b["multiplier"] = round(mult, 10)
+    if 0 < mult < 1 and ha.get("unit_of_measurement") is not None:
+        ha["precision"] = getattr(e, "rounding", 1)
+    return False
 
-    consumed, entities, seen = set(), [], set()
 
-    def add(table, key, b):
-        if key in seen:
-            skipped["dupe-key"] += 1; return
-        seen.add(key); entities.append((table, key, b))
+class _Converter:
+    """Accumulates converted entities across the SolaX entity-description tables.
 
-    def link_readback(key, write_table, wbase):
+    SolaX gives each writable setting a read-back *sensor* and a *number/select* at
+    DIFFERENT registers. We read from the sensor's register and write to the number/
+    select's (address / write_address) rather than dropping either. The per-table
+    handlers below share the read index and dedupe/skip bookkeeping held here; each
+    handles one entity so no single one carries the whole pipeline's complexity.
+    """
+
+    def __init__(self, pi, spec):
+        self.pi = pi
+        self.spec = spec
+        self.skipped = Counter()
+        # read_of indexes convertible sensors by key, plus SolaX's `internal` read-back
+        # mirrors (used to display a setting's current value) so writables can read
+        # through them; those mirrors are never emitted as their own entity.
+        self.read_of = {}
+        self.sensor_ha = {}    # key -> ha block, for sensors emitted in their own right
+        self.order = []        # emission order of those sensors
+        self.consumed = set()  # read keys merged into a writable
+        self.entities = []     # (table, key, base) output rows
+        self.seen = set()      # emitted keys, for dedupe
+
+    def match(self, e):
+        return self.pi.matchInverterWithMask(self.spec, e.allowedtypes)
+
+    def add(self, table, key, b):
+        if key in self.seen:
+            self.skipped["dupe-key"] += 1
+            return
+        self.seen.add(key)
+        self.entities.append((table, key, b))
+
+    def link_readback(self, key, write_table, wbase):
         """If the setting echoes on a different register than it's written to, emit
         that read-back as an internal entity and point wbase.read_register at it."""
-        if key not in read_of:
+        if key not in self.read_of:
             return  # no companion; the writable reads/writes its own register
-        rtable, rbase = read_of[key]
-        consumed.add(key)
+        rtable, rbase = self.read_of[key]
+        self.consumed.add(key)
         if (rtable, rbase["address"]) == (write_table, wbase["address"]):
             return  # read register == write register; nothing extra needed
         rbase = dict(rbase)
@@ -215,47 +216,81 @@ def convert(pi, spec):
         elif "multiplier" not in rbase and "multiplier" in wbase:
             rbase["multiplier"] = wbase["multiplier"]
         rkey = key + "_readback"
-        add(rtable, rkey, {**rbase, "internal": True})
+        self.add(rtable, rkey, {**rbase, "internal": True})
         wbase["read_register"] = "{{ %s }}" % rkey
 
-    # --- selects (write register + option map; read via companion if split) ---
-    for e in pi.SELECT_TYPES:
-        wm = getattr(e, "write_method", 1)
-        if not match(e) or wm == WRITE_LOCAL:
-            continue
-        if e.key in seen:
-            skipped["dupe-key"] += 1; continue
-        od = getattr(e, "option_dict", None)
-        if not od:
-            skipped["select:no-options"] += 1; continue
-        b = base_fields(e)
-        if b is None:
-            skipped["select:no-register"] += 1; continue
-        omap = {int(k): str(v) for k, v in od.items()}
-        b["map"] = omap
-        ha = ha_common(e, "select")
-        if wm in WRITE_FC16:
+    def _emit_writable(self, e, b, ha, omap):
+        """Wire a select/number's write path (FC16 direct command -> static seed, else
+        link the split read-back), attach its ha block, and add it under holding."""
+        if getattr(e, "write_method", 1) in WRITE_FC16:
             make_static(e, b, ha, omap)
         else:
-            link_readback(e.key, "holding", b)
+            self.link_readback(e.key, "holding", b)
         b["ha"] = ha
-        add("holding", e.key, b)
+        self.add("holding", e.key, b)
 
-    # --- numbers (write register + scale; read via companion if split) ---
-    for e in pi.NUMBER_TYPES:
-        wm = getattr(e, "write_method", 1)
-        if not match(e) or wm == WRITE_LOCAL:
-            continue
-        if callable(getattr(e, "scale", 1)):
-            continue
-        if e.key in seen:
-            skipped["dupe-key"] += 1; continue
-        lo, hi = getattr(e, "native_min_value", None), getattr(e, "native_max_value", None)
-        if lo is None or hi is None:
-            skipped["number:no-min-max"] += 1; continue
+    def read_sensor(self, e):
+        """Index one convertible sensor as a read source (the read side)."""
+        if not self.match(e):
+            return
+        if getattr(e, "value_function", None) is not None:
+            self.skipped["sensor:value_function"] += 1
+            return
         b = base_fields(e)
         if b is None:
-            skipped["number:no-register"] += 1; continue
+            self.skipped["sensor:no-register"] += 1
+            return
+        ha = ha_common(e, "sensor")
+        read_source_only = apply_scale(e, b, ha)
+        if e.key in self.read_of:  # first wins (prefer the real register over variants)
+            return
+        if fast_tier(e):  # live value: poll faster than the device default
+            b["scan_interval"] = FAST_INTERVAL
+        self.read_of[e.key] = (table_of(e), b)
+        if read_source_only or getattr(e, "internal", False):
+            self.skipped["sensor:read-source-only"] += 1  # a read source, not emitted alone
+        else:
+            self.sensor_ha[e.key] = ha
+            self.order.append(e.key)
+
+    def add_select(self, e):
+        """A select: write register + option map; read via companion if split."""
+        wm = getattr(e, "write_method", 1)
+        if not self.match(e) or wm == WRITE_LOCAL:
+            return
+        if e.key in self.seen:
+            self.skipped["dupe-key"] += 1
+            return
+        od = getattr(e, "option_dict", None)
+        if not od:
+            self.skipped["select:no-options"] += 1
+            return
+        b = base_fields(e)
+        if b is None:
+            self.skipped["select:no-register"] += 1
+            return
+        omap = {int(k): str(v) for k, v in od.items()}
+        b["map"] = omap
+        self._emit_writable(e, b, ha_common(e, "select"), omap)
+
+    def add_number(self, e):
+        """A number: write register + scale; read via companion if split."""
+        wm = getattr(e, "write_method", 1)
+        if not self.match(e) or wm == WRITE_LOCAL:
+            return
+        if callable(getattr(e, "scale", 1)):
+            return
+        if e.key in self.seen:
+            self.skipped["dupe-key"] += 1
+            return
+        lo, hi = getattr(e, "native_min_value", None), getattr(e, "native_max_value", None)
+        if lo is None or hi is None:
+            self.skipped["number:no-min-max"] += 1
+            return
+        b = base_fields(e)
+        if b is None:
+            self.skipped["number:no-register"] += 1
+            return
         scale = float(getattr(e, "scale", 1) or 1)
         if scale != 1:
             b["multiplier"] = round(scale, 10)
@@ -263,46 +298,137 @@ def convert(pi, spec):
         ha["min"], ha["max"] = lo, hi
         if getattr(e, "native_step", None) is not None:
             ha["step"] = e.native_step
-        if wm in WRITE_FC16:
-            make_static(e, b, ha, None)
-        else:
-            link_readback(e.key, "holding", b)
-        b["ha"] = ha
-        add("holding", e.key, b)
+        self._emit_writable(e, b, ha, None)
 
-    # --- times (HH:MM packed into one register: GEN4 is hour*256 + minute) ---
-    for e in pi.TIME_TYPES:
-        if not match(e):
-            continue
-        if e.key in seen:
-            skipped["dupe-key"] += 1; continue
+    def add_time(self, e):
+        """A time: HH:MM packed into one register (GEN4 is hour*256 + minute)."""
+        if not self.match(e):
+            return
+        if e.key in self.seen:
+            self.skipped["dupe-key"] += 1
+            return
         reg = getattr(e, "register", None)
         if reg is None or reg < 0:
-            skipped["time:no-register"] += 1; continue
+            self.skipped["time:no-register"] += 1
+            return
         if getattr(e, "wordcount", None) not in (None, 1):
-            skipped["time:multi-register"] += 1; continue  # 2-register form unsupported
+            self.skipped["time:multi-register"] += 1  # 2-register form unsupported
+            return
         # rectify_time: a stop time of 24:00 (end of day) shows as 23:59 rather than
         # dropping out — otherwise that slot would be unavailable.
-        add("holding", e.key,
-            {"address": reg, "type": "time", "rectify_time": True, "ha": ha_common(e, "time")})
+        self.add("holding", e.key,
+                 {"address": reg, "type": "time", "rectify_time": True,
+                  "ha": ha_common(e, "time")})
 
-    # --- buttons (no read register; write to own register) ---
-    for e in pi.BUTTON_TYPES:
-        if not match(e):
-            continue
+    def add_button(self, e):
+        """A button: no read register; write to its own register."""
+        if not self.match(e):
+            return
         if getattr(e, "value_function", None) is not None or getattr(e, "command", None) is None:
-            skipped["button:computed"] += 1; continue
-        add("holding", e.key, {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")})
+            self.skipped["button:computed"] += 1
+            return
+        self.add("holding", e.key,
+                 {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")})
 
-    # --- remaining sensors not merged into a writable ---
-    for key in order:
-        if key in consumed:
-            continue
-        table, b = read_of[key]
-        b = dict(b); b["ha"] = sensor_ha[key]
-        add(table, key, b)
+    def add_remaining_sensor(self, key):
+        """Emit a sensor that wasn't merged into a writable."""
+        if key in self.consumed:
+            return
+        table, b = self.read_of[key]
+        b = dict(b)
+        b["ha"] = self.sensor_ha[key]
+        self.add(table, key, b)
 
-    return entities, skipped
+    def run(self):
+        for e in self.pi.SENSOR_TYPES:
+            self.read_sensor(e)
+        for e in self.pi.SELECT_TYPES:
+            self.add_select(e)
+        for e in self.pi.NUMBER_TYPES:
+            self.add_number(e)
+        for e in self.pi.TIME_TYPES:
+            self.add_time(e)
+        for e in self.pi.BUTTON_TYPES:
+            self.add_button(e)
+        for key in self.order:  # remaining sensors, in discovery order
+            self.add_remaining_sensor(key)
+        return self.entities, self.skipped
+
+
+def convert(pi, spec):
+    """Convert a plugin's entity descriptions for one inverter spec into our
+    declarative entities. See :class:`_Converter` for how a setting's split
+    read/write registers are recombined."""
+    return _Converter(pi, spec).run()
+
+
+# Entity fields emitted (in order) before the map / read_register / ha blocks.
+EMIT_FIELDS = (
+    "address", "type", "count", "swap", "mask", "sum_scale", "multiplier",
+    "write_value", "static_value", "optimistic_default", "write_multiple",
+    "rectify_time", "scan_interval",
+)
+
+
+def _emit_mapping(buf, indent, mapping):
+    """Write a flat ``key: value`` block at the given indent."""
+    for k, v in mapping.items():
+        buf.write(f"{indent}{k}: {yaml_str(v)}\n")
+
+
+def _emit_field(buf, name, value):
+    """One entity field. A list write_value becomes a YAML sequence (multi-register button)."""
+    if name == "write_value" and isinstance(value, list):
+        buf.write("    write_value:\n")
+        for item in value:
+            buf.write(f"      - {yaml_str(item)}\n")
+    else:
+        buf.write(f"    {name}: {yaml_str(value)}\n")
+
+
+def _emit_entity(buf, key, b):
+    """Emit one register entity: scalar fields, optional map/read_register, then either
+    the internal marker or its ha block."""
+    buf.write(f"  {key}:\n")
+    for f in EMIT_FIELDS:
+        if f in b:
+            _emit_field(buf, f, b[f])
+    if "map" in b:
+        buf.write("    map:\n")
+        _emit_mapping(buf, "      ", b["map"])
+    if "read_register" in b:
+        buf.write(f"    read_register: {yaml_str(b['read_register'])}\n")
+    if b.get("internal"):
+        buf.write("    internal: true\n")
+        return
+    buf.write("    ha:\n")
+    _emit_mapping(buf, "      ", b["ha"])
+
+
+def _emit_table(buf, table, entities):
+    """Emit every entity of one table, sorted by address."""
+    rows = sorted(
+        [(k, b) for t, k, b in entities if t == table],
+        key=lambda kb: kb[1]["address"],
+    )
+    if not rows:
+        return
+    buf.write(f"\n{table}:\n")
+    for key, b in rows:
+        _emit_entity(buf, key, b)
+
+
+def _emit_templates(buf, templates):
+    """Emit the computed-sensor ``template:`` section (energy-flow splits)."""
+    if not templates:
+        return
+    buf.write("\n# Computed sensors (energy-flow splits SolaX derives in code).\n")
+    buf.write("template:\n")
+    for t in templates:
+        buf.write(f"  {t['key']}:\n")
+        buf.write("    ha:\n")
+        _emit_mapping(buf, "      ", t["ha"])
+        buf.write(f"    state: {yaml_str(t['state'])}\n")
 
 
 def emit_yaml(meta, entities, templates=()):
@@ -310,48 +436,10 @@ def emit_yaml(meta, entities, templates=()):
     buf = io.StringIO()
     buf.write("# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.\n")
     buf.write("device:\n")
-    for k, v in meta.items():
-        buf.write(f"  {k}: {yaml_str(v)}\n")
+    _emit_mapping(buf, "  ", meta)
     for table in ("holding", "input"):
-        rows = sorted([(k, b) for t, k, b in entities if t == table], key=lambda kb: kb[1]["address"])
-        if not rows:
-            continue
-        buf.write(f"\n{table}:\n")
-        for key, b in rows:
-            buf.write(f"  {key}:\n")
-            for f in ("address", "type", "count", "swap", "mask", "sum_scale", "multiplier",
-                      "write_value", "static_value", "optimistic_default", "write_multiple",
-                      "rectify_time", "scan_interval"):
-                if f not in b:
-                    continue
-                if f == "write_value" and isinstance(b[f], list):  # multi-register button
-                    buf.write("    write_value:\n")
-                    for item in b[f]:
-                        buf.write(f"      - {yaml_str(item)}\n")
-                else:
-                    buf.write(f"    {f}: {yaml_str(b[f])}\n")
-            if "map" in b:
-                buf.write("    map:\n")
-                for mk, mv in b["map"].items():
-                    buf.write(f"      {mk}: {yaml_str(mv)}\n")
-            if "read_register" in b:
-                buf.write(f"    read_register: {yaml_str(b['read_register'])}\n")
-            if b.get("internal"):
-                buf.write("    internal: true\n")
-                continue
-            ha = b["ha"]
-            buf.write("    ha:\n")
-            for hk, hv in ha.items():
-                buf.write(f"      {hk}: {yaml_str(hv)}\n")
-    if templates:
-        buf.write("\n# Computed sensors (energy-flow splits SolaX derives in code).\n")
-        buf.write("template:\n")
-        for t in templates:
-            buf.write(f"  {t['key']}:\n")
-            buf.write("    ha:\n")
-            for hk, hv in t["ha"].items():
-                buf.write(f"      {hk}: {yaml_str(hv)}\n")
-            buf.write(f"    state: {yaml_str(t['state'])}\n")
+        _emit_table(buf, table, entities)
+    _emit_templates(buf, templates)
     return buf.getvalue()
 
 
