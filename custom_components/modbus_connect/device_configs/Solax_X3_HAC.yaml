@@ -124,7 +124,7 @@ holding:
       step: 1
   device_lock:
     address: 1557
-    groups: [advanced, all]
+    groups: [basic, advanced, all]
     map:
       0: Unlock
       1: Lock

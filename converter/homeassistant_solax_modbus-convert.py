@@ -393,12 +393,14 @@ HYBRID_BASIC = frozenset({
     "inverter_current_l1", "inverter_current_l2", "inverter_current_l3",
     "inverter_power_l1", "inverter_power_l2", "inverter_power_l3",
     "inverter_voltage_l1", "inverter_voltage_l2", "inverter_voltage_l3",
+    "device_lock",  # writable settings need the unlock reachable in basic
 })
 HAC_BASIC = frozenset({
     "charge_power_total", "charge_added", "charge_added_cum",
     "charge_current",
     "charge_current_l1", "charge_current_l2", "charge_current_l3",
     "charger_use_mode",
+    "device_lock",  # writable settings need the unlock reachable in basic
 })
 
 

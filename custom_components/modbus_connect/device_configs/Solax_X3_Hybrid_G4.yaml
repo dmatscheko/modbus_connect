@@ -991,7 +991,7 @@ holding:
       icon: "mdi:dip-switch"
   device_lock:
     address: 181
-    groups: [advanced, all]
+    groups: [basic, advanced, all]
     map:
       0: Unlock
       1: Lock
