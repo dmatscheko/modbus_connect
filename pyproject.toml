@@ -2,13 +2,15 @@
 name = "modbus-connect"
 version = "0.1.0"
 description = "Home Assistant integration for Modbus devices behind local TCP gateways, with block-optimized register reads"
-requires-python = ">=3.13"
+# Every supported HA release (hacs.json: >= 2026.3) requires Python >= 3.14.2.
+requires-python = ">=3.14"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.mypy]
+# The floor from requires-python (HA itself uses 3.14-only syntax).
 python_version = "3.14"
 strict = true
 # Home Assistant re-exports (e.g. light.ColorMode) without __all__;
@@ -17,7 +19,7 @@ implicit_reexport = true
 files = ["custom_components/modbus_connect"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]

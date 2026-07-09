@@ -8,18 +8,20 @@ on:
 
 jobs:
   pytest:
-    name: pytest + ruff
+    name: pytest + ruff + mypy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements_test.txt
       - name: Ruff
         run: ruff check custom_components tests converter
+      - name: Mypy
+        run: mypy
       - name: Run tests with coverage
         run: |
           pytest tests/ \
