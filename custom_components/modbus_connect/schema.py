@@ -375,9 +375,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     on_value = _on_off(ctx, raw, "on")
     off_value = _on_off(ctx, raw, "off")
 
-    write_value = raw.get("write_value")
-    if write_value is not None and not isinstance(write_value, (int, float, bool)):
-        raise ctx.fail("write_value must be a number or boolean")
+    write_value = _parse_write_value(ctx, raw.get("write_value"))
 
     read_register = raw.get("read_register")
     if read_register is not None and not isinstance(read_register, str):
@@ -595,6 +593,27 @@ def _on_off(ctx: _Ctx, raw: dict[str, Any], name: str) -> int | bool | None:
     raise ctx.fail(f"'{name}' must be an integer or boolean")
 
 
+def _parse_write_value(ctx: _Ctx, raw: Any) -> Any:
+    """A button's press payload: a fixed number/bool, or a list of numbers and Jinja
+    template strings written to consecutive registers (FC16) — e.g. an RTC sync."""
+    if raw is None or isinstance(raw, (int, float, bool)):
+        return raw
+    if isinstance(raw, list):
+        if not raw:
+            raise ctx.fail("write_value list must not be empty")
+        items: list[Any] = []
+        for item in raw:
+            if isinstance(item, bool) or not isinstance(item, (int, float, str)):
+                raise ctx.fail("write_value list items must be numbers or template strings")
+            if isinstance(item, str) and not item.strip():
+                raise ctx.fail("write_value template strings must not be empty")
+            items.append(item)
+        return tuple(items)
+    raise ctx.fail(
+        "write_value must be a number, boolean, or a list of numbers/template strings"
+    )
+
+
 def _parse_int_str_map(
     ctx: _Ctx, name: str, raw: Any, max_key: int | None = None
 ) -> dict[int, str] | None:
@@ -669,6 +688,11 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             raise ctx.fail("buttons require 'write_value'")
     elif defn.write_value is not None:
         raise ctx.fail("'write_value' is only valid for buttons")
+
+    # A list write_value writes consecutive registers via FC16, so it needs a register
+    # table, not a coil.
+    if isinstance(defn.write_value, tuple) and defn.table in BIT_TABLES:
+        raise ctx.fail("a list write_value writes registers (FC16); it can't target a coil")
 
     # read_register decouples the read side; only meaningful for entities that both
     # write and show a value (number/select/switch/text), not read-only or buttons.

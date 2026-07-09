@@ -111,7 +111,9 @@ class EntityDef:
     flags: dict[int, str] | None = None  # bit number (0-indexed) -> name
     on_value: int | bool | None = None  # YAML key: on
     off_value: int | bool | None = None  # YAML key: off
-    write_value: float | bool | None = None  # button press payload
+    # Button press payload: a fixed number/bool, or a tuple of numbers and Jinja
+    # template strings written to consecutive registers (FC16) — e.g. an RTC sync.
+    write_value: Any = None
     # Some settings echo their value on a different register (or table) than the
     # one they are written to. ``read_register`` is a Jinja template (like the
     # template: section) whose result is the entity's current value; this entity's

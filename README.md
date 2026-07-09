@@ -193,7 +193,7 @@ rendered once from the first read.
 | `map` | `{register value: label}` — enums; used as the options of a `select` |
 | `flags` | `{bit number (0-indexed): name}` — sensor shows the set flags, read-only |
 | `on` / `off` | Values meaning on/off for `switch`/`binary_sensor` (defaults: 1/0, true/false) |
-| `write_value` | Value a `button` writes when pressed |
+| `write_value` | What a `button` writes when pressed: a fixed number, or a **list** of numbers and Jinja templates written to consecutive registers in one FC16 transaction. Templates render over the current values with the usual HA functions (`now()`, `utcnow()`, …) and must resolve to 16-bit integers — e.g. an RTC-sync button: `["{{ now().second }}", "{{ now().minute }}", "{{ now().hour }}", …]` |
 | `read_register` | Take the current value from elsewhere instead of this entity's own register — a Jinja template like the `template:` section (e.g. `"{{ other_key }}"`). For settings a device echoes on a different register (or table) than it accepts writes on: this entity writes to its own `address`/table, while the referenced entity — often `internal:`, with its own `type`/`mask`/`multiplier`, and free to live in `input:`/`discrete:` — supplies the read-back |
 | `read_modify_write` | Allow writing a `mask`ed field by merging into the current register |
 | `static_value` | Marks a write-only command register: never read it — the entity shows this value until written, then optimistically its last written value (an option label for a `select`, a number for a `number`). For "direct control" registers that echo nothing useful, or share an address with an unrelated read |

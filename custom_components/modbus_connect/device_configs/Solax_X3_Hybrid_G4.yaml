@@ -28,6 +28,20 @@ holding:
     count: 7
     swap: byte
     internal: true
+  sync_rtc:
+    address: 0
+    write_value:
+      - "{{ now().second }}"
+      - "{{ now().minute }}"
+      - "{{ now().hour }}"
+      - "{{ now().day }}"
+      - "{{ now().month }}"
+      - "{{ now().year % 100 }}"
+    ha:
+      platform: button
+      name: Sync RTC
+      icon: "mdi:home-clock"
+      entity_category: config
   manufacturer_name:
     address: 7
     type: string

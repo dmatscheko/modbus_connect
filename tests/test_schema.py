@@ -189,6 +189,51 @@ def test_planning_hints_invalid(hints, match):
         parse_device(data, "t.yaml")
 
 
+def test_button_list_write_value_parsed():
+    dev = parse_device(
+        doc(sync={"address": 0, "write_value": [1, "{{ now().hour }}"],
+                  "ha": {"platform": "button", "name": "S"}}),
+        "t.yaml",
+    )
+    (e,) = dev.entities
+    assert e.write_value == (1, "{{ now().hour }}")  # stored as an immutable tuple
+
+
+@pytest.mark.parametrize(
+    ("write_value", "match"),
+    [
+        ([], "must not be empty"),
+        ([1, True], "numbers or template strings"),
+        ([1, "  "], "must not be empty"),  # blank template string
+    ],
+)
+def test_button_list_write_value_invalid(write_value, match):
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(
+            doc(sync={"address": 0, "write_value": write_value,
+                      "ha": {"platform": "button"}}),
+            "t.yaml",
+        )
+
+
+def test_list_write_value_on_non_button_rejected():
+    with pytest.raises(DeviceSchemaError, match="only valid for buttons"):
+        parse_device(
+            doc(x={"address": 0, "write_value": [1, 2], "ha": {"platform": "sensor"}}),
+            "t.yaml",
+        )
+
+
+def test_list_write_value_on_coil_rejected():
+    data = {
+        "device": {"manufacturer": "A", "model": "X"},
+        "coil": {"b": {"address": 0, "write_value": [1, 2],
+                       "ha": {"platform": "button"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match="can't target a coil"):
+        parse_device(data, "t.yaml")
+
+
 def test_device_defaults_absent():
     dev = parse_device(doc(x={"address": 1, "ha": {"platform": "sensor"}}), "t.yaml")
     assert dev.modbus_id is None

@@ -323,6 +323,33 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     # --- writing ---------------------------------------------------------------
 
+    def _render_write_words(self, defn: EntityDef, items: tuple[Any, ...]) -> list[int]:
+        """Render a button's list write_value into consecutive register words.
+
+        Each item is a number or a Jinja template, rendered over the current values
+        (so it can use now()/utcnow() or other entity keys). Each must resolve to a
+        16-bit integer; negatives are written two's-complement.
+        """
+        words: list[int] = []
+        for item in items:
+            rendered = (
+                render_over_values(Template(item, self.hass), self.data)
+                if isinstance(item, str)
+                else item
+            )
+            if isinstance(rendered, bool) or not isinstance(rendered, (int, float)):
+                raise WriteError(
+                    f"{defn.key}: write_value item {item!r} rendered to {rendered!r}, "
+                    "expected a number"
+                )
+            num = round(rendered)
+            if not -0x8000 <= num <= 0xFFFF:
+                raise WriteError(
+                    f"{defn.key}: write_value {num} is out of 16-bit register range"
+                )
+            words.append(num & 0xFFFF)
+        return words
+
     async def async_write(self, defn: EntityDef, value: Any) -> None:
         """Encode and write a value, then read it back to confirm."""
         confirmed: Any = None
@@ -338,18 +365,26 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             "port": str(self.client.port),
                         },
                     )
-                current_raw: int | None = None
-                if defn.mask is not None and defn.read_modify_write:
-                    raw = await self.client.read_block(self.slave_id, defn.span)
-                    current_raw = int(raw[0])
-                payload = codec.encode(defn, value, current_raw=current_raw)
-                if defn.table == TABLE_COIL:
-                    await self.client.write_coil(self.slave_id, defn.address, bool(payload))
-                else:
-                    assert isinstance(payload, list)
+                if isinstance(value, tuple):
+                    # button list write_value: render each item to a register word and
+                    # write them to consecutive registers in one FC16 transaction.
+                    words = self._render_write_words(defn, value)
                     await self.client.write_registers(
-                        self.slave_id, defn.address, payload, multiple=defn.write_multiple
+                        self.slave_id, defn.address, words, multiple=True
                     )
+                else:
+                    current_raw: int | None = None
+                    if defn.mask is not None and defn.read_modify_write:
+                        raw = await self.client.read_block(self.slave_id, defn.span)
+                        current_raw = int(raw[0])
+                    payload = codec.encode(defn, value, current_raw=current_raw)
+                    if defn.table == TABLE_COIL:
+                        await self.client.write_coil(self.slave_id, defn.address, bool(payload))
+                    else:
+                        assert isinstance(payload, list)
+                        await self.client.write_registers(
+                            self.slave_id, defn.address, payload, multiple=defn.write_multiple
+                        )
                 if defn.platform != "button":
                     if defn.read_register is not None or defn.static_value is not None:
                         confirmed = value  # no read-back; read elsewhere or not at all

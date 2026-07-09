@@ -387,6 +387,85 @@ async def test_static_value_entity_never_reads_and_writes_fc16(hass, monkeypatch
     assert coordinator.data["power_control"] == "Enabled"  # optimistic update
 
 
+async def test_button_list_write_value_writes_consecutive_fc16(hass, monkeypatch):
+    client = FakeClient()
+    btn = EntityDef(
+        key="sync", platform="button", table="holding", address=10,
+        write_value=(1, "{{ 2 + 3 }}", "{{ -300 }}"), ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    await coordinator.async_write(btn, btn.write_value)
+    # number, rendered template, and a negative (two's-complement) -> consecutive words
+    assert client.written == [(10, [1, 5, 65236])]
+    assert client.write_multiple_flags == [True]  # FC16
+
+
+async def test_button_list_write_value_renders_over_current_values(hass, monkeypatch):
+    client = FakeClient({0: 7})
+    src = sensor("src", 0)
+    btn = EntityDef(
+        key="echo", platform="button", table="holding", address=20,
+        write_value=("{{ src }}", "{{ src * 2 }}"), ha={},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(src, btn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()  # decode src -> 7
+    await coordinator.async_write(btn, btn.write_value)
+    assert client.written[-1] == (20, [7, 14])
+
+
+async def test_button_list_write_value_non_numeric_raises(hass, monkeypatch):
+    from homeassistant.exceptions import HomeAssistantError
+
+    client = FakeClient()
+    btn = EntityDef(
+        key="bad", platform="button", table="holding", address=0,
+        write_value=("{{ 'x' }}",), ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    with pytest.raises(HomeAssistantError):
+        await coordinator.async_write(btn, btn.write_value)
+    assert client.written == []  # nothing written when a value can't render
+
+
+async def test_rtc_local_template_renders_to_valid_registers(hass, monkeypatch):
+    # the exact templates the SolaX converter emits for the hybrid's Sync RTC button
+    client = FakeClient()
+    btn = EntityDef(
+        key="sync_rtc", platform="button", table="holding", address=0,
+        write_value=(
+            "{{ now().second }}", "{{ now().minute }}", "{{ now().hour }}",
+            "{{ now().day }}", "{{ now().month }}", "{{ now().year % 100 }}",
+        ), ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    await coordinator.async_write(btn, btn.write_value)
+    (addr, words) = client.written[0]
+    assert addr == 0 and len(words) == 6
+    sec, minute, hour, day, month, yy = words
+    assert 0 <= sec < 60 and 0 <= minute < 60 and 0 <= hour < 24
+    assert 1 <= day <= 31 and 1 <= month <= 12 and 0 <= yy < 100
+
+
+async def test_rtc_utc_tz_template_renders_to_valid_registers(hass, monkeypatch):
+    # the EV-charger form: UTC offset (two's-complement minutes) followed by UTC time
+    client = FakeClient()
+    btn = EntityDef(
+        key="sync_rtc", platform="button", table="holding", address=0x61D,
+        write_value=(
+            "{{ ((now().utcoffset().total_seconds() // 60) | int) % 65536 }}",
+            "{{ utcnow().second }}", "{{ utcnow().minute }}", "{{ utcnow().hour }}",
+            "{{ utcnow().day }}", "{{ utcnow().month }}", "{{ utcnow().year % 100 }}",
+        ), ha={},
+    )
+    coordinator = await make_coordinator(hass, make_device(btn), client, monkeypatch, FakeTime())
+    await coordinator.async_write(btn, btn.write_value)
+    (addr, words) = client.written[0]
+    assert addr == 0x61D and len(words) == 7
+    assert all(0 <= w <= 0xFFFF for w in words)  # tz offset wraps into a valid uint16
+
+
 async def test_optimistic_default_reads_with_fallback(hass, monkeypatch):
     # optimistic_default DOES read the register, but an undecodable value falls back
     # to the default so the control stays usable
