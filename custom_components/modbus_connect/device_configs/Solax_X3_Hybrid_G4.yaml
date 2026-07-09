@@ -305,6 +305,7 @@ holding:
   charge_start_1:
     address: 104
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Charge Start 1
@@ -313,6 +314,7 @@ holding:
   charge_end_1:
     address: 105
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Charge End 1
@@ -321,6 +323,7 @@ holding:
   discharge_start_1:
     address: 106
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Discharge Start 1
@@ -329,6 +332,7 @@ holding:
   discharge_end_1:
     address: 107
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Discharge End 1
@@ -348,6 +352,7 @@ holding:
   charge_start_2:
     address: 109
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Charge Start 2
@@ -356,6 +361,7 @@ holding:
   charge_end_2:
     address: 110
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Charge End 2
@@ -364,6 +370,7 @@ holding:
   discharge_start_2:
     address: 111
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Discharge Start 2
@@ -372,6 +379,7 @@ holding:
   discharge_end_2:
     address: 112
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Discharge End 2
@@ -393,7 +401,7 @@ holding:
     internal: true
   modbus_power_control_direct:
     address: 124
-    optimistic_default: Disabled
+    static_value: Disabled
     write_multiple: true
     map:
       0: Disabled
@@ -416,7 +424,7 @@ holding:
     internal: true
   remote_control_target_set_type_direct:
     address: 125
-    optimistic_default: Set
+    static_value: Set
     write_multiple: true
     map:
       1: Set
@@ -430,7 +438,7 @@ holding:
     address: 126
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -452,7 +460,7 @@ holding:
     address: 128
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -493,7 +501,7 @@ holding:
     address: 132
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -515,7 +523,7 @@ holding:
     address: 134
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -528,7 +536,7 @@ holding:
       enabled_by_default: false
   remotecontrol_timeout_direct:
     address: 136
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -543,7 +551,7 @@ holding:
     address: 137
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -714,7 +722,7 @@ holding:
       entity_category: config
   remote_control_power_control_mode_direct:
     address: 160
-    optimistic_default: Disabled
+    static_value: Disabled
     write_multiple: true
     map:
       0: Disabled
@@ -733,7 +741,7 @@ holding:
     internal: true
   power_control_mode_target_set_type_direct:
     address: 161
-    optimistic_default: Set
+    static_value: Set
     write_multiple: true
     map:
       1: Set
@@ -753,7 +761,7 @@ holding:
     address: 162
     type: uint32
     swap: word
-    optimistic_default: 15000
+    static_value: 15000
     write_multiple: true
     ha:
       platform: number
@@ -786,7 +794,7 @@ holding:
     address: 164
     type: int32
     swap: word
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -821,7 +829,7 @@ holding:
       icon: "mdi:dip-switch"
   remotecontrol_duration_8_direct:
     address: 166
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -834,7 +842,7 @@ holding:
       enabled_by_default: false
   remotecontrol_target_soc_9_direct:
     address: 166
-    optimistic_default: 100
+    static_value: 100
     write_multiple: true
     ha:
       platform: number
@@ -846,7 +854,7 @@ holding:
       enabled_by_default: false
   remotecontrol_timeout_8_9_direct:
     address: 167
-    optimistic_default: 0
+    static_value: 0
     write_multiple: true
     ha:
       platform: number
@@ -1030,6 +1038,7 @@ holding:
   battery_heating_start_time_1:
     address: 208
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Battery Heating Start Time 1
@@ -1038,6 +1047,7 @@ holding:
   battery_heating_end_time_1:
     address: 209
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Battery Heating End Time 1
@@ -1046,6 +1056,7 @@ holding:
   battery_heating_start_time_2:
     address: 210
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Battery Heating Start Time 2
@@ -1054,6 +1065,7 @@ holding:
   battery_heating_end_time_2:
     address: 211
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: Battery Heating End Time 2
@@ -1088,6 +1100,7 @@ holding:
   peakshaving_discharge_start_time_1:
     address: 234
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 1
@@ -1096,6 +1109,7 @@ holding:
   peakshaving_discharge_stop_time_1:
     address: 235
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 1
@@ -1104,6 +1118,7 @@ holding:
   peakshaving_discharge_start_time_2:
     address: 236
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 2
@@ -1112,6 +1127,7 @@ holding:
   peakshaving_discharge_stop_time_2:
     address: 237
     type: time
+    rectify_time: true
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 2

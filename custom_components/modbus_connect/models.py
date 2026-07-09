@@ -117,13 +117,20 @@ class EntityDef:
     # template: section) whose result is the entity's current value; this entity's
     # own address/table/codec are then used only for writing.
     read_register: str | None = None
-    # Write-only command registers (e.g. SolaX "direct" power control): never read.
-    # When set, the entity shows this value until first written, then whatever was
-    # last written to it.
+    # Never read: the entity shows this value until first written, then whatever was
+    # last written to it — write-only command registers (e.g. SolaX "direct" control).
+    static_value: Any = None
+    # Read the register as usual, but fall back to this value when it decodes to
+    # nothing (undecodable / out of range), so the control stays usable rather than
+    # going unavailable. Mutually exclusive with static_value; both keep the entity
+    # always available (their value is never None).
     optimistic_default: Any = None
     # Force FC16 for the write, even for a single register — some devices require
     # it on certain registers (SolaX WRITE_MULTISINGLE).
     write_multiple: bool = False
+    # time entities only: show an out-of-range time (e.g. 24:00) as 23:59 instead
+    # of nothing, so the slot stays usable.
+    rectify_time: bool = False
     read_modify_write: bool = False
     max_change: float | None = None
     never_resets: bool = False

@@ -79,16 +79,17 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or device.scan_interval
             or DEFAULT_SCAN_INTERVAL
         )
-        # Buttons never read; read_register entities read via another entity's
-        # value (rendered below), not from their own (write) register; entities with
-        # an optimistic_default are write-only command registers.
+        # Buttons never read; read_register entities read via another entity's value
+        # (rendered below), not from their own (write) register; static_value entities
+        # are write-only command registers. optimistic_default entities do read (with
+        # a fallback), so they stay in _readers.
         self._readers = [
             e
             for e in device.entities
-            if e.platform != "button" and e.read_register is None and e.optimistic_default is None
+            if e.platform != "button" and e.read_register is None and e.static_value is None
         ]
         self._linked = [e for e in device.entities if e.read_register is not None]
-        self._optimistic = [e for e in device.entities if e.optimistic_default is not None]
+        self._static = [e for e in device.entities if e.static_value is not None]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
         self._interval_for = {e.key: e.scan_interval or base for e in self._readers}
@@ -160,8 +161,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         due = [e for e in self._readers if self._next_due[e.key] <= now]
         data: dict[str, Any] = dict(self.data) if self.data else {}
         # Seed write-only entities so they are available before the first write.
-        for defn in self._optimistic:
-            data.setdefault(defn.key, defn.optimistic_default)
+        for defn in self._static:
+            data.setdefault(defn.key, defn.static_value)
         if not due:
             return data
 
@@ -189,6 +190,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for defn in due:
             value = self._decode(defn)
+            if value is None and defn.optimistic_default is not None:
+                value = defn.optimistic_default  # keep the control usable
             data[defn.key] = self._postprocess(defn, data.get(defn.key), value)
             self._next_due[defn.key] = now + self._interval_for[defn.key]
         # read_register entities take their value from other (just-decoded) values
@@ -336,13 +339,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.slave_id, defn.address, payload, multiple=defn.write_multiple
                     )
                 if defn.platform != "button":
-                    if defn.read_register is not None or defn.optimistic_default is not None:
-                        confirmed = value  # optimistic; no read-back of this register
+                    if defn.read_register is not None or defn.static_value is not None:
+                        confirmed = value  # no read-back; read elsewhere or not at all
                     else:
                         self._store(
                             defn.span, await self.client.read_block(self.slave_id, defn.span)
                         )
                         confirmed = self._decode(defn)
+                        if confirmed is None and defn.optimistic_default is not None:
+                            confirmed = defn.optimistic_default
         except (ReadError, WriteError, codec.CodecError) as err:
             raise HomeAssistantError(
                 f"Writing {defn.key} failed: {err}",

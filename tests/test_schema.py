@@ -987,61 +987,78 @@ def test_switch_target_parses_cases():
     assert st.cases["Auto"].entity == "setpoint"
 
 
-def test_optimistic_select_parses():
+def test_static_value_parses():
     dev = parse_device(
         doc(pc={
-            "address": 124, "optimistic_default": "Off", "write_multiple": True,
+            "address": 124, "static_value": "Off", "write_multiple": True,
             "map": {0: "Off", 1: "On"}, "ha": {"platform": "select"},
         }),
         "t.yaml",
     )
     e = dev.entities[0]
-    assert e.optimistic_default == "Off" and e.write_multiple
+    assert e.static_value == "Off" and e.write_multiple and e.optimistic_default is None
 
 
-def test_optimistic_requires_writable_platform():
-    with pytest.raises(DeviceSchemaError, match="optimistic_default"):
-        parse_device(
-            doc(x={"address": 1, "optimistic_default": "x", "ha": {"platform": "sensor"}}),
-            "t.yaml",
-        )
+def test_optimistic_default_parses():
+    dev = parse_device(
+        doc(pc={
+            "address": 50, "optimistic_default": "Off",
+            "map": {0: "Off", 1: "On"}, "ha": {"platform": "select"},
+        }),
+        "t.yaml",
+    )
+    e = dev.entities[0]
+    assert e.optimistic_default == "Off" and e.static_value is None
 
 
-def test_optimistic_and_read_register_mutually_exclusive():
+@pytest.mark.parametrize("key", ["static_value", "optimistic_default"])
+def test_write_only_default_requires_writable_platform(key):
+    with pytest.raises(DeviceSchemaError, match=key):
+        parse_device(doc(x={"address": 1, key: "x", "ha": {"platform": "sensor"}}), "t.yaml")
+
+
+@pytest.mark.parametrize("key", ["static_value", "optimistic_default"])
+def test_write_only_default_conflicts_with_read_register(key):
     with pytest.raises(DeviceSchemaError, match="mutually exclusive"):
         parse_device(
             doc(x={
-                "address": 1, "optimistic_default": "a", "read_register": "{{ y }}",
+                "address": 1, key: "a", "read_register": "{{ y }}",
                 "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
             }),
             "t.yaml",
         )
 
 
+def test_static_value_and_optimistic_default_conflict():
+    with pytest.raises(DeviceSchemaError, match="mutually exclusive"):
+        parse_device(
+            doc(x={
+                "address": 1, "static_value": "a", "optimistic_default": "b",
+                "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
+            }),
+            "t.yaml",
+        )
+
+
+@pytest.mark.parametrize("key", ["static_value", "optimistic_default"])
 @pytest.mark.parametrize("seed", [0, False, "None", "unavailable", "0", "Off"])
-def test_optimistic_default_preserves_falsy_and_special_seeds(seed):
+def test_write_only_default_preserves_falsy_and_special_seeds(key, seed):
     # the marker is "value present", not "value truthy": 0 / false / "None" /
     # "unavailable" are real seeds, shown as-is, not treated as absent
     dev = parse_device(
-        doc(pc={
-            "address": 1, "optimistic_default": seed,
-            "map": {0: "a", 1: "b"}, "ha": {"platform": "select"},
-        }),
+        doc(pc={"address": 1, key: seed, "map": {0: "a", 1: "b"}, "ha": {"platform": "select"}}),
         "t.yaml",
     )
-    e = dev.entities[0]
-    # value preserved as-is (present + correct type), not dropped as if absent
-    assert e.optimistic_default == seed and type(e.optimistic_default) is type(seed)
+    val = getattr(dev.entities[0], key)
+    assert val == seed and type(val) is type(seed)
 
 
-def test_optimistic_default_null_rejected():
-    # a present-but-null seed is a likely mistake (it would silently not be optimistic)
-    with pytest.raises(DeviceSchemaError, match="optimistic_default"):
+@pytest.mark.parametrize("key", ["static_value", "optimistic_default"])
+def test_write_only_default_null_rejected(key):
+    # a present-but-null seed is a likely mistake (it would silently do nothing)
+    with pytest.raises(DeviceSchemaError, match=key):
         parse_device(
-            doc(x={
-                "address": 1, "optimistic_default": None, "map": {0: "a", 1: "b"},
-                "ha": {"platform": "select"},
-            }),
+            doc(x={"address": 1, key: None, "map": {0: "a", 1: "b"}, "ha": {"platform": "select"}}),
             "t.yaml",
         )
 
@@ -1070,4 +1087,19 @@ def test_time_type_requires_time_platform():
     with pytest.raises(DeviceSchemaError, match="only valid for the time platform"):
         parse_device(
             doc(t={"address": 1, "type": "time", "ha": {"platform": "sensor"}}), "t.yaml"
+        )
+
+
+def test_rectify_time_parses_on_time_entity():
+    dev = parse_device(
+        doc(t={"address": 1, "type": "time", "rectify_time": True, "ha": {"platform": "time"}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].rectify_time is True
+
+
+def test_rectify_time_rejected_on_non_time():
+    with pytest.raises(DeviceSchemaError, match="rectify_time"):
+        parse_device(
+            doc(x={"address": 1, "rectify_time": True, "ha": {"platform": "sensor"}}), "t.yaml"
         )

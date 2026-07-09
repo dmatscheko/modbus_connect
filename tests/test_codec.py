@@ -140,6 +140,14 @@ def test_time_requires_time_value():
         encode(e(type="time", platform="time"), "12:30")
 
 
+def test_time_rectify_clamps_out_of_range():
+    defn = e(type="time", platform="time", rectify_time=True)
+    assert decode(defn, [24 << 8]) == time(23, 59)  # 24:00 (end of day) -> 23:59
+    assert decode(defn, [0xFFFF]) == time(23, 59)  # far out of range -> 23:59
+    assert decode(defn, [(12 << 8) | 60]) == time(12, 59)  # minute overflow, hour kept
+    assert decode(defn, [3102]) == time(12, 30)  # in-range value untouched
+
+
 # --- swaps -------------------------------------------------------------------
 
 

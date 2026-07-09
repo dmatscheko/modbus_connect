@@ -282,24 +282,41 @@ async def test_read_register_packed_read_full_write(hass, monkeypatch):
     assert client.written == [(103, [40])]  # full value written to reg 103
 
 
-async def test_optimistic_entity_seeds_default_and_writes_fc16(hass, monkeypatch):
-    # a write-only command register: shown from `default`, never read, written via FC16
+async def test_static_value_entity_never_reads_and_writes_fc16(hass, monkeypatch):
+    # a write-only command register: shown from static_value, never read, written via FC16
     client = FakeClient({})
     defn = EntityDef(
         key="power_control", platform="select", address=124,
         value_map={0: "Disabled", 1: "Enabled"},
-        optimistic_default="Disabled", write_multiple=True, ha={},
+        static_value="Disabled", write_multiple=True, ha={},
     )
     coordinator = await make_coordinator(
         hass, make_device(defn), client, monkeypatch, FakeTime()
     )
     await coordinator.async_refresh()
-    assert coordinator.data["power_control"] == "Disabled"  # seeded default
+    assert coordinator.data["power_control"] == "Disabled"  # seeded value
     assert client.reads == []  # its register is never read
     await coordinator.async_write(defn, "Enabled")
     assert client.written == [(124, [1])]  # encoded through the map
     assert client.write_multiple_flags == [True]  # forced FC16
     assert coordinator.data["power_control"] == "Enabled"  # optimistic update
+
+
+async def test_optimistic_default_reads_with_fallback(hass, monkeypatch):
+    # optimistic_default DOES read the register, but an undecodable value falls back
+    # to the default so the control stays usable
+    defn = EntityDef(
+        key="mode", platform="select", address=50,
+        value_map={0: "Off", 1: "On"}, optimistic_default="Off", ha={},
+    )
+    bad = await make_coordinator(hass, make_device(defn), FakeClient({50: 99}), monkeypatch, FakeTime())
+    await bad.async_refresh()
+    assert bad.client.reads  # unlike static_value, the register is read
+    assert bad.data["mode"] == "Off"  # 99 is not in the map -> fallback
+
+    good = await make_coordinator(hass, make_device(defn), FakeClient({50: 1}), monkeypatch, FakeTime())
+    await good.async_refresh()
+    assert good.data["mode"] == "On"  # a decodable value is shown as itself
 
 
 async def test_time_entity_reads_and_writes(hass, monkeypatch):

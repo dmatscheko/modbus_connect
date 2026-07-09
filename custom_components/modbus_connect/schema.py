@@ -124,8 +124,10 @@ _MODBUS_KEYS = {
     "off",
     "write_value",
     "read_register",
+    "static_value",
     "optimistic_default",
     "write_multiple",
+    "rectify_time",
     "read_modify_write",
     "max_change",
     "never_resets",
@@ -344,11 +346,18 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         raise ctx.fail("read_register must be a template string, e.g. '{{ other_key }}'")
 
     write_multiple = _bool(ctx, raw, "write_multiple")
+    rectify_time = _bool(ctx, raw, "rectify_time")
+    static_value = raw.get("static_value")
+    if "static_value" in raw and not isinstance(static_value, (int, float, bool, str)):
+        raise ctx.fail(
+            "static_value must be a number, boolean, or string (the value the entity "
+            "shows; its presence marks the register write-only)"
+        )
     optimistic_default = raw.get("optimistic_default")
     if "optimistic_default" in raw and not isinstance(optimistic_default, (int, float, bool, str)):
         raise ctx.fail(
-            "optimistic_default must be a number, boolean, or string (the seed value "
-            "shown before the first write; its presence marks the entity write-only)"
+            "optimistic_default must be a number, boolean, or string (the fallback value "
+            "shown when the register decodes to nothing)"
         )
 
     duplicate_as_sensor = _bool(ctx, raw, "duplicate_as_sensor")
@@ -371,8 +380,10 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         off_value=off_value,
         write_value=write_value,
         read_register=read_register,
+        static_value=static_value,
         optimistic_default=optimistic_default,
         write_multiple=write_multiple,
+        rectify_time=rectify_time,
         read_modify_write=read_modify_write,
         max_change=max_change,
         never_resets=_bool(ctx, raw, "never_resets"),
@@ -395,7 +406,10 @@ def _parse_platform(ctx: _Ctx, raw: dict[str, Any]) -> tuple[str, dict[str, Any]
                 "internal entities must not have an 'ha:' block "
                 "(they exist only for the template: section)"
             )
-        for bad in ("on", "off", "write_value", "optimistic_default", "write_multiple"):
+        for bad in (
+            "on", "off", "write_value", "static_value", "optimistic_default",
+            "write_multiple", "rectify_time",
+        ):
             if raw.get(bad) is not None:
                 raise ctx.fail(f"'{bad}' is not valid for internal entities")
         if raw.get("duplicate_as_sensor"):
@@ -623,12 +637,21 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
     if defn.read_register is not None and (not defn.writes or platform == "button"):
         raise ctx.fail("'read_register' is only valid on writable, readable platforms")
 
-    # optimistic_default: write-only register, shown from the seed and last write only.
-    if defn.optimistic_default is not None:
+    # static_value: never-read register, shown from the seed and last write only.
+    # optimistic_default: read the register, fall back to the value when it decodes
+    # to nothing. Both keep a writable control usable; they cannot combine.
+    for name, value in (
+        ("static_value", defn.static_value),
+        ("optimistic_default", defn.optimistic_default),
+    ):
+        if value is None:
+            continue
         if not defn.writes or platform == "button":
-            raise ctx.fail("'optimistic_default' is only valid on writable, readable platforms")
+            raise ctx.fail(f"'{name}' is only valid on writable, readable platforms")
         if defn.read_register is not None:
-            raise ctx.fail("'optimistic_default' and 'read_register' are mutually exclusive")
+            raise ctx.fail(f"'{name}' and 'read_register' are mutually exclusive")
+    if defn.static_value is not None and defn.optimistic_default is not None:
+        raise ctx.fail("'static_value' and 'optimistic_default' are mutually exclusive")
     if defn.write_multiple and (not defn.writes or defn.table not in WRITABLE_TABLES):
         raise ctx.fail("'write_multiple' is only valid on writable register platforms")
     if defn.write_multiple and defn.table in BIT_TABLES:
@@ -651,6 +674,8 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
         raise ctx.fail("time entities require type 'time'")
     if defn.type == TYPE_TIME and platform != "time":
         raise ctx.fail("type 'time' is only valid for the time platform")
+    if defn.rectify_time and platform != "time":
+        raise ctx.fail("'rectify_time' is only valid for time entities")
 
     if platform == "number":
         for field in ("native_min_value", "native_max_value"):

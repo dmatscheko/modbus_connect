@@ -121,7 +121,13 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
 
     if defn.type == TYPE_TIME:
         hour, minute = (words[0] >> 8) & 0xFF, words[0] & 0xFF
-        return dt_time(hour, minute) if hour < 24 and minute < 60 else None
+        if hour < 24 and minute < 60:
+            return dt_time(hour, minute)
+        if not defn.rectify_time:
+            return None
+        # Out of range with rectify_time: 24:00 (or beyond) is end-of-day -> 23:59;
+        # a stray minute overflow keeps the hour.
+        return dt_time(23, 59) if hour >= 24 else dt_time(hour, 59)
 
     num: float | int
     if defn.sum_scale is not None:

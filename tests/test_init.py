@@ -82,6 +82,25 @@ holding:
     ha:
       platform: sensor
       name: Status
+  schedule:
+    address: 8
+    type: time
+    ha:
+      platform: time
+      name: Schedule
+  schedule_unset:
+    address: 9
+    type: time
+    ha:
+      platform: time
+      name: Schedule unset
+  schedule_rectified:
+    address: 10
+    type: time
+    rectify_time: true
+    ha:
+      platform: time
+      name: Schedule rectified
 coil:
   pump:
     address: 0
@@ -219,6 +238,9 @@ class FakeClient:
             ("holding", 5): 0,
             ("holding", 6): 1,  # valve on
             ("holding", 7): 9,  # status: not in the map -> undecodable
+            ("holding", 8): 3102,  # schedule: 12*256 + 30 -> 12:30
+            ("holding", 9): 0x1800,  # schedule_unset: 24:00, no rectify -> unavailable
+            ("holding", 10): 0x1800,  # schedule_rectified: 24:00 -> 23:59
             ("coil", 0): True,  # pump on
             ("discrete", 1): True,  # alarm on
         }
@@ -306,6 +328,9 @@ async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
         ("fan", "t_fan", "on"),
         ("cover", "t_cover", "open"),
         ("climate", "t_climate", "heat"),
+        ("time", "schedule", "12:30:00"),
+        ("time", "schedule_rectified", "23:59:00"),  # 24:00 rectified to end of day
+        ("time", "schedule_unset", "unavailable"),  # 24:00 without rectify_time drops out
     ]:
         state = hass.states.get(eid(hass, entry, platform, key))
         assert state is not None, f"{platform}/{key} has no state"
