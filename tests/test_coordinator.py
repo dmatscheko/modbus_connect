@@ -302,6 +302,21 @@ async def test_optimistic_entity_seeds_default_and_writes_fc16(hass, monkeypatch
     assert coordinator.data["power_control"] == "Enabled"  # optimistic update
 
 
+async def test_time_entity_reads_and_writes(hass, monkeypatch):
+    from datetime import time
+
+    client = FakeClient({104: 3102})  # 12:30 packed as 12*256 + 30
+    defn = EntityDef(key="charge_start", platform="time", address=104, type="time", ha={})
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_start"] == time(12, 30)
+    await coordinator.async_write(defn, time(6, 15))
+    assert client.written == [(104, [(6 << 8) | 15])]  # 6*256 + 15
+    assert coordinator.data["charge_start"] == time(6, 15)  # confirmed by read-back
+
+
 async def test_nothing_due_returns_cache(hass, monkeypatch):
     faketime = FakeTime()
     client = FakeClient({0: 5})

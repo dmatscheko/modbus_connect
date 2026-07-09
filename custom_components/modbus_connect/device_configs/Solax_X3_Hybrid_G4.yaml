@@ -302,6 +302,38 @@ holding:
       min: 15
       max: 100
       step: 1
+  charge_start_1:
+    address: 104
+    type: time
+    ha:
+      platform: time
+      name: Charge Start 1
+      icon: "mdi:clock-start"
+      entity_category: config
+  charge_end_1:
+    address: 105
+    type: time
+    ha:
+      platform: time
+      name: Charge End 1
+      icon: "mdi:clock-end"
+      entity_category: config
+  discharge_start_1:
+    address: 106
+    type: time
+    ha:
+      platform: time
+      name: Discharge Start 1
+      icon: "mdi:clock-start"
+      entity_category: config
+  discharge_end_1:
+    address: 107
+    type: time
+    ha:
+      platform: time
+      name: Discharge End 1
+      icon: "mdi:clock-end"
+      entity_category: config
   charge_and_discharge_period2_enable:
     address: 108
     map:
@@ -312,6 +344,38 @@ holding:
       platform: select
       name: Charge and Discharge Period2 Enable
       icon: "mdi:battery-clock"
+      entity_category: config
+  charge_start_2:
+    address: 109
+    type: time
+    ha:
+      platform: time
+      name: Charge Start 2
+      icon: "mdi:clock-start"
+      entity_category: config
+  charge_end_2:
+    address: 110
+    type: time
+    ha:
+      platform: time
+      name: Charge End 2
+      icon: "mdi:clock-end"
+      entity_category: config
+  discharge_start_2:
+    address: 111
+    type: time
+    ha:
+      platform: time
+      name: Discharge Start 2
+      icon: "mdi:clock-start"
+      entity_category: config
+  discharge_end_2:
+    address: 112
+    type: time
+    ha:
+      platform: time
+      name: Discharge End 2
+      icon: "mdi:clock-end"
       entity_category: config
   main_breaker_current_limit:
     address: 113
@@ -978,6 +1042,38 @@ holding:
       platform: select
       name: Battery Heating
       icon: "mdi:heating-coil"
+  battery_heating_start_time_1:
+    address: 208
+    type: time
+    ha:
+      platform: time
+      name: Battery Heating Start Time 1
+      icon: "mdi:clock-start"
+      entity_category: config
+  battery_heating_end_time_1:
+    address: 209
+    type: time
+    ha:
+      platform: time
+      name: Battery Heating End Time 1
+      icon: "mdi:clock-end"
+      entity_category: config
+  battery_heating_start_time_2:
+    address: 210
+    type: time
+    ha:
+      platform: time
+      name: Battery Heating Start Time 2
+      icon: "mdi:clock-start"
+      entity_category: config
+  battery_heating_end_time_2:
+    address: 211
+    type: time
+    ha:
+      platform: time
+      name: Battery Heating End Time 2
+      icon: "mdi:clock-end"
+      entity_category: config
   main_breaker_current_limit_readback:
     address: 215
     internal: true
@@ -1004,6 +1100,38 @@ holding:
       icon: "mdi:dip-switch"
       entity_category: config
       enabled_by_default: false
+  peakshaving_discharge_start_time_1:
+    address: 234
+    type: time
+    ha:
+      platform: time
+      name: PeakShaving Discharge Start Time 1
+      icon: "mdi:clock-start"
+      entity_category: config
+  peakshaving_discharge_stop_time_1:
+    address: 235
+    type: time
+    ha:
+      platform: time
+      name: PeakShaving Discharge Stop Time 1
+      icon: "mdi:clock-end"
+      entity_category: config
+  peakshaving_discharge_start_time_2:
+    address: 236
+    type: time
+    ha:
+      platform: time
+      name: PeakShaving Discharge Start Time 2
+      icon: "mdi:clock-start"
+      entity_category: config
+  peakshaving_discharge_stop_time_2:
+    address: 237
+    type: time
+    ha:
+      platform: time
+      name: PeakShaving Discharge Stop Time 2
+      icon: "mdi:clock-end"
+      entity_category: config
   peakshaving_discharge_limit_1:
     address: 238
     read_register: "{{ peakshaving_discharge_limit_1_readback }}"

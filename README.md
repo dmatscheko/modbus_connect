@@ -128,10 +128,10 @@ input:
     address: 0x0000        # register/coil address (decimal or hex)
     type: float32          # uint16 (default) | int16 | uint32 | int32 | uint64 |
                            # int64 | float16 | float32 | float64 | uint8 | int8 |
-                           # bit (alias int1) | string
+                           # bit (alias int1) | string | time
     ha:
       platform: sensor     # sensor | binary_sensor | number | select | switch |
-                           # text | button
+                           # text | time | button
       name: Phase 1 voltage
       device_class: voltage
       state_class: measurement
@@ -175,7 +175,7 @@ rendered once from the first read.
 | Key | Meaning |
 | --- | --- |
 | `address` | Start address (0–65535, hex `0x…` works) |
-| `type` | Value type; determines register count. `string` needs `count`. Sub-word types (`uint8`/`int8` = low byte, `bit` = least significant bit) read one register. Bit tables are implicitly `bool` |
+| `type` | Value type; determines register count. `string` needs `count`. Sub-word types (`uint8`/`int8` = low byte, `bit` = least significant bit) read one register. `time` is a one-register HH:MM (high byte hour, low byte minute; add `swap: byte` for the reverse) on a `time` platform. Bit tables are implicitly `bool` |
 | `count` | Register count — only for `string` (2 characters per register) |
 | `swap` | `byte`, `word`, or `word_byte` for little-endian devices |
 | `sum_scale` | List of per-element weights: `value = Σ element[i] · scale[i]`, where each element has the entity's `type` (default `uint16` — one register per weight). Example `[1, 10000, 100000000]` for a counter spread over 3 registers. With `type: uint8` each register holds two elements (low byte first — combine with `swap: byte` for devices that pack high byte first), so the same weights cover 1.5 registers (2 are read); with `type: bit` each register holds sixteen (LSB first). Writable when the weights are positive integers and the type is an unsigned integer |

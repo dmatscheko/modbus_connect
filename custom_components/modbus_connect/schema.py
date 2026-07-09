@@ -36,6 +36,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntityDescription
 from homeassistant.components.text import TextEntityDescription, TextMode
+from homeassistant.components.time import TimeEntityDescription
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
@@ -49,6 +50,7 @@ from .models import (
     TYPE_ALIASES,
     TYPE_BITS,
     TYPE_STRING,
+    TYPE_TIME,
     TYPE_WIDTH,
     WRITABLE_TABLES,
     DeviceDef,
@@ -65,6 +67,7 @@ DESCRIPTION_CLASSES: dict[str, type[EntityDescription]] = {
     "select": SelectEntityDescription,
     "switch": SwitchEntityDescription,
     "text": TextEntityDescription,
+    "time": TimeEntityDescription,
     "button": ButtonEntityDescription,
     # template: section only
     "climate": ClimateEntityDescription,
@@ -436,11 +439,11 @@ def _parse_shape(
         if isinstance(typ, str):
             typ = TYPE_ALIASES.get(typ, typ)
         if not isinstance(typ, str) or typ == "bool" or (
-            typ != TYPE_STRING and typ not in TYPE_BITS
+            typ not in (TYPE_STRING, TYPE_TIME) and typ not in TYPE_BITS
         ):
             raise ctx.fail(
                 f"unknown type {typ!r}, expected one of "
-                f"{sorted(TYPE_BITS)} or 'string'"
+                f"{sorted(TYPE_BITS)}, 'string' or 'time'"
             )
         count = _derive_count(ctx, raw, typ, sum_scale)
 
@@ -481,6 +484,8 @@ def _parse_conversions(
 
     if typ == TYPE_STRING and (mask or multiplier or offset or value_map or flags or sum_scale):
         raise ctx.fail("strings cannot be combined with numeric conversions")
+    if typ == TYPE_TIME and (mask or multiplier or offset or value_map or flags or sum_scale):
+        raise ctx.fail("time cannot be combined with numeric conversions")
     if typ in FLOAT_TYPES and (mask or flags):
         raise ctx.fail("floats cannot be combined with mask/flags")
     if value_map and flags:
@@ -502,6 +507,12 @@ def _derive_count(
         if explicit is None:
             raise ctx.fail("strings require 'count' (registers; 2 characters each)")
         return explicit
+    if typ == TYPE_TIME:
+        if sum_scale:
+            raise ctx.fail("sum_scale is not valid for time")
+        if explicit is not None and explicit != 1:
+            raise ctx.fail("time occupies a single register")
+        return 1
     if sum_scale is not None:
         derived = (TYPE_BITS[typ] * len(sum_scale) + 15) // 16
         if explicit is not None and explicit != derived:
@@ -637,6 +648,11 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
     platform = defn.platform
     if platform == "text" and defn.type != TYPE_STRING:
         raise ctx.fail("text entities require type 'string'")
+
+    if platform == "time" and defn.type != TYPE_TIME:
+        raise ctx.fail("time entities require type 'time'")
+    if defn.type == TYPE_TIME and platform != "time":
+        raise ctx.fail("type 'time' is only valid for the time platform")
 
     if platform == "number":
         for field in ("native_min_value", "native_max_value"):

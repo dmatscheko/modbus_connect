@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import math
 import struct
+from datetime import time as dt_time
 
 from .models import (
     BIT_TABLES,
@@ -23,6 +24,7 @@ from .models import (
     SIGNED_TYPES,
     TYPE_BITS,
     TYPE_STRING,
+    TYPE_TIME,
     TYPE_WIDTH,
     UNSIGNED_INT_TYPES,
     EntityDef,
@@ -117,6 +119,10 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
         text = _words_to_bytes(words).decode("ascii", errors="replace")
         return text.split("\x00", 1)[0].strip()
 
+    if defn.type == TYPE_TIME:
+        hour, minute = (words[0] >> 8) & 0xFF, words[0] & 0xFF
+        return dt_time(hour, minute) if hour < 24 and minute < 60 else None
+
     num: float | int
     if defn.sum_scale is not None:
         elements = _element_values(defn, words, len(defn.sum_scale))
@@ -167,10 +173,19 @@ def encode(
         num = _unmap(defn, value)
     elif defn.type == TYPE_STRING:
         return _encode_string(defn, value)
+    elif defn.type == TYPE_TIME:
+        return _encode_time(defn, value)
     else:
         num = _invert_conversions(defn, value)
 
     return _pack_number(defn, num, value, current_raw)
+
+
+def _encode_time(defn: EntityDef, value: object) -> list[int]:
+    """Pack a time-of-day into one register (high byte hour, low byte minute)."""
+    if not isinstance(value, dt_time):
+        raise CodecError(f"{defn.key}: expected a time, got {value!r}")
+    return _swap_words([(value.hour << 8) | value.minute], defn.swap)
 
 
 def _unmap(defn: EntityDef, value: object) -> int:

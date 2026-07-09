@@ -1,6 +1,7 @@
 """Tests for the symmetric codec."""
 
 import math
+from datetime import time
 
 import pytest
 
@@ -107,6 +108,36 @@ def test_string_byte_swap():
     defn = e(type="string", count=2, swap="byte")
     assert decode(defn, [0x4E53, 0x3234]) == "SN42"  # stored "NS24" -> "SN42"
     assert decode(defn, encode(defn, "SN42")) == "SN42"  # symmetric
+
+
+# --- time -------------------------------------------------------------------
+
+
+def test_time_roundtrip():
+    # one register, high byte = hour, low byte = minute (SolaX GEN4: hour*256 + minute)
+    defn = e(type="time", platform="time")
+    assert decode(defn, [3102]) == time(12, 30)  # 12*256 + 30
+    assert encode(defn, time(12, 30)) == [3102]
+    assert decode(defn, [5947]) == time(23, 59)
+    assert decode(defn, [0]) == time(0, 0)
+
+
+def test_time_invalid_is_none():
+    defn = e(type="time", platform="time")
+    assert decode(defn, [(25 << 8)]) is None  # hour 25 out of range
+    assert decode(defn, [61]) is None  # minute 61 out of range
+
+
+def test_time_byte_swap():
+    # devices packing minute-high / hour-low select swap: byte
+    defn = e(type="time", platform="time", swap="byte")
+    assert decode(defn, [(30 << 8) | 12]) == time(12, 30)
+    assert decode(defn, encode(defn, time(12, 30))) == time(12, 30)  # symmetric
+
+
+def test_time_requires_time_value():
+    with pytest.raises(CodecError):
+        encode(e(type="time", platform="time"), "12:30")
 
 
 # --- swaps -------------------------------------------------------------------

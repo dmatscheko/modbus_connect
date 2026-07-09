@@ -18,6 +18,7 @@ PLATFORMS: Final = [
     Platform.SENSOR,
     Platform.SWITCH,
     Platform.TEXT,
+    Platform.TIME,
 ]
 
 # Config entry data keys

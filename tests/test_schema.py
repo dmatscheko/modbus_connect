@@ -1033,3 +1033,23 @@ def test_write_multiple_rejected_on_non_writable():
         parse_device(
             doc(x={"address": 1, "write_multiple": True, "ha": {"platform": "sensor"}}), "t.yaml"
         )
+
+
+def test_time_entity_parses():
+    dev = parse_device(
+        doc(t={"address": 104, "type": "time", "ha": {"platform": "time"}}), "t.yaml"
+    )
+    e = dev.entities[0]
+    assert e.platform == "time" and e.type == "time" and e.count == 1
+
+
+def test_time_platform_requires_time_type():
+    with pytest.raises(DeviceSchemaError, match="time entities require type"):
+        parse_device(doc(t={"address": 1, "ha": {"platform": "time"}}), "t.yaml")
+
+
+def test_time_type_requires_time_platform():
+    with pytest.raises(DeviceSchemaError, match="only valid for the time platform"):
+        parse_device(
+            doc(t={"address": 1, "type": "time", "ha": {"platform": "sensor"}}), "t.yaml"
+        )

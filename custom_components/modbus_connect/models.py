@@ -46,6 +46,9 @@ TYPE_ALIASES = {"int1": "bit"}
 # Registers occupied by one value of each type
 TYPE_WIDTH = {t: max(1, bits // 16) for t, bits in TYPE_BITS.items()}
 TYPE_STRING = "string"
+# A time-of-day packed into one register: high byte = hour, low byte = minute
+# (use ``swap: byte`` for devices that pack minute high / hour low).
+TYPE_TIME = "time"
 TYPE_BOOL = "bool"
 FLOAT_TYPES = frozenset({"float16", "float32", "float64"})
 SIGNED_TYPES = frozenset({"int8", "int16", "int32", "int64"})
@@ -53,9 +56,9 @@ UNSIGNED_INT_TYPES = frozenset(TYPE_BITS) - FLOAT_TYPES - SIGNED_TYPES
 
 # Entity platforms
 PLATFORMS = frozenset(
-    {"sensor", "binary_sensor", "number", "select", "switch", "text", "button"}
+    {"sensor", "binary_sensor", "number", "select", "switch", "text", "time", "button"}
 )
-WRITING_PLATFORMS = frozenset({"number", "select", "switch", "text", "button"})
+WRITING_PLATFORMS = frozenset({"number", "select", "switch", "text", "time", "button"})
 
 # Platforms available in the template: section
 TEMPLATE_PLATFORMS = frozenset(
