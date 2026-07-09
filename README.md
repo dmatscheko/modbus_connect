@@ -5,8 +5,10 @@
 
 A Home Assistant custom integration for Modbus devices behind local TCP
 gateways — a ground-up rewrite of
-[modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) built
-around three ideas:
+[modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) that
+also draws on
+[homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus),
+built around four ideas:
 
 1. **Block reads.** Instead of one Modbus round trip per entity, each poll
    merges everything into as few reads as possible: overlapping and adjacent
@@ -24,6 +26,9 @@ around three ideas:
 3. **Symmetric conversions.** Whatever the integration can decode it can also
    encode for writing (`multiplier`/`offset`, `map`, `sum_scale`, masked bit
    fields via read-modify-write). Only `flags` is inherently read-only.
+4. **Templates, not code.** Derived values are declared as Jinja over the
+   device's register values and re-rendered every poll, and the same engine
+   drives writes. Device quirks become a few lines of YAML, not a plugin.
 
 Failed bridged blocks fall back to unbridged reads automatically, and
 addresses a device refuses to serve are remembered and never bridged again.
@@ -441,32 +446,6 @@ deletes its entities and device), then remove **Modbus Connect** in HACS (or
 delete `custom_components/modbus_connect/` manually) and restart Home
 Assistant. Your own device files in `<ha_config>/modbus_connect/` are never
 deleted automatically.
-
-## Migrating from modbus_local_gateway
-
-Convert old device files with the standalone converter (needs only PyYAML):
-
-```bash
-python3 converter/convert.py <old_device_configs_or_files> -o <output_dir>
-```
-
-The converter preserves semantics — the four old sections map 1:1 onto
-`holding:`/`input:`/`coil:`/`discrete:` — and prints a warning for everything
-it has to change or drop. What changes:
-
-- `control:` becomes `ha.platform`.
-- `float`/`signed`/`string`/`size` collapse into `type:` (+ `count` for strings).
-- `bits`/`shift_bits` become a single `mask`.
-- `flags` bit numbers are 0-indexed now (the converter shifts them).
-- Unit presets (`Volts`, `Celsius`, …) are expanded to real units plus the
-  device/state class they implied.
-- HA fields (`name`, `icon`, `device_class`, `entity_category`,
-  `precision`, …) move into the `ha:` block.
-- Number `precision` is dropped (HA numbers have no display precision;
-  use `ha.step`).
-
-Because this is a new integration (new domain), Home Assistant treats the
-entities as new; dashboards and automations need to be pointed at them.
 
 ## Quality
 

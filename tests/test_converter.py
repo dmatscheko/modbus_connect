@@ -1,12 +1,25 @@
 """Golden tests: old-format YAML through the converter and the new schema."""
 
+import importlib.util
 import io
+from pathlib import Path
 
 import pytest
 import yaml
 
-from converter.convert import SECTION_COMMENTS, convert_device, dump_device_yaml
 from custom_components.modbus_connect.schema import parse_device
+
+# The converter is a standalone script with a hyphenated filename (named after the source
+# format it converts), so it is loaded by path rather than imported as a module.
+_convert_path = (
+    Path(__file__).resolve().parent.parent / "converter" / "modbus_local_gateway-convert.py"
+)
+_spec = importlib.util.spec_from_file_location("mlg_convert", _convert_path)
+_mlg = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mlg)
+SECTION_COMMENTS = _mlg.SECTION_COMMENTS
+convert_device = _mlg.convert_device
+dump_device_yaml = _mlg.dump_device_yaml
 
 OLD = {
     "device": {"manufacturer": "Acme", "model": "X1", "max_register_read": 32},
