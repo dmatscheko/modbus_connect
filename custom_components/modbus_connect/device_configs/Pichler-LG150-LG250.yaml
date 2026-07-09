@@ -4,6 +4,7 @@ device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 150 - LG 250
   max_register_read: 100
+  max_read_gap: 64
   modbus_id: 20
   prefix: Pichler LG
 

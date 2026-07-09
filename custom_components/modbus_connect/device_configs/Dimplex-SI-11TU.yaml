@@ -4,6 +4,7 @@ device:
   manufacturer: Dimplex
   model: Sole/Wasser-Wärmepumpe SI 11TU
   max_register_read: 100
+  max_read_gap: 64
   prefix: Dimplex SI
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
