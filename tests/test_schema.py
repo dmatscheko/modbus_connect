@@ -922,7 +922,30 @@ ERROR_CASES = [
     (
         "on_off_on_sensor",
         doc(x={"address": 0, "on_value": 1, "ha": {"platform": "sensor"}}),
-        "only valid for switch and binary_sensor",
+        "only valid for switch, binary_sensor, and valve",
+    ),
+    (
+        "on_off_on_position_valve",
+        doc(x={"address": 0, "on_value": 1,
+               "ha": {"platform": "valve", "reports_position": True}}),
+        "only for binary valves",
+    ),
+    (
+        "position_valve_on_coil",
+        doc("coil", x={"address": 0,
+                       "ha": {"platform": "valve", "reports_position": True}}),
+        "needs a register",
+    ),
+    (
+        "position_valve_with_map",
+        doc(x={"address": 0, "map": {0: "shut"},
+               "ha": {"platform": "valve", "reports_position": True}}),
+        "plain numeric value",
+    ),
+    (
+        "binary_valve_with_map",
+        doc(x={"address": 0, "map": {0: "shut"}, "ha": {"platform": "valve"}}),
+        "plain numeric or bit value",
     ),
     (
         "flags_on_button",

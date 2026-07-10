@@ -4,8 +4,8 @@ Every device Modbus Connect talks to is described by one YAML file. Bundled
 files ship with the integration (see the [README's device
 table](../README.md#bundled-device-files)); your own go in
 `<ha_config>/modbus_connect/` — they survive updates and override built-in
-files with the same name. Invalid files are reported in the log with the
-entity and reason and skipped.
+files with the same name. Invalid files are skipped and reported — with the
+entity and reason — in the config flow's device picker and in the log.
 
 This page is the complete format reference for writing such a file:
 the [`device:` section](#the-device-section), [read planning and
@@ -65,7 +65,7 @@ input:
                            # bit (alias int1) | string | time
     ha:
       platform: sensor     # sensor | binary_sensor | number | select | switch |
-                           # text | time | button
+                           # text | time | button | valve
       name: Phase 1 voltage
       device_class: voltage
       state_class: measurement
@@ -162,7 +162,7 @@ entities that surface failures on the device page.
 | `multiplier` / `offset` | `value = raw · multiplier + offset` (inverted on write) |
 | `map` | `{register value: label}` — enums; used as the options of a `select` |
 | `flags` | `{bit number (0-indexed): name}` — sensor shows the set flags, read-only |
-| `on_value` / `off_value` | Values meaning on/off for `switch`/`binary_sensor` (defaults: 1/0, true/false). Reading: `on_value` matches on; with no `off_value` anything else is off, with one, other values are unknown |
+| `on_value` / `off_value` | Values meaning on/off for `switch`/`binary_sensor` and open/closed for binary `valve` (defaults: 1/0, true/false). Reading: `on_value` matches on; with no `off_value` anything else is off, with one, other values are unknown |
 | `write_value` | What a `button` writes when pressed. A fixed number/boolean **or a single Jinja template** (`"{{ … }}"`) goes through the entity's codec, honouring `type`/`map`/`multiplier`/`count` (so int32, float, mapped labels, and strings all work). A **list** of numbers/templates instead writes each item as one raw 16-bit register in a single FC16 transaction — for register blocks like an RTC sync: `["{{ now().second }}", "{{ now().minute }}", …]`. Templates render over the current values with the usual HA functions (`now()`, `utcnow()`, …) |
 | `read_register` | Take the current value from elsewhere instead of this entity's own register — a Jinja template like the `template:` section (e.g. `"{{ other_key }}"`). For settings a device echoes on a different register (or table) than it accepts writes on: this entity writes to its own `address`/table, while the referenced entity — often `internal:`, with its own `type`/`mask`/`multiplier`, and free to live in `input:`/`discrete:` — supplies the read-back. A plain single-key reference passes the source value through unchanged (a `time`-typed read-back stays a time-of-day); anything more is rendered as a template and yields text/numbers |
 | `read_modify_write` | Allow writing a `mask`ed field by merging into the current register |

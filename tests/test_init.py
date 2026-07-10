@@ -331,6 +331,74 @@ async def test_connection_tuning_reaches_the_client(hass: HomeAssistant) -> None
     assert acquire.call_args.kwargs["request_delay"] == pytest.approx(0.05)
 
 
+async def test_valve_platform(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "valves.yaml").write_text(
+        """
+device:
+  manufacturer: Acme
+  model: V1
+holding:
+  ball_valve:
+    address: 20
+    on_value: 2
+    off_value: 3
+    ha:
+      platform: valve
+      name: Ball valve
+      device_class: water
+  mix_valve:
+    address: 21
+    ha:
+      platform: valve
+      name: Mix valve
+      reports_position: true
+""",
+        encoding="utf-8",
+    )
+    client = FakeClient()
+    client.values[("holding", 20)] = 2  # ball valve: custom on_value -> open
+    client.values[("holding", 21)] = 40  # mixer at 40 %
+    entry = make_entry("valves.yaml")
+    entry.add_to_hass(hass)
+    with patch.object(ModbusBlockClient, "acquire", return_value=client):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    ball = eid(hass, entry, "valve", "ball_valve")
+    mix = eid(hass, entry, "valve", "mix_valve")
+    assert hass.states.get(ball).state == "open"
+    mix_state = hass.states.get(mix)
+    assert mix_state.state == "open"
+    assert mix_state.attributes["current_position"] == 40
+
+    # binary valve: close writes the configured off_value
+    await hass.services.async_call(
+        "valve", "close_valve", {"entity_id": ball}, blocking=True
+    )
+    assert client.values[("holding", 20)] == 3
+    assert hass.states.get(ball).state == "closed"
+
+    # position valve: set_position writes the percentage, open/close the ends
+    await hass.services.async_call(
+        "valve",
+        "set_valve_position",
+        {"entity_id": mix, "position": 75},
+        blocking=True,
+    )
+    assert client.values[("holding", 21)] == 75
+    await hass.services.async_call(
+        "valve", "close_valve", {"entity_id": mix}, blocking=True
+    )
+    assert client.values[("holding", 21)] == 0
+    assert hass.states.get(mix).state == "closed"
+    await hass.services.async_call(
+        "valve", "open_valve", {"entity_id": mix}, blocking=True
+    )
+    assert client.values[("holding", 21)] == 100
+
+
 async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
     write_device_file(hass)
     entry = MockConfigEntry(

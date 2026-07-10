@@ -463,7 +463,8 @@
             "sensor",
             "switch",
             "text",
-            "time"
+            "time",
+            "valve"
           ]
         }
       },
@@ -1158,6 +1159,69 @@
               "name": {
                 "type": "string"
               },
+              "translation_key": {
+                "type": "string"
+              },
+              "translation_placeholders": {
+                "type": "object"
+              },
+              "unit_of_measurement": {
+                "type": "string"
+              },
+              "enabled_by_default": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "platform"
+            ],
+            "properties": {
+              "platform": {
+                "const": "valve"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "platform": {
+                "const": "valve"
+              },
+              "device_class": {
+                "enum": [
+                  "gas",
+                  "water"
+                ]
+              },
+              "entity_category": {
+                "enum": [
+                  "config",
+                  "diagnostic"
+                ]
+              },
+              "entity_registry_enabled_default": {
+                "type": "boolean"
+              },
+              "entity_registry_visible_default": {
+                "type": "boolean"
+              },
+              "force_update": {
+                "type": "boolean"
+              },
+              "has_entity_name": {
+                "type": "boolean"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "reports_position": {},
               "translation_key": {
                 "type": "string"
               },

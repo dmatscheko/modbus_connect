@@ -19,6 +19,7 @@ PLATFORMS: Final = [
     Platform.SWITCH,
     Platform.TEXT,
     Platform.TIME,
+    Platform.VALVE,
 ]
 
 # Config entry data keys

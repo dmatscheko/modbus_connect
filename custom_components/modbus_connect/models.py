@@ -57,9 +57,21 @@ UNSIGNED_INT_TYPES = frozenset(TYPE_BITS) - FLOAT_TYPES - SIGNED_TYPES
 
 # Entity platforms
 PLATFORMS = frozenset(
-    {"sensor", "binary_sensor", "number", "select", "switch", "text", "time", "button"}
+    {
+        "sensor",
+        "binary_sensor",
+        "number",
+        "select",
+        "switch",
+        "text",
+        "time",
+        "button",
+        "valve",
+    }
 )
-WRITING_PLATFORMS = frozenset({"number", "select", "switch", "text", "time", "button"})
+WRITING_PLATFORMS = frozenset(
+    {"number", "select", "switch", "text", "time", "button", "valve"}
+)
 
 # Platforms available in the template: section
 TEMPLATE_PLATFORMS = frozenset(

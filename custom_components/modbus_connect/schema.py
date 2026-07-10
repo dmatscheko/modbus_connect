@@ -37,6 +37,7 @@ from homeassistant.components.sensor import (
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntityDescription
 from homeassistant.components.text import TextEntityDescription, TextMode
 from homeassistant.components.time import TimeEntityDescription
+from homeassistant.components.valve import ValveDeviceClass, ValveEntityDescription
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
@@ -69,6 +70,7 @@ DESCRIPTION_CLASSES: dict[str, type[EntityDescription]] = {
     "text": TextEntityDescription,
     "time": TimeEntityDescription,
     "button": ButtonEntityDescription,
+    "valve": ValveEntityDescription,
     # template: section only
     "climate": ClimateEntityDescription,
     "cover": CoverEntityDescription,
@@ -99,6 +101,7 @@ _ENUM_FIELDS: dict[str, dict[str, type]] = {
     "button": {"device_class": ButtonDeviceClass},
     "text": {"mode": TextMode},
     "cover": {"device_class": CoverDeviceClass},
+    "valve": {"device_class": ValveDeviceClass},
 }
 
 _OLD_FORMAT_SECTIONS = {
@@ -840,7 +843,23 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
         if defn.value_map or defn.flags:
             raise ctx.fail("numbers cannot use map/flags")
 
-    if platform in ("switch", "binary_sensor"):
+    # A valve is either binary (open/close like a switch, the default) or —
+    # with ha.reports_position — a 0..100 position control (numeric, no on/off).
+    position_valve = platform == "valve" and bool(defn.ha.get("reports_position"))
+    if position_valve:
+        if defn.table in BIT_TABLES:
+            raise ctx.fail("a position valve needs a register, not a coil")
+        if defn.on_value is not None or defn.off_value is not None:
+            raise ctx.fail(
+                "'on_value'/'off_value' are only for binary valves "
+                "(remove them or drop ha.reports_position)"
+            )
+        if defn.type == TYPE_STRING or defn.flags or defn.value_map:
+            raise ctx.fail("position valves need a plain numeric value (0-100)")
+
+    if platform in ("switch", "binary_sensor") or (
+        platform == "valve" and not position_valve
+    ):
         # A 'map' decodes to a label string, which the integer/boolean on/off
         # comparison can never match — the entity would be stuck on.
         if defn.type == TYPE_STRING or defn.flags or defn.value_map:
@@ -848,9 +867,12 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
                 f"{platform} entities need a plain numeric or bit value (no map/"
                 "flags/string; use 'on_value'/'off_value' to pick the raw values)"
             )
-    elif defn.on_value is not None or defn.off_value is not None:
+    elif not position_valve and (
+        defn.on_value is not None or defn.off_value is not None
+    ):
         raise ctx.fail(
-            "'on_value'/'off_value' are only valid for switch and binary_sensor"
+            "'on_value'/'off_value' are only valid for switch, binary_sensor, "
+            "and valve"
         )
 
     if defn.flags and platform != "sensor":
