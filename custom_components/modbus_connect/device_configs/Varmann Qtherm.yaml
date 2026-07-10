@@ -31,6 +31,7 @@ holding:
       platform: number
       min: 0
       max: 100
+      step: 0.1
       name: Required Temperature
       unit_of_measurement: °C
       icon: mdi:thermometer
@@ -92,6 +93,7 @@ holding:
       platform: number
       min: 10
       max: 500
+      step: 0.1
       name: Incoming temperature
       unit_of_measurement: °C
       icon: mdi:thermometer
@@ -162,6 +164,7 @@ holding:
       name: DIP Switch 2
   i_mode:
     address: 18
+    'on': 1
     ha:
       platform: binary_sensor
       name: Operating mode

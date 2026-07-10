@@ -29,28 +29,24 @@ coil:
   ebyte_ip1:
     address: 0
     'on': true
-    'off': false
     ha:
       platform: binary_sensor
       name: ebyte_ip1
   ebyte_ip2:
     address: 1
     'on': true
-    'off': false
     ha:
       platform: binary_sensor
       name: ebyte_ip2
   ebyte_ip3:
     address: 2
     'on': true
-    'off': false
     ha:
       platform: binary_sensor
       name: ebyte_ip3
   ebyte_ip4:
     address: 3
     'on': true
-    'off': false
     ha:
       platform: binary_sensor
       name: ebyte_ip4

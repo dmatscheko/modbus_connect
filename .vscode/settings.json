@@ -1,0 +1,6 @@
+{
+  "sonarlint.connectedMode.project": {
+    "connectionId": "dmatscheko",
+    "projectKey": "dmatscheko_modbus_connect"
+  }
+}

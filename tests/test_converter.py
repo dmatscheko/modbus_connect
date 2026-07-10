@@ -244,3 +244,101 @@ def test_duplicate_key_rename_is_collision_checked():
     keys = set(doc["holding"]) | set(doc["input"])
     assert len(keys) == 3  # nothing silently overwritten
     parse_device(doc, "old.yaml")
+
+
+def test_number_step_defaults_to_multiplier():
+    # the old integration uses the multiplier as the step when none is given
+    doc = convert_device(
+        _mini(
+            "read_write_word",
+            t={"address": 1, "multiplier": 0.1, "control": "number",
+               "number": {"min": 5, "max": 30}},
+            flow={"address": 2, "multiplier": 10, "control": "number",
+                  "number": {"min": 0, "max": 500}},
+            plain={"address": 3, "control": "number", "number": {"min": 0, "max": 9}},
+        ),
+        "old.yaml",
+    )
+    assert doc["holding"]["t"]["ha"]["step"] == pytest.approx(0.1)
+    assert doc["holding"]["flow"]["ha"]["step"] == 10
+    assert "step" not in doc["holding"]["plain"]["ha"]  # multiplier 1 keeps HA's default
+    parse_device(doc, "old.yaml")
+
+
+def test_number_without_min_max_is_skipped():
+    # the old integration never creates these; our schema would reject them
+    doc = convert_device(
+        _mini("read_write_word", bad={"address": 1, "control": "number"}),
+        "old.yaml",
+    )
+    assert "bad" not in doc.get("holding", {})
+
+
+def test_word_binary_sensor_reads_on_as_one():
+    # old semantics: is_on = (value == on), on defaults to True == 1 on word
+    # registers, and 'off' is never consulted — anything != on reads as off
+    doc = convert_device(
+        _mini(
+            "read_only_word",
+            plain={"address": 1, "control": "binary_sensor"},
+            explicit={"address": 2, "control": "binary_sensor", "on": 2, "off": 1},
+        ),
+        "old.yaml",
+    )
+    assert doc["input"]["plain"]["on"] == 1
+    assert doc["input"]["explicit"]["on"] == 2
+    assert "off" not in doc["input"]["explicit"]
+    dev = parse_device(doc, "old.yaml")
+    assert entity(dev, "plain").on_value == 1
+
+
+def test_word_switch_defaults_on_to_one():
+    doc = convert_device(
+        _mini("read_write_word", s={"address": 1, "control": "switch"}),
+        "old.yaml",
+    )
+    assert doc["holding"]["s"]["on"] == 1
+    parse_device(doc, "old.yaml")
+
+
+def test_disallowed_control_for_section_is_skipped():
+    # the old integration refuses writable controls on read-only tables
+    doc = convert_device(
+        _mini(
+            "read_only_word",
+            bad={"address": 1, "control": "number", "number": {"min": 0, "max": 9}},
+            ok={"address": 2},
+        ),
+        "old.yaml",
+    )
+    assert "bad" not in doc.get("input", {})
+    assert "ok" in doc["input"]
+
+
+def test_text_without_string_is_skipped():
+    # the old integration created these but raised on every write
+    doc = convert_device(
+        _mini("read_write_word", bad={"address": 1, "control": "text"}),
+        "old.yaml",
+    )
+    assert "bad" not in doc.get("holding", {})
+
+
+def test_multiplier_folds_into_map_keys():
+    # the old pipeline scales the value BEFORE the map lookup (and selects write
+    # the mapped key back through the same scaling); ours maps raw values
+    doc = convert_device(
+        _mini(
+            "read_write_word",
+            mode={"address": 1, "multiplier": 0.5, "control": "select",
+                  "options": {1: "Low", 2: "High"}},
+            odd={"address": 2, "multiplier": 0.4, "map": {1: "X"}},
+            flagged={"address": 3, "multiplier": 0.5, "flags": {1: "A"}},
+        ),
+        "old.yaml",
+    )
+    assert doc["holding"]["mode"]["map"] == {2: "Low", 4: "High"}
+    assert "multiplier" not in doc["holding"]["mode"]
+    assert "odd" not in doc["holding"]  # 1/0.4 = 2.5: no raw value maps to it
+    assert "flagged" not in doc["holding"]  # scaled bit positions: not representable
+    parse_device(doc, "old.yaml")

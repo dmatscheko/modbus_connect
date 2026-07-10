@@ -29,6 +29,15 @@ SECTION_DEFAULT_PLATFORM = {
     "read_write_boolean": "binary_sensor",
     "read_only_boolean": "binary_sensor",
 }
+# Control types the old integration accepts per section (anything else is
+# warned about and never created there — mirrored here so an invalid control
+# is skipped instead of converted into an entity that never existed).
+SECTION_ALLOWED_CONTROLS = {
+    "read_write_word": {"sensor", "number", "select", "text", "switch", "binary_sensor"},
+    "read_only_word": {"sensor", "binary_sensor"},
+    "read_write_boolean": {"binary_sensor", "switch"},
+    "read_only_boolean": {"binary_sensor"},
+}
 
 # Old unit presets -> (real unit, device_class, state_class)
 UOM_PRESETS: dict[str, tuple[str, str | None, str | None]] = {
@@ -183,6 +192,15 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
         warn(filename, f"{key}: dropping unknown keys {sorted(unknown)}")
 
     platform = old.get("control", SECTION_DEFAULT_PLATFORM[section])
+    if platform not in SECTION_ALLOWED_CONTROLS[section]:
+        raise SkipEntity(
+            f"control '{platform}' is not valid for {section} "
+            f"(the old integration skipped it too)"
+        )
+    if platform == "text" and not old.get("string"):
+        # the old integration created these, but its write path raised on every
+        # set attempt (a number rendered as text); nothing faithful to emit
+        raise SkipEntity("text without 'string: true' was never writable")
     is_bits = SECTION_TO_TABLE[section] in ("coil", "discrete")
 
     new: dict[str, Any] = {"address": old["address"]}
@@ -220,14 +238,25 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
     # platform specifics ------------------------------------------------------
     ha: dict[str, Any] = {"platform": platform}
     if platform == "binary_sensor":
+        # Old semantics: is_on = (value == on), everything else is off; 'off' is
+        # never looked at for binary sensors. Word registers default to on == 1
+        # (True compares equal to 1) — made explicit so any other value reads as
+        # off, exactly as before, instead of "any non-zero is on".
         if "on" in old:
             new["on"] = old["on"]
+        elif not is_bits:
+            new["on"] = 1
         if "off" in old:
-            new["off"] = old["off"]
+            warn(filename, f"{key}: 'off' is ignored for binary sensors in the old "
+                           f"format (anything != on reads as off), dropped")
     elif platform == "switch":
         switch = old.get("switch") or {}
+        # Same reading rule as binary sensors: is_on = (value == on), default 1
+        # on word registers. 'off' is the turn-off write payload (default 0).
         if "on" in switch:
             new["on"] = switch["on"]
+        elif not is_bits:
+            new["on"] = 1
         if "off" in switch:
             new["off"] = switch["off"]
     elif platform == "select":
@@ -237,14 +266,51 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
         new["map"] = options
     elif platform == "number":
         number = old.get("number") or {}
-        if "min" in number:
-            ha["min"] = number["min"]
-        if "max" in number:
-            ha["max"] = number["max"]
+        if "min" not in number or "max" not in number:
+            # the old integration refuses to create numbers without both
+            raise SkipEntity("number without 'min' and 'max' was never created")
+        ha["min"] = number["min"]
+        ha["max"] = number["max"]
         if "step" in number:
             ha["step"] = number["step"]
+        else:
+            # the old integration defaults the step to the multiplier, so a 0.1
+            # scale accepts 0.1 increments (and a 10 scale only multiples of 10,
+            # which is also all the register can represent)
+            mult = old.get("multiplier")
+            if isinstance(mult, (int, float)) and mult > 0 and mult != 1:
+                ha["step"] = mult
         if isinstance(number.get("mode"), str):
             ha["mode"] = number["mode"].lower()
+
+    # The old pipeline applies multiplier/offset BEFORE looking a value up in
+    # map/flags (and selects write the mapped key back through the same scaling);
+    # ours maps the raw register value. Fold the scaling into the keys when that
+    # lands on whole register values — otherwise the entity has no faithful
+    # representation.
+    if not is_bits and ("map" in new or "flags" in new):
+        mult = new.get("multiplier") or 1
+        off = new.get("offset") or 0
+        if mult != 1 or off != 0:
+            if "flags" in new:
+                raise SkipEntity(
+                    "flags with multiplier/offset test scaled bit positions; "
+                    "not representable"
+                )
+            folded: dict[int, Any] = {}
+            for k, v in new["map"].items():
+                raw = (k - off) / mult
+                if abs(raw - round(raw)) > 1e-9:
+                    raise SkipEntity(
+                        f"map key {k} is not a whole register value once the "
+                        f"multiplier/offset is removed"
+                    )
+                folded[round(raw)] = v
+            new["map"] = folded
+            new.pop("multiplier", None)
+            new.pop("offset", None)
+            warn(filename, f"{key}: multiplier/offset folded into the map keys "
+                           f"(the old format scales before mapping)")
 
     if old.get("max_change") is not None:
         new["max_change"] = old["max_change"]

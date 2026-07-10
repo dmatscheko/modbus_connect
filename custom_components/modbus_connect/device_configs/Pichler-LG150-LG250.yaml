@@ -90,6 +90,7 @@ holding:
       platform: number
       min: 30
       max: 400
+      step: 10
       name: Luftstrom Lüftungsstufe 1
       unit_of_measurement: m³/h
       icon: mdi:fan-speed-1
@@ -101,6 +102,7 @@ holding:
       platform: number
       min: 30
       max: 400
+      step: 10
       name: Luftstrom Lüftungsstufe 2
       unit_of_measurement: m³/h
       icon: mdi:fan-speed-2
@@ -112,6 +114,7 @@ holding:
       platform: number
       min: 30
       max: 400
+      step: 10
       name: Luftstrom Lüftungsstufe 3
       unit_of_measurement: m³/h
       icon: mdi:fan-speed-3
@@ -123,6 +126,7 @@ holding:
       platform: number
       min: 30
       max: 400
+      step: 10
       name: Luftstrom Grundlüftung
       unit_of_measurement: m³/h
       icon: mdi:fan
@@ -145,6 +149,7 @@ holding:
       platform: number
       min: -20
       max: 50
+      step: 0.1
       name: Soll Zulufttemperatur
       unit_of_measurement: °C
       device_class: temperature
@@ -158,6 +163,7 @@ holding:
       platform: number
       min: -20
       max: 50
+      step: 0.1
       name: Soll Raumlufttemperatur
       unit_of_measurement: °C
       device_class: temperature
@@ -171,6 +177,7 @@ holding:
       platform: number
       min: -20
       max: 50
+      step: 0.1
       name: Soll Ablufttemperatur
       unit_of_measurement: °C
       device_class: temperature

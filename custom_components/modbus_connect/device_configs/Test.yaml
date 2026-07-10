@@ -34,6 +34,7 @@ holding:
       platform: number
       min: -3000.0
       max: 3000.0
+      step: 0.1
       name: Degree minutes t
       unit_of_measurement: DM
   on_off:
@@ -73,6 +74,7 @@ holding:
       entity_category: diagnostic
   hotwater_demand:
     address: 3
+    'on': 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -83,6 +85,7 @@ holding:
       enabled_by_default: true
   heating_demand:
     address: 3
+    'on': 1
     mask: 0x2
     ha:
       platform: binary_sensor
@@ -93,6 +96,7 @@ holding:
       enabled_by_default: true
   antilegionella_on:
     address: 3
+    'on': 1
     mask: 0x10
     ha:
       platform: binary_sensor
@@ -103,6 +107,7 @@ holding:
       enabled_by_default: true
   register_1:
     address: 4
+    'on': 1
     mask: 0x10
     ha:
       platform: binary_sensor
