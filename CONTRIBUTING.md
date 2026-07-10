@@ -56,8 +56,25 @@ All three must pass; CI runs the same commands. Points worth knowing:
   `translations/en.json` (copy) and `translations/de.json` (translate).
 - If you touch `schema.py`'s surface, regenerate the editor schema:
   `.venv/bin/python support/build_json_schema.py` (a test fails when stale).
-- Commit messages: one terse lower-case line, no body
-  (`git log --oneline` shows the style).
+
+## Commit messages
+
+One line, imperative, lower-case — no body and no trailers (not even
+`Co-Authored-By`). `git log --oneline` shows the house style:
+
+- Start with a lower-case verb — `add`, `fix`, `move`, `rename`, `refactor`,
+  `drop`, `bump`, `make`, …
+- Say *what* changed, and *why* when it isn't obvious. One line, no trailing
+  period; aim for < 80 chars, but a slightly longer line is fine.
+- One logical change per commit; join tightly-related edits with `,` or `;`.
+- Name things as they are — files (`README.md`), keys (`max_read_gap`,
+  `on_value`), identifiers (`optimistic_default`), platforms (`valve`).
+
+```
+add device timeout, retries, and request_delay tuning
+verify the device answers its Modbus ID during the config flow
+make the all group implicit instead of tagging every entity
+```
 
 ## Reporting problems
 
