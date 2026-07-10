@@ -426,6 +426,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = time.monotonic()
         return {k: max(0, round(t - now)) for k, t in sorted(self.quarantined.items())}
 
+    def monotonic_time(self) -> float:
+        """The clock integrating template sensors measure refresh intervals with
+        (here so tests drive it together with the scan-interval clock)."""
+        return time.monotonic()
+
     @property
     def group_switch_names(self) -> tuple[str, ...]:
         """The named groups that get a toggle switch (the always-on ``basic``

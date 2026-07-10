@@ -310,7 +310,7 @@ so `current_temperature`/`target_temperature` can switch inputs with a plain
 
 | Template platform | Templates | Actions | Statics |
 | --- | --- | --- | --- |
-| `sensor`, `binary_sensor` | `state` | — | — |
+| `sensor`, `binary_sensor` | `state` | — | `integrate` (sensor only, see below) |
 | `switch` | `state` | `turn_on`, `turn_off` (fixed) | — |
 | `number` | `state` | `set_value` | `ha.min`/`ha.max` required |
 | `select` | `state` | `select_option` (mapped) | `options` (or derived from the action map / the target's `map`) |
@@ -330,6 +330,29 @@ template:
     turn_on: {entity: fan_stage, value: 2}
     turn_off: {entity: fan_stage, value: 0}
     set_percentage: {entity: fan_stage_percent}  # or an internal scaled twin
+```
+
+### Integrating power into energy (`integrate`)
+
+For values the device offers no native energy counter for, a template sensor
+may declare `integrate: trapezoidal` (or `left`/`right`): the `state` template
+then yields instantaneous power in **watts**, and the sensor accumulates
+**kilowatt-hours** with that Riemann-sum method across polls — ready for HA's
+Energy Dashboard without setting up an Integral helper. The total survives
+restarts; any interval where the source is unavailable (or HA was down) is
+skipped, never interpolated. Clamp the source if only one direction should
+count:
+
+```yaml
+template:
+  pv_energy_1:
+    state: "{{ [pv_power_1 or 0, 0] | max }}"   # W, production only
+    integrate: trapezoidal
+    ha:
+      platform: sensor
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
 ```
 
 Why not pass templates through to HA's template integration? Its platform

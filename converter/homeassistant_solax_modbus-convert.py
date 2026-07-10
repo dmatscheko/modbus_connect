@@ -519,6 +519,15 @@ HAC_BASIC = frozenset({
     "device_lock",  # writable settings need the unlock reachable in basic
 })
 
+# Entities promoted into an extra group on top of their tier (upstream's Energy
+# Dashboard switches reveal these under new names; we show the real entity
+# instead of a copy). Promotion also force-enables the entity — whoever flips
+# that group's switch wants the value without an extra registry click.
+HYBRID_EXTRA_GROUPS = {
+    # upstream ED "Grid to Battery Energy" = the e_charge_today register
+    "e_charge_today": ("grid_to_battery",),
+}
+
 
 def tier_groups(key, ha, basic):
     """The group tags for one entity/template: the curated basic set, SolaX's
@@ -530,14 +539,15 @@ def tier_groups(key, ha, basic):
     return ["advanced"] if enabled else []
 
 
-def annotate_groups(entities, templates, basic):
+def annotate_groups(entities, templates, basic, extra=None):
     """Attach group tags to every non-internal entity and every template in place.
     Internal read-only entities carry none (never shown; always polled when needed).
     An optional-feature entity (its ``_feature`` marker set by the converter) is in
     its feature group alone, keeping its upstream enabled/disabled default within
     it. A curated basic entity is forced enabled — SolaX ships a few of them
     disabled, but if we put one in the everyday view it should show without extra
-    clicks."""
+    clicks; the same goes for an entity promoted into an ``extra`` group."""
+    extra = extra or {}
     for _table, key, b in entities:
         feature = b.pop("_feature", None)
         if b.get("internal"):
@@ -546,9 +556,13 @@ def annotate_groups(entities, templates, basic):
             b["groups"] = feature
             continue
         ha = b.get("ha", {})
-        if key in basic:
+        promoted = extra.get(key, ())
+        # Tier first (from the upstream enabled state), force-enable after — a
+        # promoted expert entity joins its extra group without leaking into
+        # advanced just because the promotion enables it.
+        groups = [*tier_groups(key, ha, basic), *promoted]
+        if key in basic or promoted:
             ha.pop("enabled_by_default", None)
-        groups = tier_groups(key, ha, basic)
         if groups:
             b["groups"] = groups
     for t in templates:
@@ -629,6 +643,8 @@ def _emit_templates(buf, templates):
         buf.write("    ha:\n")
         _emit_mapping(buf, "      ", t["ha"])
         buf.write(f"    state: {yaml_str(t['state'])}\n")
+        if t.get("integrate"):
+            buf.write(f"    integrate: {yaml_str(t['integrate'])}\n")
         if t.get("groups"):
             buf.write(f"    groups: [{', '.join(t['groups'])}]\n")
 
@@ -707,7 +723,7 @@ def validate_output(text, filename):
 
 
 def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset(), protocol=None,
-        features=None):
+        features=None, extra_groups=None):
     P = load_plugin(module)
     ents, skipped, boundaries = convert(
         P.plugin_instance, spec_fn(P), protocol, features(P) if features else ()
@@ -716,7 +732,7 @@ def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozense
     dupes = [k for k, n in Counter(k for _, k, _ in ents).items() if n > 1]
     if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
         raise SystemExit(f"{filename}: duplicate entity keys {sorted(dupes)}")
-    annotate_groups(ents, templates, basic)
+    annotate_groups(ents, templates, basic, extra_groups)
     if boundaries:
         meta = dict(meta)
         split = {}
@@ -740,6 +756,12 @@ def PW(name, **extra):
     """A power-sensor ha block (W, measurement); extra keys (icon, ...) are merged."""
     return {"platform": "sensor", "name": name, "device_class": "power",
             "state_class": "measurement", "unit_of_measurement": "W", **extra}
+
+
+def KWH(name, **extra):
+    """An energy-total ha block (kWh, total_increasing) for `integrate` templates."""
+    return {"platform": "sensor", "name": name, "device_class": "energy",
+            "state_class": "total_increasing", "unit_of_measurement": "kWh", **extra}
 
 
 def rtc_template(state):
@@ -819,9 +841,12 @@ if __name__ == "__main__":
              "ha": PW("Grid import", icon="mdi:home-import-outline")},
             {"key": "grid_export", "state": "{{ [measured_power or 0, 0] | max }}",
              "ha": PW("Grid export", icon="mdi:home-export-outline")},
+            # also behind the home_consumption group switch (upstream's ED "Home
+            # Consumption Power" is this very value)
             {"key": "house_load",
              "state": "{{ (inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}",
-             "ha": PW("House load", icon="mdi:home-lightning-bolt")},
+             "ha": PW("House load", icon="mdi:home-lightning-bolt"),
+             "groups": ["advanced", "home_consumption"]},
             # PV-side alternative of the same figure (upstream house_load_alt, disabled there too)
             {"key": "house_load_alt",
              "state": "{{ (pv_power_total or 0) - (battery_power_charge or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}",
@@ -874,9 +899,36 @@ if __name__ == "__main__":
                     "device_class": "current", "state_class": "measurement",
                     "unit_of_measurement": "A", "icon": "mdi:current-dc"},
              "groups": ["parallel_mode"]},
+            # Upstream's three Energy Dashboard switches, mapped to groups over
+            # real entities instead of the copies upstream creates. The kWh
+            # sensors integrate power over time (`integrate`, like upstream's
+            # Riemann sums) where the device offers no native counter;
+            # grid_to_battery_power mirrors upstream's max(-inverter_power, 0).
+            {"key": "grid_to_battery_power",
+             "state": "{{ [-(inverter_power or 0), 0] | max }}",
+             "ha": PW("Grid to Battery Power", icon="mdi:transmission-tower-export"),
+             "groups": ["grid_to_battery"]},
+            {"key": "pv_energy_1",
+             "state": "{{ [pv_power_1 or 0, 0] | max }}",
+             "integrate": "trapezoidal",
+             "ha": KWH("PV Energy 1", icon="mdi:solar-power"),
+             "groups": ["solar_details"]},
+            {"key": "pv_energy_2",
+             "state": "{{ [pv_power_2 or 0, 0] | max }}",
+             "integrate": "trapezoidal",
+             "ha": KWH("PV Energy 2", icon="mdi:solar-power"),
+             "groups": ["solar_details"]},
+            # the house_load formula, clamped to consumption (upstream filters
+            # its Riemann source the same way)
+            {"key": "home_consumption_energy",
+             "state": "{{ [(inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0), 0] | max }}",
+             "integrate": "trapezoidal",
+             "ha": KWH("Home Consumption Energy", icon="mdi:home-lightning-bolt"),
+             "groups": ["home_consumption"]},
             rtc_template("{{ '20%02d-%02d-%02d %02d:%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second) }}"),
         ],
         basic=HYBRID_BASIC,
+        extra_groups=HYBRID_EXTRA_GROUPS,
     )
     # Charger firmware "ARM v{version/100}" from reg 37; hardware fixed "Gen2".
     run(

@@ -16,7 +16,10 @@ from custom_components.modbus_connect.loader import BUILTIN_DIR, _load_file
 from custom_components.modbus_connect.number import ModbusConnectTemplateNumber
 from custom_components.modbus_connect.schema import parse_device
 from custom_components.modbus_connect.select import ModbusConnectTemplateSelect
-from custom_components.modbus_connect.sensor import ModbusConnectTemplateSensor
+from custom_components.modbus_connect.sensor import (
+    ModbusConnectIntegralSensor,
+    ModbusConnectTemplateSensor,
+)
 from custom_components.modbus_connect.switch import ModbusConnectTemplateSwitch
 
 from .test_coordinator import FakeClient, FakeTime, make_coordinator
@@ -543,6 +546,35 @@ async def test_solax_hybrid_parallel_mode_group(hass, monkeypatch):
     assert value("pm_total_inverter_current") == 13.0  # summed at 0.1 A resolution
 
 
+async def test_solax_hybrid_energy_dashboard_groups(hass, monkeypatch):
+    """The solar_details/home_consumption/grid_to_battery groups (upstream's Energy
+    Dashboard switches) reveal the real entities plus the integral templates."""
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    templates = {t.key: t for t in device.templates}
+
+    # e_charge_today is promoted out of the expert tier into grid_to_battery
+    # (and force-enabled: flipping that switch should show it immediately)
+    e_charge = next(e for e in device.entities if e.key == "e_charge_today")
+    assert e_charge.groups == ("grid_to_battery",)
+    assert "entity_registry_enabled_default" not in e_charge.ha
+    # house_load doubles as upstream's ED "Home Consumption Power"
+    assert set(templates["house_load"].groups) == {"advanced", "home_consumption"}
+    assert templates["grid_to_battery_power"].groups == ("grid_to_battery",)
+    for key in ("pv_energy_1", "pv_energy_2", "home_consumption_energy"):
+        assert templates[key].config["integrate"] == "trapezoidal"
+
+    # enabling only home_consumption reveals its templates, not the advanced tier
+    coordinator = await make_coordinator(
+        hass, device, FakeClient({}), monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["home_consumption"]},
+    )
+    visible_templates = {t.key for t in coordinator.visible_templates}
+    assert "house_load" in visible_templates
+    assert "home_consumption_energy" in visible_templates
+    assert "battery_charge_power" not in visible_templates  # advanced stays off
+    assert "battery_charge_max_current" not in {e.key for e in coordinator.visible_entities}
+
+
 async def test_bms_max_charge_falls_back_when_bms_current_missing(hass, monkeypatch):
     """bms_max_charge falls back to the settable charge limit when the BMS current
     sensor reads as None (mirrors SolaX value_function_bms_max_charge)."""
@@ -568,3 +600,86 @@ template:
     tdef = next(t for t in device.templates if t.key == "bms_max_charge")
     entity = make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef)
     assert entity.native_value == 6144  # 204.8 V x 30.0 A fallback limit
+
+
+def _integral_device(state='"{{ [p or 0, 0] | max }}"', method="trapezoidal"):
+    return parse_device(
+        yaml.safe_load(
+            f"""
+device: {{manufacturer: T, model: E}}
+holding:
+  p: {{address: 0, ha: {{platform: sensor}}}}
+template:
+  e:
+    state: {state}
+    integrate: {method}
+    ha: {{platform: sensor, device_class: energy, state_class: total_increasing,
+         unit_of_measurement: kWh}}
+"""
+        ),
+        "e.yaml",
+    )
+
+
+async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
+    """`integrate: trapezoidal` sums rendered watts over the poll intervals —
+    including across refreshes the coordinator suppressed as unchanged, which
+    the sample timestamps absorb exactly."""
+    device = _integral_device()
+    client = FakeClient({0: 600})
+    faketime = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    await coordinator.async_refresh()
+
+    entity = make_entity(hass, ModbusConnectIntegralSensor, coordinator, device.templates[0])
+    entity.async_write_ha_state = lambda: None  # not registered with a platform
+    unsub = coordinator.async_add_listener(entity._handle_coordinator_update)
+    entity._advance()  # the seeding async_added_to_hass does in production
+    assert entity.native_value == 0.0
+
+    faketime.now += 300  # 600 W ramping to 400 W over 5 min -> 500 W avg
+    client.registers[0] = 400
+    await coordinator.async_refresh()
+    assert entity.native_value == pytest.approx(500 * 300 / 3_600_000, abs=1e-3)
+
+    faketime.now += 300  # unchanged data: no notify, no new sample ...
+    await coordinator.async_refresh()
+    faketime.now += 300  # ... the next change integrates the whole 10 min span
+    client.registers[0] = 0
+    await coordinator.async_refresh()
+    assert entity.native_value == pytest.approx(0.075)  # 0.0417 + 200 W x 600 s
+    unsub()
+
+
+async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
+    """left/right rectangles pick the matching endpoint; a non-numeric render
+    (unguarded unavailable source) drops the interval instead of interpolating."""
+    for method, expected in (("left", 600.0), ("right", 200.0)):
+        device = _integral_device(state='"{{ p }}"', method=method)
+        client = FakeClient({0: 600})
+        faketime = FakeTime()
+        coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+        await coordinator.async_refresh()
+        entity = make_entity(
+            hass, ModbusConnectIntegralSensor, coordinator, device.templates[0]
+        )
+        entity._advance()
+
+        faketime.now += 3600  # one hour 600 W -> 200 W
+        client.registers[0] = 200
+        await coordinator.async_refresh()
+        entity._advance()
+        assert entity.native_value == pytest.approx(expected / 1000)  # Wh -> kWh
+
+        client.fail_addresses.add(0)  # source unreadable: "{{ p }}" is not a number
+        faketime.now += 3600
+        await coordinator.async_refresh()
+        entity._advance()
+        assert entity.native_value == pytest.approx(expected / 1000)  # unchanged
+
+        client.fail_addresses.clear()  # recovery seeds a fresh sample point:
+        client.registers[0] = 500  # the unreadable hour is skipped entirely
+        faketime.now += 3600
+        await coordinator.async_refresh()
+        entity._advance()
+        assert entity.native_value == pytest.approx(expected / 1000)

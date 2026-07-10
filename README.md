@@ -163,6 +163,31 @@ back when the group does. The **Remove hidden entities** button deletes those
 greyed-out leftovers (including stale rows from an earlier device file)
 without touching anything that is currently provided.
 
+## Wiring the HA Energy Dashboard (SolaX X3-Hybrid G4)
+
+Everything the [Energy Dashboard](https://www.home-assistant.io/docs/energy/)
+needs is a first-class entity of the bundled hybrid file (the solax-modbus
+integration offers the same values as copies on a virtual device behind three
+enable switches — here the groups reveal the real sensors instead):
+
+| Dashboard slot | Entity | Group |
+| --- | --- | --- |
+| Grid consumption | `today_s_import_energy` | `advanced` |
+| Return to grid | `today_s_export_energy` | `advanced` |
+| Solar production | `today_s_solar_energy` | `basic` |
+| — per string | `pv_energy_1`, `pv_energy_2` | `solar_details` |
+| Battery in | `battery_input_energy_today` | `basic` |
+| Battery out | `battery_output_energy_today` | `basic` |
+| Grid → battery | `e_charge_today`, live `grid_to_battery_power` | `grid_to_battery` |
+| Home consumption | `home_consumption_energy`, live `house_load` | `home_consumption` |
+
+The `solar_details`, `home_consumption`, and `grid_to_battery` groups mirror
+upstream's *Enable PV Variant Detail / Home Consumption / Grid to Battery
+Sensors* switches. The kWh sensors among them have no native counter on the
+device, so they integrate the matching power over time — the device file's
+[`integrate`](docs/device_files.md#integrating-power-into-energy-integrate)
+feature, no Integral helper needed.
+
 ## How data is updated
 
 The integration polls. Each cycle collects every entity that is due, plans

@@ -3211,6 +3211,7 @@ input:
   e_charge_today:
     address: 145
     multiplier: 0.1
+    groups: [grid_to_battery]
     ha:
       platform: sensor
       name: E Charge Today
@@ -3218,7 +3219,6 @@ input:
       state_class: total_increasing
       unit_of_measurement: kWh
       icon: "mdi:solar-power"
-      enabled_by_default: false
       precision: 2
   e_charge_total:
     address: 146
@@ -4517,7 +4517,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:home-lightning-bolt"
     state: "{{ (inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}"
-    groups: [advanced]
+    groups: [advanced, home_consumption]
   house_load_alt:
     ha:
       platform: sensor
@@ -4625,6 +4625,49 @@ template:
       icon: "mdi:current-dc"
     state: "{{ ((pm_pv_current_1 or 0) + (pm_pv_current_2 or 0)) | round(1) }}"
     groups: [parallel_mode]
+  grid_to_battery_power:
+    ha:
+      platform: sensor
+      name: Grid to Battery Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:transmission-tower-export"
+    state: "{{ [-(inverter_power or 0), 0] | max }}"
+    groups: [grid_to_battery]
+  pv_energy_1:
+    ha:
+      platform: sensor
+      name: PV Energy 1
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      icon: "mdi:solar-power"
+    state: "{{ [pv_power_1 or 0, 0] | max }}"
+    integrate: trapezoidal
+    groups: [solar_details]
+  pv_energy_2:
+    ha:
+      platform: sensor
+      name: PV Energy 2
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      icon: "mdi:solar-power"
+    state: "{{ [pv_power_2 or 0, 0] | max }}"
+    integrate: trapezoidal
+    groups: [solar_details]
+  home_consumption_energy:
+    ha:
+      platform: sensor
+      name: Home Consumption Energy
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      icon: "mdi:home-lightning-bolt"
+    state: "{{ [(inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0), 0] | max }}"
+    integrate: trapezoidal
+    groups: [home_consumption]
   rtc:
     ha:
       platform: sensor

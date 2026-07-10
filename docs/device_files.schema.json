@@ -2453,6 +2453,13 @@
               },
               "state": {
                 "type": "string"
+              },
+              "integrate": {
+                "enum": [
+                  "left",
+                  "right",
+                  "trapezoidal"
+                ]
               }
             },
             "required": [

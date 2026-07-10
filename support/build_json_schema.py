@@ -44,6 +44,7 @@ from custom_components.modbus_connect.schema import (  # noqa: E402
     _TEMPLATE_SPECS,
     DESCRIPTION_CLASSES,
     HA_ALIASES,
+    INTEGRATE_METHODS,
     SECTIONS,
     description_fields,
 )
@@ -107,6 +108,7 @@ STATIC_TYPES: dict[str, dict[str, Any]] = {
     "max_temp": NUMBER,
     "temp_step": NUMBER,
     "temperature_unit": STRING,
+    "integrate": {"enum": sorted(INTEGRATE_METHODS)},
 }
 
 

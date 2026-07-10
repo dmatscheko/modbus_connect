@@ -7,10 +7,13 @@ from unittest.mock import patch
 import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    mock_restore_cache_with_extra_data,
+)
 
 from custom_components.modbus_connect.client import ModbusBlockClient
 from custom_components.modbus_connect.const import (
@@ -1026,6 +1029,70 @@ async def test_ungrouped_file_has_no_group_switches(hass: HomeAssistant) -> None
         if e.unique_id.startswith(f"{entry.entry_id}_group_")
     ]
     assert group_switches == []
+
+
+INTEGRAL_YAML = """
+device:
+  manufacturer: Acme
+  model: Integral
+holding:
+  power:
+    address: 0
+    ha:
+      platform: sensor
+      name: Power
+template:
+  energy:
+    state: "{{ [power or 0, 0] | max }}"
+    integrate: trapezoidal
+    ha:
+      platform: sensor
+      name: Energy
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+"""
+
+
+async def test_integral_sensor_restores_total_across_restart(hass: HomeAssistant) -> None:
+    """An `integrate` template is routed to the integral sensor class and resumes
+    from its stored kWh total after a reload instead of re-rendering watts."""
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "integral.yaml").write_text(INTEGRAL_YAML, encoding="utf-8")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "host": "192.0.2.9",
+            "port": 502,
+            CONF_SLAVE_ID: 3,
+            CONF_FILENAME: "integral.yaml",
+        },
+        unique_id="192.0.2.9:502:3",
+        title="Integral",
+    )
+    entry.add_to_hass(hass)
+    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        energy = eid(hass, entry, "sensor", "energy")
+        assert hass.states.get(energy).state == "0.0"  # fresh total, not the watts
+
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()
+
+        mock_restore_cache_with_extra_data(
+            hass,
+            (
+                (
+                    State(energy, "1.5"),
+                    {"native_value": 1.5, "native_unit_of_measurement": "kWh"},
+                ),
+            ),
+        )
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert hass.states.get(energy).state == "1.5"  # resumed from the stored total
 
 
 async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -> None:

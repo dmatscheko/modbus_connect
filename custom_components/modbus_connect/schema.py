@@ -946,7 +946,7 @@ class _TplSpec:
 
 
 _TEMPLATE_SPECS: dict[str, _TplSpec] = {
-    "sensor": _TplSpec(req_templates=("state",)),
+    "sensor": _TplSpec(req_templates=("state",), statics=("integrate",)),
     "binary_sensor": _TplSpec(req_templates=("state",)),
     "switch": _TplSpec(req_templates=("state",), req_fixed=("turn_on", "turn_off")),
     "number": _TplSpec(req_templates=("state",), req_value=("set_value",)),
@@ -1216,10 +1216,31 @@ def _post_number(
             raise ctx.fail("template numbers require ha.min and ha.max")
 
 
+INTEGRATE_METHODS = ("trapezoidal", "left", "right")
+
+
+def _post_sensor(
+    ctx: _Ctx,
+    raw: dict[str, Any],
+    config: dict[str, Any],
+    defs: dict[str, EntityDef],
+    ha: dict[str, Any],
+) -> None:
+    """``integrate``: the state template yields watts; the sensor accumulates
+    kilowatt-hours over time with the given Riemann-sum method."""
+    method = raw.get("integrate")
+    if method is None:
+        return
+    if method not in INTEGRATE_METHODS:
+        raise ctx.fail(f"'integrate' must be one of {sorted(INTEGRATE_METHODS)}")
+    config["integrate"] = method
+
+
 _TEMPLATE_POST = {
     "climate": _post_climate,
     "select": _post_select,
     "fan": _post_fan,
     "cover": _post_cover,
     "number": _post_number,
+    "sensor": _post_sensor,
 }

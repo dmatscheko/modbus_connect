@@ -5,9 +5,10 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import RestoreSensor, SensorEntity
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -21,6 +22,7 @@ from .entity import (
     build_template_description,
     suggest_entity_id,
 )
+from .models import TemplateDef
 
 # Read-only platform; all data comes through the coordinator.
 PARALLEL_UPDATES = 0
@@ -47,7 +49,11 @@ async def async_setup_entry(
                 )
             )
     entities.extend(
-        ModbusConnectTemplateSensor(coordinator, tdef, build_template_description(tdef))
+        (
+            ModbusConnectIntegralSensor(coordinator, tdef, build_template_description(tdef))
+            if tdef.config.get("integrate")
+            else ModbusConnectTemplateSensor(coordinator, tdef, build_template_description(tdef))
+        )
         for tdef in coordinator.visible_templates
         if tdef.platform == "sensor"
     )
@@ -76,6 +82,64 @@ class ModbusConnectTemplateSensor(ModbusConnectTemplateEntity, SensorEntity):
         if isinstance(value, (str, int, float, date, datetime, Decimal)) or value is None:
             return value
         return str(value)
+
+
+class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
+    """A template whose rendered watts are integrated into kilowatt-hours.
+
+    For values the device offers no native energy counter for, the ``state``
+    template yields instantaneous power and each coordinator refresh advances a
+    Riemann sum (``integrate: trapezoidal|left|right``) — a dashboard-ready
+    energy total without a manual Integral helper. The total survives restarts;
+    intervals where the source is unavailable (or HA was down) are skipped,
+    never interpolated.
+    """
+
+    def __init__(
+        self,
+        coordinator: ModbusConnectCoordinator,
+        tdef: TemplateDef,
+        description: EntityDescription,
+    ) -> None:
+        super().__init__(coordinator, tdef, description)
+        self._method: str = tdef.config["integrate"]
+        self._total = 0.0
+        self._last_sample: tuple[float, float] | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        data = await self.async_get_last_sensor_data()
+        if data is not None and isinstance(data.native_value, (int, float)):
+            self._total = float(data.native_value)
+        self._advance()  # seed the first sample; the restart gap adds nothing
+
+    def _advance(self) -> None:
+        value = None
+        if self.coordinator.last_update_success:  # a failed refresh leaves stale data
+            value = self.render_number("state")
+        if value is None:  # source gap: drop the interval rather than interpolate
+            self._last_sample = None
+            return
+        now = self.coordinator.monotonic_time()
+        if self._last_sample is not None:
+            then, previous = self._last_sample
+            if now > then:
+                power = {
+                    "trapezoidal": (previous + value) / 2,
+                    "left": previous,
+                    "right": value,
+                }[self._method]
+                self._total += power * (now - then) / 3_600_000  # W·s -> kWh
+        self._last_sample = (now, value)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._advance()
+        super()._handle_coordinator_update()
+
+    @property
+    def native_value(self) -> float:
+        return round(self._total, 3)
 
 
 class ModbusConnectReadCountSensor(

@@ -493,6 +493,42 @@ def test_template_sensor():
     assert t.ha["suggested_display_precision"] == 2
 
 
+def test_template_sensor_integrate():
+    dev = parse_device(
+        tdoc(energy={
+            "state": "{{ [power or 0, 0] | max }}",
+            "integrate": "trapezoidal",
+            "ha": {"platform": "sensor", "unit_of_measurement": "kWh"},
+        }),
+        "t.yaml",
+    )
+    assert dev.templates[0].config["integrate"] == "trapezoidal"
+
+
+def test_template_integrate_rejects_unknown_method():
+    with pytest.raises(DeviceSchemaError, match="integrate"):
+        parse_device(
+            tdoc(energy={
+                "state": "{{ power }}",
+                "integrate": "simpson",
+                "ha": {"platform": "sensor"},
+            }),
+            "t.yaml",
+        )
+
+
+def test_template_integrate_is_sensor_only():
+    with pytest.raises(DeviceSchemaError, match="unknown binary_sensor template keys"):
+        parse_device(
+            tdoc(x={
+                "state": "{{ power > 0 }}",
+                "integrate": "trapezoidal",
+                "ha": {"platform": "binary_sensor"},
+            }),
+            "t.yaml",
+        )
+
+
 def test_template_requires_state():
     with pytest.raises(DeviceSchemaError, match="state"):
         parse_device(tdoc(x={"ha": {"platform": "sensor"}}), "t.yaml")
