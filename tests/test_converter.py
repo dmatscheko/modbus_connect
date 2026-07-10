@@ -285,9 +285,9 @@ def test_word_binary_sensor_reads_on_as_one():
         ),
         "old.yaml",
     )
-    assert doc["input"]["plain"]["on"] == 1
-    assert doc["input"]["explicit"]["on"] == 2
-    assert "off" not in doc["input"]["explicit"]
+    assert doc["input"]["plain"]["on_value"] == 1
+    assert doc["input"]["explicit"]["on_value"] == 2
+    assert "off_value" not in doc["input"]["explicit"]
     dev = parse_device(doc, "old.yaml")
     assert entity(dev, "plain").on_value == 1
 
@@ -297,7 +297,7 @@ def test_word_switch_defaults_on_to_one():
         _mini("read_write_word", s={"address": 1, "control": "switch"}),
         "old.yaml",
     )
-    assert doc["holding"]["s"]["on"] == 1
+    assert doc["holding"]["s"]["on_value"] == 1
     parse_device(doc, "old.yaml")
 
 

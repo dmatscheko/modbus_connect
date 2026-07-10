@@ -243,22 +243,22 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
         # (True compares equal to 1) — made explicit so any other value reads as
         # off, exactly as before, instead of "any non-zero is on".
         if "on" in old:
-            new["on"] = old["on"]
+            new["on_value"] = old["on"]
         elif not is_bits:
-            new["on"] = 1
+            new["on_value"] = 1
         if "off" in old:
             warn(filename, f"{key}: 'off' is ignored for binary sensors in the old "
                            f"format (anything != on reads as off), dropped")
     elif platform == "switch":
         switch = old.get("switch") or {}
         # Same reading rule as binary sensors: is_on = (value == on), default 1
-        # on word registers. 'off' is the turn-off write payload (default 0).
+        # on word registers. off_value is the turn-off write payload (default 0).
         if "on" in switch:
-            new["on"] = switch["on"]
+            new["on_value"] = switch["on"]
         elif not is_bits:
-            new["on"] = 1
+            new["on_value"] = 1
         if "off" in switch:
-            new["off"] = switch["off"]
+            new["off_value"] = switch["off"]
     elif platform == "select":
         options = old.get("options") or {}
         if not options:

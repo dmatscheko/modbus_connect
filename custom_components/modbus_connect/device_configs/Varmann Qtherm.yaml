@@ -72,16 +72,16 @@ holding:
       icon: mdi:fan
   valve_heat:
     address: 7
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Heating valve
       icon: mdi:valve
   valve_chill:
     address: 8
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Cooling valve
@@ -164,7 +164,7 @@ holding:
       name: DIP Switch 2
   i_mode:
     address: 18
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Operating mode

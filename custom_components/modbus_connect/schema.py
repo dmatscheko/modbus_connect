@@ -120,8 +120,8 @@ _MODBUS_KEYS = {
     "offset",
     "map",
     "flags",
-    "on",
-    "off",
+    "on_value",
+    "off_value",
     "write_value",
     "read_register",
     "static_value",
@@ -372,6 +372,14 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
             "'table' is not an entity key — entities are grouped by the "
             f"{'/'.join(SECTIONS)} sections instead"
         )
+    # An unquoted `on:`/`off:` key is a YAML 1.1 *boolean*, not a string — the
+    # reason these fields are named on_value/off_value. Catch both spellings of
+    # the old name with a pointed hint instead of an "unknown key" puzzle.
+    if any(k is True or k is False or k in ("on", "off") for k in raw):
+        raise ctx.fail(
+            "'on'/'off' are named 'on_value'/'off_value' (unquoted on/off are "
+            "YAML booleans, so the short names would need quoting)"
+        )
     unknown = set(raw) - _MODBUS_KEYS
     if unknown:
         raise ctx.fail(
@@ -404,8 +412,8 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "scan_interval", scan_interval, 1, 86400)
 
-    on_value = _on_off(ctx, raw, "on")
-    off_value = _on_off(ctx, raw, "off")
+    on_value = _on_off(ctx, raw, "on_value")
+    off_value = _on_off(ctx, raw, "off_value")
 
     write_value = _parse_write_value(ctx, raw.get("write_value"))
 
@@ -477,8 +485,8 @@ def _parse_platform(ctx: _Ctx, raw: dict[str, Any]) -> tuple[str, dict[str, Any]
                 "(they exist only for the template: section)"
             )
         for bad in (
-            "on", "off", "write_value", "static_value", "optimistic_default",
-            "write_multiple",
+            "on_value", "off_value", "write_value", "static_value",
+            "optimistic_default", "write_multiple",
         ):
             if raw.get(bad) is not None:
                 raise ctx.fail(f"'{bad}' is not valid for internal entities")
@@ -814,15 +822,17 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             raise ctx.fail("numbers cannot use map/flags")
 
     if platform in ("switch", "binary_sensor"):
-        # A 'map' decodes to a label string, which the integer/boolean 'on'/'off'
+        # A 'map' decodes to a label string, which the integer/boolean on/off
         # comparison can never match — the entity would be stuck on.
         if defn.type == TYPE_STRING or defn.flags or defn.value_map:
             raise ctx.fail(
-                f"{platform} entities need a plain numeric or bit value "
-                "(no map/flags/string; use 'on'/'off' to pick the raw values)"
+                f"{platform} entities need a plain numeric or bit value (no map/"
+                "flags/string; use 'on_value'/'off_value' to pick the raw values)"
             )
     elif defn.on_value is not None or defn.off_value is not None:
-        raise ctx.fail("'on'/'off' are only valid for switch and binary_sensor")
+        raise ctx.fail(
+            "'on_value'/'off_value' are only valid for switch and binary_sensor"
+        )
 
     if defn.flags and platform != "sensor":
         raise ctx.fail("'flags' is only valid for sensors")

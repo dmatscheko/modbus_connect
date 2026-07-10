@@ -68,8 +68,8 @@ holding:
       name: Reset
   power:
     address: 4
-    'on': 5
-    'off': 6
+    on_value: 5
+    off_value: 6
     ha:
       platform: switch
       name: Power

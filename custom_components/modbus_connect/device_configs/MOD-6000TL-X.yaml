@@ -30,8 +30,8 @@ holding:
       name: Serial Number
   on_off:
     address: 0
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Remote On/Off
@@ -104,8 +104,8 @@ holding:
       icon: mdi:battery-charging
   AcChargeEnable:
     address: 3049
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: AC Charge Enable

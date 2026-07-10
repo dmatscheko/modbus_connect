@@ -30,8 +30,8 @@ holding:
       name: Serial Number
   on_off:
     address: 0
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Remote On/Off
@@ -61,8 +61,8 @@ holding:
       name: Baud Rate
   ups_on_off:
     address: 1060
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: UPS On/Off
@@ -114,8 +114,8 @@ holding:
       icon: mdi:flash
   ac_charge:
     address: 1092
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: AC Charge

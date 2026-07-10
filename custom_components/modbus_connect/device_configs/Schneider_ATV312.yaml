@@ -413,14 +413,14 @@ holding:
   drive_fault_active:
     address: 3201
     mask: 0x8
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Drive Fault Active
   drive_alarm_present:
     address: 3201
     mask: 0x80
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Drive Alarm Present
@@ -428,7 +428,7 @@ holding:
   reference_reached:
     address: 3201
     mask: 0x400
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Reference Reached
@@ -615,7 +615,7 @@ holding:
   relay_r1_output_active:
     address: 5240
     mask: 0x100
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Relay R1 Output Active
@@ -623,7 +623,7 @@ holding:
   relay_r2_output_active:
     address: 5240
     mask: 0x200
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Relay R2 Output Active
@@ -631,7 +631,7 @@ holding:
   logic_output_active:
     address: 5240
     mask: 0x400
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Logic Output Active
@@ -659,14 +659,14 @@ holding:
   motor_running:
     address: 3206
     mask: 0x10
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Motor Running
   drive_accelerating:
     address: 3206
     mask: 0x200
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Drive Accelerating
@@ -675,7 +675,7 @@ holding:
   drive_decelerating:
     address: 3206
     mask: 0x400
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Drive Decelerating
@@ -684,7 +684,7 @@ holding:
   current_limit_alarm:
     address: 3206
     mask: 0x800
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Current Limit Alarm
@@ -713,14 +713,14 @@ holding:
   frequency_threshold_reached:
     address: 3250
     mask: 0x10
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Frequency Threshold Reached
   high_speed_reached:
     address: 3250
     mask: 0x20
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: High Speed Reached
@@ -729,7 +729,7 @@ holding:
   speed_reference_reached_status:
     address: 3250
     mask: 0x80
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Speed Reference Reached Status

@@ -88,7 +88,7 @@ holding:
   keypad_present:
     address: 5240
     mask: 0x80
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Keypad Present

@@ -755,7 +755,7 @@ input:
       enabled_by_default: false
   relais_h2_vorheizregister:
     address: 16
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Vorheizregister Relais
@@ -763,7 +763,7 @@ input:
       icon: mdi:radiator
   relais_h3_heizanforderung:
     address: 17
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Heizanforderung
@@ -772,7 +772,7 @@ input:
       enabled_by_default: false
   relais_h5_kuhlanforderung:
     address: 18
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Kühlanforderung
@@ -781,7 +781,7 @@ input:
       enabled_by_default: false
   relais_h67_ventilatoren:
     address: 19
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Ventilatoren
@@ -790,7 +790,7 @@ input:
       enabled_by_default: false
   bypassklappe_status:
     address: 20
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Bypassklappe Status
@@ -798,7 +798,7 @@ input:
       icon: mdi:valve
   relais_h9_luftklappen:
     address: 21
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Außenluft- & Fortluftklappen
@@ -807,7 +807,7 @@ input:
       enabled_by_default: false
   relais_h10_heizpumpe:
     address: 27
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Pumpe Nachheizregister
@@ -816,7 +816,7 @@ input:
       enabled_by_default: false
   relais_h11_kuhlpumpe:
     address: 28
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Pumpe Kühl-/Kombiregister
@@ -825,7 +825,7 @@ input:
       enabled_by_default: false
   summenstoermeldung:
     address: 29
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Summenstörmeldung
@@ -834,7 +834,7 @@ input:
       entity_category: diagnostic
   relais_h12b_filtermeldung:
     address: 41
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Filtermeldung
@@ -905,7 +905,7 @@ input:
       enabled_by_default: false
   e1_din_extern_aus_bmz:
     address: 37
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Extern Aus / BMZ
@@ -913,7 +913,7 @@ input:
       enabled_by_default: false
   e2_din_extern_luftstufe3:
     address: 38
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Extern Lüftungsstufe 3
@@ -1059,7 +1059,7 @@ input:
       icon: mdi:stairs
   fehler_ewt:
     address: 60
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Erdwärmetauscher
@@ -1069,7 +1069,7 @@ input:
       enabled_by_default: false
   fehler_bedieneinheit:
     address: 61
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Bedieneinheit
@@ -1079,7 +1079,7 @@ input:
       enabled_by_default: false
   fehler_frostschutz_nhr:
     address: 62
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Frostschutz NHR (Din3)
@@ -1089,7 +1089,7 @@ input:
       enabled_by_default: false
   fehler_fortluftventilator:
     address: 63
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Fortluftventilator
@@ -1098,7 +1098,7 @@ input:
       entity_category: diagnostic
   fehler_zuluftventilator:
     address: 64
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Zuluftventilator
@@ -1107,7 +1107,7 @@ input:
       entity_category: diagnostic
   fehler_t1_aussenluft:
     address: 65
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T1 (Außenluft)
@@ -1117,7 +1117,7 @@ input:
       enabled_by_default: false
   fehler_t2_fortluft:
     address: 66
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T2 (Fortluft)
@@ -1127,7 +1127,7 @@ input:
       enabled_by_default: false
   fehler_t3_abluft:
     address: 67
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T3 (Abluft)
@@ -1137,7 +1137,7 @@ input:
       enabled_by_default: false
   fehler_t4_zuluft:
     address: 68
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T4 (Zuluft)
@@ -1147,7 +1147,7 @@ input:
       enabled_by_default: false
   fehler_t5_vorheizregister:
     address: 69
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T5 (Vorheizregister)
@@ -1157,7 +1157,7 @@ input:
       enabled_by_default: false
   fehler_t6_zuluft_extern:
     address: 70
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T6 (Zuluft extern)
@@ -1167,7 +1167,7 @@ input:
       enabled_by_default: false
   fehler_t7_aussenluft_extern:
     address: 71
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T7 (Außenluft extern)
@@ -1177,7 +1177,7 @@ input:
       enabled_by_default: false
   fehler_t8_raum_extern:
     address: 72
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T8 (Raum extern)
@@ -1187,7 +1187,7 @@ input:
       enabled_by_default: false
   fehler_ventilatoren_kommunikation:
     address: 73
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Ventilatoren Kommunikation
@@ -1197,7 +1197,7 @@ input:
       enabled_by_default: false
   fehler_niedrige_zuluft_temperatur:
     address: 74
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Zulufttemperatur
@@ -1206,7 +1206,7 @@ input:
       entity_category: diagnostic
   fehler_filtermeldung:
     address: 75
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Filtermeldung
@@ -1215,7 +1215,7 @@ input:
       entity_category: diagnostic
   fehler_niedrige_vhr_temperatur:
     address: 76
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Vorheizregister Temperatur
@@ -1224,7 +1224,7 @@ input:
       entity_category: diagnostic
   fehler_nhr_frostschutz:
     address: 80
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler NHR Frostschutz
@@ -1234,7 +1234,7 @@ input:
       enabled_by_default: false
   fehler_modbus_sensoren:
     address: 88
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Fehler Modbus Sensoren
@@ -1331,7 +1331,7 @@ input:
       entity_category: diagnostic
   e3_din_frostschutz:
     address: 108
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Extern Frostschutz
@@ -1340,7 +1340,7 @@ input:
       enabled_by_default: false
   raumsoll_zeitprogramm_status:
     address: 118
-    'on': 1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Zeitprogramm Raumtemperatur Status

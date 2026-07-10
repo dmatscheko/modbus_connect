@@ -45,8 +45,8 @@ holding:
       enabled_by_default: true
   timer_enable:
     address: 7
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: 'Zeitplanung: Zustand'
@@ -223,8 +223,8 @@ holding:
       enabled_by_default: false
   boost_enable:
     address: 22
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Boost
@@ -282,8 +282,8 @@ holding:
       enabled_by_default: false
   anode:
     address: 27
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Anode
@@ -362,7 +362,7 @@ holding:
 input:
   di1_pressostat:
     address: 0
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -372,7 +372,7 @@ input:
       enabled_by_default: true
   di2_pv:
     address: 1
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -408,7 +408,7 @@ input:
       enabled_by_default: true
   relay1_kompressor:
     address: 9
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -418,7 +418,7 @@ input:
       enabled_by_default: true
   relay2_elpatron:
     address: 10
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -428,7 +428,7 @@ input:
       enabled_by_default: true
   relay3_kessel:
     address: 11
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -438,7 +438,7 @@ input:
       enabled_by_default: true
   relay4_magnetventil:
     address: 12
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -448,7 +448,7 @@ input:
       enabled_by_default: true
   relay6_kondensator:
     address: 13
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -458,7 +458,7 @@ input:
       enabled_by_default: true
   relay7_ventilator:
     address: 14
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor

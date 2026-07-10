@@ -39,8 +39,8 @@ holding:
       unit_of_measurement: DM
   on_off:
     address: 0
-    'on': 1
-    'off': 0
+    on_value: 1
+    off_value: 0
     ha:
       platform: switch
       name: Remote On/Off
@@ -74,7 +74,7 @@ holding:
       entity_category: diagnostic
   hotwater_demand:
     address: 3
-    'on': 1
+    on_value: 1
     mask: 0x1
     ha:
       platform: binary_sensor
@@ -85,7 +85,7 @@ holding:
       enabled_by_default: true
   heating_demand:
     address: 3
-    'on': 1
+    on_value: 1
     mask: 0x2
     ha:
       platform: binary_sensor
@@ -96,7 +96,7 @@ holding:
       enabled_by_default: true
   antilegionella_on:
     address: 3
-    'on': 1
+    on_value: 1
     mask: 0x10
     ha:
       platform: binary_sensor
@@ -107,7 +107,7 @@ holding:
       enabled_by_default: true
   register_1:
     address: 4
-    'on': 1
+    on_value: 1
     mask: 0x10
     ha:
       platform: binary_sensor
@@ -129,15 +129,15 @@ coil:
       name: coil2
   coil3:
     address: 1
-    'on': false
-    'off': true
+    on_value: false
+    off_value: true
     ha:
       platform: switch
       name: coil3
   coil4:
     address: 1
-    'on': false
-    'off': true
+    on_value: false
+    off_value: true
     ha:
       platform: binary_sensor
       name: coil4

@@ -682,7 +682,7 @@ ERROR_CASES = [
     ),
     (
         "internal_with_on",
-        doc(x={"address": 0, "internal": True, "on": 1}),
+        doc(x={"address": 0, "internal": True, "on_value": 1}),
         "not valid for internal",
     ),
     (
@@ -779,8 +779,8 @@ ERROR_CASES = [
     ),
     (
         "on_not_int",
-        doc(x={"address": 0, "on": "x", "ha": {"platform": "switch"}}),
-        "'on' must be an integer or boolean",
+        doc(x={"address": 0, "on_value": "x", "ha": {"platform": "switch"}}),
+        "'on_value' must be an integer or boolean",
     ),
     (
         "write_value_bad_type",
@@ -877,7 +877,7 @@ ERROR_CASES = [
     ),
     (
         "on_off_on_sensor",
-        doc(x={"address": 0, "on": 1, "ha": {"platform": "sensor"}}),
+        doc(x={"address": 0, "on_value": 1, "ha": {"platform": "sensor"}}),
         "only valid for switch and binary_sensor",
     ),
     (
@@ -1207,6 +1207,16 @@ def test_time_type_requires_time_platform():
         parse_device(
             doc(t={"address": 1, "type": "time", "ha": {"platform": "sensor"}}), "t.yaml"
         )
+
+
+def test_legacy_on_off_key_gets_pointed_hint():
+    # 'on'/'off' are named on_value/off_value; unquoted on/off keys are YAML 1.1
+    # booleans (the key parses as True/False), so both spellings get the hint
+    for key in ("on", True):
+        with pytest.raises(DeviceSchemaError, match="on_value"):
+            parse_device(
+                doc(x={"address": 0, key: 1, "ha": {"platform": "switch"}}), "t.yaml"
+            )
 
 
 def test_rectify_time_parses_on_time_entity():

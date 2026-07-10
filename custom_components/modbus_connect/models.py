@@ -110,8 +110,10 @@ class EntityDef:
     offset: float | None = None
     value_map: dict[int, str] | None = None  # YAML key: map
     flags: dict[int, str] | None = None  # bit number (0-indexed) -> name
-    on_value: int | bool | None = None  # YAML key: on
-    off_value: int | bool | None = None  # YAML key: off
+    # Values meaning on/off for switch/binary_sensor. (Not named plain on/off:
+    # unquoted `on:`/`off:` are YAML 1.1 booleans, so those keys need quoting.)
+    on_value: int | bool | None = None
+    off_value: int | bool | None = None
     # Button press payload: a fixed number/bool, or a tuple of numbers and Jinja
     # template strings written to consecutive registers (FC16) — e.g. an RTC sync.
     write_value: Any = None
