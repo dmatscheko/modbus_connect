@@ -400,10 +400,13 @@ async def test_reconfigure_to_new_device_file_clears_group_selection(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_FILENAME: "acme_x2.yaml", CONF_NAME: ""}
     )
-    with patch_probe(True):
+    with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
         )
+        # run the scheduled entry reload while setup is still mocked; without
+        # this it fires at teardown and opens a real socket
+        await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
     # a different file has different groups: the stale selection is dropped,
     # everything else survives
@@ -425,10 +428,13 @@ async def test_reconfigure_same_device_file_keeps_group_selection(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
-    with patch_probe(True):
+    with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
         )
+        # run the scheduled entry reload while setup is still mocked; without
+        # this it fires at teardown and opens a real socket
+        await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
     assert entry.options[OPTION_ENABLED_GROUPS] == ["extra"]
 
