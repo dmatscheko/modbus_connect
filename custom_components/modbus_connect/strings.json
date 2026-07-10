@@ -180,7 +180,7 @@
         "name": "Enable {group} entities"
       },
       "group_enable_all": {
-        "name": "Enable all entities"
+        "name": "Enable all entities (Expert)"
       }
     }
   },

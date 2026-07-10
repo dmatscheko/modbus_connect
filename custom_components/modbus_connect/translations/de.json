@@ -180,7 +180,7 @@
         "name": "{group} Entitäten aktivieren"
       },
       "group_enable_all": {
-        "name": "Alle Entitäten aktivieren"
+        "name": "Alle Entitäten aktivieren (Experte)"
       }
     }
   },
