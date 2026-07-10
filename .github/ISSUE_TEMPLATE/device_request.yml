@@ -1,0 +1,49 @@
+name: Device file request
+description: Ask for (or offer) a device definition for your hardware
+labels: ["device-file"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Device files are plain YAML — with the register documentation at hand,
+        writing one is quick (see the
+        [device file reference](https://github.com/dmatscheko/modbus_connect/blob/main/docs/device_files.md)).
+        This template collects what a file needs; a draft you started is the
+        best starting point, however incomplete.
+  - type: input
+    id: hardware
+    attributes:
+      label: Manufacturer and model
+      placeholder: "Fröling BWP 300 PV"
+    validations:
+      required: true
+  - type: textarea
+    id: registers
+    attributes:
+      label: Register documentation
+      description: >
+        Link or attach the Modbus register list (manual chapter, PDF, vendor
+        XLS). Without it, only guesswork is possible.
+    validations:
+      required: true
+  - type: input
+    id: connection
+    attributes:
+      label: How is it connected?
+      placeholder: "RS-485 via Elfin EW11 (transparent) · Modbus ID 1 · 9600 8N1"
+  - type: textarea
+    id: scan
+    attributes:
+      label: Scan / read output (optional but golden)
+      description: >
+        If you can reach the device already, the repo's CLI shows what it
+        actually serves: `python3 support/modbus_cli.py --host <gateway> scan
+        holding --end 200` (see `--help`; needs only pymodbus). Paste the
+        output here.
+      render: text
+  - type: textarea
+    id: draft
+    attributes:
+      label: Draft device file (if you have one)
+      description: Attach or paste YAML — incomplete is fine.
+      render: yaml

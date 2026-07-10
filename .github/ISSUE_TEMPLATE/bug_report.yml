@@ -1,0 +1,56 @@
+name: Bug report
+description: Something misbehaves — wrong values, unavailable entities, errors
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for the report! The **diagnostics download** answers most
+        questions in one file (parsed device definition, read-planning state,
+        per-register failure counts, current values) — please attach it.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens, and what did you expect?
+      description: Include the entity/register if the problem is value-related.
+    validations:
+      required: true
+  - type: input
+    id: device_file
+    attributes:
+      label: Device file
+      description: >
+        A bundled file's name, or attach your own YAML below (drag & drop —
+        rename to .txt if GitHub refuses .yaml).
+      placeholder: SDM630.yaml
+    validations:
+      required: true
+  - type: input
+    id: connection
+    attributes:
+      label: Connection
+      description: Gateway model and transport, or serial adapter.
+      placeholder: "Waveshare RS485-to-ETH, Modbus TCP  ·  or: /dev/ttyUSB0 RTU 9600 8N1"
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "Home Assistant 2026.7.1, Modbus Connect 0.2.0"
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >
+        Device page → ⋮ → *Download diagnostics*; drag the JSON file here.
+        The host is already redacted in it.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: >
+        Relevant lines from Settings → System → Logs. For read/decode issues,
+        debug logging helps — add to configuration.yaml:
+        `logger: {logs: {custom_components.modbus_connect: debug}}`
+      render: text

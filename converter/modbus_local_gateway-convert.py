@@ -6,6 +6,14 @@ Standalone: needs only PyYAML, no Home Assistant.
 Usage:
     python3 convert.py OLD.yaml [MORE.yaml ...] -o OUTPUT_DIR
     python3 convert.py OLD_DIR -o OUTPUT_DIR
+
+Most MLG-derived bundled files are byte-identical to this converter's output
+and safe to regenerate. These have been HAND-EDITED after conversion and must
+NOT be overwritten blindly (diff against fresh output and re-apply):
+    Test.yaml (annotated example), Salda_RIS_MCB.yaml (fan+climate templates),
+    Pichler-LG150-LG250.yaml, Pichler-LG350-LG450.yaml (templates, internals,
+    filter button), Dimplex-SI-11TU.yaml (climate templates own the setpoints),
+    Fröling_BWP300PV.yaml (repaired 0-indexed flags).
 """
 
 from __future__ import annotations
