@@ -37,7 +37,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Refuse existing tags and version downgrades
         run: |
@@ -52,7 +52,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
           cache: pip
