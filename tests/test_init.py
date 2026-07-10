@@ -914,6 +914,12 @@ holding:
     ha:
       platform: sensor
       name: Hidden only
+  pm_l1:
+    address: 3
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM L1
 """
 
 
@@ -955,10 +961,15 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         show_all = eid(hass, entry, "switch", "show_all_entities")
         assert hass.states.get(show_all).state == "off"
 
-        # switch names: group names show capitalized without a joiner, and the
-        # show-all switch is translated as a whole phrase matching the others
+        # switch names: group names show capitalized without a joiner (with
+        # underscores as spaces), and the show-all switch is translated as a
+        # whole phrase matching the others
         assert hass.states.get(advanced).attributes["friendly_name"].endswith(
             "Enable Advanced entities"
+        )
+        parallel = eid(hass, entry, "switch", "group_parallel_mode")
+        assert hass.states.get(parallel).attributes["friendly_name"].endswith(
+            "Enable Parallel mode entities"
         )
         # the switch icon lives in icons.json (resolved by the frontend, not
         # the state machine), keyed by the entity's translation_key
@@ -970,7 +981,7 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         assert (
             hass.states.get(show_all)
             .attributes["friendly_name"]
-            .endswith("Enable all entities")
+            .endswith("Enable all entities (Expert)")
         )
 
         # enabling 'advanced' reloads the entry and brings 'extra' into being,

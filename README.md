@@ -150,7 +150,11 @@ device file can tag its entities into named groups — `basic`, `advanced`, …
 (how, is in the [device file reference](docs/device_files.md#entity-groups)).
 Switches on the device's companion **Configuration** device turn whole groups
 on and off; the `basic` group is the always-visible baseline and has no
-switch.
+switch. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
+parallel-mode, EPS, and generator register blocks in groups of their own —
+the same opt-ins the solax-modbus integration offers as config checkboxes,
+except a switch flip materializes the entities (and their register reads) at
+runtime.
 
 Hidden entities are not merely disabled — they stop being provided and drop
 out of the Modbus read plan entirely. Home Assistant greys them out but keeps

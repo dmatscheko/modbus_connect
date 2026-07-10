@@ -226,6 +226,18 @@ holding:
       min: 0
       max: 6000
       step: 100
+  eps_min_soc:
+    address: 68
+    groups: [eps]
+    read_register: "{{ eps_min_soc_readback }}"
+    ha:
+      platform: number
+      name: EPS Min SOC
+      unit_of_measurement: "%"
+      icon: "mdi:battery-charging-low"
+      min: 10
+      max: 25
+      step: 1
   measured_power:
     address: 70
     type: int32
@@ -687,6 +699,18 @@ holding:
       icon: "mdi:battery-unknown"
       entity_category: diagnostic
       enabled_by_default: false
+  eps_restart_soc:
+    address: 142
+    groups: [eps]
+    read_register: "{{ eps_restart_soc_readback }}"
+    ha:
+      platform: number
+      name: EPS Restart SOC
+      unit_of_measurement: "%"
+      icon: "mdi:battery-charging-medium"
+      min: 15
+      max: 100
+      step: 1
   battery_charge_float_voltage:
     address: 142
     multiplier: 0.1
@@ -872,6 +896,9 @@ holding:
       name: RemoteControl Power Control Mode (mode 8/9; direct)
       icon: "mdi:transmission-tower"
       enabled_by_default: false
+  eps_restart_soc_readback:
+    address: 160
+    internal: true
   hotstandby_readback:
     address: 161
     map:
@@ -1117,6 +1144,30 @@ holding:
       min: 0
       max: 8000
       step: 100
+  eps_mute:
+    address: 183
+    groups: [eps]
+    map:
+      0: "Off"
+      1: "On"
+    ha:
+      platform: sensor
+      name: EPS Mute
+      icon: "mdi:volume-mute"
+  eps_min_soc_readback:
+    address: 184
+    internal: true
+  switch_on_soc:
+    address: 184
+    groups: [generator]
+    read_register: "{{ switch_on_soc_readback }}"
+    ha:
+      platform: number
+      name: Switch On SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
   consume_off_power:
     address: 185
     groups: [advanced]
@@ -1129,6 +1180,28 @@ holding:
       min: 0
       max: 8000
       step: 100
+  eps_set_frequency:
+    address: 185
+    groups: [eps]
+    map:
+      0: "50Hz"
+      1: "60Hz"
+    ha:
+      platform: sensor
+      name: EPS Set Frequency
+      entity_category: diagnostic
+      enabled_by_default: false
+  switch_off_soc:
+    address: 186
+    groups: [generator]
+    read_register: "{{ switch_off_soc_readback }}"
+    ha:
+      platform: number
+      name: Switch Off SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
   inverter_power_type:
     address: 186
     groups: [advanced]
@@ -1139,6 +1212,17 @@ holding:
       unit_of_measurement: W
       icon: "mdi:information"
       entity_category: diagnostic
+  minimum_per_on_signal:
+    address: 187
+    groups: [generator]
+    read_register: "{{ minimum_per_on_signal_readback }}"
+    ha:
+      platform: number
+      name: Minimum Per On Signal
+      unit_of_measurement: min
+      min: 5
+      max: 100
+      step: 1
   language:
     address: 187
     map:
@@ -1161,6 +1245,91 @@ holding:
       0: Disabled
       1: Enabled
     internal: true
+  maximum_per_day_on:
+    address: 188
+    groups: [generator]
+    read_register: "{{ maximum_per_day_on_readback }}"
+    ha:
+      platform: number
+      name: Maximum Per Day On
+      unit_of_measurement: min
+      min: 5
+      max: 1200
+      step: 5
+  schedule:
+    address: 189
+    groups: [generator]
+    map:
+      0: Disabled
+      1: Enabled
+    read_register: "{{ schedule_readback }}"
+    ha:
+      platform: select
+      name: Schedule
+      icon: "mdi:dip-switch"
+  work_start_time_1:
+    address: 190
+    type: time
+    groups: [generator]
+    read_register: "{{ work_start_time_1_readback }}"
+    ha:
+      platform: time
+      name: Work Start Time 1
+      icon: "mdi:home-clock"
+      entity_category: config
+  work_end_time_1:
+    address: 191
+    type: time
+    rectify_time: true
+    groups: [generator]
+    ha:
+      platform: time
+      name: Work End Time 1
+      icon: "mdi:home-clock"
+      entity_category: config
+  work_start_time_2:
+    address: 192
+    type: time
+    groups: [generator]
+    read_register: "{{ work_start_time_2_readback }}"
+    ha:
+      platform: time
+      name: Work Start Time 2
+      icon: "mdi:home-clock"
+      entity_category: config
+  work_end_time_2:
+    address: 193
+    type: time
+    rectify_time: true
+    groups: [generator]
+    ha:
+      platform: time
+      name: Work End Time 2
+      icon: "mdi:home-clock"
+      entity_category: config
+  work_mode:
+    address: 194
+    groups: [generator]
+    map:
+      0: Disabled
+      1: Manual
+      2: Smart Save
+    read_register: "{{ work_mode_readback }}"
+    ha:
+      platform: select
+      name: Work Mode
+      icon: "mdi:dip-switch"
+  dry_contact_mode:
+    address: 195
+    groups: [generator]
+    map:
+      0: Load Management
+      1: Generator Control
+    read_register: "{{ dry_contact_mode_readback }}"
+    ha:
+      platform: select
+      name: Dry Contact Mode
+      icon: "mdi:dip-switch"
   selfuse_mode_backup:
     address: 196
     groups: [advanced]
@@ -1197,6 +1366,31 @@ holding:
       name: Parallel Setting
       icon: "mdi:dip-switch"
       entity_category: config
+  generator_control:
+    address: 199
+    groups: [generator]
+    map:
+      0: Disabled
+      1: ATS Control
+      2: Dry Contact
+    read_register: "{{ generator_control_readback }}"
+    ha:
+      platform: select
+      name: Generator Control
+      icon: "mdi:dip-switch"
+  generator_max_charge:
+    address: 200
+    multiplier: 10.0
+    groups: [generator]
+    read_register: "{{ generator_max_charge_readback }}"
+    ha:
+      platform: number
+      name: Generator Max Charge
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 6000
+      step: 100
   battery_heating:
     address: 207
     groups: [advanced]
@@ -1275,6 +1469,81 @@ holding:
       icon: "mdi:dip-switch"
       entity_category: config
       enabled_by_default: false
+  generator_start_method:
+    address: 227
+    groups: [generator]
+    map:
+      0: Reference SOC
+      1: Immediately
+    read_register: "{{ generator_start_method_readback }}"
+    ha:
+      platform: select
+      name: Generator Start Method
+      icon: "mdi:dip-switch"
+  generator_switch_on_soc:
+    address: 228
+    groups: [generator]
+    read_register: "{{ generator_switch_on_soc_readback }}"
+    ha:
+      platform: number
+      name: Generator Switch On SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  generator_switch_off_soc:
+    address: 229
+    groups: [generator]
+    read_register: "{{ generator_switch_off_soc_readback }}"
+    ha:
+      platform: number
+      name: Generator Switch Off SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
+  generator_max_run_time:
+    address: 230
+    groups: [generator]
+    read_register: "{{ generator_max_run_time_readback }}"
+    ha:
+      platform: number
+      name: Generator Max Run Time
+      unit_of_measurement: min
+      min: 1
+      max: 1440
+      step: 5
+  generator_min_rest_time:
+    address: 231
+    groups: [generator]
+    read_register: "{{ generator_min_rest_time_readback }}"
+    ha:
+      platform: number
+      name: Generator Min Rest Time
+      unit_of_measurement: min
+      min: 1
+      max: 1440
+      step: 5
+  generator_start_time_1:
+    address: 232
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_start_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Start Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
+  generator_stop_time_1:
+    address: 233
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_stop_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Stop Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
   peakshaving_discharge_start_time_1:
     address: 234
     type: time
@@ -1423,6 +1692,18 @@ holding:
       min: 0
       max: 255
       step: 1
+  adapt_box_g2_address:
+    address: 251
+    groups: [generator]
+    read_register: "{{ adapt_box_g2_address_readback }}"
+    ha:
+      platform: number
+      name: Adapt Box G2 Address
+      icon: "mdi:connection"
+      entity_category: config
+      min: 0
+      max: 255
+      step: 1
   ct_cycle_detection:
     address: 253
     groups: [advanced]
@@ -1434,6 +1715,47 @@ holding:
       platform: select
       name: CT Cycle Detection
       icon: "mdi:dip-switch"
+  eps_mode_without_battery:
+    address: 254
+    groups: [eps]
+    map:
+      0: Disabled
+      1: Enabled
+    read_register: "{{ eps_mode_without_battery_readback }}"
+    ha:
+      platform: select
+      name: EPS Mode without Battery
+      icon: "mdi:dip-switch"
+  generator_charge_start_time_1:
+    address: 256
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_charge_start_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Charge Start Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
+  generator_charge_stop_time_1:
+    address: 257
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_charge_stop_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Charge Stop Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
+  generator_discharge_start_time_1:
+    address: 258
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_discharge_start_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Discharge Start Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
   drm_function_enable:
     address: 258
     map:
@@ -1443,6 +1765,16 @@ holding:
       platform: sensor
       name: DRM Function Enable
       enabled_by_default: false
+  generator_discharge_stop_time_1:
+    address: 259
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_discharge_stop_time_1_readback }}"
+    ha:
+      platform: time
+      name: Generator Discharge Stop Time 1
+      icon: "mdi:generator-stationary"
+      entity_category: config
   ct_type:
     address: 259
     map:
@@ -1452,6 +1784,17 @@ holding:
       platform: sensor
       name: CT Type
       enabled_by_default: false
+  generator_time_2:
+    address: 260
+    groups: [generator]
+    map:
+      0: Disabled
+      1: Enabled
+    read_register: "{{ generator_time_2_readback }}"
+    ha:
+      platform: select
+      name: Generator Time 2
+      icon: "mdi:dip-switch"
   shadow_fix_function_level_pv1_gmppt_readback:
     address: 260
     map:
@@ -1460,6 +1803,16 @@ holding:
       2: Middle
       3: High
     internal: true
+  generator_charge_start_time_2:
+    address: 261
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_charge_start_time_2_readback }}"
+    ha:
+      platform: time
+      name: Generator Charge Start Time 2
+      icon: "mdi:generator-stationary"
+      entity_category: config
   machine_type:
     address: 261
     groups: [advanced]
@@ -1477,6 +1830,26 @@ holding:
       0: Disabled
       1: Enabled
     internal: true
+  generator_charge_stop_time_2:
+    address: 262
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_charge_stop_time_2_readback }}"
+    ha:
+      platform: time
+      name: Generator Charge Stop Time 2
+      icon: "mdi:generator-stationary"
+      entity_category: config
+  generator_discharge_start_time_2:
+    address: 263
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_discharge_start_time_2_readback }}"
+    ha:
+      platform: time
+      name: Generator Discharge Start Time 2
+      icon: "mdi:generator-stationary"
+      entity_category: config
   machine_style:
     address: 263
     groups: [advanced]
@@ -1488,6 +1861,16 @@ holding:
       name: Machine Style
       icon: "mdi:information"
       entity_category: diagnostic
+  generator_discharge_stop_time_2:
+    address: 264
+    type: time
+    groups: [generator]
+    read_register: "{{ generator_discharge_stop_time_2_readback }}"
+    ha:
+      platform: time
+      name: Generator Discharge Stop Time 2
+      icon: "mdi:generator-stationary"
+      entity_category: config
   meter_function:
     address: 264
     map:
@@ -1499,6 +1882,17 @@ holding:
       icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
+  generator_charge:
+    address: 265
+    groups: [generator]
+    map:
+      0: Disabled
+      1: Enabled
+    read_register: "{{ generator_charge_readback }}"
+    ha:
+      platform: select
+      name: Generator Charge
+      icon: "mdi:dip-switch"
   meter_1_id:
     address: 265
     ha:
@@ -1507,6 +1901,17 @@ holding:
       icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
+  generator_charge_soc:
+    address: 266
+    groups: [generator]
+    read_register: "{{ generator_charge_soc_readback }}"
+    ha:
+      platform: number
+      name: Generator Charge SOC
+      unit_of_measurement: "%"
+      min: 0
+      max: 100
+      step: 1
   meter_2_id:
     address: 266
     ha:
@@ -1530,6 +1935,18 @@ holding:
   battery_charge_upper_soc_readback:
     address: 270
     internal: true
+  generator_min_power:
+    address: 270
+    groups: [generator]
+    read_register: "{{ generator_min_power_readback }}"
+    ha:
+      platform: number
+      name: Generator Min Power
+      device_class: power
+      unit_of_measurement: W
+      min: 0
+      max: 60000
+      step: 100
   battery_to_ev_charger_readback:
     address: 271
     map:
@@ -1668,8 +2085,51 @@ holding:
   feedin_on_power_readback:
     address: 291
     internal: true
+  switch_on_soc_readback:
+    address: 292
+    internal: true
   consume_off_power_readback:
     address: 293
+    internal: true
+  switch_off_soc_readback:
+    address: 294
+    internal: true
+  minimum_per_on_signal_readback:
+    address: 295
+    internal: true
+  maximum_per_day_on_readback:
+    address: 296
+    internal: true
+  schedule_readback:
+    address: 297
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
+  work_start_time_1_readback:
+    address: 298
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  work_start_time_2_readback:
+    address: 300
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  work_mode_readback:
+    address: 302
+    map:
+      0: Disabled
+      1: Manual
+      2: Smart Save
+    internal: true
+  dry_contact_mode_readback:
+    address: 303
+    map:
+      0: Load Management
+      1: Generator Control
     internal: true
   parallel_setting_readback:
     address: 304
@@ -1677,6 +2137,50 @@ holding:
       0: Free
       1: Master
       2: Slave
+    internal: true
+  generator_control_readback:
+    address: 305
+    map:
+      0: Disabled
+      1: ATS Control
+      2: Dry Contact
+    internal: true
+  generator_max_charge_readback:
+    address: 306
+    multiplier: 10.0
+    internal: true
+  generator_start_method_readback:
+    address: 320
+    map:
+      0: Reference SOC
+      1: Immediately
+    internal: true
+  generator_switch_on_soc_readback:
+    address: 321
+    internal: true
+  generator_switch_off_soc_readback:
+    address: 322
+    internal: true
+  generator_max_run_time_readback:
+    address: 323
+    internal: true
+  generator_min_rest_time_readback:
+    address: 325
+    internal: true
+  generator_start_time_1_readback:
+    address: 326
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_stop_time_1_readback:
+    address: 327
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_min_power_readback:
+    address: 328
     internal: true
   peakshaving_discharge_start_time_1_readback:
     address: 335
@@ -1728,11 +2232,83 @@ holding:
   ev_charger_address_readback:
     address: 348
     internal: true
+  adapt_box_g2_address_readback:
+    address: 350
+    internal: true
   ct_cycle_detection_readback:
     address: 352
     map:
       0: Disabled
       1: Enabled
+    internal: true
+  eps_mode_without_battery_readback:
+    address: 353
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
+  generator_charge_start_time_1_readback:
+    address: 354
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_charge_stop_time_1_readback:
+    address: 355
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_discharge_start_time_1_readback:
+    address: 356
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_discharge_stop_time_1_readback:
+    address: 357
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_time_2_readback:
+    address: 358
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
+  generator_charge_start_time_2_readback:
+    address: 359
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_charge_stop_time_2_readback:
+    address: 360
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_discharge_start_time_2_readback:
+    address: 361
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_discharge_stop_time_2_readback:
+    address: 362
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  generator_charge_readback:
+    address: 363
+    map:
+      0: Disabled
+      1: Enabled
+    internal: true
+  generator_charge_soc_readback:
+    address: 364
     internal: true
   remotecontrol_readback_mode:
     address: 416
@@ -2170,6 +2746,19 @@ input:
       state_class: measurement
       unit_of_measurement: W
       icon: "mdi:home-lightning-bolt"
+  offgrid_power_total:
+    address: 54
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: Total Off-Grid Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:home-lightning-bolt"
   battery_system_installed_capacity:
     address: 58
     type: uint32
@@ -2208,6 +2797,16 @@ input:
       unit_of_measurement: kWh
       icon: "mdi:home-import-outline"
       enabled_by_default: false
+      precision: 2
+  eps_frequency:
+    address: 79
+    multiplier: 0.01
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Frequency
+      state_class: measurement
+      unit_of_measurement: Hz
       precision: 2
   today_s_yield:
     address: 80
@@ -2410,6 +3009,121 @@ input:
       state_class: measurement
       unit_of_measurement: Hz
       precision: 1
+  eps_voltage_l1:
+    address: 118
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Voltage L1
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  eps_current_l1:
+    address: 119
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  eps_power_active_l1:
+    address: 120
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power Active L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  eps_power_l1:
+    address: 121
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power L1
+      unit_of_measurement: VA
+  eps_voltage_l2:
+    address: 122
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Voltage L2
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  eps_current_l2:
+    address: 123
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  eps_power_active_l2:
+    address: 124
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power Active L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  eps_power_l2:
+    address: 125
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power L2
+      unit_of_measurement: VA
+  eps_voltage_l3:
+    address: 126
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Voltage L3
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  eps_current_l3:
+    address: 127
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  eps_power_active_l3:
+    address: 128
+    scan_interval: 15
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power Active L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+  eps_power_l3:
+    address: 129
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Power L3
+      unit_of_measurement: VA
   measured_power_l1:
     address: 130
     type: int32
@@ -2457,6 +3171,42 @@ input:
       name: Grid Mode Runtime
       unit_of_measurement: h
       icon: "mdi:timer"
+      precision: 1
+  eps_mode_runtime:
+    address: 138
+    type: int32
+    swap: word
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Mode Runtime
+      unit_of_measurement: h
+      icon: "mdi:timer"
+      precision: 1
+  eps_yield_total:
+    address: 142
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Yield Total
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      precision: 1
+  eps_yield_today:
+    address: 144
+    multiplier: 0.1
+    groups: [eps]
+    ha:
+      platform: sensor
+      name: EPS Yield Today
+      device_class: energy
+      state_class: total_increasing
+      unit_of_measurement: kWh
       precision: 1
   e_charge_today:
     address: 145
@@ -3112,6 +3862,629 @@ input:
       state_class: measurement
       unit_of_measurement: Wh
       enabled_by_default: false
+  pm_inverter_count:
+    address: 477
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Inverter Count
+      icon: "mdi:information"
+      entity_category: diagnostic
+      enabled_by_default: false
+  pm_activepower_l1:
+    address: 480
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM ActivePower L1
+      device_class: power
+      unit_of_measurement: W
+  pm_activepower_l2:
+    address: 482
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM ActivePower L2
+      device_class: power
+      unit_of_measurement: W
+  pm_activepower_l3:
+    address: 484
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM ActivePower L3
+      device_class: power
+      unit_of_measurement: W
+  pm_reactive_or_apparentpower_l1:
+    address: 486
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Reactive or ApparentPower L1
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_reactive_or_apparentpower_l2:
+    address: 488
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Reactive or ApparentPower L2
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_reactive_or_apparentpower_l3:
+    address: 490
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Reactive or ApparentPower L3
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm__current_l1:
+    address: 492
+    type: int32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Inverter Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm__current_l2:
+    address: 494
+    type: int32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Inverter Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm__current_l3:
+    address: 496
+    type: int32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Inverter Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_pv_power_1:
+    address: 498
+    type: uint32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM PV Power 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_pv_power_2:
+    address: 500
+    type: uint32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM PV Power 2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_pv_current_1:
+    address: 502
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM PV Current 1
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_pv_current_2:
+    address: 504
+    type: uint32
+    swap: word
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM PV Current 2
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_battery_power_charge:
+    address: 506
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Battery Power Charge
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:battery-charging"
+  pm_battery_current_charge:
+    address: 508
+    type: int32
+    swap: word
+    multiplier: 0.01
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM Battery Current Charge
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i2_activepower_l1:
+    address: 516
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 ActivePower L1
+      device_class: power
+      unit_of_measurement: W
+  pm_i2_activepower_l2:
+    address: 517
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 ActivePower L2
+      device_class: power
+      unit_of_measurement: W
+  pm_i2_activepower_l3:
+    address: 518
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 ActivePower L3
+      device_class: power
+      unit_of_measurement: W
+  pm_i2_reactive_or_apparentpower_l1:
+    address: 519
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Reactive or ApparentPower L1
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i2_reactive_or_apparentpower_l2:
+    address: 520
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Reactive or ApparentPower L2
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i2_reactive_or_apparentpower_l3:
+    address: 521
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Reactive or ApparentPower L3
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i2_current_l1:
+    address: 522
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Inverter Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i2_current_l2:
+    address: 523
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Inverter Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i2_current_l3:
+    address: 524
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Inverter Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i2_pv_power_1:
+    address: 525
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Power 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_i2_pv_power_2:
+    address: 526
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Power 2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_i2_pv_voltage_1:
+    address: 527
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Voltage 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      icon: "mdi:solar-power-variant"
+      precision: 1
+  pm_i2_pv_voltage_2:
+    address: 528
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Voltage 2
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      icon: "mdi:solar-power-variant"
+      precision: 1
+  pm_i2_pv_current_1:
+    address: 529
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Current 1
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i2_pv_current_2:
+    address: 530
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 PV Current 2
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i2_battery_power_charge:
+    address: 531
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Battery Power Charge
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:battery-charging"
+  pm_i2_battery_voltage_charge:
+    address: 532
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Battery Voltage Charge
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  pm_i2_battery_current_charge:
+    address: 533
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Battery Current Charge
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i2_battery_capacity_charge:
+    address: 537
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I2 Battery Capacity
+      unit_of_measurement: "%"
+  pm_i3_activepower_l1:
+    address: 542
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 ActivePower L1
+      device_class: power
+      unit_of_measurement: W
+  pm_i3_activepower_l2:
+    address: 543
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 ActivePower L2
+      device_class: power
+      unit_of_measurement: W
+  pm_i3_activepower_l3:
+    address: 544
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 ActivePower L3
+      device_class: power
+      unit_of_measurement: W
+  pm_i3_reactive_or_apparentpower_l1:
+    address: 545
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Reactive or ApparentPower L1
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i3_reactive_or_apparentpower_l2:
+    address: 546
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Reactive or ApparentPower L2
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i3_reactive_or_apparentpower_l3:
+    address: 547
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Reactive or ApparentPower L3
+      device_class: apparent_power
+      unit_of_measurement: VA
+  pm_i3_current_l1:
+    address: 548
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Inverter Current L1
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i3_current_l2:
+    address: 549
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Inverter Current L2
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i3_current_l3:
+    address: 550
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Inverter Current L3
+      device_class: current
+      unit_of_measurement: A
+      precision: 1
+  pm_i3_pv_power_1:
+    address: 551
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Power 1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_i3_pv_power_2:
+    address: 552
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Power 2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power-variant"
+  pm_i3_pv_voltage_1:
+    address: 553
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Voltage 1
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      icon: "mdi:solar-power-variant"
+      precision: 1
+  pm_i3_pv_voltage_2:
+    address: 554
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Voltage 2
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      icon: "mdi:solar-power-variant"
+      precision: 1
+  pm_i3_pv_current_1:
+    address: 555
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Current 1
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i3_pv_current_2:
+    address: 556
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 PV Current 2
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i3_battery_power_charge:
+    address: 557
+    type: int16
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Battery Power Charge
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:battery-charging"
+  pm_i3_battery_voltage_charge:
+    address: 558
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Battery Voltage Charge
+      device_class: voltage
+      unit_of_measurement: V
+      precision: 1
+  pm_i3_battery_current_charge:
+    address: 559
+    type: int16
+    multiplier: 0.1
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Battery Current Charge
+      device_class: current
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+      precision: 1
+  pm_i3_battery_capacity_charge:
+    address: 563
+    scan_interval: 15
+    groups: [parallel_mode]
+    ha:
+      platform: sensor
+      name: PM I3 Battery Capacity
+      unit_of_measurement: "%"
 
 # Computed sensors (values SolaX derives in code, rebuilt as templates).
 template:
@@ -3192,6 +4565,66 @@ template:
       unit_of_measurement: V
       enabled_by_default: false
     state: "{{ ((cell_voltage_high or 0) - (cell_voltage_low or 0)) | round(3) }}"
+  pm_total_inverter_power:
+    ha:
+      platform: sensor
+      name: PM Total Inverter Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:home-lightning-bolt"
+    state: "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0)) | int }}"
+    groups: [parallel_mode]
+  pm_total_pv_power:
+    ha:
+      platform: sensor
+      name: PM Total PV Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:solar-power"
+    state: "{{ ((pm_pv_power_1 or 0) + (pm_pv_power_2 or 0)) | int }}"
+    groups: [parallel_mode]
+  pm_total_house_load:
+    ha:
+      platform: sensor
+      name: PM Total House Load
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:home-lightning-bolt"
+    state: "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0) - (measured_power or 0)) | int }}"
+    groups: [parallel_mode]
+  pm_total_reactive_or_apparentpower:
+    ha:
+      platform: sensor
+      name: PM Total Reactive or ApparentPower
+      device_class: apparent_power
+      state_class: measurement
+      unit_of_measurement: VA
+      icon: "mdi:flash"
+    state: "{{ ((pm_reactive_or_apparentpower_l1 or 0) + (pm_reactive_or_apparentpower_l2 or 0) + (pm_reactive_or_apparentpower_l3 or 0)) | int }}"
+    groups: [parallel_mode]
+  pm_total_inverter_current:
+    ha:
+      platform: sensor
+      name: PM Total Inverter Current
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      icon: "mdi:current-ac"
+    state: "{{ ((pm__current_l1 or 0) + (pm__current_l2 or 0) + (pm__current_l3 or 0)) | round(1) }}"
+    groups: [parallel_mode]
+  pm_total_pv_current:
+    ha:
+      platform: sensor
+      name: PM Total PV Current
+      device_class: current
+      state_class: measurement
+      unit_of_measurement: A
+      icon: "mdi:current-dc"
+    state: "{{ ((pm_pv_current_1 or 0) + (pm_pv_current_2 or 0)) | round(1) }}"
+    groups: [parallel_mode]
   rtc:
     ha:
       platform: sensor

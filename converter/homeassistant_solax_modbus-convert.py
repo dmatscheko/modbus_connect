@@ -177,9 +177,15 @@ class _Converter:
     handles one entity so no single one carries the whole pipeline's complexity.
     """
 
-    def __init__(self, pi, spec, protocol=None):
+    def __init__(self, pi, spec, protocol=None, features=()):
         self.pi = pi
         self.spec = spec
+        # Optional-feature gates: (allowedtypes bit, group name). Upstream only
+        # creates these entities when the matching config checkbox is on (Parallel
+        # Mode / EPS / dry contact box); we convert them all and tag each with a
+        # named group so the integration's group switches give the same opt-in at
+        # runtime — off by default, no registers polled until enabled.
+        self.features = features
         # Modbus protocol *document* version to convert for (SolaX gates entities on
         # it via modbus_min/modbus_max, and the device reports its own on holding
         # 0x82 — the modbus_protocol_version sensor). None keeps every variant,
@@ -199,6 +205,14 @@ class _Converter:
         self.entities = []     # (table, key, base) output rows
         self.seen = set()      # emitted keys, for dedupe
         self.boundaries = set()  # (table, address) of SolaX newblock flags
+
+    def feature_tag(self, b, e):
+        """Mark the entity dict with the feature groups its allowedtypes gate on
+        (consumed by annotate_groups; never emitted itself)."""
+        groups = [g for bit, g in self.features if e.allowedtypes & bit]
+        if groups:
+            b["_feature"] = groups
+        return b
 
     def match(self, e):
         if not self.pi.matchInverterWithMask(self.spec, e.allowedtypes):
@@ -305,6 +319,7 @@ class _Converter:
         if b is None:
             self.skipped["sensor:no-register"] += 1
             return
+        self.feature_tag(b, e)
         ha = ha_common(e, "sensor")
         # A time-format mirror (SolaX reads a time setting's current value through
         # an internal sensor with a time-rendering scale): expressed as our `time`
@@ -344,6 +359,7 @@ class _Converter:
         if b is None:
             self.skipped["select:no-register"] += 1
             return
+        self.feature_tag(b, e)
         omap = {int(k): str(v) for k, v in od.items()}
         b["map"] = omap
         self._emit_writable(e, b, ha_common(e, "select"), omap)
@@ -366,6 +382,7 @@ class _Converter:
         if b is None:
             self.skipped["number:no-register"] += 1
             return
+        self.feature_tag(b, e)
         scale = float(getattr(e, "scale", 1) or 1)
         if scale != 1:
             b["multiplier"] = round(scale, 10)
@@ -394,7 +411,7 @@ class _Converter:
         if wordcount not in (1, 2):
             self.skipped["time:multi-register"] += 1  # only 1- and 2-register forms handled
             return
-        b = {"address": reg, "type": "time"}
+        b = self.feature_tag({"address": reg, "type": "time"}, e)
         if wordcount == 2:  # separate registers: first = hour, second = minute
             b["count"] = 2
         else:
@@ -426,7 +443,9 @@ class _Converter:
         if getattr(e, "register", None) is None:
             self.skipped["button:no-register"] += 1
             return
-        b = {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")}
+        b = self.feature_tag(
+            {"address": e.register, "write_value": e.command, "ha": ha_common(e, "button")}, e
+        )
         if getattr(e, "write_method", 1) in WRITE_FC16:
             b["write_multiple"] = True
         self.add("holding", e.key, b)
@@ -456,11 +475,12 @@ class _Converter:
         return self.entities, self.skipped, self.boundaries
 
 
-def convert(pi, spec, protocol=None):
+def convert(pi, spec, protocol=None, features=()):
     """Convert a plugin's entity descriptions for one inverter spec into our
     declarative entities. See :class:`_Converter` for how a setting's split
-    read/write registers are recombined and what ``protocol`` gates."""
-    return _Converter(pi, spec, protocol).run()
+    read/write registers are recombined and what ``protocol`` and ``features``
+    gate."""
+    return _Converter(pi, spec, protocol, features).run()
 
 
 # --- entity groups -----------------------------------------------------------
@@ -471,6 +491,11 @@ def convert(pi, spec, protocol=None):
 # default is "advanced". The hidden expert entities carry no tag at all — they
 # belong only to the implicit "all" group, whose switch reveals every entity.
 # The device defaults to showing only "basic".
+#
+# Entities upstream gates behind an optional-feature checkbox (Parallel Mode /
+# EPS / dry contact box, see _Converter.features) skip the tiers entirely and
+# carry their feature group instead — created only while that group's switch is
+# on, exactly like upstream's opt-in, but toggleable at runtime.
 
 # The keys that make up the everyday view of each device (the basic tier).
 HYBRID_BASIC = frozenset({
@@ -508,10 +533,17 @@ def tier_groups(key, ha, basic):
 def annotate_groups(entities, templates, basic):
     """Attach group tags to every non-internal entity and every template in place.
     Internal read-only entities carry none (never shown; always polled when needed).
-    A curated basic entity is forced enabled — SolaX ships a few of them disabled,
-    but if we put one in the everyday view it should show without extra clicks."""
+    An optional-feature entity (its ``_feature`` marker set by the converter) is in
+    its feature group alone, keeping its upstream enabled/disabled default within
+    it. A curated basic entity is forced enabled — SolaX ships a few of them
+    disabled, but if we put one in the everyday view it should show without extra
+    clicks."""
     for _table, key, b in entities:
+        feature = b.pop("_feature", None)
         if b.get("internal"):
+            continue
+        if feature:
+            b["groups"] = feature
             continue
         ha = b.get("ha", {})
         if key in basic:
@@ -520,6 +552,8 @@ def annotate_groups(entities, templates, basic):
         if groups:
             b["groups"] = groups
     for t in templates:
+        if t.get("groups"):
+            continue  # explicit tag (the PM totals carry their feature group)
         groups = tier_groups(t["key"], t.get("ha", {}), basic)
         if groups:
             t["groups"] = groups
@@ -672,9 +706,12 @@ def validate_output(text, filename):
     parse_device(yaml.safe_load(text), filename=filename)
 
 
-def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset(), protocol=None):
+def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset(), protocol=None,
+        features=None):
     P = load_plugin(module)
-    ents, skipped, boundaries = convert(P.plugin_instance, spec_fn(P), protocol)
+    ents, skipped, boundaries = convert(
+        P.plugin_instance, spec_fn(P), protocol, features(P) if features else ()
+    )
     ents = list(ents) + list(extras)  # device-info + computed registers, appended post-dedupe
     dupes = [k for k, n in Counter(k for _, k, _ in ents).items() if n > 1]
     if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
@@ -735,8 +772,11 @@ RTC_UTC = ["{{ ((now().utcoffset().total_seconds() // 60) | int) % 65536 }}",
 if __name__ == "__main__":
     # Hybrid firmware "DSP {dsp//100}.{dsp%100} ARM ..." from regs 123/124; serial is a
     # byte-swapped 7-word string at reg 0; hardware is the fixed "Gen4".
+    # The PM/EPS/DCB bits pull in the entities upstream hides behind its Parallel
+    # Mode / EPS / dry contact box config checkboxes; `features` maps each bit to
+    # the group whose switch provides the same opt-in here (all off by default).
     run(
-        "plugin_solax", lambda P: P.X3 | P.HYBRID | P.GEN4,
+        "plugin_solax", lambda P: P.X3 | P.HYBRID | P.GEN4 | P.PM | P.EPS | P.DCB,
         {
             "note": "Registers follow SolaX Modbus protocol document V1.02+; the device reports "
                     "its version in the Modbus Protocol Version diagnostic sensor (holding 130).",
@@ -756,6 +796,7 @@ if __name__ == "__main__":
         # Version diagnostic sensor (holding 130) — regenerate with that value if
         # it differs.
         protocol=102,
+        features=lambda P: ((P.PM, "parallel_mode"), (P.EPS, "eps"), (P.DCB, "generator")),
         extras=[
             internal("holding", "firmware_dsp", address=123),
             internal("holding", "firmware_arm", address=124),
@@ -798,6 +839,41 @@ if __name__ == "__main__":
              "ha": {"platform": "sensor", "name": "Battery voltage cell difference",
                     "device_class": "voltage", "state_class": "measurement",
                     "unit_of_measurement": "V", "enabled_by_default": False}},
+            # Parallel-mode totals over the per-phase/per-string PM registers (upstream's
+            # value_function_pm_total_*). House load keeps only upstream's inverter method
+            # (PM power - grid power): its remote-control delta correction reads VPP
+            # registers we don't convert. The current totals sum at the registers'
+            # 0.1 A resolution where upstream truncates each phase to whole amps.
+            {"key": "pm_total_inverter_power",
+             "state": "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0)) | int }}",
+             "ha": PW("PM Total Inverter Power", icon="mdi:home-lightning-bolt"),
+             "groups": ["parallel_mode"]},
+            {"key": "pm_total_pv_power",
+             "state": "{{ ((pm_pv_power_1 or 0) + (pm_pv_power_2 or 0)) | int }}",
+             "ha": PW("PM Total PV Power", icon="mdi:solar-power"),
+             "groups": ["parallel_mode"]},
+            {"key": "pm_total_house_load",
+             "state": "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0) - (measured_power or 0)) | int }}",
+             "ha": PW("PM Total House Load", icon="mdi:home-lightning-bolt"),
+             "groups": ["parallel_mode"]},
+            {"key": "pm_total_reactive_or_apparentpower",
+             "state": "{{ ((pm_reactive_or_apparentpower_l1 or 0) + (pm_reactive_or_apparentpower_l2 or 0) + (pm_reactive_or_apparentpower_l3 or 0)) | int }}",
+             "ha": {"platform": "sensor", "name": "PM Total Reactive or ApparentPower",
+                    "device_class": "apparent_power", "state_class": "measurement",
+                    "unit_of_measurement": "VA", "icon": "mdi:flash"},
+             "groups": ["parallel_mode"]},
+            {"key": "pm_total_inverter_current",
+             "state": "{{ ((pm__current_l1 or 0) + (pm__current_l2 or 0) + (pm__current_l3 or 0)) | round(1) }}",
+             "ha": {"platform": "sensor", "name": "PM Total Inverter Current",
+                    "device_class": "current", "state_class": "measurement",
+                    "unit_of_measurement": "A", "icon": "mdi:current-ac"},
+             "groups": ["parallel_mode"]},
+            {"key": "pm_total_pv_current",
+             "state": "{{ ((pm_pv_current_1 or 0) + (pm_pv_current_2 or 0)) | round(1) }}",
+             "ha": {"platform": "sensor", "name": "PM Total PV Current",
+                    "device_class": "current", "state_class": "measurement",
+                    "unit_of_measurement": "A", "icon": "mdi:current-dc"},
+             "groups": ["parallel_mode"]},
             rtc_template("{{ '20%02d-%02d-%02d %02d:%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second) }}"),
         ],
         basic=HYBRID_BASIC,

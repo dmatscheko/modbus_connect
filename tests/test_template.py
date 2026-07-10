@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.modbus_connect.binary_sensor import ModbusConnectTemplateBinarySensor
 from custom_components.modbus_connect.climate import ModbusConnectClimate
-from custom_components.modbus_connect.const import OPTION_SHOW_ALL
+from custom_components.modbus_connect.const import OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
 from custom_components.modbus_connect.cover import ModbusConnectCover
 from custom_components.modbus_connect.entity import build_template_description
 from custom_components.modbus_connect.fan import ModbusConnectFan
@@ -500,6 +500,47 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     assert value("battery_charge_power") == 0          # not charging
     assert value("battery_discharge_power") == 500     # discharging
     assert value("bms_max_charge") == 5120             # battery voltage x BMS max current
+
+
+async def test_solax_hybrid_parallel_mode_group(hass, monkeypatch):
+    """The parallel_mode group (upstream's Parallel Mode checkbox) materializes the
+    PM registers and their total templates without pulling in the advanced tier."""
+    from custom_components.modbus_connect import codec
+
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    by = {e.key: e for e in device.entities}
+    regs: dict[int, int] = {}
+
+    def put(key, value):
+        defn = by[key]
+        for i, w in enumerate(codec.encode(defn, value)):
+            regs[defn.address + i] = w & 0xFFFF
+
+    put("pm_activepower_l1", 1500)
+    put("pm_activepower_l2", 1200)
+    put("pm_activepower_l3", -300)
+    put("measured_power", 400)   # positive = exporting 400 W
+    put("pm__current_l1", 6.5)   # int32 x0.1 A registers
+    put("pm__current_l2", 5.2)
+    put("pm__current_l3", 1.3)
+    coordinator = await make_coordinator(
+        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["parallel_mode"]},
+    )
+    await coordinator.async_refresh()
+
+    visible = {e.key for e in coordinator.visible_entities}
+    assert "pm_activepower_l1" in visible                # the group is on
+    assert "battery_charge_max_current" not in visible   # advanced stays off
+    assert coordinator.data["pm_activepower_l1"] == 1500
+
+    def value(key):
+        tdef = next(t for t in device.templates if t.key == key)
+        return make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef).native_value
+
+    assert value("pm_total_inverter_power") == 2400   # L1 + L2 + L3
+    assert value("pm_total_house_load") == 2000       # PM power sum - grid power
+    assert value("pm_total_inverter_current") == 13.0  # summed at 0.1 A resolution
 
 
 async def test_bms_max_charge_falls_back_when_bms_current_missing(hass, monkeypatch):

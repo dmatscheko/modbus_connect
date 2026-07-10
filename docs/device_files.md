@@ -217,6 +217,10 @@ entity `groups: [basic]` means "part of the always-visible baseline" — it
 keeps the entity out of the other groups without ever letting it be hidden, so
 a user cannot lock themselves out by disabling the group everything lives in.
 
+Each group gets an *Enable ⟨group⟩ entities* switch, the name shown with
+underscores as spaces and the first letter capitalized (`parallel_mode` →
+*Enable Parallel mode entities*).
+
 Besides the per-group switches there is one **Enable all entities** switch:
 while it is on, group handling is bypassed entirely and every entity of the
 file exists — an entity tagged into *no* group is exactly the "everything
