@@ -66,38 +66,19 @@ independent.
 
 Add the **Modbus Connect** integration in **Settings → Devices & services**
 (or click
-[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)).
-The connection is tested before anything is created. Add the integration once
-per Modbus device — several devices can share one gateway.
+[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)):
+pick the device definition and name the device, then enter the gateway
+connection. The Modbus device ID and the entity-ID prefix are prefilled from
+the chosen device file, and the connection is tested before anything is
+created. Add the integration once per Modbus device — several devices can
+share one gateway.
 
-**Step 1 — device:**
-
-| Setting | Meaning | Default |
-| --- | --- | --- |
-| Device definition | The YAML file describing the device's registers | — |
-| Device name | Friendly name of the device and its config entry | manufacturer + model |
-
-**Step 2 — connection:**
-
-| Setting | Meaning | Default |
-| --- | --- | --- |
-| Host | Hostname or IP of the Modbus TCP gateway | — |
-| Port | TCP port of the gateway | `502` |
-| Modbus device ID | Unit/slave ID of the device behind the gateway (0–255) | the device file's `modbus_id`, else `1` |
-| Entity ID prefix | Start of all entity IDs of this device: `sensor.<prefix>_<key>` | the device file's `prefix`, else the device name |
-
-The Modbus device ID and the prefix are prefilled from the chosen device
-file, so devices whose factory default ID is not `1` work without looking it
-up. Clear the prefix to let Home Assistant derive entity IDs from the device
-name instead. Entity IDs are only assigned when an entity is first created —
-changing the prefix later does not rename existing entities.
-
-**Options** (gear icon on the integration entry): the *minimum* poll interval
-in seconds (1–86400) — a floor. The device file and individual entities set the
-actual per-entity cadences; this only raises them, it never polls faster.
-
-**Reconfigure** (three-dot menu → *Reconfigure*): change the device file,
-name, gateway address, device ID, or prefix without removing the entry.
+Worth knowing: entity IDs are assigned when an entity is first created, so
+changing the prefix later does not rename existing entities. The entry's
+options (gear icon) set a *minimum* poll interval — a floor over the device
+file's cadences that only ever slows polling down. *Reconfigure* (three-dot
+menu) changes the device file, name, or connection without removing the
+entry.
 
 ## Device files
 
@@ -162,38 +143,16 @@ Modbus TCP device not listed here works too — write a device file for it.
 Big devices expose far more settings and sensors than most people want, so a
 device file can tag its entities into named groups — `basic`, `advanced`, …
 (how, is in the [device file reference](docs/device_files.md#entity-groups)).
-For every group in the file, the integration adds one **Enable _group_
-entities** switch, so whole sets can be turned on and off from the device page;
-an entity shows while any of its groups is enabled. **`basic` is special**: it
-is always enabled and gets no switch — the everyday baseline can never be
-hidden, so you cannot lock yourself out by disabling the group everything lives
-in. On top of the group switches there is one **Enable all entities** switch:
-while it is on, group handling is bypassed entirely and every entity of the
-file is there — including entities tagged into no group at all (the expert tier
-of the bundled SolaX files). A file that uses no groups needs none of this and
-gets no switches: all of its entities are simply always shown.
+Switches on the device's companion **Configuration** device turn whole groups
+on and off; the `basic` group is the always-visible baseline and has no
+switch.
 
-The group switches and the *Reads per refresh* diagnostic don't clutter the
-device itself: they live on a companion **_device name_ Configuration** service
-device on the same config entry. The two devices are cross-linked — each shows
-the other as its "Connected via" device, so you can jump between them from
-either info card.
-
-Toggling a switch reloads the entry and **rebuilds the entity set**. Hidden
-entities are not merely disabled — they stop being provided, so Home Assistant
-greys them out as "no longer provided", *keeps their registry row* (your renames,
-areas, and enabled/disabled state), and restores them the moment the group is
-turned back on. Hidden entities also drop out of the Modbus read plan. The
-bundled SolaX Hybrid file, for instance, goes from 241 entities / 220 register
-reads on *all* down to 30 / 32 on *basic*.
-
-If you'd rather be rid of the greyed-out leftovers, the Configuration device has
-a **Remove hidden entities** button: it deletes every registry entry the current
-group selection no longer provides (including stale ones from an earlier device
-file), without touching anything that is provided — customizations on live
-entities, even manually disabled ones, are safe. It's a deliberate action
-precisely because those rows hold your renames and settings; nothing is ever
-deleted just by flipping a group switch.
+Hidden entities are not merely disabled — they stop being provided and drop
+out of the Modbus read plan entirely. Home Assistant greys them out but keeps
+their registry rows, so renames, areas, and enabled/disabled states all come
+back when the group does. The **Remove hidden entities** button deletes those
+greyed-out leftovers (including stale rows from an earlier device file)
+without touching anything that is currently provided.
 
 ## How data is updated
 
@@ -206,36 +165,21 @@ exact precedence is in the [device file
 reference](docs/device_files.md#read-planning-and-polling)). Writes are
 confirmed by reading the register back immediately.
 
-Each device also gets a **Reads per refresh** diagnostic sensor (on its
-*Configuration* companion device) showing how many Modbus block reads a full
-refresh issues. Thanks to block merging this is usually far below the entity
-count — its `read_entities` attribute is the total that poll, so the gap is the
-merge win made visible. It reports the stable full-refresh figure (it moves only
-when the read plan does), so it costs the recorder almost nothing; the live
-per-cycle read and poll counts are in *Download diagnostics* instead.
-
-Read health lives next to it: a **Read failures** problem indicator that turns
-on while any read failed in the last 5 minutes (its attributes carry the count
-in that window and the running total), and a **Failed reads** counter of failed
-read transactions since the last reload — chart it or alert on its rate. Both
-count unrecovered failures only: a bridged block that fails once and teaches the
-planner a dead filler address is planning, not a device problem. A healthy
-device writes neither entity to the recorder.
+The *Configuration* companion device carries the read diagnostics: a **Reads
+per refresh** sensor (how many block reads a full refresh issues — usually far
+below the entity count, that gap being the merge win), a **Read failures**
+problem indicator for the last 5 minutes, and a **Failed reads** running
+total. Both failure entities count unrecovered failures only, so a healthy
+device never writes them to the recorder.
 
 A register that keeps failing while the device answers everything else — the
-signature of a wrong address in a device file — is **quarantined**: after
-three consecutive misses, or immediately when the device reports the address
-as illegal, the entity goes unavailable and its registers leave the read plan.
-A standalone probe every 10 minutes (and any reload) lifts the quarantine the
-moment the device serves the register again. The quarantine is announced as a
-warning in the log naming the entity and its address.
-
-To find *which* register keeps failing: *Download diagnostics* lists
-`quarantined` and `failed_reads_by_key` (failure counts per entity, worst
-first), and with debug logging enabled (device page → *Enable debug logging*,
-or logger `custom_components.modbus_connect`) every unrecovered failure logs
-the address range and the entities it covers. A register the device genuinely
-never serves is best removed from the config or declared in
+signature of a wrong address in a device file — is **quarantined**: the entity
+goes unavailable, its registers leave the read plan, and a probe every
+10 minutes lifts the quarantine as soon as the device serves them again. The
+log warns with the entity and address; *Download diagnostics* lists
+`quarantined` and per-entity failure counts (`failed_reads_by_key`, worst
+first). A register the device genuinely never serves is best removed from the
+file or declared in
 [`bad_addresses`](docs/device_files.md#read-planning-and-polling).
 
 ## Automation examples
