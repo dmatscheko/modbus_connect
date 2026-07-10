@@ -511,7 +511,7 @@ SERIAL_CONNECTION = {
     CONF_SERIAL_PORT: "/dev/ttyUSB0",
     CONF_BAUDRATE: "19200",
     CONF_BYTESIZE: "8",
-    CONF_PARITY: "E",
+    CONF_PARITY: "e",  # the form's option values are lowercase translation keys
     CONF_STOPBITS: "1",
     CONF_SLAVE_ID: 7,
     CONF_PREFIX: "",
@@ -566,7 +566,7 @@ async def test_full_serial_flow(hass: HomeAssistant) -> None:
     assert data[CONF_SERIAL_PORT] == "/dev/ttyUSB0"
     assert data[CONF_BAUDRATE] == 19200  # select strings coerced back to numbers
     assert data[CONF_BYTESIZE] == 8
-    assert data[CONF_PARITY] == "E"
+    assert data[CONF_PARITY] == "E"  # "e" from the form, upper-cased for pymodbus
     assert data[CONF_STOPBITS] == 1
     assert "host" not in data
     assert result["result"].unique_id == "/dev/ttyUSB0:7"

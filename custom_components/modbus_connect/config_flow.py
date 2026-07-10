@@ -150,13 +150,19 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
                 vol.Coerce(int),
             ),
             vol.Required(
-                CONF_PARITY, default=defaults.get(CONF_PARITY, "N")
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=PARITY_OPTIONS,
-                    translation_key="parity",
-                    mode=SelectSelectorMode.DROPDOWN,
-                )
+                # Stored data keeps pymodbus's uppercase form; the option values
+                # are lowercase (valid translation keys), so map both ways.
+                CONF_PARITY,
+                default=str(defaults.get(CONF_PARITY, "N")).lower(),
+            ): vol.All(
+                SelectSelector(
+                    SelectSelectorConfig(
+                        options=PARITY_OPTIONS,
+                        translation_key="parity",
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Upper,
             ),
             vol.Required(
                 CONF_STOPBITS, default=str(defaults.get(CONF_STOPBITS, 1))

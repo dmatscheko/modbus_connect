@@ -150,9 +150,9 @@
     },
     "parity": {
       "options": {
-        "N": "Keine",
-        "E": "Gerade",
-        "O": "Ungerade"
+        "n": "Keine",
+        "e": "Gerade",
+        "o": "Ungerade"
       }
     }
   },

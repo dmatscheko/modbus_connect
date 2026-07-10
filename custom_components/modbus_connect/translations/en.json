@@ -150,9 +150,9 @@
     },
     "parity": {
       "options": {
-        "N": "None",
-        "E": "Even",
-        "O": "Odd"
+        "n": "None",
+        "e": "Even",
+        "o": "Odd"
       }
     }
   },

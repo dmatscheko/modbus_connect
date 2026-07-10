@@ -49,7 +49,9 @@ BAUDRATE_OPTIONS: Final = [
     "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200",
 ]
 BYTESIZE_OPTIONS: Final = ["7", "8"]
-PARITY_OPTIONS: Final = ["N", "E", "O"]
+# Lowercase because selector option translation keys must be [a-z0-9-_]+
+# (hassfest); the flow upper-cases back to pymodbus's "N"/"E"/"O" on submit.
+PARITY_OPTIONS: Final = ["n", "e", "o"]
 STOPBITS_OPTIONS: Final = ["1", "2"]
 
 # Config entry option keys
