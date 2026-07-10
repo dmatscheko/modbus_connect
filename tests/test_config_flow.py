@@ -220,13 +220,39 @@ async def test_duplicate_aborts(hass: HomeAssistant) -> None:
 async def test_no_device_files_aborts(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.modbus_connect.config_flow.async_load_all",
-        AsyncMock(return_value={}),
+        AsyncMock(return_value=({}, {})),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN, context={"source": SOURCE_USER}
         )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "no_device_files"
+
+
+async def test_invalid_device_file_reported_in_flow(hass: HomeAssistant) -> None:
+    # an invalid user file must not vanish silently from the picker
+    write_device_file(hass)
+    write_device_file(hass, "broken.yaml", "device: {manufacturer: X}\n")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.FORM
+    note = result["description_placeholders"]["failed"]
+    assert "broken.yaml" in note
+    assert "device.model" in note  # the actual reason, not just the name
+
+
+async def test_all_files_valid_shows_no_note(hass: HomeAssistant) -> None:
+    # the harness config dir is shared across tests: drop leftover files first
+    directory = Path(hass.config.config_dir) / DOMAIN
+    if directory.is_dir():
+        for stale in directory.glob("*.yaml"):
+            stale.unlink()
+    write_device_file(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["description_placeholders"] == {"failed": ""}
 
 
 def make_entry(**overrides) -> MockConfigEntry:
@@ -387,7 +413,7 @@ async def test_reconfigure_no_device_files_aborts(hass: HomeAssistant) -> None:
 
     with patch(
         "custom_components.modbus_connect.config_flow.async_load_all",
-        AsyncMock(return_value={}),
+        AsyncMock(return_value=({}, {})),
     ):
         result = await start_reconfigure(hass, entry)
     assert result["type"] is FlowResultType.ABORT

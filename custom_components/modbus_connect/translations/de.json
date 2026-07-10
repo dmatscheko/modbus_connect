@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Gerätetyp",
-        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt, und benenne das Gerät. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.",
+        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt, und benenne das Gerät. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.{failed}",
         "data": {
           "filename": "Gerätedefinition",
           "name": "Gerätename"
@@ -61,7 +61,7 @@
       },
       "reconfigure": {
         "title": "Gerätetyp",
-        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt, und benenne das Gerät. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.",
+        "description": "Wähle die Gerätedefinition, die zu deiner Hardware passt, und benenne das Gerät. Eigene YAML-Dateien im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses werden ebenfalls angezeigt.{failed}",
         "data": {
           "filename": "Gerätedefinition",
           "name": "Gerätename"

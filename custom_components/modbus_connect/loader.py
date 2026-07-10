@@ -58,15 +58,19 @@ def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
         raise DeviceSchemaError(f"{filename}: invalid YAML: {err}") from err
 
 
-def _load_all(hass: HomeAssistant) -> dict[str, DeviceDef]:
+def _load_all(hass: HomeAssistant) -> tuple[dict[str, DeviceDef], dict[str, str]]:
     """Discover and load every device file. Runs entirely in one executor job."""
     devices: dict[str, DeviceDef] = {}
+    errors: dict[str, str] = {}
     for name, path in _discover(hass).items():
         try:
             devices[name] = _load_file(path, name)
         except (DeviceSchemaError, yaml.YAMLError, OSError) as err:
             _LOGGER.warning("Skipping device file %s: %s", path, err)
-    return devices
+            # One line per file; schema errors already lead with the filename
+            message = " ".join(str(err).split())
+            errors[name] = message if message.startswith(name) else f"{name}: {message}"
+    return devices, errors
 
 
 async def async_load_device(hass: HomeAssistant, filename: str) -> DeviceDef:
@@ -74,6 +78,13 @@ async def async_load_device(hass: HomeAssistant, filename: str) -> DeviceDef:
     return await hass.async_add_executor_job(_load_one, hass, filename)
 
 
-async def async_load_all(hass: HomeAssistant) -> dict[str, DeviceDef]:
-    """Load every discoverable device definition, skipping invalid files."""
+async def async_load_all(
+    hass: HomeAssistant,
+) -> tuple[dict[str, DeviceDef], dict[str, str]]:
+    """Load every discoverable device definition, skipping invalid files.
+
+    Returns the loaded definitions plus filename -> reason for every skipped
+    file, so the config flow can say *why* a file is missing from the picker
+    instead of leaving the author to dig through the log.
+    """
     return await hass.async_add_executor_job(_load_all, hass)

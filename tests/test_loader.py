@@ -46,16 +46,23 @@ async def test_invalid_yaml_reported(hass: HomeAssistant) -> None:
         await async_load_device(hass, "broken.yaml")
 
 
-async def test_load_all_skips_invalid_files(hass: HomeAssistant) -> None:
+async def test_load_all_skips_invalid_files_and_reports_them(
+    hass: HomeAssistant,
+) -> None:
     directory = user_dir(hass)
     (directory / "good.yaml").write_text(GOOD, encoding="utf-8")
     (directory / "broken.yaml").write_text("{:", encoding="utf-8")
     (directory / "bad_schema.yaml").write_text("device: {}", encoding="utf-8")
 
-    devices = await async_load_all(hass)
+    devices, errors = await async_load_all(hass)
     assert "good.yaml" in devices
     assert "broken.yaml" not in devices
     assert "bad_schema.yaml" not in devices
+    # every skipped file gets a one-line reason, always led by its name
+    assert set(errors) == {"broken.yaml", "bad_schema.yaml"}
+    assert errors["bad_schema.yaml"].startswith("bad_schema.yaml: ")
+    assert errors["broken.yaml"].startswith("broken.yaml: ")
+    assert "\n" not in errors["broken.yaml"]  # YAML errors are multi-line
 
 
 async def test_user_file_overrides_builtin(hass: HomeAssistant) -> None:

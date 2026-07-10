@@ -89,7 +89,8 @@ entry.
 Every device is described by one YAML file — a bundled one from the table
 below, or your own in `<ha_config>/modbus_connect/` (your files survive
 updates and override built-in files with the same name; invalid files are
-reported in the log with the entity and reason and skipped).
+skipped, with the entity and reason shown right in the config flow's device
+picker and in the log).
 
 A few lines per entity are enough:
 

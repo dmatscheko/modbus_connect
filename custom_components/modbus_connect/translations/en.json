@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Device type",
-        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
+        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.{failed}",
         "data": {
           "filename": "Device definition",
           "name": "Device name"
@@ -61,7 +61,7 @@
       },
       "reconfigure": {
         "title": "Device type",
-        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.",
+        "description": "Pick the device definition that matches your hardware and name the device. Your own YAML files in the `modbus_connect` folder of the Home Assistant configuration directory are listed too.{failed}",
         "data": {
           "filename": "Device definition",
           "name": "Device name"

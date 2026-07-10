@@ -225,12 +225,21 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         self._name: str = ""
         self._device: DeviceDef | None = None
         self._devices: dict[str, DeviceDef] | None = None
+        self._load_errors: dict[str, str] = {}
 
     async def _load_devices(self) -> dict[str, DeviceDef]:
         """Load device definitions once and reuse them across this flow's steps."""
         if self._devices is None:
-            self._devices = await async_load_all(self.hass)
+            self._devices, self._load_errors = await async_load_all(self.hass)
         return self._devices
+
+    @property
+    def _failed_note(self) -> str:
+        """Markdown note listing skipped device files; "" when all loaded."""
+        if not self._load_errors:
+            return ""
+        lines = "\n".join(f"- {error}" for error in self._load_errors.values())
+        return f"\n\n**Skipped invalid device files:**\n{lines}"
 
     @property
     def _title(self) -> str:
@@ -308,7 +317,11 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             self._store_device_choice(devices, user_input)
             return await self.async_step_connection_type()
 
-        return self.async_show_form(step_id="user", data_schema=_device_schema(devices))
+        return self.async_show_form(
+            step_id="user",
+            data_schema=_device_schema(devices),
+            description_placeholders={"failed": self._failed_note},
+        )
 
     async def async_step_connection_type(
         self, user_input: dict[str, Any] | None = None
@@ -380,7 +393,9 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             CONF_NAME: entry.data.get(CONF_NAME) or entry.data.get(CONF_PREFIX) or "",
         }
         return self.async_show_form(
-            step_id="reconfigure", data_schema=_device_schema(devices, defaults)
+            step_id="reconfigure",
+            data_schema=_device_schema(devices, defaults),
+            description_placeholders={"failed": self._failed_note},
         )
 
     async def async_step_reconfigure_connection_type(
