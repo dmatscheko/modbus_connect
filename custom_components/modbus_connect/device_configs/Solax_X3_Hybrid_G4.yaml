@@ -3561,101 +3561,101 @@ input:
     address: 201
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Voltage
       device_class: voltage
       state_class: measurement
       unit_of_measurement: V
-      enabled_by_default: false
       precision: 1
   grid_voltage_l1:
     address: 202
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Voltage L1
       device_class: voltage
       state_class: measurement
       unit_of_measurement: V
-      enabled_by_default: false
       precision: 1
   grid_voltage_l2:
     address: 203
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Voltage L2
       device_class: voltage
       state_class: measurement
       unit_of_measurement: V
-      enabled_by_default: false
       precision: 1
   grid_voltage_l3:
     address: 204
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Voltage L3
       device_class: voltage
       state_class: measurement
       unit_of_measurement: V
-      enabled_by_default: false
       precision: 1
   grid_current_total:
     address: 205
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Current Total
       device_class: current
       state_class: measurement
       unit_of_measurement: A
-      enabled_by_default: false
       precision: 1
   grid_current_l1:
     address: 206
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Current L1
       device_class: current
       state_class: measurement
       unit_of_measurement: A
-      enabled_by_default: false
       precision: 1
   grid_current_l2:
     address: 207
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Current L2
       device_class: current
       state_class: measurement
       unit_of_measurement: A
-      enabled_by_default: false
       precision: 1
   grid_current_l3:
     address: 208
     type: int16
     multiplier: 0.1
     scan_interval: 15
+    groups: [grid]
     ha:
       platform: sensor
       name: Grid Current L3
       device_class: current
       state_class: measurement
       unit_of_measurement: A
-      enabled_by_default: false
       precision: 1
   grid_reactive_power_total:
     address: 210
@@ -4668,6 +4668,46 @@ template:
     state: "{{ [(inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0), 0] | max }}"
     integrate: trapezoidal
     groups: [home_consumption]
+  grid_power_l1:
+    ha:
+      platform: sensor
+      name: Grid Power L1
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:transmission-tower"
+    state: "{{ (((grid_voltage_l1 or 0) * (grid_current_l1 or 0) * ((grid_power_factor_l1 or 0) | abs)) / 100) | round | int }}"
+    groups: [grid]
+  grid_power_l2:
+    ha:
+      platform: sensor
+      name: Grid Power L2
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:transmission-tower"
+    state: "{{ (((grid_voltage_l2 or 0) * (grid_current_l2 or 0) * ((grid_power_factor_l2 or 0) | abs)) / 100) | round | int }}"
+    groups: [grid]
+  grid_power_l3:
+    ha:
+      platform: sensor
+      name: Grid Power L3
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:transmission-tower"
+    state: "{{ (((grid_voltage_l3 or 0) * (grid_current_l3 or 0) * ((grid_power_factor_l3 or 0) | abs)) / 100) | round | int }}"
+    groups: [grid]
+  grid_power:
+    ha:
+      platform: sensor
+      name: Grid Power
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:transmission-tower"
+    state: "{{ (((grid_voltage_l1 or 0) * (grid_current_l1 or 0) * ((grid_power_factor_l1 or 0) | abs) + (grid_voltage_l2 or 0) * (grid_current_l2 or 0) * ((grid_power_factor_l2 or 0) | abs) + (grid_voltage_l3 or 0) * (grid_current_l3 or 0) * ((grid_power_factor_l3 or 0) | abs)) / 100) | round | int }}"
+    groups: [grid]
   rtc:
     ha:
       platform: sensor

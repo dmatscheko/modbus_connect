@@ -526,6 +526,16 @@ HAC_BASIC = frozenset({
 HYBRID_EXTRA_GROUPS = {
     # upstream ED "Grid to Battery Energy" = the e_charge_today register
     "e_charge_today": ("grid_to_battery",),
+    # A "grid" group over the inverter's per-phase grid measurements (upstream
+    # ships them disabled/expert); the grid_power_* templates below derive real
+    # power from them plus the hidden power-factor registers.
+    **dict.fromkeys(
+        (
+            "grid_voltage", "grid_voltage_l1", "grid_voltage_l2", "grid_voltage_l3",
+            "grid_current_total", "grid_current_l1", "grid_current_l2", "grid_current_l3",
+        ),
+        ("grid",),
+    ),
 }
 
 
@@ -764,6 +774,38 @@ def KWH(name, **extra):
             "state_class": "total_increasing", "unit_of_measurement": "kWh", **extra}
 
 
+def _grid_phase_power(n):
+    """Real power on one grid phase: V x I x |PF|, PF the register's percent value
+    (upstream labels it '%', no scale). Direction comes from the signed grid
+    current; |power factor| is the 0..1 magnitude reduction, so a signed PF does
+    not double the sign. `/100` and the sign are worth verifying against the Grid
+    Power Factor sensor and `measured_power` on real hardware."""
+    return (f"(grid_voltage_l{n} or 0) * (grid_current_l{n} or 0) "
+            f"* ((grid_power_factor_l{n} or 0) | abs)")
+
+
+def grid_power_templates():
+    """Per-phase and total real grid power over the `grid` group's V/I sensors and
+    the (hidden but still polled) power-factor registers. Templates render over
+    entity values, never each other, so the total inlines the three phase
+    expressions instead of summing the grid_power_l* templates."""
+    phases = [
+        {"key": f"grid_power_l{n}",
+         "state": "{{ ((" + _grid_phase_power(n) + ") / 100) | round | int }}",
+         "ha": PW(f"Grid Power L{n}", icon="mdi:transmission-tower"),
+         "groups": ["grid"]}
+        for n in (1, 2, 3)
+    ]
+    total = {
+        "key": "grid_power",
+        "state": "{{ ((" + " + ".join(_grid_phase_power(n) for n in (1, 2, 3))
+                 + ") / 100) | round | int }}",
+        "ha": PW("Grid Power", icon="mdi:transmission-tower"),
+        "groups": ["grid"],
+    }
+    return [*phases, total]
+
+
 def rtc_template(state):
     """The RTC diagnostic sensor (upstream's `rtc`): the device clock rendered from
     the raw date/time registers, for spotting drift (see the Sync RTC button)."""
@@ -925,6 +967,9 @@ if __name__ == "__main__":
              "integrate": "trapezoidal",
              "ha": KWH("Home Consumption Energy", icon="mdi:home-lightning-bolt"),
              "groups": ["home_consumption"]},
+            # Per-phase + total real grid power for the `grid` group (the V/I
+            # sensors it reveals have no power register on the device).
+            *grid_power_templates(),
             rtc_template("{{ '20%02d-%02d-%02d %02d:%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second) }}"),
         ],
         basic=HYBRID_BASIC,

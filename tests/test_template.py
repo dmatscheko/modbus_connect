@@ -575,6 +575,60 @@ async def test_solax_hybrid_energy_dashboard_groups(hass, monkeypatch):
     assert "battery_charge_max_current" not in {e.key for e in coordinator.visible_entities}
 
 
+async def test_solax_hybrid_grid_group(hass, monkeypatch):
+    """The grid group reveals the per-phase V/I sensors and derives real power from
+    them + the hidden power-factor registers: P = V x I x |PF| / 100, direction
+    from the signed current, |PF| so a signed power factor can't double the sign."""
+    from custom_components.modbus_connect import codec
+
+    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    by = {e.key: e for e in device.entities}
+    regs: dict[int, int] = {}
+
+    def put(key, value):
+        defn = by[key]
+        for i, w in enumerate(codec.encode(defn, value)):
+            regs[defn.address + i] = w & 0xFFFF
+
+    for phase, (v, i, pf) in {
+        1: (230.0, 10.0, 95),
+        2: (231.0, 8.0, 90),
+        # L3 exports (negative current) and reports a negative power factor: |PF|
+        # keeps the sign coming from the current alone, so L3 reads -1145 W not +1145.
+        3: (229.0, -5.0, -100),
+    }.items():
+        put(f"grid_voltage_l{phase}", v)
+        put(f"grid_current_l{phase}", i)
+        put(f"grid_power_factor_l{phase}", pf)
+
+    # the 8 V/I entities are promoted into `grid` and force-enabled
+    gv1 = by["grid_voltage_l1"]
+    assert gv1.groups == ("grid",)
+    assert "entity_registry_enabled_default" not in gv1.ha
+
+    coordinator = await make_coordinator(
+        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        options={OPTION_ENABLED_GROUPS: ["grid"]},
+    )
+    await coordinator.async_refresh()
+
+    visible = {e.key for e in coordinator.visible_entities}
+    assert {"grid_voltage", "grid_voltage_l1", "grid_current_total", "grid_current_l3"} <= visible
+    assert "battery_charge_max_current" not in visible  # advanced stays off
+    # the power-factor registers stay hidden but are polled to feed the templates
+    assert "grid_power_factor_l1" not in visible
+    assert coordinator.data["grid_power_factor_l1"] == 95
+
+    def value(key):
+        tdef = next(t for t in device.templates if t.key == key)
+        return make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef).native_value
+
+    assert value("grid_power_l1") == 2185   # 230 x 10 x 0.95
+    assert value("grid_power_l2") == 1663   # 231 x 8 x 0.90 -> 1663.2
+    assert value("grid_power_l3") == -1145  # 229 x -5 x abs(-1.00) (export)
+    assert value("grid_power") == 2703      # sum of the three phases
+
+
 async def test_bms_max_charge_falls_back_when_bms_current_missing(hass, monkeypatch):
     """bms_max_charge falls back to the settable charge limit when the BMS current
     sensor reads as None (mirrors SolaX value_function_bms_max_charge)."""
