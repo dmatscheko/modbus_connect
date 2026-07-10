@@ -278,6 +278,9 @@ class DeviceDef:
     # Groups enabled by default when the config entry has no explicit choice yet.
     # Empty means "no default set" — the coordinator then shows every group.
     default_groups: tuple[str, ...] = ()
+    # Optional display-name overrides for group switches, as (group, label)
+    # pairs. A group without an entry falls back to the derived name.
+    group_labels: tuple[tuple[str, str], ...] = ()
     filename: str = ""
 
     @property
@@ -291,3 +294,12 @@ class DeviceDef:
             for group in groups:
                 seen.setdefault(group, None)
         return tuple(seen)
+
+    def group_label(self, name: str) -> str:
+        """Human label for a group's switch: the file's ``group_labels`` override
+        if any, else the name with underscores as spaces and the first letter
+        capitalized (``parallel_mode`` -> ``Parallel mode``)."""
+        for key, label in self.group_labels:
+            if key == name:
+                return label
+        return (name[:1].upper() + name[1:]).replace("_", " ")

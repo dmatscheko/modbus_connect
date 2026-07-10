@@ -115,11 +115,12 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._coordinator = coordinator
         self._entry = entry
         self._group = group
-        # Group names are shown with underscores as spaces, first letter upper
-        # (e.g. "parallel_mode" -> "Parallel mode").
+        # The device file may override the switch label via group_labels; otherwise
+        # the name shows with underscores as spaces, first letter upper (e.g.
+        # "parallel_mode" -> "Parallel mode").
         self._attr_translation_key = "group_enable"
         self._attr_translation_placeholders = {
-            "group": (group[:1].upper() + group[1:]).replace("_", " ")
+            "group": coordinator.device_def.group_label(group)
         }
         self._attr_unique_id = f"{entry.entry_id}_group_{group}"
         self._attr_device_info = coordinator.meta_device_info

@@ -898,6 +898,8 @@ device:
   manufacturer: Acme
   model: Grouped
   default_groups: [basic]
+  group_labels:
+    parallel_mode: Parallel mode Inverter 1
 holding:
   core:
     address: 0
@@ -964,15 +966,15 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
         show_all = eid(hass, entry, "switch", "show_all_entities")
         assert hass.states.get(show_all).state == "off"
 
-        # switch names: group names show capitalized without a joiner (with
-        # underscores as spaces), and the show-all switch is translated as a
-        # whole phrase matching the others
+        # switch names: a group with no label override shows capitalized with
+        # underscores as spaces; the show-all switch is a whole translated phrase
         assert hass.states.get(advanced).attributes["friendly_name"].endswith(
             "Enable Advanced entities"
         )
+        # parallel_mode carries a group_labels override the derive rule can't make
         parallel = eid(hass, entry, "switch", "group_parallel_mode")
         assert hass.states.get(parallel).attributes["friendly_name"].endswith(
-            "Enable Parallel mode entities"
+            "Enable Parallel mode Inverter 1 entities"
         )
         # the switch icon lives in icons.json (resolved by the frontend, not
         # the state machine), keyed by the entity's translation_key

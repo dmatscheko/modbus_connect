@@ -1484,6 +1484,48 @@ def test_default_groups_all_needs_a_declared_group():
         parse_device(data, "t.yaml")
 
 
+def test_group_labels_parse_and_resolve():
+    data = {
+        "device": {
+            "manufacturer": "Acme", "model": "X1",
+            "group_labels": {"pm_i1": "Parallel mode Inverter 1", "eps": "EPS"},
+        },
+        "holding": {
+            "a": {"address": 0, "groups": ["pm_i1"], "ha": {"platform": "sensor"}},
+            "b": {"address": 1, "groups": ["eps"], "ha": {"platform": "sensor"}},
+            "c": {"address": 2, "groups": ["advanced"], "ha": {"platform": "sensor"}},
+        },
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.group_label("pm_i1") == "Parallel mode Inverter 1"  # override
+    assert dev.group_label("eps") == "EPS"                          # override
+    assert dev.group_label("advanced") == "Advanced"                # derived fallback
+
+
+def test_group_labels_unknown_group_rejected():
+    data = {
+        "device": {
+            "manufacturer": "Acme", "model": "X1",
+            "group_labels": {"ghost": "Nope"},
+        },
+        "holding": {"x": {"address": 0, "groups": ["advanced"], "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match="name groups no entity uses"):
+        parse_device(data, "t.yaml")
+
+
+def test_group_labels_reject_non_string_label():
+    data = {
+        "device": {
+            "manufacturer": "Acme", "model": "X1",
+            "group_labels": {"advanced": 5},
+        },
+        "holding": {"x": {"address": 0, "groups": ["advanced"], "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match="non-empty string label"):
+        parse_device(data, "t.yaml")
+
+
 # --- regressions: newly rejected combinations, alias error message -----------
 
 

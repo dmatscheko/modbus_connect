@@ -208,8 +208,13 @@ class _Converter:
 
     def feature_tag(self, b, e):
         """Mark the entity dict with the feature groups its allowedtypes gate on
-        (consumed by annotate_groups; never emitted itself)."""
-        groups = [g for bit, g in self.features if e.allowedtypes & bit]
+        (consumed by annotate_groups; never emitted itself). A feature's group may
+        be a plain name or a callable(key) -> [names] that splits one feature bit
+        across several groups (the parallel-mode per-inverter split)."""
+        groups = []
+        for bit, g in self.features:
+            if e.allowedtypes & bit:
+                groups.extend(g(e.key) if callable(g) else [g])
         if groups:
             b["_feature"] = groups
         return b
@@ -669,6 +674,7 @@ def emit_yaml(meta, entities, templates=()):
         buf.write(f"# {note}\n")
     buf.write("device:\n")
     default_groups = meta.pop("default_groups", None)
+    group_labels = meta.pop("group_labels", None)
     split_before = meta.pop("split_before", None)
     _emit_mapping(buf, "  ", meta)
     if split_before:
@@ -679,6 +685,10 @@ def emit_yaml(meta, entities, templates=()):
         buf.write(f"  split_before: {{ {inner} }}\n")
     if default_groups:
         buf.write(f"  default_groups: [{', '.join(default_groups)}]\n")
+    if group_labels:
+        buf.write("  group_labels:\n")
+        for name, label in group_labels.items():
+            buf.write(f"    {name}: {yaml_str(label)}\n")
     for table in ("holding", "input"):
         _emit_table(buf, table, entities)
     _emit_templates(buf, templates)
@@ -774,6 +784,30 @@ def KWH(name, **extra):
             "state_class": "total_increasing", "unit_of_measurement": "kWh", **extra}
 
 
+def pm_groups(key):
+    """Split the parallel-mode entities into one group per inverter. The SolaX PM
+    block carries inverter 1 under the plain ``pm_`` keys and inverters 2/3 under
+    ``pm_i2_``/``pm_i3_``; ``pm_inverter_count`` (and the pm_total_* aggregates,
+    tagged separately) belong to the whole parallel system, so they go in all
+    three — a group is visible when any of its groups is enabled."""
+    if key.startswith("pm_i2_"):
+        return ["pm_i2"]
+    if key.startswith("pm_i3_"):
+        return ["pm_i3"]
+    if key == "pm_inverter_count":
+        return ["pm_i1", "pm_i2", "pm_i3"]
+    return ["pm_i1"]
+
+
+# Display labels for the per-inverter parallel-mode groups (the switch would
+# otherwise show "Pm i1"); the shared PM entities live in all three.
+PM_GROUP_LABELS = {
+    "pm_i1": "Parallel mode Inverter 1",
+    "pm_i2": "Parallel mode Inverter 2",
+    "pm_i3": "Parallel mode Inverter 3",
+}
+
+
 def _grid_phase_power(n):
     """Real power on one grid phase: V x I x |PF|, PF the register's percent value
     (upstream labels it '%', no scale). Direction comes from the signed grid
@@ -852,6 +886,7 @@ if __name__ == "__main__":
             "hw_version": "Gen4",
             "serial_number": "{{ serial }}",
             "default_groups": ["basic"],
+            "group_labels": PM_GROUP_LABELS,
         },
         "Solax_X3_Hybrid_G4.yaml",
         # SolaX gates registers on the Modbus protocol *document* version (several
@@ -860,7 +895,7 @@ if __name__ == "__main__":
         # Version diagnostic sensor (holding 130) — regenerate with that value if
         # it differs.
         protocol=102,
-        features=lambda P: ((P.PM, "parallel_mode"), (P.EPS, "eps"), (P.DCB, "generator")),
+        features=lambda P: ((P.PM, pm_groups), (P.EPS, "eps"), (P.DCB, "generator")),
         extras=[
             internal("holding", "firmware_dsp", address=123),
             internal("holding", "firmware_arm", address=124),
@@ -914,33 +949,33 @@ if __name__ == "__main__":
             {"key": "pm_total_inverter_power",
              "state": "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0)) | int }}",
              "ha": PW("PM Total Inverter Power", icon="mdi:home-lightning-bolt"),
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             {"key": "pm_total_pv_power",
              "state": "{{ ((pm_pv_power_1 or 0) + (pm_pv_power_2 or 0)) | int }}",
              "ha": PW("PM Total PV Power", icon="mdi:solar-power"),
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             {"key": "pm_total_house_load",
              "state": "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0) - (measured_power or 0)) | int }}",
              "ha": PW("PM Total House Load", icon="mdi:home-lightning-bolt"),
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             {"key": "pm_total_reactive_or_apparentpower",
              "state": "{{ ((pm_reactive_or_apparentpower_l1 or 0) + (pm_reactive_or_apparentpower_l2 or 0) + (pm_reactive_or_apparentpower_l3 or 0)) | int }}",
              "ha": {"platform": "sensor", "name": "PM Total Reactive or ApparentPower",
                     "device_class": "apparent_power", "state_class": "measurement",
                     "unit_of_measurement": "VA", "icon": "mdi:flash"},
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             {"key": "pm_total_inverter_current",
              "state": "{{ ((pm__current_l1 or 0) + (pm__current_l2 or 0) + (pm__current_l3 or 0)) | round(1) }}",
              "ha": {"platform": "sensor", "name": "PM Total Inverter Current",
                     "device_class": "current", "state_class": "measurement",
                     "unit_of_measurement": "A", "icon": "mdi:current-ac"},
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             {"key": "pm_total_pv_current",
              "state": "{{ ((pm_pv_current_1 or 0) + (pm_pv_current_2 or 0)) | round(1) }}",
              "ha": {"platform": "sensor", "name": "PM Total PV Current",
                     "device_class": "current", "state_class": "measurement",
                     "unit_of_measurement": "A", "icon": "mdi:current-dc"},
-             "groups": ["parallel_mode"]},
+             "groups": ["pm_i1", "pm_i2", "pm_i3"]},
             # Upstream's three Energy Dashboard switches, mapped to groups over
             # real entities instead of the copies upstream creates. The kWh
             # sensors integrate power over time (`integrate`, like upstream's

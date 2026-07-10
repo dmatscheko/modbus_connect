@@ -309,6 +309,11 @@ def _device_block() -> dict[str, Any]:
             "hw_version": STRING,
             "serial_number": STRING,
             "default_groups": GROUPS,
+            "group_labels": {
+                "type": "object",
+                "additionalProperties": STRING,
+                "minProperties": 1,
+            },
         },
         "additionalProperties": False,
     }

@@ -505,13 +505,26 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     assert value("bms_max_charge") == 5120             # battery voltage x BMS max current
 
 
-async def test_solax_hybrid_parallel_mode_group(hass, monkeypatch):
-    """The parallel_mode group (upstream's Parallel Mode checkbox) materializes the
-    PM registers and their total templates without pulling in the advanced tier."""
+async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
+    """Parallel mode is split into a group per inverter (pm_i1/i2/i3). Enabling one
+    inverter shows its own registers and the shared aggregates/count (which live in
+    all three) but not another inverter's block or the advanced tier."""
     from custom_components.modbus_connect import codec
 
     device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
     by = {e.key: e for e in device.entities}
+
+    # the split and the shared members (inverter-1 keys are unprefixed; the count
+    # and the pm_total_* aggregates belong to the whole parallel system)
+    assert by["pm_activepower_l1"].groups == ("pm_i1",)
+    assert by["pm_i2_activepower_l1"].groups == ("pm_i2",)
+    assert by["pm_inverter_count"].groups == ("pm_i1", "pm_i2", "pm_i3")
+    totals = {t.key: t for t in device.templates}
+    assert totals["pm_total_inverter_power"].groups == ("pm_i1", "pm_i2", "pm_i3")
+    # the file overrides the switch labels the derive rule can't produce
+    assert device.group_label("pm_i1") == "Parallel mode Inverter 1"
+    assert device.group_label("pm_i3") == "Parallel mode Inverter 3"
+
     regs: dict[int, int] = {}
 
     def put(key, value):
@@ -528,19 +541,22 @@ async def test_solax_hybrid_parallel_mode_group(hass, monkeypatch):
     put("pm__current_l3", 1.3)
     coordinator = await make_coordinator(
         hass, device, FakeClient(regs), monkeypatch, FakeTime(),
-        options={OPTION_ENABLED_GROUPS: ["parallel_mode"]},
+        options={OPTION_ENABLED_GROUPS: ["pm_i1"]},
     )
     await coordinator.async_refresh()
 
     visible = {e.key for e in coordinator.visible_entities}
-    assert "pm_activepower_l1" in visible                # the group is on
-    assert "battery_charge_max_current" not in visible   # advanced stays off
+    assert "pm_activepower_l1" in visible                 # inverter 1 is on
+    assert "pm_inverter_count" in visible                 # shared: in all three
+    assert "pm_i2_activepower_l1" not in visible          # inverter 2 stays off
+    assert "battery_charge_max_current" not in visible    # advanced stays off
     assert coordinator.data["pm_activepower_l1"] == 1500
 
     def value(key):
         tdef = next(t for t in device.templates if t.key == key)
         return make_entity(hass, ModbusConnectTemplateSensor, coordinator, tdef).native_value
 
+    # the aggregates are visible under any inverter group and still compute
     assert value("pm_total_inverter_power") == 2400   # L1 + L2 + L3
     assert value("pm_total_house_load") == 2000       # PM power sum - grid power
     assert value("pm_total_inverter_current") == 13.0  # summed at 0.1 A resolution

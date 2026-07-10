@@ -197,6 +197,14 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
             f"device.default_groups {sorted(unknown_defaults)} name groups no entity "
             f"uses (declared groups: {sorted(declared_groups)})"
         )
+    unknown_labels = (
+        {g for g, _ in device_fields["group_labels"]} - declared_groups - {BASIC_GROUP}
+    )
+    if unknown_labels:
+        raise ctx.fail(
+            f"device.group_labels {sorted(unknown_labels)} name groups no entity "
+            f"uses (declared groups: {sorted(declared_groups)})"
+        )
 
     return DeviceDef(
         entities=tuple(entities),
@@ -229,6 +237,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "hw_version",
         "serial_number",
         "default_groups",
+        "group_labels",
     }
     if unknown:
         raise ctx.fail(f"unknown device keys: {sorted(unknown)}")
@@ -269,6 +278,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
             raise ctx.fail(f"device.{key} must be a non-empty string (may be a template)")
         info[key] = value
     default_groups = _parse_groups(ctx, "device.default_groups", device.get("default_groups"))
+    group_labels = _parse_group_labels(ctx, device.get("group_labels"))
     return {
         "manufacturer": device["manufacturer"],
         "model": device["model"],
@@ -286,6 +296,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "modbus_id": modbus_id,
         "prefix": prefix,
         "default_groups": default_groups,
+        "group_labels": group_labels,
         **info,
     }
 
@@ -385,6 +396,23 @@ def _parse_groups(ctx: _Ctx, name: str, raw: Any) -> tuple[str, ...]:
             raise ctx.fail(f"'{name}' entries must be non-empty strings, got {item!r}")
         seen.setdefault(item, None)
     return tuple(seen)
+
+
+def _parse_group_labels(ctx: _Ctx, raw: Any) -> tuple[tuple[str, str], ...]:
+    """Optional ``{group: display label}`` overrides for the group switches; ()
+    when absent. Keys are checked against the file's declared groups by the caller."""
+    if raw is None:
+        return ()
+    if not isinstance(raw, dict) or not raw:
+        raise ctx.fail("'device.group_labels' must be a non-empty mapping of group -> label")
+    out: list[tuple[str, str]] = []
+    for name, label in raw.items():
+        if not isinstance(name, str) or not name.strip():
+            raise ctx.fail(f"device.group_labels keys must be non-empty strings, got {name!r}")
+        if not isinstance(label, str) or not label.strip():
+            raise ctx.fail(f"device.group_labels[{name!r}] must be a non-empty string label")
+        out.append((name, label))
+    return tuple(out)
 
 
 def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:

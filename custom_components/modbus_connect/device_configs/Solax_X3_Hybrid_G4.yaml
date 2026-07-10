@@ -11,6 +11,10 @@ device:
   hw_version: Gen4
   serial_number: "{{ serial }}"
   default_groups: [basic]
+  group_labels:
+    pm_i1: Parallel mode Inverter 1
+    pm_i2: Parallel mode Inverter 2
+    pm_i3: Parallel mode Inverter 3
 
 holding:
   lock_state:
@@ -3865,7 +3869,7 @@ input:
   pm_inverter_count:
     address: 477
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
     ha:
       platform: sensor
       name: PM Inverter Count
@@ -3877,7 +3881,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM ActivePower L1
@@ -3888,7 +3892,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM ActivePower L2
@@ -3899,7 +3903,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM ActivePower L3
@@ -3910,7 +3914,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Reactive or ApparentPower L1
@@ -3921,7 +3925,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Reactive or ApparentPower L2
@@ -3932,7 +3936,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Reactive or ApparentPower L3
@@ -3944,7 +3948,7 @@ input:
     swap: word
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Inverter Current L1
@@ -3957,7 +3961,7 @@ input:
     swap: word
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Inverter Current L2
@@ -3970,7 +3974,7 @@ input:
     swap: word
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Inverter Current L3
@@ -3982,7 +3986,7 @@ input:
     type: uint32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM PV Power 1
@@ -3995,7 +3999,7 @@ input:
     type: uint32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM PV Power 2
@@ -4009,7 +4013,7 @@ input:
     swap: word
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM PV Current 1
@@ -4024,7 +4028,7 @@ input:
     swap: word
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM PV Current 2
@@ -4038,7 +4042,7 @@ input:
     type: int32
     swap: word
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Battery Power Charge
@@ -4052,7 +4056,7 @@ input:
     swap: word
     multiplier: 0.01
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i1]
     ha:
       platform: sensor
       name: PM Battery Current Charge
@@ -4065,7 +4069,7 @@ input:
     address: 516
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 ActivePower L1
@@ -4075,7 +4079,7 @@ input:
     address: 517
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 ActivePower L2
@@ -4085,7 +4089,7 @@ input:
     address: 518
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 ActivePower L3
@@ -4095,7 +4099,7 @@ input:
     address: 519
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Reactive or ApparentPower L1
@@ -4105,7 +4109,7 @@ input:
     address: 520
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Reactive or ApparentPower L2
@@ -4115,7 +4119,7 @@ input:
     address: 521
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Reactive or ApparentPower L3
@@ -4126,7 +4130,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Inverter Current L1
@@ -4138,7 +4142,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Inverter Current L2
@@ -4150,7 +4154,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Inverter Current L3
@@ -4160,7 +4164,7 @@ input:
   pm_i2_pv_power_1:
     address: 525
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Power 1
@@ -4171,7 +4175,7 @@ input:
   pm_i2_pv_power_2:
     address: 526
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Power 2
@@ -4183,7 +4187,7 @@ input:
     address: 527
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Voltage 1
@@ -4196,7 +4200,7 @@ input:
     address: 528
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Voltage 2
@@ -4209,7 +4213,7 @@ input:
     address: 529
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Current 1
@@ -4221,7 +4225,7 @@ input:
     address: 530
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 PV Current 2
@@ -4233,7 +4237,7 @@ input:
     address: 531
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Battery Power Charge
@@ -4245,7 +4249,7 @@ input:
     address: 532
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Battery Voltage Charge
@@ -4257,7 +4261,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Battery Current Charge
@@ -4268,7 +4272,7 @@ input:
   pm_i2_battery_capacity_charge:
     address: 537
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i2]
     ha:
       platform: sensor
       name: PM I2 Battery Capacity
@@ -4277,7 +4281,7 @@ input:
     address: 542
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 ActivePower L1
@@ -4287,7 +4291,7 @@ input:
     address: 543
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 ActivePower L2
@@ -4297,7 +4301,7 @@ input:
     address: 544
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 ActivePower L3
@@ -4307,7 +4311,7 @@ input:
     address: 545
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Reactive or ApparentPower L1
@@ -4317,7 +4321,7 @@ input:
     address: 546
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Reactive or ApparentPower L2
@@ -4327,7 +4331,7 @@ input:
     address: 547
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Reactive or ApparentPower L3
@@ -4338,7 +4342,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Inverter Current L1
@@ -4350,7 +4354,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Inverter Current L2
@@ -4362,7 +4366,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Inverter Current L3
@@ -4372,7 +4376,7 @@ input:
   pm_i3_pv_power_1:
     address: 551
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Power 1
@@ -4383,7 +4387,7 @@ input:
   pm_i3_pv_power_2:
     address: 552
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Power 2
@@ -4395,7 +4399,7 @@ input:
     address: 553
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Voltage 1
@@ -4408,7 +4412,7 @@ input:
     address: 554
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Voltage 2
@@ -4421,7 +4425,7 @@ input:
     address: 555
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Current 1
@@ -4433,7 +4437,7 @@ input:
     address: 556
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 PV Current 2
@@ -4445,7 +4449,7 @@ input:
     address: 557
     type: int16
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Battery Power Charge
@@ -4457,7 +4461,7 @@ input:
     address: 558
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Battery Voltage Charge
@@ -4469,7 +4473,7 @@ input:
     type: int16
     multiplier: 0.1
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Battery Current Charge
@@ -4480,7 +4484,7 @@ input:
   pm_i3_battery_capacity_charge:
     address: 563
     scan_interval: 15
-    groups: [parallel_mode]
+    groups: [pm_i3]
     ha:
       platform: sensor
       name: PM I3 Battery Capacity
@@ -4574,7 +4578,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:home-lightning-bolt"
     state: "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0)) | int }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   pm_total_pv_power:
     ha:
       platform: sensor
@@ -4584,7 +4588,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:solar-power"
     state: "{{ ((pm_pv_power_1 or 0) + (pm_pv_power_2 or 0)) | int }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   pm_total_house_load:
     ha:
       platform: sensor
@@ -4594,7 +4598,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:home-lightning-bolt"
     state: "{{ ((pm_activepower_l1 or 0) + (pm_activepower_l2 or 0) + (pm_activepower_l3 or 0) - (measured_power or 0)) | int }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   pm_total_reactive_or_apparentpower:
     ha:
       platform: sensor
@@ -4604,7 +4608,7 @@ template:
       unit_of_measurement: VA
       icon: "mdi:flash"
     state: "{{ ((pm_reactive_or_apparentpower_l1 or 0) + (pm_reactive_or_apparentpower_l2 or 0) + (pm_reactive_or_apparentpower_l3 or 0)) | int }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   pm_total_inverter_current:
     ha:
       platform: sensor
@@ -4614,7 +4618,7 @@ template:
       unit_of_measurement: A
       icon: "mdi:current-ac"
     state: "{{ ((pm__current_l1 or 0) + (pm__current_l2 or 0) + (pm__current_l3 or 0)) | round(1) }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   pm_total_pv_current:
     ha:
       platform: sensor
@@ -4624,7 +4628,7 @@ template:
       unit_of_measurement: A
       icon: "mdi:current-dc"
     state: "{{ ((pm_pv_current_1 or 0) + (pm_pv_current_2 or 0)) | round(1) }}"
-    groups: [parallel_mode]
+    groups: [pm_i1, pm_i2, pm_i3]
   grid_to_battery_power:
     ha:
       platform: sensor

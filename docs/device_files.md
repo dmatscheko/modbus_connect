@@ -219,7 +219,18 @@ a user cannot lock themselves out by disabling the group everything lives in.
 
 Each group gets an *Enable ⟨group⟩ entities* switch, the name shown with
 underscores as spaces and the first letter capitalized (`parallel_mode` →
-*Enable Parallel mode entities*).
+*Enable Parallel mode entities*). To override that derived name — for an
+acronym, or a name the rule cannot produce — map the group to a label under
+`device.group_labels`:
+
+```yaml
+device:
+  group_labels:
+    pm_i1: Parallel mode Inverter 1   # -> "Enable Parallel mode Inverter 1 entities"
+    eps: EPS
+```
+
+Every key must be a group some entity actually uses.
 
 Besides the per-group switches there is one **Enable all entities** switch:
 while it is on, group handling is bypassed entirely and every entity of the
