@@ -52,7 +52,9 @@ rules:
   runtime-data: done
   test-before-configure:
     status: done
-    comment: The config flow opens a TCP connection to the gateway before continuing.
+    comment: >-
+      The config flow performs a real Modbus read from the device (TCP or
+      serial) before continuing, so a wrong Modbus ID fails in the form.
   test-before-setup:
     status: done
     comment: >-
