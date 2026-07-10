@@ -35,6 +35,22 @@ FRAMER_SOCKET: Final = "socket"
 FRAMER_RTU: Final = "rtu"
 FRAMER_OPTIONS: Final = [FRAMER_SOCKET, FRAMER_RTU]
 
+# Serial (RTU) entry data keys. An entry either has CONF_SERIAL_PORT (directly
+# attached RS-485/RS-232 adapter) or CONF_HOST/CONF_PORT (network gateway).
+CONF_SERIAL_PORT: Final = "serial_port"
+CONF_BAUDRATE: Final = "baudrate"
+CONF_BYTESIZE: Final = "bytesize"
+CONF_PARITY: Final = "parity"
+CONF_STOPBITS: Final = "stopbits"
+
+# Form choices (SelectSelector wants strings; the flow coerces numbers back)
+BAUDRATE_OPTIONS: Final = [
+    "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200",
+]
+BYTESIZE_OPTIONS: Final = ["7", "8"]
+PARITY_OPTIONS: Final = ["N", "E", "O"]
+STOPBITS_OPTIONS: Final = ["1", "2"]
+
 # Config entry option keys
 OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
 # List of enabled group names; absent means "use the device file's default_groups".

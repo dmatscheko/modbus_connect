@@ -1,6 +1,8 @@
 pytest-homeassistant-custom-component
 pymodbus>=3.13.1
+pyserial>=3.5
 pyyaml
 ruff
 mypy
 types-PyYAML
+types-pyserial

@@ -226,8 +226,7 @@ template:
 class FakeClient:
     """Duck-typed ModbusBlockClient backed by a dict."""
 
-    host = "192.0.2.1"
-    port = 502
+    target = "192.0.2.1:502"
 
     def __init__(self) -> None:
         self.lock = asyncio.Lock()
@@ -330,6 +329,37 @@ async def test_connection_tuning_reaches_the_client(hass: HomeAssistant) -> None
     assert acquire.call_args.kwargs["timeout"] == 5
     assert acquire.call_args.kwargs["retries"] == 3
     assert acquire.call_args.kwargs["request_delay"] == pytest.approx(0.05)
+
+
+async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
+    write_device_file(hass)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "serial_port": "/dev/ttyUSB0",
+            "baudrate": 19200,
+            "bytesize": 8,
+            "parity": "E",
+            "stopbits": 1,
+            CONF_SLAVE_ID: 7,
+            CONF_FILENAME: "acme_x1.yaml",
+        },
+        unique_id="/dev/ttyUSB0:7",
+        title="Acme X1",
+    )
+    entry.add_to_hass(hass)
+    with patch.object(
+        ModbusBlockClient, "acquire_serial", return_value=FakeClient()
+    ) as acquire:
+        assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert acquire.call_args.args[0] == "/dev/ttyUSB0"
+    assert acquire.call_args.kwargs["baudrate"] == 19200
+    assert acquire.call_args.kwargs["parity"] == "E"
+    # the connection shows on the device card via model_id
+    device = dr.async_get(hass).async_get_device({(DOMAIN, entry.entry_id)})
+    assert device is not None
+    assert device.model_id == "/dev/ttyUSB0 · ID 7"
 
 
 async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:

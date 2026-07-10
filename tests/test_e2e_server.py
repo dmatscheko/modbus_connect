@@ -308,7 +308,7 @@ async def test_client_is_shared_and_refcounted(modbus_server):
     a.release("entry-b")
     a.release("entry-c")
     assert ModbusBlockClient.acquire("127.0.0.1", port, "entry-d") is not a
-    ModbusBlockClient._instances[("127.0.0.1", port)].release("entry-d")
+    ModbusBlockClient._instances[f"127.0.0.1:{port}"].release("entry-d")
 
 
 async def test_writes_and_errors(modbus_server):

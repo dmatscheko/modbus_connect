@@ -44,8 +44,7 @@ class FakeTime:
 class FakeClient:
     """Duck-typed ModbusBlockClient recording every read."""
 
-    host = "127.0.0.1"
-    port = 502
+    target = "127.0.0.1:502"
 
     def __init__(self, registers: dict[int, int] | None = None) -> None:
         self.lock = asyncio.Lock()

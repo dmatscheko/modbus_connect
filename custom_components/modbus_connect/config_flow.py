@@ -22,12 +22,25 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from .client import async_probe, async_probe_device
+from .client import (
+    DEFAULT_BAUDRATE,
+    async_probe,
+    async_probe_device,
+    async_probe_serial,
+    async_probe_serial_device,
+)
 from .const import (
+    BAUDRATE_OPTIONS,
+    BYTESIZE_OPTIONS,
+    CONF_BAUDRATE,
+    CONF_BYTESIZE,
     CONF_FILENAME,
     CONF_FRAMER,
+    CONF_PARITY,
     CONF_PREFIX,
+    CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
+    CONF_STOPBITS,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
@@ -37,6 +50,8 @@ from .const import (
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
     OPTION_SHOW_ALL,
+    PARITY_OPTIONS,
+    STOPBITS_OPTIONS,
 )
 from .coordinator import resolve_scan_intervals
 from .loader import async_load_all, async_load_device
@@ -97,11 +112,98 @@ def _connection_schema(defaults: dict[str, Any]) -> vol.Schema:
     )
 
 
+def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
+    current = defaults.get(CONF_SERIAL_PORT)
+    if current and current not in ports:
+        ports = [current, *ports]  # keep a configured-but-unplugged port pickable
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_SERIAL_PORT, default=current if current else vol.UNDEFINED
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=ports, custom_value=True, mode=SelectSelectorMode.DROPDOWN
+                )
+            ),
+            vol.Required(
+                CONF_BAUDRATE,
+                default=str(defaults.get(CONF_BAUDRATE, DEFAULT_BAUDRATE)),
+            ): vol.All(
+                SelectSelector(
+                    SelectSelectorConfig(
+                        options=BAUDRATE_OPTIONS,
+                        custom_value=True,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Coerce(int),
+                vol.Range(min=50, max=4_000_000),
+            ),
+            vol.Required(
+                CONF_BYTESIZE, default=str(defaults.get(CONF_BYTESIZE, 8))
+            ): vol.All(
+                SelectSelector(
+                    SelectSelectorConfig(
+                        options=BYTESIZE_OPTIONS, mode=SelectSelectorMode.DROPDOWN
+                    )
+                ),
+                vol.Coerce(int),
+            ),
+            vol.Required(
+                CONF_PARITY, default=defaults.get(CONF_PARITY, "N")
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=PARITY_OPTIONS,
+                    translation_key="parity",
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Required(
+                CONF_STOPBITS, default=str(defaults.get(CONF_STOPBITS, 1))
+            ): vol.All(
+                SelectSelector(
+                    SelectSelectorConfig(
+                        options=STOPBITS_OPTIONS, mode=SelectSelectorMode.DROPDOWN
+                    )
+                ),
+                vol.Coerce(int),
+            ),
+            vol.Required(
+                CONF_SLAVE_ID, default=defaults.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID)
+            ): vol.All(
+                NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=255, step=1, mode=NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Coerce(int),
+            ),
+            vol.Optional(CONF_PREFIX, default=defaults.get(CONF_PREFIX, "")): str,
+        }
+    )
+
+
+def _list_serial_ports() -> list[str]:
+    """Detected serial devices for the port dropdown (custom paths stay typable).
+
+    Runs in the executor: pyserial enumerates the system's ports synchronously.
+    """
+    from serial.tools import list_ports
+
+    return sorted(port.device for port in list_ports.comports())
+
+
 def _unique_id(connection: dict[str, Any]) -> str:
     # Hostnames are case-insensitive; normalize so "GW" and "gw" don't create
     # two entries for the same device.
     host = str(connection[CONF_HOST]).strip().lower()
     return f"{host}:{connection[CONF_PORT]}:{connection[CONF_SLAVE_ID]}"
+
+
+def _serial_unique_id(connection: dict[str, Any]) -> str:
+    # Device paths are case-sensitive on Linux; only whitespace is normalized
+    # (which async_step_serial already stripped).
+    return f"{connection[CONF_SERIAL_PORT]}:{connection[CONF_SLAVE_ID]}"
 
 
 def _probe_span(device: DeviceDef) -> Span | None:
@@ -178,6 +280,23 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             framer=connection.get(CONF_FRAMER, FRAMER_SOCKET),
         )
 
+    async def _validate_serial(self, connection: dict[str, Any]) -> str | None:
+        """Serial twin of :meth:`_validate_connection`."""
+        assert self._device is not None
+        span = _probe_span(self._device)
+        line = {
+            "baudrate": connection[CONF_BAUDRATE],
+            "bytesize": connection[CONF_BYTESIZE],
+            "parity": connection[CONF_PARITY],
+            "stopbits": connection[CONF_STOPBITS],
+        }
+        if span is None:
+            ok = await async_probe_serial(connection[CONF_SERIAL_PORT], **line)
+            return None if ok else "cannot_connect"
+        return await async_probe_serial_device(
+            connection[CONF_SERIAL_PORT], connection[CONF_SLAVE_ID], span, **line
+        )
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -187,9 +306,17 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._store_device_choice(devices, user_input)
-            return await self.async_step_connection()
+            return await self.async_step_connection_type()
 
         return self.async_show_form(step_id="user", data_schema=_device_schema(devices))
+
+    async def async_step_connection_type(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """How the device is reached: network gateway or local serial port."""
+        return self.async_show_menu(
+            step_id="connection_type", menu_options=["connection", "serial"]
+        )
 
     async def async_step_connection(
         self, user_input: dict[str, Any] | None = None
@@ -212,6 +339,28 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_serial(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            user_input[CONF_SERIAL_PORT] = user_input[CONF_SERIAL_PORT].strip()
+            await self.async_set_unique_id(_serial_unique_id(user_input))
+            self._abort_if_unique_id_configured()
+            error = await self._validate_serial(user_input)
+            if error is None:
+                return self.async_create_entry(
+                    title=self._title, data=self._entry_data(user_input)
+                )
+            errors["base"] = error
+        ports = await self.hass.async_add_executor_job(_list_serial_ports)
+        return self.async_show_form(
+            step_id="serial",
+            data_schema=_serial_schema(user_input or self._connection_defaults(), ports),
+            description_placeholders={"device": self._title},
+            errors=errors,
+        )
+
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -223,7 +372,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._store_device_choice(devices, user_input)
-            return await self.async_step_reconfigure_connection()
+            return await self.async_step_reconfigure_connection_type()
 
         defaults = {
             CONF_FILENAME: entry.data.get(CONF_FILENAME),
@@ -232,6 +381,35 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         }
         return self.async_show_form(
             step_id="reconfigure", data_schema=_device_schema(devices, defaults)
+        )
+
+    async def async_step_reconfigure_connection_type(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        return self.async_show_menu(
+            step_id="reconfigure_connection_type",
+            menu_options=["reconfigure_connection", "reconfigure_serial"],
+        )
+
+    def _finish_reconfigure(
+        self, entry: ConfigEntry, connection: dict[str, Any]
+    ) -> ConfigFlowResult:
+        kwargs: dict[str, Any] = {}
+        if self._filename != entry.data.get(CONF_FILENAME):
+            # A different device file has different groups; a stale
+            # selection would hide every tagged entity, and the show-all
+            # bypass belonged to the old file's groups just the same.
+            kwargs["options"] = {
+                k: v
+                for k, v in entry.options.items()
+                if k not in (OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL)
+            }
+        return self.async_update_reload_and_abort(
+            entry,
+            unique_id=self.unique_id,
+            title=self._title,
+            data=self._entry_data(connection),
+            **kwargs,
         )
 
     async def async_step_reconfigure_connection(
@@ -246,23 +424,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
             error = await self._validate_connection(user_input)
             if error is None:
-                kwargs: dict[str, Any] = {}
-                if self._filename != entry.data.get(CONF_FILENAME):
-                    # A different device file has different groups; a stale
-                    # selection would hide every tagged entity, and the show-all
-                    # bypass belonged to the old file's groups just the same.
-                    kwargs["options"] = {
-                        k: v
-                        for k, v in entry.options.items()
-                        if k not in (OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL)
-                    }
-                return self.async_update_reload_and_abort(
-                    entry,
-                    unique_id=self.unique_id,
-                    title=self._title,
-                    data=self._entry_data(user_input),
-                    **kwargs,
-                )
+                return self._finish_reconfigure(entry, user_input)
             errors["base"] = error
         defaults = user_input or {
             **dict(entry.data),
@@ -274,6 +436,35 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfigure_connection",
             data_schema=_connection_schema(defaults),
+            description_placeholders={"device": self._title},
+            errors=errors,
+        )
+
+    async def async_step_reconfigure_serial(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            user_input[CONF_SERIAL_PORT] = user_input[CONF_SERIAL_PORT].strip()
+            await self.async_set_unique_id(_serial_unique_id(user_input))
+            if self.unique_id != entry.unique_id:
+                self._abort_if_unique_id_configured()
+            error = await self._validate_serial(user_input)
+            if error is None:
+                return self._finish_reconfigure(entry, user_input)
+            errors["base"] = error
+        ports = await self.hass.async_add_executor_job(_list_serial_ports)
+        defaults = user_input or {
+            **dict(entry.data),
+            **(
+                {} if entry.data.get(CONF_PREFIX) else
+                {CONF_PREFIX: self._connection_defaults()[CONF_PREFIX]}
+            ),
+        }
+        return self.async_show_form(
+            step_id="reconfigure_serial",
+            data_schema=_serial_schema(defaults, ports),
             description_placeholders={"device": self._title},
             errors=errors,
         )

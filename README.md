@@ -3,8 +3,9 @@
   <img alt="Modbus Connect" src="custom_components/modbus_connect/brand/logo@2x.png" width="480">
 </picture>
 
-A Home Assistant custom integration for Modbus devices behind local TCP
-gateways — a ground-up rewrite of
+A Home Assistant custom integration for Modbus devices — over TCP gateways,
+transparent RTU-over-TCP bridges, or directly attached serial adapters — a
+ground-up rewrite of
 [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) that
 also draws on
 [homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus),
@@ -67,12 +68,14 @@ independent.
 Add the **Modbus Connect** integration in **Settings → Devices & services**
 (or click
 [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)):
-pick the device definition and name the device, then enter the gateway
-connection. The Modbus device ID and the entity-ID prefix are prefilled from
-the chosen device file, and the connection is verified with a real read from
-the device before anything is created — a wrong Modbus ID fails right there
-instead of producing an entry full of unavailable entities. Add the
-integration once per Modbus device — several devices can share one gateway.
+pick the device definition and name the device, then choose how it is reached
+— over the network (Modbus TCP, or *RTU over TCP* for transparent bridges) or
+through a directly attached RS-485/RS-232 adapter — and enter the connection.
+The Modbus device ID and the entity-ID prefix are prefilled from the chosen
+device file, and the connection is verified with a real read from the device
+before anything is created — a wrong Modbus ID fails right there instead of
+producing an entry full of unavailable entities. Add the integration once per
+Modbus device — several devices can share one gateway or adapter.
 
 Worth knowing: entity IDs are assigned when an entity is first created, so
 changing the prefix later does not rename existing entities. The entry's
@@ -214,10 +217,12 @@ automation:
 
 ## Known limitations
 
-- **No serial ports.** RTU devices need an RS-485↔TCP bridge such as a
-  Waveshare/Elfin/USR box — either as a real Modbus TCP gateway, or in
-  transparent mode with *Modbus RTU over TCP* picked as the protocol in the
-  connection step (also the right choice for `ser2net`).
+- **Serial adapters must be visible to Home Assistant.** For direct RTU use
+  the adapter has to show up as a device on the machine running Home
+  Assistant (in containers, map it in; prefer stable `/dev/serial/by-id/…`
+  paths). A networked RS-485 bridge works either as a Modbus TCP gateway or
+  in transparent mode with *Modbus RTU over TCP* as the protocol (also the
+  right choice for `ser2net`).
 - **No discovery.** Modbus has no discovery protocol; the gateway address
   must be entered manually.
 - **Reads are capped at 125 registers** per transaction by the Modbus

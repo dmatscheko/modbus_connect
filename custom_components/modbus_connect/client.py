@@ -1,4 +1,5 @@
-"""Thin pymodbus wrapper: shared per-gateway connection with block reads.
+"""Thin pymodbus wrapper: one shared connection per gateway or serial port,
+with block reads.
 
 No Home Assistant imports; the coordinator owns scheduling, backoff and
 caching — this module only moves bytes and normalizes errors.
@@ -12,7 +13,7 @@ import time
 from typing import Any, ClassVar
 
 from pymodbus import FramerType
-from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
 
@@ -28,6 +29,33 @@ _ILLEGAL_DATA_ADDRESS = 2
 DEFAULT_TIMEOUT = 2.0
 DEFAULT_RETRIES = 1
 DEFAULT_REQUEST_DELAY = 0.0
+
+# Serial line defaults (Modbus's own default is 19200 8E1, but nearly every
+# real device ships 9600 8N1)
+DEFAULT_BAUDRATE = 9600
+
+_InnerClient = AsyncModbusTcpClient | AsyncModbusSerialClient
+
+
+def _serial_client(
+    serial_port: str,
+    baudrate: int,
+    bytesize: int,
+    parity: str,
+    stopbits: int,
+    timeout: float,
+    retries: int,
+) -> AsyncModbusSerialClient:
+    return AsyncModbusSerialClient(
+        serial_port,
+        framer=FramerType.RTU,
+        baudrate=baudrate,
+        bytesize=bytesize,
+        parity=parity,
+        stopbits=stopbits,
+        timeout=timeout,
+        retries=retries,
+    )
 
 
 class ReadError(Exception):
@@ -59,27 +87,8 @@ async def async_probe(host: str, port: int, timeout: float = 5.0) -> bool:
 _GATEWAY_EXCEPTIONS = (10, 11)
 
 
-async def async_probe_device(
-    host: str,
-    port: int,
-    device_id: int,
-    span: Span,
-    *,
-    framer: str = "socket",
-    timeout: float = 5.0,
-) -> str | None:
-    """Config-flow validation: TCP connect, then one real read from the device.
-
-    Returns None when the device answered — any Modbus response counts, even an
-    error response like *illegal data address* proves a device with this ID is
-    listening. Returns ``"cannot_connect"`` when no TCP connection came up, and
-    ``"device_no_answer"`` when the gateway is reachable but the device stayed
-    silent (wrong Modbus ID, or the serial side is down). The returned strings
-    are the config flow's error keys.
-    """
-    client = AsyncModbusTcpClient(
-        host, port=port, framer=FramerType(framer), timeout=timeout, retries=1
-    )
+async def _probe_read(client: _InnerClient, device_id: int, span: Span) -> str | None:
+    """Connect and read once; classify the outcome (see async_probe_device)."""
     try:
         try:
             if not await client.connect():
@@ -108,23 +117,89 @@ async def async_probe_device(
     return None
 
 
+async def async_probe_device(
+    host: str,
+    port: int,
+    device_id: int,
+    span: Span,
+    *,
+    framer: str = "socket",
+    timeout: float = 5.0,
+) -> str | None:
+    """Config-flow validation: TCP connect, then one real read from the device.
+
+    Returns None when the device answered — any Modbus response counts, even an
+    error response like *illegal data address* proves a device with this ID is
+    listening. Returns ``"cannot_connect"`` when no TCP connection came up, and
+    ``"device_no_answer"`` when the gateway is reachable but the device stayed
+    silent (wrong Modbus ID, or the serial side is down). The returned strings
+    are the config flow's error keys.
+    """
+    client = AsyncModbusTcpClient(
+        host, port=port, framer=FramerType(framer), timeout=timeout, retries=1
+    )
+    return await _probe_read(client, device_id, span)
+
+
+async def async_probe_serial(
+    serial_port: str,
+    *,
+    baudrate: int = DEFAULT_BAUDRATE,
+    bytesize: int = 8,
+    parity: str = "N",
+    stopbits: int = 1,
+    timeout: float = 5.0,
+) -> bool:
+    """Try to open the serial port (config flow validation)."""
+    client = _serial_client(
+        serial_port, baudrate, bytesize, parity, stopbits, timeout, 0
+    )
+    try:
+        return bool(await client.connect())
+    except (TimeoutError, ModbusException, OSError):
+        return False
+    finally:
+        client.close()
+
+
+async def async_probe_serial_device(
+    serial_port: str,
+    device_id: int,
+    span: Span,
+    *,
+    baudrate: int = DEFAULT_BAUDRATE,
+    bytesize: int = 8,
+    parity: str = "N",
+    stopbits: int = 1,
+    timeout: float = 5.0,
+) -> str | None:
+    """Serial twin of :func:`async_probe_device`, same return values —
+    ``"cannot_connect"`` here means the port could not be opened."""
+    client = _serial_client(
+        serial_port, baudrate, bytesize, parity, stopbits, timeout, 1
+    )
+    return await _probe_read(client, device_id, span)
+
+
 class ModbusBlockClient:
-    """One shared TCP connection per gateway (host:port), refcounted by entry."""
+    """One shared connection per target — a TCP gateway (host:port) or a local
+    serial port — refcounted by config entry."""
 
-    _instances: ClassVar[dict[tuple[str, int], ModbusBlockClient]] = {}
+    _instances: ClassVar[dict[str, ModbusBlockClient]] = {}
 
-    def __init__(self, host: str, port: int, framer: str = "socket") -> None:
-        self.host = host
-        self.port = port
+    def __init__(
+        self,
+        key: str,
+        inner: _InnerClient,
+        framer: str,
+        line: tuple[int, int, str, int] | None = None,
+    ) -> None:
+        self.key = key
+        self.target = key  # human-readable in errors: "host:port" or "/dev/tty..."
         self.framer = framer
+        self._line = line  # serial only: (baudrate, bytesize, parity, stopbits)
         self.lock = asyncio.Lock()
-        self._client = AsyncModbusTcpClient(
-            host,
-            port=port,
-            framer=FramerType(framer),
-            timeout=DEFAULT_TIMEOUT,
-            retries=DEFAULT_RETRIES,
-        )
+        self._client = inner
         self._read_funcs = {
             TABLE_HOLDING: self._client.read_holding_registers,
             TABLE_INPUT: self._client.read_input_registers,
@@ -152,36 +227,91 @@ class ModbusBlockClient:
         retries: int | None = None,
         request_delay: float | None = None,
     ) -> ModbusBlockClient:
-        """Get (or create) the shared client for a gateway."""
-        client = cls._instances.get((host, port))
+        """Get (or create) the shared client for a TCP gateway."""
+        key = f"{host}:{port}"
+        client = cls._instances.get(key)
         if client is None:
-            client = cls(host, port, framer)
-            cls._instances[(host, port)] = client
+            inner = AsyncModbusTcpClient(
+                host,
+                port=port,
+                framer=FramerType(framer),
+                timeout=DEFAULT_TIMEOUT,
+                retries=DEFAULT_RETRIES,
+            )
+            client = cls(key, inner, framer)
+            cls._instances[key] = client
         elif client.framer != framer:
             # One TCP endpoint speaks exactly one framing; a second connection
             # would not help either (many gateways allow a single client).
             _LOGGER.warning(
-                "Gateway %s:%s is already connected with %s framing; keeping it. "
+                "Gateway %s is already connected with %s framing; keeping it. "
                 "All entries sharing a gateway must use the same framing",
-                host,
-                port,
+                client.target,
                 client.framer,
             )
-        client._refs.add(entry_id)
-        client._settings[entry_id] = (
+        client._register(entry_id, timeout, retries, request_delay)
+        return client
+
+    @classmethod
+    def acquire_serial(
+        cls,
+        serial_port: str,
+        entry_id: str,
+        *,
+        baudrate: int = DEFAULT_BAUDRATE,
+        bytesize: int = 8,
+        parity: str = "N",
+        stopbits: int = 1,
+        timeout: float | None = None,
+        retries: int | None = None,
+        request_delay: float | None = None,
+    ) -> ModbusBlockClient:
+        """Get (or create) the shared client for a local serial port."""
+        client = cls._instances.get(serial_port)
+        line = (baudrate, bytesize, parity, stopbits)
+        if client is None:
+            inner = _serial_client(
+                serial_port, baudrate, bytesize, parity, stopbits,
+                DEFAULT_TIMEOUT, DEFAULT_RETRIES,
+            )
+            client = cls(serial_port, inner, "rtu", line=line)
+            cls._instances[serial_port] = client
+        elif client._line != line:
+            assert client._line is not None
+            baud, size, par, stop = client._line
+            _LOGGER.warning(
+                "Serial port %s is already open at %d baud %d%s%d; keeping it. "
+                "All entries sharing a port must use the same line settings",
+                client.target,
+                baud,
+                size,
+                par,
+                stop,
+            )
+        client._register(entry_id, timeout, retries, request_delay)
+        return client
+
+    def _register(
+        self,
+        entry_id: str,
+        timeout: float | None,
+        retries: int | None,
+        request_delay: float | None,
+    ) -> None:
+        self._refs.add(entry_id)
+        self._settings[entry_id] = (
             timeout if timeout is not None else DEFAULT_TIMEOUT,
             retries if retries is not None else DEFAULT_RETRIES,
             request_delay if request_delay is not None else DEFAULT_REQUEST_DELAY,
         )
-        client._apply_settings()
-        return client
+        self._apply_settings()
 
     def release(self, entry_id: str) -> None:
         """Drop a config entry's reference; close when the last one goes."""
         self._refs.discard(entry_id)
         self._settings.pop(entry_id, None)
         if not self._refs:
-            self._instances.pop((self.host, self.port), None)
+            self._instances.pop(self.key, None)
             self._client.close()
         else:
             self._apply_settings()  # a released entry no longer pins the maxima

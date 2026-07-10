@@ -80,3 +80,34 @@ async def test_forced_multiple_does_not_fall_back_to_fc6():
     with pytest.raises(WriteError):
         await _client(fake).write_registers(1, 124, [3], multiple=True)
     assert fake.calls == [("fc16", 124, [3])]
+
+
+async def test_serial_client_shared_by_path(caplog):
+    # constructing the pymodbus serial client never opens the port, so a
+    # nonexistent path is fine here
+    a = ModbusBlockClient.acquire_serial(
+        "/dev/ttyTEST9", "e1", baudrate=19200, parity="E"
+    )
+    b = ModbusBlockClient.acquire_serial("/dev/ttyTEST9", "e2")  # different line
+    try:
+        assert b is a
+        assert a.target == "/dev/ttyTEST9"
+        assert a.framer == "rtu"
+        # mismatching line settings keep the first ones, loudly
+        assert "line settings" in caplog.text
+    finally:
+        a.release("e1")
+        a.release("e2")
+    assert "/dev/ttyTEST9" not in ModbusBlockClient._instances
+
+
+async def test_serial_and_tcp_clients_are_distinct():
+    tcp = ModbusBlockClient.acquire("127.0.0.1", 15020, "e-tcp")
+    ser = ModbusBlockClient.acquire_serial("/dev/ttyTEST8", "e-ser")
+    try:
+        assert tcp is not ser
+        assert tcp.target == "127.0.0.1:15020"
+        assert ser.target == "/dev/ttyTEST8"
+    finally:
+        tcp.release("e-tcp")
+        ser.release("e-ser")

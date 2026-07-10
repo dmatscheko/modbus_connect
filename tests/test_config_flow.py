@@ -12,10 +12,15 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.modbus_connect.config_flow import _probe_span, _unique_id
 from custom_components.modbus_connect.const import (
+    CONF_BAUDRATE,
+    CONF_BYTESIZE,
     CONF_FILENAME,
     CONF_FRAMER,
+    CONF_PARITY,
     CONF_PREFIX,
+    CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
+    CONF_STOPBITS,
     DOMAIN,
     FRAMER_RTU,
     FRAMER_SOCKET,
@@ -95,6 +100,14 @@ def form_defaults(result) -> dict:
     return out
 
 
+async def pick(hass: HomeAssistant, result, step: str):
+    """Choose a transport from the connection-type menu."""
+    assert result["type"] is FlowResultType.MENU
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": step}
+    )
+
+
 async def test_full_flow(hass: HomeAssistant) -> None:
     write_device_file(hass)
     with patch_probe(True), patch_setup():
@@ -107,6 +120,7 @@ async def test_full_flow(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], DEVICE_STEP
         )
+        result = await pick(hass, result, "connection")
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "connection"
         # No device defaults in the file: modbus id 1, prefix from the title
@@ -133,6 +147,7 @@ async def test_name_becomes_title_and_prefix_default(hass: HomeAssistant) -> Non
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**DEVICE_STEP, CONF_NAME: "Heat pump"}
         )
+        result = await pick(hass, result, "connection")
         assert form_defaults(result)[CONF_PREFIX] == "Heat pump"
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**CONNECTION, CONF_PREFIX: "hp"}
@@ -152,6 +167,7 @@ async def test_device_file_defaults_prefill(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_FILENAME: "acme_x2.yaml", CONF_NAME: ""}
     )
+    result = await pick(hass, result, "connection")
     defaults = form_defaults(result)
     assert defaults[CONF_SLAVE_ID] == 42
     assert defaults[CONF_PREFIX] == "acme_pre"
@@ -165,6 +181,7 @@ async def test_cannot_connect_then_recover(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "connection")
     with patch_probe(False):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
@@ -192,6 +209,7 @@ async def test_duplicate_aborts(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "connection")
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], CONNECTION
     )
@@ -244,6 +262,7 @@ async def test_reconfigure_flow(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_FILENAME: "other.yaml", CONF_NAME: "Renamed"}
         )
+        result = await pick(hass, result, "reconfigure_connection")
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "reconfigure_connection"
         assert form_defaults(result)["host"] == "192.0.2.1"
@@ -283,6 +302,7 @@ async def test_reconfigure_same_connection_ok(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], DEVICE_STEP
         )
+        result = await pick(hass, result, "reconfigure_connection")
         assert result["type"] is FlowResultType.FORM
         assert result["step_id"] == "reconfigure_connection"
 
@@ -306,6 +326,7 @@ async def test_reconfigure_collision_aborts(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "reconfigure_connection")
     with patch_probe(True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**CONNECTION, "host": "192.0.2.9"}
@@ -323,6 +344,7 @@ async def test_reconfigure_cannot_connect(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "reconfigure_connection")
     with patch_probe(False):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
@@ -411,6 +433,7 @@ async def test_reconfigure_to_new_device_file_clears_group_selection(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_FILENAME: "acme_x2.yaml", CONF_NAME: ""}
     )
+    result = await pick(hass, result, "reconfigure_connection")
     with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
@@ -439,6 +462,7 @@ async def test_reconfigure_same_device_file_keeps_group_selection(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "reconfigure_connection")
     with patch_probe(True), patch_setup():
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], CONNECTION
@@ -455,6 +479,118 @@ def test_unique_id_normalizes_host() -> None:
     assert _unique_id(connection) == "gw.local:502:7"
 
 
+# --- serial transport ---------------------------------------------------------
+
+SERIAL_CONNECTION = {
+    CONF_SERIAL_PORT: "/dev/ttyUSB0",
+    CONF_BAUDRATE: "19200",
+    CONF_BYTESIZE: "8",
+    CONF_PARITY: "E",
+    CONF_STOPBITS: "1",
+    CONF_SLAVE_ID: 7,
+    CONF_PREFIX: "",
+}
+
+
+def patch_serial_probe(result: bool):
+    return patch(
+        "custom_components.modbus_connect.config_flow.async_probe_serial_device",
+        return_value=None if result else "cannot_connect",
+    )
+
+
+def patch_ports():
+    return patch(
+        "custom_components.modbus_connect.config_flow._list_serial_ports",
+        return_value=["/dev/ttyUSB0"],
+    )
+
+
+async def test_connection_type_menu_shown(hass: HomeAssistant) -> None:
+    write_device_file(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "connection_type"
+    assert result["menu_options"] == ["connection", "serial"]
+
+
+async def test_full_serial_flow(hass: HomeAssistant) -> None:
+    write_device_file(hass)
+    with patch_serial_probe(True), patch_ports(), patch_setup():
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], DEVICE_STEP
+        )
+        result = await pick(hass, result, "serial")
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "serial"
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], SERIAL_CONNECTION
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    data = result["data"]
+    assert data[CONF_SERIAL_PORT] == "/dev/ttyUSB0"
+    assert data[CONF_BAUDRATE] == 19200  # select strings coerced back to numbers
+    assert data[CONF_BYTESIZE] == 8
+    assert data[CONF_PARITY] == "E"
+    assert data[CONF_STOPBITS] == 1
+    assert "host" not in data
+    assert result["result"].unique_id == "/dev/ttyUSB0:7"
+
+
+async def test_serial_cannot_connect_shows_error(hass: HomeAssistant) -> None:
+    write_device_file(hass)
+    with patch_ports():
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], DEVICE_STEP
+        )
+        result = await pick(hass, result, "serial")
+        with patch_serial_probe(False):
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"], SERIAL_CONNECTION
+            )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "serial"
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_reconfigure_to_serial_replaces_connection_data(
+    hass: HomeAssistant,
+) -> None:
+    # switching transport must not leave stale host/port keys in entry.data
+    write_device_file(hass)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+
+    result = await start_reconfigure(hass, entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
+    result = await pick(hass, result, "reconfigure_serial")
+    assert result["step_id"] == "reconfigure_serial"
+    with patch_serial_probe(True), patch_ports(), patch_setup():
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], SERIAL_CONNECTION
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_SERIAL_PORT] == "/dev/ttyUSB0"
+    assert "host" not in entry.data
+    assert entry.unique_id == "/dev/ttyUSB0:7"
+
+
 async def test_wrong_modbus_id_gets_pointed_error(hass: HomeAssistant) -> None:
     # gateway reachable but the device silent: not "cannot_connect" but a
     # message pointing straight at the Modbus ID
@@ -465,6 +601,7 @@ async def test_wrong_modbus_id_gets_pointed_error(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], DEVICE_STEP
     )
+    result = await pick(hass, result, "connection")
     with patch(
         "custom_components.modbus_connect.config_flow.async_probe_device",
         return_value="device_no_answer",
@@ -531,6 +668,7 @@ holding:
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_FILENAME: "buttons.yaml", CONF_NAME: ""}
     )
+    result = await pick(hass, result, "connection")
     with (
         patch(
             "custom_components.modbus_connect.config_flow.async_probe",
@@ -555,6 +693,7 @@ async def test_framer_defaults_to_modbus_tcp(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], DEVICE_STEP
         )
+        result = await pick(hass, result, "connection")
         submission = {k: v for k, v in CONNECTION.items() if k != CONF_FRAMER}
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], submission
@@ -573,6 +712,7 @@ async def test_rtu_over_tcp_framer_stored(hass: HomeAssistant) -> None:
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], DEVICE_STEP
         )
+        result = await pick(hass, result, "connection")
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {**CONNECTION, CONF_FRAMER: FRAMER_RTU}
         )

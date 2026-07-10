@@ -8,7 +8,17 @@ from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import device_registry as dr
 
 from .client import ModbusBlockClient
-from .const import CONF_FILENAME, CONF_FRAMER, FRAMER_SOCKET, PLATFORMS
+from .const import (
+    CONF_BAUDRATE,
+    CONF_BYTESIZE,
+    CONF_FILENAME,
+    CONF_FRAMER,
+    CONF_PARITY,
+    CONF_SERIAL_PORT,
+    CONF_STOPBITS,
+    FRAMER_SOCKET,
+    PLATFORMS,
+)
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .loader import async_load_device
 from .schema import DeviceSchemaError
@@ -21,15 +31,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
     except DeviceSchemaError as err:
         raise ConfigEntryError(str(err)) from err
 
-    client = ModbusBlockClient.acquire(
-        entry.data[CONF_HOST],
-        entry.data[CONF_PORT],
-        entry.entry_id,
-        framer=entry.data.get(CONF_FRAMER, FRAMER_SOCKET),
-        timeout=device.timeout,
-        retries=device.retries,
-        request_delay=device.request_delay,
-    )
+    if CONF_SERIAL_PORT in entry.data:
+        client = ModbusBlockClient.acquire_serial(
+            entry.data[CONF_SERIAL_PORT],
+            entry.entry_id,
+            baudrate=entry.data[CONF_BAUDRATE],
+            bytesize=entry.data[CONF_BYTESIZE],
+            parity=entry.data[CONF_PARITY],
+            stopbits=entry.data[CONF_STOPBITS],
+            timeout=device.timeout,
+            retries=device.retries,
+            request_delay=device.request_delay,
+        )
+    else:
+        client = ModbusBlockClient.acquire(
+            entry.data[CONF_HOST],
+            entry.data[CONF_PORT],
+            entry.entry_id,
+            framer=entry.data.get(CONF_FRAMER, FRAMER_SOCKET),
+            timeout=device.timeout,
+            retries=device.retries,
+            request_delay=device.request_delay,
+        )
     coordinator = ModbusConnectCoordinator(hass, entry, client, device)
     try:
         await coordinator.async_config_entry_first_refresh()

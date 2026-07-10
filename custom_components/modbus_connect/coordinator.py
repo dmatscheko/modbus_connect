@@ -24,6 +24,7 @@ from .client import ModbusBlockClient, ReadError, WriteError
 from .const import (
     BASIC_GROUP,
     CONF_PREFIX,
+    CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -295,9 +296,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             or f"{device.manufacturer} {device.model}"
         )
         # HA's device-info card has no free-form rows, so fold the connection
-        # (host:port and Modbus id) into model_id — it renders right after
-        # the model as "<model> (<host:port · ID N>)".
-        connection = f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]} · ID {self.slave_id}"
+        # (gateway or serial port, and Modbus id) into model_id — it renders
+        # right after the model as "<model> (<target · ID N>)".
+        target = (
+            entry.data[CONF_SERIAL_PORT]
+            if CONF_SERIAL_PORT in entry.data
+            else f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}"
+        )
+        connection = f"{target} · ID {self.slave_id}"
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
@@ -539,9 +545,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if not await self.client.ensure_connected():
                 self._record_read_failure()
                 self._register_failure()
-                raise UpdateFailed(
-                    f"cannot connect to gateway {self.client.host}:{self.client.port}"
-                )
+                raise UpdateFailed(f"cannot connect to {self.client.target}")
         ok_blocks = 0
         reads = 0
         # The lock is taken per block, not around the whole refresh, so a user
@@ -872,13 +876,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             async with self.client.lock:
                 if not await self.client.ensure_connected():
                     raise HomeAssistantError(
-                        f"Cannot connect to gateway {self.client.host}:{self.client.port}",
+                        f"Cannot connect to {self.client.target}",
                         translation_domain=DOMAIN,
                         translation_key="cannot_connect",
-                        translation_placeholders={
-                            "host": self.client.host,
-                            "port": str(self.client.port),
-                        },
+                        translation_placeholders={"target": self.client.target},
                     )
                 value = await self._perform_write(defn, value)
                 if defn.platform != "button":

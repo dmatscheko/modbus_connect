@@ -13,6 +13,34 @@
           "name": "Friendly name for this device. Leave empty to use manufacturer, model, and entity ID prefix from the device file."
         }
       },
+      "connection_type": {
+        "title": "Connection type",
+        "description": "How is {device} reached?",
+        "menu_options": {
+          "connection": "Network (Modbus TCP or RTU over TCP)",
+          "serial": "Serial port (RS-485/RS-232 adapter)"
+        }
+      },
+      "serial": {
+        "title": "Serial connection",
+        "description": "Connect {device} through a serial adapter attached to this Home Assistant machine.",
+        "data": {
+          "serial_port": "Serial port",
+          "baudrate": "Baud rate",
+          "bytesize": "Data bits",
+          "parity": "Parity",
+          "stopbits": "Stop bits",
+          "slave_id": "Modbus device ID",
+          "prefix": "Entity ID prefix"
+        },
+        "data_description": {
+          "serial_port": "Device path of the adapter, e.g. `/dev/ttyUSB0`. Prefer a stable path like `/dev/serial/by-id/…` — plain `ttyUSB` numbers can change across reboots.",
+          "baudrate": "Serial speed the device is configured for. Check the device's manual or settings menu; 9600 is the most common.",
+          "parity": "Almost always None (8N1). Some devices use Even.",
+          "slave_id": "Unit/slave ID of the Modbus device on the bus (0–255). Prefilled with the device file's factory default.",
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Leave empty to let Home Assistant derive entity IDs from the device name."
+        }
+      },
       "connection": {
         "title": "Modbus gateway",
         "description": "Connect {device} through its Modbus TCP gateway (or directly, if the device speaks Modbus TCP itself).",
@@ -43,6 +71,34 @@
           "name": "Friendly name for this device. Leave empty to use manufacturer, model, and entity ID prefix from the device file."
         }
       },
+      "reconfigure_connection_type": {
+        "title": "Connection type",
+        "description": "How is {device} reached?",
+        "menu_options": {
+          "reconfigure_connection": "Network (Modbus TCP or RTU over TCP)",
+          "reconfigure_serial": "Serial port (RS-485/RS-232 adapter)"
+        }
+      },
+      "reconfigure_serial": {
+        "title": "Serial connection",
+        "description": "Update the serial connection for {device}.",
+        "data": {
+          "serial_port": "Serial port",
+          "baudrate": "Baud rate",
+          "bytesize": "Data bits",
+          "parity": "Parity",
+          "stopbits": "Stop bits",
+          "slave_id": "Modbus device ID",
+          "prefix": "Entity ID prefix"
+        },
+        "data_description": {
+          "serial_port": "Device path of the adapter, e.g. `/dev/ttyUSB0`. Prefer a stable path like `/dev/serial/by-id/…` — plain `ttyUSB` numbers can change across reboots.",
+          "baudrate": "Serial speed the device is configured for. Check the device's manual or settings menu; 9600 is the most common.",
+          "parity": "Almost always None (8N1). Some devices use Even.",
+          "slave_id": "Unit/slave ID of the Modbus device on the bus (0–255).",
+          "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Changing it only affects entities created afterwards. Leave empty to let Home Assistant derive entity IDs from the device name."
+        }
+      },
       "reconfigure_connection": {
         "title": "Modbus gateway",
         "description": "Update the connection to the Modbus TCP gateway for {device}.",
@@ -63,11 +119,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to the gateway. Check host and port, and make sure the gateway is reachable.",
-      "device_no_answer": "The gateway is reachable, but no device answered under this Modbus device ID. Check the ID (and that the device is powered and wired to the gateway)."
+      "cannot_connect": "Failed to connect. Check host and port (or the serial port path), and make sure the gateway or adapter is reachable.",
+      "device_no_answer": "The connection works, but no device answered under this Modbus device ID. Check the ID (and that the device is powered and wired)."
     },
     "abort": {
-      "already_configured": "A device with this gateway and Modbus device ID is already configured.",
+      "already_configured": "A device with this connection and Modbus device ID is already configured.",
       "no_device_files": "No valid device definition files were found.",
       "reconfigure_successful": "Reconfiguration was successful."
     }
@@ -90,6 +146,13 @@
       "options": {
         "socket": "Modbus TCP",
         "rtu": "Modbus RTU over TCP"
+      }
+    },
+    "parity": {
+      "options": {
+        "N": "None",
+        "E": "Even",
+        "O": "Odd"
       }
     }
   },
@@ -123,7 +186,7 @@
   },
   "exceptions": {
     "cannot_connect": {
-      "message": "Cannot connect to Modbus gateway {host}:{port}."
+      "message": "Cannot connect to {target}."
     },
     "write_failed": {
       "message": "Writing {key} failed: {error}"

@@ -13,6 +13,34 @@
           "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller, Modell und Entitäts-ID-Präfix aus der Gerätedatei zu verwenden."
         }
       },
+      "connection_type": {
+        "title": "Verbindungsart",
+        "description": "Wie ist {device} erreichbar?",
+        "menu_options": {
+          "connection": "Netzwerk (Modbus TCP oder RTU über TCP)",
+          "serial": "Serieller Anschluss (RS-485-/RS-232-Adapter)"
+        }
+      },
+      "serial": {
+        "title": "Serielle Verbindung",
+        "description": "Verbinde {device} über einen seriellen Adapter an diesem Home-Assistant-Rechner.",
+        "data": {
+          "serial_port": "Serieller Anschluss",
+          "baudrate": "Baudrate",
+          "bytesize": "Datenbits",
+          "parity": "Parität",
+          "stopbits": "Stoppbits",
+          "slave_id": "Modbus-Geräte-ID",
+          "prefix": "Entitäts-ID-Präfix"
+        },
+        "data_description": {
+          "serial_port": "Gerätepfad des Adapters, z. B. `/dev/ttyUSB0`. Besser ein stabiler Pfad wie `/dev/serial/by-id/…` — einfache `ttyUSB`-Nummern können sich beim Neustart ändern.",
+          "baudrate": "Serielle Geschwindigkeit, auf die das Gerät eingestellt ist. Steht im Handbuch oder Einstellmenü des Geräts; 9600 ist am häufigsten.",
+          "parity": "Fast immer Keine (8N1). Manche Geräte verwenden Gerade.",
+          "slave_id": "Unit-/Slave-ID des Modbus-Geräts am Bus (0–255). Vorausgefüllt mit dem Werksstandard aus der Gerätedatei.",
+          "prefix": "Steht am Anfang aller Entitäts-IDs dieses Geräts, z. B. `sensor.[präfix]_[entität]`. Leer lassen, damit Home Assistant die Entitäts-IDs aus dem Gerätenamen ableitet."
+        }
+      },
       "connection": {
         "title": "Modbus-Gateway",
         "description": "Verbinde {device} über sein Modbus-TCP-Gateway (oder direkt, wenn das Gerät selbst Modbus TCP spricht).",
@@ -43,6 +71,34 @@
           "name": "Anzeigename für dieses Gerät. Leer lassen, um Hersteller, Modell und Entitäts-ID-Präfix aus der Gerätedatei zu verwenden."
         }
       },
+      "reconfigure_connection_type": {
+        "title": "Verbindungsart",
+        "description": "Wie ist {device} erreichbar?",
+        "menu_options": {
+          "reconfigure_connection": "Netzwerk (Modbus TCP oder RTU über TCP)",
+          "reconfigure_serial": "Serieller Anschluss (RS-485-/RS-232-Adapter)"
+        }
+      },
+      "reconfigure_serial": {
+        "title": "Serielle Verbindung",
+        "description": "Serielle Verbindung für {device} ändern.",
+        "data": {
+          "serial_port": "Serieller Anschluss",
+          "baudrate": "Baudrate",
+          "bytesize": "Datenbits",
+          "parity": "Parität",
+          "stopbits": "Stoppbits",
+          "slave_id": "Modbus-Geräte-ID",
+          "prefix": "Entitäts-ID-Präfix"
+        },
+        "data_description": {
+          "serial_port": "Gerätepfad des Adapters, z. B. `/dev/ttyUSB0`. Besser ein stabiler Pfad wie `/dev/serial/by-id/…` — einfache `ttyUSB`-Nummern können sich beim Neustart ändern.",
+          "baudrate": "Serielle Geschwindigkeit, auf die das Gerät eingestellt ist. Steht im Handbuch oder Einstellmenü des Geräts; 9600 ist am häufigsten.",
+          "parity": "Fast immer Keine (8N1). Manche Geräte verwenden Gerade.",
+          "slave_id": "Unit-/Slave-ID des Modbus-Geräts am Bus (0–255).",
+          "prefix": "Steht am Anfang aller Entitäts-IDs dieses Geräts, z. B. `sensor.[präfix]_[entität]`. Eine Änderung wirkt nur auf danach neu angelegte Entitäten. Leer lassen, damit Home Assistant die Entitäts-IDs aus dem Gerätenamen ableitet."
+        }
+      },
       "reconfigure_connection": {
         "title": "Modbus-Gateway",
         "description": "Verbindung zum Modbus-TCP-Gateway für {device} ändern.",
@@ -63,11 +119,11 @@
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zum Gateway fehlgeschlagen. Prüfe Host und Port und ob das Gateway erreichbar ist.",
-      "device_no_answer": "Das Gateway ist erreichbar, aber unter dieser Modbus-Geräte-ID hat kein Gerät geantwortet. Prüfe die ID (und ob das Gerät eingeschaltet und mit dem Gateway verkabelt ist)."
+      "cannot_connect": "Verbindung fehlgeschlagen. Prüfe Host und Port (bzw. den seriellen Gerätepfad) und ob Gateway oder Adapter erreichbar sind.",
+      "device_no_answer": "Die Verbindung steht, aber unter dieser Modbus-Geräte-ID hat kein Gerät geantwortet. Prüfe die ID (und ob das Gerät eingeschaltet und verkabelt ist)."
     },
     "abort": {
-      "already_configured": "Ein Gerät mit diesem Gateway und dieser Modbus-Geräte-ID ist bereits konfiguriert.",
+      "already_configured": "Ein Gerät mit dieser Verbindung und dieser Modbus-Geräte-ID ist bereits konfiguriert.",
       "no_device_files": "Es wurden keine gültigen Gerätedefinitionen gefunden.",
       "reconfigure_successful": "Die Neukonfiguration war erfolgreich."
     }
@@ -90,6 +146,13 @@
       "options": {
         "socket": "Modbus TCP",
         "rtu": "Modbus RTU über TCP"
+      }
+    },
+    "parity": {
+      "options": {
+        "N": "Keine",
+        "E": "Gerade",
+        "O": "Ungerade"
       }
     }
   },
@@ -123,7 +186,7 @@
   },
   "exceptions": {
     "cannot_connect": {
-      "message": "Keine Verbindung zum Modbus-Gateway {host}:{port} möglich."
+      "message": "Keine Verbindung zu {target} möglich."
     },
     "write_failed": {
       "message": "Schreiben von {key} fehlgeschlagen: {error}"
