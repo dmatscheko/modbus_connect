@@ -509,7 +509,6 @@ HYBRID_BASIC = frozenset({
     "battery_power_charge", "battery_capacity", "bdc_status",
     "today_s_solar_energy", "total_solar_energy", "total_yield",
     "battery_input_energy_today", "battery_output_energy_today",
-    "grid_import", "grid_export",
     "inverter_voltage", "inverter_current",
     "inverter_current_l1", "inverter_current_l2", "inverter_current_l3",
     "inverter_power_l1", "inverter_power_l2", "inverter_power_l3",
@@ -538,6 +537,7 @@ HYBRID_EXTRA_GROUPS = {
         (
             "grid_voltage", "grid_voltage_l1", "grid_voltage_l2", "grid_voltage_l3",
             "grid_current_total", "grid_current_l1", "grid_current_l2", "grid_current_l3",
+            "grid_import", "grid_export",
         ),
         ("grid",),
     ),

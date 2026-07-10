@@ -4501,7 +4501,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:home-import-outline"
     state: "{{ [-(measured_power or 0), 0] | max }}"
-    groups: [basic]
+    groups: [advanced]
   grid_export:
     ha:
       platform: sensor
@@ -4511,7 +4511,7 @@ template:
       unit_of_measurement: W
       icon: "mdi:home-export-outline"
     state: "{{ [measured_power or 0, 0] | max }}"
-    groups: [basic]
+    groups: [advanced]
   house_load:
     ha:
       platform: sensor
