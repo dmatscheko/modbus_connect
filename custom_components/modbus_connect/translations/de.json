@@ -63,7 +63,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zum Gateway fehlgeschlagen. Prüfe Host und Port und ob das Gateway erreichbar ist."
+      "cannot_connect": "Verbindung zum Gateway fehlgeschlagen. Prüfe Host und Port und ob das Gateway erreichbar ist.",
+      "device_no_answer": "Das Gateway ist erreichbar, aber unter dieser Modbus-Geräte-ID hat kein Gerät geantwortet. Prüfe die ID (und ob das Gerät eingeschaltet und mit dem Gateway verkabelt ist)."
     },
     "abort": {
       "already_configured": "Ein Gerät mit diesem Gateway und dieser Modbus-Geräte-ID ist bereits konfiguriert.",

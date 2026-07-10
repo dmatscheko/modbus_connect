@@ -22,7 +22,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from .client import async_probe
+from .client import async_probe, async_probe_device
 from .const import (
     CONF_FILENAME,
     CONF_FRAMER,
@@ -40,7 +40,7 @@ from .const import (
 )
 from .coordinator import resolve_scan_intervals
 from .loader import async_load_all, async_load_device
-from .models import DeviceDef
+from .models import DeviceDef, Span
 from .schema import DeviceSchemaError
 
 
@@ -104,6 +104,15 @@ def _unique_id(connection: dict[str, Any]) -> str:
     return f"{host}:{connection[CONF_PORT]}:{connection[CONF_SLAVE_ID]}"
 
 
+def _probe_span(device: DeviceDef) -> Span | None:
+    """The smallest register span the device file polls — the cheapest real
+    read that proves a device with the entered Modbus ID answers."""
+    readers = [e for e in device.entities if e.polls]
+    if not readers:
+        return None
+    return min(readers, key=lambda e: (e.count, e.address)).span
+
+
 class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     """Two steps: device file + name, then the gateway connection."""
 
@@ -148,6 +157,27 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             **connection,
         }
 
+    async def _validate_connection(self, connection: dict[str, Any]) -> str | None:
+        """Probe the gateway and the device itself; an error key, or None if OK.
+
+        Reads one small span from the chosen device file, so a wrong Modbus ID
+        fails here with a pointed message instead of setting up an entry whose
+        entities are all unavailable. A file that never polls (only buttons /
+        write-only registers) falls back to the plain TCP probe.
+        """
+        assert self._device is not None
+        span = _probe_span(self._device)
+        if span is None:
+            ok = await async_probe(connection[CONF_HOST], connection[CONF_PORT])
+            return None if ok else "cannot_connect"
+        return await async_probe_device(
+            connection[CONF_HOST],
+            connection[CONF_PORT],
+            connection[CONF_SLAVE_ID],
+            span,
+            framer=connection.get(CONF_FRAMER, FRAMER_SOCKET),
+        )
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -169,11 +199,12 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input[CONF_HOST] = user_input[CONF_HOST].strip()
             await self.async_set_unique_id(_unique_id(user_input))
             self._abort_if_unique_id_configured()
-            if await async_probe(user_input[CONF_HOST], user_input[CONF_PORT]):
+            error = await self._validate_connection(user_input)
+            if error is None:
                 return self.async_create_entry(
                     title=self._title, data=self._entry_data(user_input)
                 )
-            errors["base"] = "cannot_connect"
+            errors["base"] = error
         return self.async_show_form(
             step_id="connection",
             data_schema=_connection_schema(user_input or self._connection_defaults()),
@@ -213,7 +244,8 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(_unique_id(user_input))
             if self.unique_id != entry.unique_id:
                 self._abort_if_unique_id_configured()
-            if await async_probe(user_input[CONF_HOST], user_input[CONF_PORT]):
+            error = await self._validate_connection(user_input)
+            if error is None:
                 kwargs: dict[str, Any] = {}
                 if self._filename != entry.data.get(CONF_FILENAME):
                     # A different device file has different groups; a stale
@@ -231,7 +263,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
                     data=self._entry_data(user_input),
                     **kwargs,
                 )
-            errors["base"] = "cannot_connect"
+            errors["base"] = error
         defaults = user_input or {
             **dict(entry.data),
             **(

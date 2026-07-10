@@ -22,6 +22,7 @@ from custom_components.modbus_connect.client import (
     ReadError,
     WriteError,
     async_probe,
+    async_probe_device,
 )
 from custom_components.modbus_connect.models import Span
 from custom_components.modbus_connect.planner import plan_blocks
@@ -37,6 +38,7 @@ DEVICE_FILE = (
 # every address the SDM630 device file actually uses.
 NO_FC16_ZONE = 65000  # refuses multi-register writes (FC16); singles work
 ERROR_ZONE = 65280  # answers every request with ILLEGAL DATA ADDRESS
+GATEWAY_ZONE = 65500  # answers GATEWAY TARGET FAILED TO RESPOND (code 11)
 
 
 @pytest.fixture
@@ -63,7 +65,9 @@ async def modbus_server(socket_enabled: None):
                 pdu = await reader.readexactly(length - 1)
                 fc, addr, count = struct.unpack(">BHH", pdu[:5])
                 requests.append((fc, addr, count))
-                if addr >= ERROR_ZONE or (fc == 16 and addr >= NO_FC16_ZONE):
+                if addr >= GATEWAY_ZONE:
+                    payload = bytes([fc | 0x80, 11])  # gateway: target silent
+                elif addr >= ERROR_ZONE or (fc == 16 and addr >= NO_FC16_ZONE):
                     payload = bytes([fc | 0x80, 2])  # ILLEGAL DATA ADDRESS
                 elif fc in (3, 4):  # read holding / input registers
                     payload = bytes([fc, count * 2]) + bytes(count * 2)
@@ -252,6 +256,46 @@ async def test_probe(modbus_server):
     closed.close()
     await closed.wait_closed()
     assert await async_probe("127.0.0.1", free_port, timeout=1.0) is False
+
+
+async def test_probe_device(modbus_server):
+    port, _ = modbus_server
+    assert await async_probe_device("127.0.0.1", port, 1, Span("holding", 0, 1)) is None
+    # an error response still proves a device with this ID answers
+    assert (
+        await async_probe_device("127.0.0.1", port, 1, Span("holding", ERROR_ZONE, 1))
+        is None
+    )
+    # the gateway reporting "target failed to respond" means the ID is wrong
+    assert (
+        await async_probe_device("127.0.0.1", port, 1, Span("holding", GATEWAY_ZONE, 1))
+        == "device_no_answer"
+    )
+
+
+async def test_probe_device_silence_means_no_answer(rtu_server):
+    # the RTU server never answers a socket-framed request: connect succeeds,
+    # the read stays silent — exactly what a wrong Modbus ID looks like
+    port, _ = rtu_server
+    assert (
+        await async_probe_device(
+            "127.0.0.1", port, 1, Span("holding", 0, 1), timeout=0.3
+        )
+        == "device_no_answer"
+    )
+
+
+async def test_probe_device_cannot_connect(socket_enabled):
+    closed = await asyncio.start_server(lambda r, w: None, "127.0.0.1", 0)
+    free_port = closed.sockets[0].getsockname()[1]
+    closed.close()
+    await closed.wait_closed()
+    assert (
+        await async_probe_device(
+            "127.0.0.1", free_port, 1, Span("holding", 0, 1), timeout=1.0
+        )
+        == "cannot_connect"
+    )
 
 
 async def test_client_is_shared_and_refcounted(modbus_server):

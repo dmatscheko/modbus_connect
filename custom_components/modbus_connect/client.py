@@ -53,6 +53,61 @@ async def async_probe(host: str, port: int, timeout: float = 5.0) -> bool:
         client.close()
 
 
+# The gateway itself reports it could not reach the device: no route to it, or
+# the device behind it stayed silent. Both mean "wrong Modbus ID" far more
+# often than anything else.
+_GATEWAY_EXCEPTIONS = (10, 11)
+
+
+async def async_probe_device(
+    host: str,
+    port: int,
+    device_id: int,
+    span: Span,
+    *,
+    framer: str = "socket",
+    timeout: float = 5.0,
+) -> str | None:
+    """Config-flow validation: TCP connect, then one real read from the device.
+
+    Returns None when the device answered — any Modbus response counts, even an
+    error response like *illegal data address* proves a device with this ID is
+    listening. Returns ``"cannot_connect"`` when no TCP connection came up, and
+    ``"device_no_answer"`` when the gateway is reachable but the device stayed
+    silent (wrong Modbus ID, or the serial side is down). The returned strings
+    are the config flow's error keys.
+    """
+    client = AsyncModbusTcpClient(
+        host, port=port, framer=FramerType(framer), timeout=timeout, retries=1
+    )
+    try:
+        try:
+            if not await client.connect():
+                return "cannot_connect"
+        except (TimeoutError, ModbusException, OSError):
+            return "cannot_connect"
+        read = {
+            TABLE_HOLDING: client.read_holding_registers,
+            TABLE_INPUT: client.read_input_registers,
+            TABLE_COIL: client.read_coils,
+            TABLE_DISCRETE: client.read_discrete_inputs,
+        }[span.table]
+        try:
+            response = await read(
+                address=span.start, count=span.count, device_id=device_id
+            )
+        except (TimeoutError, ModbusException, OSError):
+            return "device_no_answer"
+    finally:
+        client.close()
+    if (
+        isinstance(response, ExceptionResponse)
+        and response.exception_code in _GATEWAY_EXCEPTIONS
+    ):
+        return "device_no_answer"
+    return None
+
+
 class ModbusBlockClient:
     """One shared TCP connection per gateway (host:port), refcounted by entry."""
 

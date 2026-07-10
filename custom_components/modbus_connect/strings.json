@@ -63,7 +63,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to the gateway. Check host and port, and make sure the gateway is reachable."
+      "cannot_connect": "Failed to connect to the gateway. Check host and port, and make sure the gateway is reachable.",
+      "device_no_answer": "The gateway is reachable, but no device answered under this Modbus device ID. Check the ID (and that the device is powered and wired to the gateway)."
     },
     "abort": {
       "already_configured": "A device with this gateway and Modbus device ID is already configured.",

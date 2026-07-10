@@ -69,9 +69,10 @@ Add the **Modbus Connect** integration in **Settings → Devices & services**
 [![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)):
 pick the device definition and name the device, then enter the gateway
 connection. The Modbus device ID and the entity-ID prefix are prefilled from
-the chosen device file, and the connection is tested before anything is
-created. Add the integration once per Modbus device — several devices can
-share one gateway.
+the chosen device file, and the connection is verified with a real read from
+the device before anything is created — a wrong Modbus ID fails right there
+instead of producing an entry full of unavailable entities. Add the
+integration once per Modbus device — several devices can share one gateway.
 
 Worth knowing: entity IDs are assigned when an entity is first created, so
 changing the prefix later does not rename existing entities. The entry's

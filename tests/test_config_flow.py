@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.modbus_connect.config_flow import _unique_id
+from custom_components.modbus_connect.config_flow import _probe_span, _unique_id
 from custom_components.modbus_connect.const import (
     CONF_FILENAME,
     CONF_FRAMER,
@@ -71,8 +71,10 @@ def write_device_file(
 
 
 def patch_probe(result: bool):
+    """Bypass the wire probe: the device answered, or the gateway is down."""
     return patch(
-        "custom_components.modbus_connect.config_flow.async_probe", return_value=result
+        "custom_components.modbus_connect.config_flow.async_probe_device",
+        return_value=None if result else "cannot_connect",
     )
 
 
@@ -451,6 +453,96 @@ async def test_reconfigure_same_device_file_keeps_group_selection(
 def test_unique_id_normalizes_host() -> None:
     connection = {"host": " GW.Local ", "port": 502, CONF_SLAVE_ID: 7}
     assert _unique_id(connection) == "gw.local:502:7"
+
+
+async def test_wrong_modbus_id_gets_pointed_error(hass: HomeAssistant) -> None:
+    # gateway reachable but the device silent: not "cannot_connect" but a
+    # message pointing straight at the Modbus ID
+    write_device_file(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], DEVICE_STEP
+    )
+    with patch(
+        "custom_components.modbus_connect.config_flow.async_probe_device",
+        return_value="device_no_answer",
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], CONNECTION
+        )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "device_no_answer"}
+
+
+def test_probe_span_picks_smallest_reader() -> None:
+    from custom_components.modbus_connect.models import Span
+    from custom_components.modbus_connect.schema import parse_device
+
+    dev = parse_device(
+        {
+            "device": {"manufacturer": "A", "model": "X"},
+            "holding": {
+                "big": {"address": 0, "type": "uint32", "ha": {"platform": "sensor"}},
+                "small": {"address": 9, "ha": {"platform": "sensor"}},
+                "push": {"address": 4, "write_value": 1, "ha": {"platform": "button"}},
+            },
+        },
+        "t.yaml",
+    )
+    assert _probe_span(dev) == Span("holding", 9, 1)
+
+    # a file that never polls (button only) has no span to probe
+    buttons_only = parse_device(
+        {
+            "device": {"manufacturer": "A", "model": "X"},
+            "holding": {
+                "push": {"address": 4, "write_value": 1, "ha": {"platform": "button"}}
+            },
+        },
+        "t.yaml",
+    )
+    assert _probe_span(buttons_only) is None
+
+
+async def test_write_only_file_falls_back_to_tcp_probe(hass: HomeAssistant) -> None:
+    # nothing polls in this file, so there is nothing safe to read: the flow
+    # only checks that the gateway accepts a TCP connection
+    write_device_file(
+        hass,
+        "buttons.yaml",
+        """
+device:
+  manufacturer: Acme
+  model: Push
+holding:
+  push:
+    address: 4
+    write_value: 1
+    ha:
+      platform: button
+      name: Push
+""",
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_FILENAME: "buttons.yaml", CONF_NAME: ""}
+    )
+    with (
+        patch(
+            "custom_components.modbus_connect.config_flow.async_probe",
+            return_value=True,
+        ),
+        patch_setup(),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], CONNECTION
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
 
 
 async def test_framer_defaults_to_modbus_tcp(hass: HomeAssistant) -> None:
