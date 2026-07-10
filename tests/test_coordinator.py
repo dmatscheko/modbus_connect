@@ -586,6 +586,35 @@ async def test_write_encodes_and_confirms(hass, monkeypatch):
     assert coordinator.data["setpoint"] == pytest.approx(21.5)  # confirmed by read-back
 
 
+async def test_confirm_delay_waits_before_readback(hass, monkeypatch):
+    client = FakeClient({0: 150})
+    defn = EntityDef(
+        key="setpoint",
+        platform="number",
+        address=0,
+        multiplier=0.1,
+        confirm_delay=0.5,
+        ha={"native_min_value": 0, "native_max_value": 50},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+
+    sleeps: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleeps.append(seconds)
+
+    monkeypatch.setattr(
+        "custom_components.modbus_connect.coordinator.asyncio.sleep", fake_sleep
+    )
+    await coordinator.async_write(defn, 21.5)
+    assert sleeps == [0.5]  # slept once, between the write and the read-back
+    assert client.written == [(0, [215])]
+    assert coordinator.data["setpoint"] == pytest.approx(21.5)
+
+
 async def test_masked_write_read_modify_write(hass, monkeypatch):
     client = FakeClient({0: 0x0A5F})
     defn = EntityDef(

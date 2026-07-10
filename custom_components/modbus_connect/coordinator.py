@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import re
@@ -863,6 +864,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if defn.read_register is not None or defn.static_value is not None:
             return value  # no read-back; read elsewhere or not at all
+        if defn.confirm_delay is not None:
+            # The device is still applying the write; holding the lock keeps
+            # the bus quiet until the read-back.
+            await asyncio.sleep(defn.confirm_delay)
         self._store(defn.span, await self.client.read_block(self.slave_id, defn.span))
         confirmed = self._decode(defn)
         if confirmed is None and defn.optimistic_default is not None:

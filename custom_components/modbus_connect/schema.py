@@ -130,6 +130,7 @@ _MODBUS_KEYS = {
     "static_value",
     "optimistic_default",
     "write_multiple",
+    "confirm_delay",
     "rectify_time",
     "read_modify_write",
     "max_change",
@@ -444,6 +445,11 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         raise ctx.fail("read_register must be a template string, e.g. '{{ other_key }}'")
 
     write_multiple = _bool(ctx, raw, "write_multiple")
+    confirm_delay = raw.get("confirm_delay")
+    if confirm_delay is not None:
+        confirm_delay = _number(ctx, "confirm_delay", confirm_delay)
+        if not 0 < confirm_delay <= 10:
+            raise ctx.fail("confirm_delay must be > 0 and <= 10 seconds")
     rectify_time = _bool(ctx, raw, "rectify_time")
     static_value = raw.get("static_value")
     if "static_value" in raw and not isinstance(static_value, (int, float, bool, str)):
@@ -482,6 +488,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         static_value=static_value,
         optimistic_default=optimistic_default,
         write_multiple=write_multiple,
+        confirm_delay=confirm_delay,
         rectify_time=rectify_time,
         read_modify_write=read_modify_write,
         max_change=max_change,
@@ -508,7 +515,7 @@ def _parse_platform(ctx: _Ctx, raw: dict[str, Any]) -> tuple[str, dict[str, Any]
             )
         for bad in (
             "on_value", "off_value", "write_value", "static_value",
-            "optimistic_default", "write_multiple",
+            "optimistic_default", "write_multiple", "confirm_delay",
         ):
             if raw.get(bad) is not None:
                 raise ctx.fail(f"'{bad}' is not valid for internal entities")
@@ -804,6 +811,20 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
         raise ctx.fail("'write_multiple' is only valid on writable register platforms")
     if defn.write_multiple and defn.table in BIT_TABLES:
         raise ctx.fail("'write_multiple' applies to register writes, not coils")
+
+    # confirm_delay defers the read-back that follows a write; it needs a write
+    # that is actually confirmed from the entity's own register.
+    if defn.confirm_delay is not None and (
+        not defn.writes
+        or platform == "button"
+        or defn.read_register is not None
+        or defn.static_value is not None
+    ):
+        raise ctx.fail(
+            "'confirm_delay' needs a write confirmed from the entity's own "
+            "register (not valid for buttons, read_register, or static_value "
+            "entities)"
+        )
 
     # A masked write must merge into the register's other bits, which requires
     # read_modify_write; without it every write would fail at runtime. A button

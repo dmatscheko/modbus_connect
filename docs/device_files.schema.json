@@ -247,6 +247,11 @@
         "write_multiple": {
           "type": "boolean"
         },
+        "confirm_delay": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
+        },
         "read_modify_write": {
           "type": "boolean"
         },
@@ -416,6 +421,11 @@
         },
         "write_multiple": {
           "type": "boolean"
+        },
+        "confirm_delay": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
         },
         "read_modify_write": {
           "type": "boolean"

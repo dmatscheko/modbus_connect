@@ -141,7 +141,8 @@ is the entity's `scan_interval`, else the device file's `scan_interval`, else
 file's `min_scan_interval` (unset, it imposes no floor — it defaults to the
 config's fastest cadence). So `scan_interval` sets the actual rate, while
 `min_scan_interval` and the option only ever slow polling down. Writes are
-confirmed by reading the register back immediately.
+confirmed by reading the register back immediately (an entity's
+`confirm_delay` defers that read for devices that apply writes slowly).
 
 To watch the plan at work: *Download diagnostics* shows the parsed definition,
 the planning state (including learned holes and quarantined registers), and
@@ -169,6 +170,7 @@ entities that surface failures on the device page.
 | `static_value` | Marks a write-only command register: never read it — the entity shows this value until written, then optimistically its last written value (an option label for a `select`, a number for a `number`). For "direct control" registers that echo nothing useful, or share an address with an unrelated read |
 | `optimistic_default` | Read the register as usual, but fall back to this value when it decodes to nothing (undecodable / out of range) — keeps a writable control usable instead of unavailable. Mutually exclusive with `static_value`; neither combines with `read_register` |
 | `write_multiple` | Force FC16 (write-multiple) for the write, even for a single register — some devices reject FC6 on certain registers (e.g. SolaX `WRITE_MULTISINGLE`) |
+| `confirm_delay` | Seconds to wait between a write and its confirming read-back (0–10) — for devices that apply writes slowly, where an immediate read still returns the old value |
 | `rectify_time` | `time`-typed entities only (including `internal:` time read-backs): show an out-of-range time (e.g. `24:00`, an end-of-day stop time HA's `time` type cannot represent) as `23:59` instead of dropping the value — so the slot stays usable |
 | `max_change` | Reject changes larger than this between two polls (spike filter) |
 | `never_resets` | Ignore decreasing values (for `total_increasing` counters) |

@@ -1238,6 +1238,42 @@ def test_write_multiple_rejected_on_non_writable():
         )
 
 
+def test_confirm_delay_parses_on_writable():
+    dev = parse_device(
+        doc(x={"address": 1, "confirm_delay": 0.5,
+               "ha": {"platform": "number", "min": 0, "max": 9}}),
+        "t.yaml",
+    )
+    assert dev.entities[0].confirm_delay == pytest.approx(0.5)
+
+
+@pytest.mark.parametrize(
+    "entity",
+    [
+        {"address": 1, "confirm_delay": 1, "ha": {"platform": "sensor"}},
+        {"address": 1, "confirm_delay": 1, "write_value": 1, "ha": {"platform": "button"}},
+        {"address": 1, "confirm_delay": 1, "read_register": "{{ y }}",
+         "ha": {"platform": "number", "min": 0, "max": 9}},
+        {"address": 1, "confirm_delay": 1, "static_value": 0,
+         "ha": {"platform": "number", "min": 0, "max": 9}},
+    ],
+    ids=["sensor", "button", "read_register", "static_value"],
+)
+def test_confirm_delay_needs_own_readback(entity):
+    with pytest.raises(DeviceSchemaError, match="confirm_delay"):
+        parse_device(doc(x=entity), "t.yaml")
+
+
+@pytest.mark.parametrize("value", [0, -1, 11, "slow"])
+def test_confirm_delay_range(value):
+    with pytest.raises(DeviceSchemaError, match="confirm_delay"):
+        parse_device(
+            doc(x={"address": 1, "confirm_delay": value,
+                   "ha": {"platform": "number", "min": 0, "max": 9}}),
+            "t.yaml",
+        )
+
+
 def test_time_entity_parses():
     dev = parse_device(
         doc(t={"address": 104, "type": "time", "ha": {"platform": "time"}}), "t.yaml"

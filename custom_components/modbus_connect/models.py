@@ -145,6 +145,10 @@ class EntityDef:
     # Force FC16 for the write, even for a single register — some devices require
     # it on certain registers (SolaX WRITE_MULTISINGLE).
     write_multiple: bool = False
+    # Seconds to wait between a write and its confirming read-back — for devices
+    # that apply writes slowly, where an immediate read still returns the old
+    # value. The connection lock is held while waiting (the bus stays quiet).
+    confirm_delay: float | None = None
     # time entities only: show an out-of-range time (e.g. 24:00) as 23:59 instead
     # of nothing, so the slot stays usable.
     rectify_time: bool = False
