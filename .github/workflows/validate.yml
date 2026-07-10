@@ -27,9 +27,8 @@ jobs:
       - uses: actions/checkout@v7
       # Deliberately not SHA-pinned: the HACS validator evolves with the HACS
       # store requirements and is documented to be used from main.
+      # No ignore key: the hacs/default submission requires a run without one,
+      # and the brands check accepts the bundled brand/ directory.
       - uses: hacs/action@main
         with:
           category: integration
-          # Brand images are bundled in custom_components/modbus_connect/brand/
-          # (supported since Home Assistant 2026.3) instead of the brands repo.
-          ignore: brands
