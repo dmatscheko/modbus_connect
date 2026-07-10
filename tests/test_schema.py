@@ -1247,10 +1247,19 @@ def test_internal_rectify_time_requires_time_type():
 
 def test_entity_groups_parse_and_dedup():
     dev = parse_device(
-        doc(x={"address": 0, "groups": ["basic", "all", "basic"], "ha": {"platform": "sensor"}}),
+        doc(x={"address": 0, "groups": ["basic", "extra", "basic"], "ha": {"platform": "sensor"}}),
         "t.yaml",
     )
-    assert dev.entities[0].groups == ("basic", "all")
+    assert dev.entities[0].groups == ("basic", "extra")
+
+
+def test_all_is_an_ordinary_group_name():
+    # nothing reserved about "all": a file may declare a group of that name
+    dev = parse_device(
+        doc(x={"address": 0, "groups": ["all"], "ha": {"platform": "sensor"}}), "t.yaml"
+    )
+    assert dev.entities[0].groups == ("all",)
+    assert dev.group_names == ("all",)
 
 
 def test_entity_without_groups_defaults_empty():
@@ -1273,31 +1282,54 @@ def test_template_groups_parse():
             "y": {
                 "ha": {"platform": "sensor", "name": "Y"},
                 "state": "{{ x }}",
-                "groups": ["basic", "all"],
+                "groups": ["basic", "extra"],
             }
         },
     }
     dev = parse_device(data, "t.yaml")
-    assert dev.templates[0].groups == ("basic", "all")
+    assert dev.templates[0].groups == ("basic", "extra")
 
 
 def test_default_groups_parse_and_group_names():
     data = {
         "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["basic"]},
         "holding": {
-            "x": {"address": 0, "groups": ["basic", "all"], "ha": {"platform": "sensor"}},
-            "y": {"address": 1, "groups": ["advanced", "all"], "ha": {"platform": "sensor"}},
+            "x": {"address": 0, "groups": ["basic"], "ha": {"platform": "sensor"}},
+            "y": {"address": 1, "groups": ["advanced"], "ha": {"platform": "sensor"}},
         },
     }
     dev = parse_device(data, "t.yaml")
     assert dev.default_groups == ("basic",)
-    assert dev.group_names == ("basic", "all", "advanced")  # first-seen order
+    assert dev.group_names == ("basic", "advanced")  # first-seen order
 
 
 def test_default_groups_unknown_group_rejected():
     data = {
         "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["nope"]},
         "holding": {"x": {"address": 0, "groups": ["basic"], "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match="name groups no entity uses"):
+        parse_device(data, "t.yaml")
+
+
+def test_default_groups_accepts_reserved_basic():
+    # "basic" is always enabled, so it is a valid default even without any tags
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["basic"]},
+        "holding": {
+            "x": {"address": 0, "groups": ["advanced"], "ha": {"platform": "sensor"}}
+        },
+    }
+    assert parse_device(data, "t.yaml").default_groups == ("basic",)
+
+
+def test_default_groups_all_needs_a_declared_group():
+    # "all" is not reserved: as a default it must name a declared group like any other
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", "default_groups": ["all"]},
+        "holding": {
+            "x": {"address": 0, "groups": ["advanced"], "ha": {"platform": "sensor"}}
+        },
     }
     with pytest.raises(DeviceSchemaError, match="name groups no entity uses"):
         parse_device(data, "t.yaml")

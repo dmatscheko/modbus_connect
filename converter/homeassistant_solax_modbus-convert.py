@@ -465,14 +465,14 @@ def convert(pi, spec, protocol=None):
 
 # --- entity groups -----------------------------------------------------------
 #
-# Each entity/template is tagged with the tiers it belongs to so the integration's
-# group switches can show a subset. Tiers are independent groups (an entity is
-# shown if any of its groups is enabled); nesting is expressed by listing every
-# tier it belongs to. A hand-curated "basic" set is the minimal everyday view;
-# everything SolaX enables by default is "advanced"; everything (incl. the hidden
-# expert entities) is in "all". The device defaults to showing only "basic".
+# Each entity/template is tagged with the tier it belongs to so the integration's
+# group switches can show a subset. A hand-curated "basic" set is the minimal
+# everyday view (the always-on reserved group); everything SolaX enables by
+# default is "advanced". The hidden expert entities carry no tag at all — they
+# belong only to the implicit "all" group, whose switch reveals every entity.
+# The device defaults to showing only "basic".
 
-# The keys that make up the everyday view of each device (basic ⊆ advanced ⊆ all).
+# The keys that make up the everyday view of each device (the basic tier).
 HYBRID_BASIC = frozenset({
     "run_mode", "pv_power_total", "pv_power_1", "pv_power_2",
     "pv_voltage_1", "pv_voltage_2", "inverter_power", "inverter_temperature",
@@ -496,12 +496,13 @@ HAC_BASIC = frozenset({
 
 
 def tier_groups(key, ha, basic):
-    """The group tags for one entity/template: basic (also advanced, all) if it is
-    in the curated set, else advanced (and all) if enabled by default, else all."""
+    """The group tags for one entity/template: the curated basic set, SolaX's
+    enabled-by-default entities as advanced, and no tag for the hidden expert
+    entities (reachable only through the implicit all group's switch)."""
     if key in basic:
-        return ["basic", "advanced", "all"]
+        return ["basic"]
     enabled = ha.get("enabled_by_default", True) is not False
-    return ["advanced", "all"] if enabled else ["all"]
+    return ["advanced"] if enabled else []
 
 
 def annotate_groups(entities, templates, basic):
@@ -515,9 +516,13 @@ def annotate_groups(entities, templates, basic):
         ha = b.get("ha", {})
         if key in basic:
             ha.pop("enabled_by_default", None)
-        b["groups"] = tier_groups(key, ha, basic)
+        groups = tier_groups(key, ha, basic)
+        if groups:
+            b["groups"] = groups
     for t in templates:
-        t["groups"] = tier_groups(t["key"], t.get("ha", {}), basic)
+        groups = tier_groups(t["key"], t.get("ha", {}), basic)
+        if groups:
+            t["groups"] = groups
 
 
 # Entity fields emitted (in order) before the map / read_register / ha blocks.

@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.modbus_connect.binary_sensor import ModbusConnectTemplateBinarySensor
 from custom_components.modbus_connect.climate import ModbusConnectClimate
-from custom_components.modbus_connect.const import OPTION_ENABLED_GROUPS
+from custom_components.modbus_connect.const import OPTION_SHOW_ALL
 from custom_components.modbus_connect.cover import ModbusConnectCover
 from custom_components.modbus_connect.entity import build_template_description
 from custom_components.modbus_connect.fan import ModbusConnectFan
@@ -456,7 +456,7 @@ async def test_solax_hybrid_writable_reads_via_readback(hass, monkeypatch):
     # exercise the whole config, not just the default 'basic' view
     coordinator = await make_coordinator(
         hass, device, client, monkeypatch, FakeTime(),
-        options={OPTION_ENABLED_GROUPS: ["all"]},
+        options={OPTION_SHOW_ALL: True},
     )
     await coordinator.async_refresh()
     assert coordinator.data["battery_charge_max_current"] == pytest.approx(25.0)  # from reg 144
@@ -485,7 +485,7 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     put("bms_charge_max_current", 25.0)    # A -> charge ceiling 204.8 * 25 = 5120 W
     coordinator = await make_coordinator(
         hass, device, FakeClient(regs), monkeypatch, FakeTime(),
-        options={OPTION_ENABLED_GROUPS: ["all"]},
+        options={OPTION_SHOW_ALL: True},
     )
     await coordinator.async_refresh()
 

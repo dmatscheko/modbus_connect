@@ -44,6 +44,7 @@ async def async_get_config_entry_diagnostics(
         "polling": {
             "last_update_success": coordinator.last_update_success,
             "enabled_groups": sorted(coordinator.enabled_groups),
+            "show_all": coordinator.show_all,
             "visible_entity_count": len(coordinator.visible_entities),
             "update_interval": (
                 coordinator.update_interval.total_seconds()

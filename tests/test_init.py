@@ -20,6 +20,7 @@ from custom_components.modbus_connect.const import (
     DOMAIN,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
+    OPTION_SHOW_ALL,
 )
 from custom_components.modbus_connect.diagnostics import (
     async_get_config_entry_diagnostics,
@@ -777,19 +778,19 @@ device:
 holding:
   core:
     address: 0
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Core
   extra:
     address: 1
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Extra
   hidden_only:
     address: 2
-    groups: [all]
+    # untagged: only in the implicit all group, shown by the all-entities switch
     ha:
       platform: sensor
       name: Hidden only
@@ -826,15 +827,16 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
             reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
         )
 
-        # one config switch per group except 'basic', which is always enabled
-        # and cannot be toggled off
+        # one config switch per named group except 'basic', which is always
+        # enabled and cannot be toggled off — plus the show-all bypass switch
         assert reg.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_group_basic") is None
         advanced = eid(hass, entry, "switch", "group_advanced")
         assert hass.states.get(advanced).state == "off"
-        assert hass.states.get(eid(hass, entry, "switch", "group_all")).state == "off"
+        show_all = eid(hass, entry, "switch", "show_all_entities")
+        assert hass.states.get(show_all).state == "off"
 
         # switch names: group names show capitalized without a joiner, and the
-        # "all" group is translated as a whole phrase
+        # show-all switch is translated as a whole phrase matching the others
         assert hass.states.get(advanced).attributes["friendly_name"].endswith(
             "Enable Advanced entities"
         )
@@ -844,24 +846,55 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
 
         icons = await async_get_icons(hass, "entity", integrations=[DOMAIN])
         assert icons[DOMAIN]["switch"]["group_enable"]["default"] == "mdi:eye-check"
+        assert icons[DOMAIN]["switch"]["group_enable_all"]["default"] == "mdi:eye-check"
         assert (
-            hass.states.get(eid(hass, entry, "switch", "group_all"))
+            hass.states.get(show_all)
             .attributes["friendly_name"]
             .endswith("Enable all entities")
         )
 
         # enabling 'advanced' reloads the entry and brings 'extra' into being,
-        # while an all-only entity stays hidden
+        # while an untagged entity stays hidden
         await hass.services.async_call(
             "switch", "turn_on", {"entity_id": advanced}, blocking=True
         )
         await hass.async_block_till_done()
 
-    # the implicit basic group is not persisted in the option
-    assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced"]
-    assert hass.states.get(eid(hass, entry, "sensor", "extra")) is not None
-    assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
-    assert hass.states.get(eid(hass, entry, "switch", "group_advanced")).state == "on"
+        # the implicit basic group is not persisted in the option
+        assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced"]
+        assert hass.states.get(eid(hass, entry, "sensor", "extra")) is not None
+        assert (
+            reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_hidden_only") is None
+        )
+        assert hass.states.get(eid(hass, entry, "switch", "group_advanced")).state == "on"
+
+        # the show-all switch bypasses the group selection and reveals
+        # everything, including entities tagged into no group
+        await hass.services.async_call(
+            "switch", "turn_on", {"entity_id": show_all}, blocking=True
+        )
+        await hass.async_block_till_done()
+
+    assert entry.options[OPTION_SHOW_ALL] is True
+    assert entry.options[OPTION_ENABLED_GROUPS] == ["advanced"]  # selection untouched
+    assert hass.states.get(eid(hass, entry, "sensor", "hidden_only")) is not None
+    assert hass.states.get(eid(hass, entry, "switch", "show_all_entities")).state == "on"
+
+
+async def test_ungrouped_file_has_no_group_switches(hass: HomeAssistant) -> None:
+    # without group tags everything is always shown, so there is nothing to
+    # toggle — not even the all-entities switch
+    write_device_file(hass)
+    entry = make_entry()
+    entry.add_to_hass(hass)
+    assert await setup_entry(hass, entry, FakeClient())
+
+    group_switches = [
+        e.unique_id
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if e.unique_id.startswith(f"{entry.entry_id}_group_")
+    ]
+    assert group_switches == []
 
 
 async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -> None:

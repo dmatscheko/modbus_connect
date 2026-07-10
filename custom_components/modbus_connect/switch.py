@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import result_as_boolean
 
-from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS
+from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
@@ -42,13 +42,16 @@ async def async_setup_entry(
         for tdef in coordinator.visible_templates
         if tdef.platform == "switch"
     )
-    # Group toggles are integration-level config controls, always present and never
-    # themselves group-filtered. The basic group is always on and gets no toggle.
+    # Group toggles are integration-level config controls, never themselves
+    # group-filtered: one per named group (basic is always on and gets no toggle),
+    # plus the show-all bypass — present only when the file uses groups at all,
+    # since without groups everything is always shown anyway.
     entities.extend(
         ModbusConnectGroupSwitch(coordinator, entry, group)
-        for group in coordinator.all_groups
-        if group != BASIC_GROUP
+        for group in coordinator.group_switch_names
     )
+    if coordinator.all_groups:
+        entities.append(ModbusConnectShowAllSwitch(coordinator, entry))
     async_add_entities(entities)
 
 
@@ -112,9 +115,8 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._coordinator = coordinator
         self._entry = entry
         self._group = group
-        # "all" gets its own key so languages can translate the word ("Alle
-        # Entitäten…"); other group names are shown as-is, first letter upper.
-        self._attr_translation_key = "group_enable_all" if group == "all" else "group_enable"
+        # Group names are shown as-is, first letter upper.
+        self._attr_translation_key = "group_enable"
         self._attr_translation_placeholders = {"group": group[:1].upper() + group[1:]}
         self._attr_unique_id = f"{entry.entry_id}_group_{group}"
         self._attr_device_info = coordinator.meta_device_info
@@ -143,4 +145,47 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self.hass.config_entries.async_update_entry(
             self._entry,
             options={**self._entry.options, OPTION_ENABLED_GROUPS: sorted(groups)},
+        )
+
+
+class ModbusConnectShowAllSwitch(SwitchEntity):
+    """Config toggle that bypasses group handling: while on, every entity of the
+    device file is created (and its registers polled), whatever the group
+    switches say. Exists only for device files that use groups — without groups
+    everything is always shown and there is nothing to bypass.
+    """
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_should_poll = False
+    _attr_translation_key = "group_enable_all"
+
+    def __init__(
+        self,
+        coordinator: ModbusConnectCoordinator,
+        entry: ModbusConnectConfigEntry,
+    ) -> None:
+        self._coordinator = coordinator
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_show_all_entities"
+        self._attr_device_info = coordinator.meta_device_info
+        suggest_entity_id(self, coordinator, "switch", "enable_all_entities")
+
+    @property
+    def is_on(self) -> bool:
+        return self._coordinator.show_all
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(show_all=True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(show_all=False)
+
+    async def _set(self, *, show_all: bool) -> None:
+        if show_all == self._coordinator.show_all:
+            return
+        # The entry's update listener (see __init__.py) reloads and rebuilds entities.
+        self.hass.config_entries.async_update_entry(
+            self._entry,
+            options={**self._entry.options, OPTION_SHOW_ALL: show_all},
         )

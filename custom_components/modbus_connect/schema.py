@@ -40,7 +40,7 @@ from homeassistant.components.time import TimeEntityDescription
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
-from .const import DEFAULT_MAX_GAP, DEFAULT_MAX_READ
+from .const import BASIC_GROUP, DEFAULT_MAX_GAP, DEFAULT_MAX_READ
 from .models import (
     BIT_TABLES,
     FLOAT_TYPES,
@@ -183,7 +183,11 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     declared_groups = {g for e in entities for g in e.groups} | {
         g for t in templates for g in t.groups
     }
-    unknown_defaults = set(device_fields["default_groups"]) - declared_groups
+    # The reserved "basic" group needs no tags: it is always enabled, so it is
+    # a valid default in any grouped file.
+    unknown_defaults = (
+        set(device_fields["default_groups"]) - declared_groups - {BASIC_GROUP}
+    )
     if unknown_defaults:
         raise ctx.fail(
             f"device.default_groups {sorted(unknown_defaults)} name groups no entity "

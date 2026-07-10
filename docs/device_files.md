@@ -165,7 +165,7 @@ entities that surface failures on the device page.
 | `scan_interval` | Per-entity poll interval in seconds, overriding the device default. Still raised to `min_scan_interval` if that is longer |
 | `duplicate_as_sensor` | Also create a read-only sensor twin of this writable entity, so its history lands in the recorder/long-term statistics |
 | `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block). Internal entities can still be write targets of template actions. If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
-| `groups` | Tag the entity (or `template:` entry) into named groups, e.g. `[basic, advanced, all]`. The entity is created — and its register polled — only while at least one of its groups is enabled; an entity with no `groups` is always shown, and the `basic` group is always enabled. See [Entity groups](#entity-groups) |
+| `groups` | Tag the entity (or `template:` entry) into named groups, e.g. `[basic]` or `[advanced]`. The entity is created — and its register polled — only while at least one of its groups is enabled (`basic` is always enabled). In a file that uses groups, an entity with no `groups` is shown only while the *Enable all entities* switch bypasses group handling. See [Entity groups](#entity-groups) |
 
 ## The `ha:` block
 
@@ -189,23 +189,29 @@ device:
 holding:
   battery_soc:
     address: 0
-    groups: [basic, advanced, all]   # everyday view
+    groups: [basic]              # everyday view (always enabled)
+  inverter_frequency:
+    address: 10
+    groups: [advanced]           # shown when the Advanced switch is on
   cell_voltage_16:
-    address: 20
-    groups: [all]                    # expert-only
+    address: 20                  # untagged: expert tier, shown by "Enable all entities"
 ```
 
-An entity is shown when **any** of its groups is enabled — groups are
-independent, so tiers like basic ⊆ advanced ⊆ all are expressed by listing
-every tier an entity belongs to (a basic entity is written
-`[basic, advanced, all]`). `default_groups` picks which groups start enabled;
-leave it out and everything shows.
+An entity is shown when **any** of its groups is enabled. `default_groups`
+picks which groups start enabled; leave it out and everything shows.
 
 **`basic` is special**: it is always enabled and gets no switch. Tagging an
-entity `groups: [basic]` therefore means "part of the always-visible baseline"
-— it keeps the entity out of the other groups without ever letting it be
-hidden. This also means a user cannot lock themselves out by disabling the
-group everything lives in.
+entity `groups: [basic]` means "part of the always-visible baseline" — it
+keeps the entity out of the other groups without ever letting it be hidden, so
+a user cannot lock themselves out by disabling the group everything lives in.
+
+Besides the per-group switches there is one **Enable all entities** switch:
+while it is on, group handling is bypassed entirely and every entity of the
+file exists — an entity tagged into *no* group is exactly the "everything
+else" tier behind that switch. (`all` is not a reserved name: a file may
+declare a group called `all`, which behaves like any other named group.) The
+switches only exist in files that use `groups:` at all; an untagged file
+simply shows every entity, always.
 
 Hidden entities also drop out of the Modbus read plan — though a shown
 template, `read_register`, `write_value`, or action selector keeps its own

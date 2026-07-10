@@ -160,14 +160,18 @@ Modbus TCP device not listed here works too — write a device file for it.
 ## Entity groups
 
 Big devices expose far more settings and sensors than most people want, so a
-device file can tag its entities into named groups — `basic`, `advanced`,
-`all`, … (how, is in the [device file
-reference](docs/device_files.md#entity-groups)). For every group in the file,
-the integration adds one **Enable _group_ entities** switch, so whole sets can
-be turned on and off from the device page; an entity shows while any of its
-groups is enabled. **`basic` is special**: it is always enabled and gets no
-switch — the everyday baseline can never be hidden, so you cannot lock
-yourself out by disabling the group everything lives in.
+device file can tag its entities into named groups — `basic`, `advanced`, …
+(how, is in the [device file reference](docs/device_files.md#entity-groups)).
+For every group in the file, the integration adds one **Enable _group_
+entities** switch, so whole sets can be turned on and off from the device page;
+an entity shows while any of its groups is enabled. **`basic` is special**: it
+is always enabled and gets no switch — the everyday baseline can never be
+hidden, so you cannot lock yourself out by disabling the group everything lives
+in. On top of the group switches there is one **Enable all entities** switch:
+while it is on, group handling is bypassed entirely and every entity of the
+file is there — including entities tagged into no group at all (the expert tier
+of the bundled SolaX files). A file that uses no groups needs none of this and
+gets no switches: all of its entities are simply always shown.
 
 The group switches and the *Reads per refresh* diagnostic don't clutter the
 device itself: they live on a companion **_device name_ Configuration** service

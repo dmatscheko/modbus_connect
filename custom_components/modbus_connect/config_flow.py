@@ -30,6 +30,7 @@ from .const import (
     DOMAIN,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
+    OPTION_SHOW_ALL,
 )
 from .coordinator import resolve_scan_intervals
 from .loader import async_load_all, async_load_device
@@ -201,11 +202,12 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
                 kwargs: dict[str, Any] = {}
                 if self._filename != entry.data.get(CONF_FILENAME):
                     # A different device file has different groups; a stale
-                    # selection would hide every tagged entity.
+                    # selection would hide every tagged entity, and the show-all
+                    # bypass belonged to the old file's groups just the same.
                     kwargs["options"] = {
                         k: v
                         for k, v in entry.options.items()
-                        if k != OPTION_ENABLED_GROUPS
+                        if k not in (OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL)
                     }
                 return self.async_update_reload_and_abort(
                     entry,

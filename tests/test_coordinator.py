@@ -13,11 +13,13 @@ from custom_components.modbus_connect.const import (
     CONF_SLAVE_ID,
     DOMAIN,
     OPTION_ENABLED_GROUPS,
+    OPTION_SHOW_ALL,
 )
 from custom_components.modbus_connect.coordinator import (
     ModbusConnectCoordinator,
     is_group_visible,
     resolve_enabled_groups,
+    resolve_show_all,
 )
 from custom_components.modbus_connect.models import (
     DeviceDef,
@@ -222,60 +224,91 @@ async def test_read_count_sensor_reports_stable_full_refresh(hass, monkeypatch):
 # --- entity groups -----------------------------------------------------------
 
 
-def test_is_group_visible_untagged_always_shown():
-    assert is_group_visible((), frozenset({"basic"})) is True  # no groups -> always
-    assert is_group_visible((), frozenset()) is True
+def test_is_group_visible_overlap_only():
+    # any overlap with the item's own groups suffices
     assert is_group_visible(("basic",), frozenset({"basic"})) is True
     assert is_group_visible(("advanced",), frozenset({"basic"})) is False
-    assert is_group_visible(("basic", "all"), frozenset({"all"})) is True
+    # an untagged item is in no group: only the show-all bypass reveals it
+    assert is_group_visible((), frozenset({"basic", "advanced"})) is False
+    assert is_group_visible((), frozenset()) is False
 
 
 def test_resolve_enabled_groups_precedence():
-    dev = make_device(sensor("a", 0, groups=("basic", "all")), default_groups=("basic",))
+    dev = make_device(
+        sensor("a", 0, groups=("basic",)),
+        sensor("b", 1, groups=("advanced",)),
+        default_groups=("basic",),
+    )
     # option wins; 'basic' is always enabled on top of whatever is chosen
-    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["all"]}) == frozenset(
-        {"all", "basic"}
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["advanced"]}) == frozenset(
+        {"advanced", "basic"}
     )
     # else the device default
     assert resolve_enabled_groups(dev, None) == frozenset({"basic"})
     assert resolve_enabled_groups(dev, {}) == frozenset({"basic"})
-    # no default set -> every declared group (shows everything)
-    dev2 = make_device(sensor("a", 0, groups=("x", "y")))
-    assert resolve_enabled_groups(dev2, None) == frozenset({"x", "y", "basic"})
-    # no groups at all -> only the implicit basic (feature inactive; every
-    # entity is untagged anyway)
-    dev3 = make_device(sensor("a", 0))
-    assert resolve_enabled_groups(dev3, None) == frozenset({"basic"})
+    # names the file does not declare (stale selections from another device
+    # file) are filtered out
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["advanced", "gone"]}) == (
+        frozenset({"advanced", "basic"})
+    )
     # an explicitly emptied selection still cannot disable basic
     assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: []}) == frozenset({"basic"})
+
+
+def test_resolve_show_all_precedence():
+    dev = make_device(sensor("a", 0, groups=("basic",)), default_groups=("basic",))
+    # the option wins when set
+    assert resolve_show_all(dev, {OPTION_SHOW_ALL: True}) is True
+    assert resolve_show_all(dev, {OPTION_SHOW_ALL: False}) is False
+    # nothing chosen anywhere: default_groups keeps the bypass off ...
+    assert resolve_show_all(dev, None) is False
+    # ... while a grouped file without default_groups starts with everything
+    dev2 = make_device(sensor("a", 0, groups=("x",)))
+    assert resolve_show_all(dev2, None) is True
+    assert resolve_show_all(dev2, {OPTION_ENABLED_GROUPS: ["x"]}) is False
+    # a file without any groups always shows everything, whatever the options say
+    dev3 = make_device(sensor("a", 0))
+    assert resolve_show_all(dev3, {OPTION_SHOW_ALL: False}) is True
+
+
+def test_group_named_all_is_an_ordinary_group():
+    # nothing reserved about the name: a declared "all" group toggles like any other
+    dev = make_device(sensor("a", 0, groups=("all",)), default_groups=("all",))
+    assert resolve_enabled_groups(dev, {OPTION_ENABLED_GROUPS: ["all"]}) == frozenset(
+        {"all", "basic"}
+    )
+    assert resolve_show_all(dev, {OPTION_ENABLED_GROUPS: ["all"]}) is False
 
 
 async def test_groups_hide_and_prune_hidden_reads(hass, monkeypatch):
     client = FakeClient({0: 1, 2: 3, 100: 2})
     device = make_device(
-        sensor("core", 0, groups=("basic", "all")),
-        sensor("untagged", 2),  # no groups -> always visible
-        sensor("extra", 100, groups=("advanced", "all")),  # hidden under basic
+        sensor("core", 0, groups=("basic",)),
+        sensor("untagged", 2),  # only in the implicit all group -> hidden under basic
+        sensor("extra", 100, groups=("advanced",)),  # hidden under basic
         default_groups=("basic",),
     )
     coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
 
     assert coordinator.enabled_groups == frozenset({"basic"})
-    assert coordinator.all_groups == ("basic", "all", "advanced")  # first-seen order
-    assert {e.key for e in coordinator.visible_entities} == {"core", "untagged"}
-    assert coordinator.read_entity_count == 2  # 'extra' is not polled
+    assert coordinator.all_groups == ("basic", "advanced")  # first-seen order
+    assert coordinator.group_switch_names == ("advanced",)  # basic gets no switch
+    assert coordinator.show_all is False
+    assert {e.key for e in coordinator.visible_entities} == {"core"}
+    assert coordinator.read_entity_count == 1  # neither hidden entity is polled
 
     await coordinator.async_refresh()
-    assert set(coordinator.data) == {"core", "untagged"}
+    assert set(coordinator.data) == {"core"}
     read_addrs = {a for span in client.reads for a in range(span.start, span.end)}
     assert 100 not in read_addrs  # the advanced-only block is pruned entirely
+    assert 2 not in read_addrs  # so is the untagged (all-only) register
 
 
 async def test_enabling_group_via_option_shows_and_reads(hass, monkeypatch):
     client = FakeClient({0: 1, 100: 2})
     device = make_device(
-        sensor("core", 0, groups=("basic", "all")),
-        sensor("extra", 100, groups=("advanced", "all")),
+        sensor("core", 0, groups=("basic",)),
+        sensor("extra", 100, groups=("advanced",)),
         default_groups=("basic",),
     )
     coordinator = await make_coordinator(
@@ -289,12 +322,40 @@ async def test_enabling_group_via_option_shows_and_reads(hass, monkeypatch):
     assert coordinator.data == {"core": 1, "extra": 2}
 
 
+async def test_show_all_reveals_untagged_entities(hass, monkeypatch):
+    # the show-all bypass: every non-internal entity becomes visible and read
+    client = FakeClient({0: 1, 2: 3, 100: 2})
+    device = make_device(
+        sensor("core", 0, groups=("basic",)),
+        sensor("untagged", 2),
+        sensor("extra", 100, groups=("advanced",)),
+        default_groups=("basic",),
+    )
+    coordinator = await make_coordinator(
+        hass, device, client, monkeypatch, FakeTime(),
+        options={OPTION_SHOW_ALL: True},
+    )
+    assert coordinator.show_all is True
+    assert {e.key for e in coordinator.visible_entities} == {"core", "untagged", "extra"}
+    await coordinator.async_refresh()
+    assert coordinator.data == {"core": 1, "untagged": 3, "extra": 2}
+
+
+async def test_ungrouped_device_shows_everything_and_offers_no_switches(hass, monkeypatch):
+    client = FakeClient({0: 1, 2: 3})
+    device = make_device(sensor("a", 0), sensor("b", 2))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    assert coordinator.group_switch_names == ()
+    assert coordinator.show_all is True  # nothing to toggle; everything shows
+    assert {e.key for e in coordinator.visible_entities} == {"a", "b"}
+
+
 async def test_group_closure_keeps_hidden_template_source_polled(hass, monkeypatch):
     # A basic template reads a sensor that is itself advanced-only (hidden). The
     # closure must keep that source register polled even though its entity is gone.
     client = FakeClient({0: 5})
     device = make_device(
-        sensor("measured_power", 0, groups=("advanced", "all")),
+        sensor("measured_power", 0, groups=("advanced",)),
         default_groups=("basic",),
         templates=(
             TemplateDef(
@@ -302,7 +363,7 @@ async def test_group_closure_keeps_hidden_template_source_polled(hass, monkeypat
                 platform="sensor",
                 ha={"name": "Grid import"},
                 config={"state": "{{ [-(measured_power or 0), 0] | max }}"},
-                groups=("basic", "all"),
+                groups=("basic",),
             ),
         ),
     )
@@ -321,8 +382,8 @@ async def test_group_closure_keeps_device_info_source_polled(hass, monkeypatch):
     # renders, so the seed must keep that register in the read plan under basic.
     client = FakeClient({0: 1, 10: 42})
     device = make_device(
-        sensor("core", 0, groups=("basic", "all")),
-        EntityDef(key="fw", platform="internal", address=10, groups=("advanced", "all")),
+        sensor("core", 0, groups=("basic",)),
+        EntityDef(key="fw", platform="internal", address=10, groups=("advanced",)),
         default_groups=("basic",),
         sw_version="{{ fw }}",
     )
@@ -337,8 +398,8 @@ async def test_group_closure_keeps_device_info_source_polled(hass, monkeypatch):
 async def test_hidden_fast_entity_does_not_speed_up_tick(hass, monkeypatch):
     client = FakeClient({0: 1, 100: 2})
     device = make_device(
-        sensor("slow", 0, groups=("basic", "all"), scan_interval=300),
-        sensor("fast", 100, groups=("advanced", "all"), scan_interval=5),
+        sensor("slow", 0, groups=("basic",), scan_interval=300),
+        sensor("fast", 100, groups=("advanced",), scan_interval=5),
         default_groups=("basic",),
     )
     coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())

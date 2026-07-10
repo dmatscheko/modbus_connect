@@ -30,6 +30,9 @@ CONF_PREFIX: Final = "prefix"
 OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
 # List of enabled group names; absent means "use the device file's default_groups".
 OPTION_ENABLED_GROUPS: Final = "enabled_groups"
+# Bypass group handling entirely while true: every non-internal entity is shown,
+# whatever the group selection says (the "Show all entities" switch).
+OPTION_SHOW_ALL: Final = "show_all_entities"
 
 # The one reserved group name: always enabled, no toggle switch. Tagging an
 # entity ``groups: [basic]`` keeps it out of other groups without ever hiding it.

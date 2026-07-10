@@ -31,6 +31,7 @@ from .const import (
     MAX_BACKOFF_SECONDS,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
+    OPTION_SHOW_ALL,
     QUARANTINE_AFTER,
     QUARANTINE_RETRY_SECONDS,
 )
@@ -86,24 +87,47 @@ def resolve_scan_intervals(
 def resolve_enabled_groups(
     device: DeviceDef, options: dict[str, Any] | None
 ) -> frozenset[str]:
-    """Which entity groups are active for this entry.
+    """Which named entity groups are active for this entry.
 
     The config-entry option wins when set; otherwise the device file's
-    ``default_groups``; otherwise (nothing configured either place) every group,
-    so a device that declares no default still shows everything and one that uses
-    no groups at all is unaffected. The ``basic`` group is special: it is always
-    enabled (and gets no toggle switch), so a device's baseline entities cannot
-    be hidden.
+    ``default_groups``. The selection is filtered to the file's declared groups,
+    so stale names from a previously configured device file drop out. The
+    ``basic`` group is special: it is always enabled (and gets no toggle
+    switch), so a device's baseline entities cannot be hidden.
     """
     chosen = (options or {}).get(OPTION_ENABLED_GROUPS)
     if chosen is None:
-        chosen = device.default_groups or device.group_names
-    return frozenset(chosen) | {BASIC_GROUP}
+        chosen = device.default_groups
+    names = set(device.group_names)
+    return frozenset(g for g in chosen if g in names) | {BASIC_GROUP}
+
+
+def resolve_show_all(device: DeviceDef, options: dict[str, Any] | None) -> bool:
+    """Whether group handling is bypassed so every entity shows.
+
+    Permanently on for a device file that uses no groups — there is nothing to
+    toggle, so no switch exists either. Otherwise the show-all option wins when
+    set (the "Show all entities" switch). With nothing chosen anywhere, a file
+    that declares no ``default_groups`` starts with everything visible.
+    """
+    if not device.group_names:
+        return True
+    options = options or {}
+    flag = options.get(OPTION_SHOW_ALL)
+    if flag is not None:
+        return bool(flag)
+    return OPTION_ENABLED_GROUPS not in options and not device.default_groups
 
 
 def is_group_visible(groups: tuple[str, ...], enabled: frozenset[str]) -> bool:
-    """An item with no groups is always shown; otherwise any overlap suffices."""
-    return not groups or bool(enabled.intersection(groups))
+    """Whether an item tagged ``groups`` is shown under the ``enabled`` groups.
+
+    Any overlap with the item's own groups suffices. An untagged item is in no
+    group at all, so in a grouped device file it only appears through the
+    show-all bypass (see resolve_show_all); in a file without groups the bypass
+    is permanently on and everything shows.
+    """
+    return bool(enabled.intersection(groups))
 
 
 def referenced_read_keys(
@@ -190,9 +214,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Group visibility. Only entities/templates in an enabled group are created,
         # and only the registers those (and their data dependencies) need are polled.
-        # An item with no groups is always shown; a device with no groups behaves as
-        # before. See resolve_enabled_groups / referenced_read_keys.
+        # The show-all bypass ignores the group selection entirely (and is
+        # permanently on for files without groups). See resolve_enabled_groups /
+        # resolve_show_all / referenced_read_keys.
         self.enabled_groups = resolve_enabled_groups(device, dict(entry.options))
+        self.show_all = resolve_show_all(device, dict(entry.options))
         self.all_groups = device.group_names
         # Internal entities never become HA entities; they are read only when a
         # visible item depends on them (via the closure below), so a readback for a
@@ -200,10 +226,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.visible_entities = tuple(
             e
             for e in device.entities
-            if not e.internal and is_group_visible(e.groups, self.enabled_groups)
+            if not e.internal
+            and (self.show_all or is_group_visible(e.groups, self.enabled_groups))
         )
         self.visible_templates = tuple(
-            t for t in device.templates if is_group_visible(t.groups, self.enabled_groups)
+            t
+            for t in device.templates
+            if self.show_all or is_group_visible(t.groups, self.enabled_groups)
         )
         needed = {e.key for e in self.visible_entities} | referenced_read_keys(
             device, list(self.visible_entities), list(self.visible_templates)
@@ -391,6 +420,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return {k: max(0, round(t - now)) for k, t in sorted(self.quarantined.items())}
 
     @property
+    def group_switch_names(self) -> tuple[str, ...]:
+        """The named groups that get a toggle switch (the always-on ``basic``
+        gets none). The show-all switch is separate — it exists whenever the
+        device file uses groups at all."""
+        return tuple(g for g in self.all_groups if g != BASIC_GROUP)
+
+    @property
     def provided_unique_ids(self) -> set[str]:
         """Unique ids of every entity the current configuration provides.
 
@@ -407,10 +443,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         ids.update(f"{self.entry_id}_{t.key}" for t in self.visible_templates)
         ids.update(
-            f"{self.entry_id}_group_{group}"
-            for group in self.all_groups
-            if group != BASIC_GROUP
+            f"{self.entry_id}_group_{group}" for group in self.group_switch_names
         )
+        if self.all_groups:
+            ids.add(f"{self.entry_id}_show_all_entities")
         ids.add(f"{self.entry_id}_reads_per_refresh")
         ids.add(f"{self.entry_id}_remove_hidden_entities")
         ids.add(f"{self.entry_id}_read_failures")

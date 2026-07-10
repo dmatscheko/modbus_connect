@@ -13,7 +13,7 @@ device:
 holding:
   meter_setting:
     address: 1548
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: External CT
       1: External Meter
@@ -25,7 +25,7 @@ holding:
       entity_category: config
   charger_use_mode:
     address: 1549
-    groups: [basic, advanced, all]
+    groups: [basic]
     map:
       0: Stop
       1: Fast
@@ -37,7 +37,7 @@ holding:
       icon: "mdi:dip-switch"
   eco_gear:
     address: 1550
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       1: "6A"
       2: "10A"
@@ -51,7 +51,7 @@ holding:
       entity_category: config
   green_gear:
     address: 1551
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       1: "3A"
       2: "6A"
@@ -62,7 +62,7 @@ holding:
       entity_category: config
   start_charge_mode:
     address: 1552
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Plug and Charge
       1: Swipe Card to Start
@@ -74,7 +74,7 @@ holding:
       entity_category: config
   overload_limit:
     address: 1553
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Overload Limit
@@ -86,7 +86,7 @@ holding:
       step: 1
   undervoltage_limit:
     address: 1554
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Undervoltage Limit
@@ -98,7 +98,7 @@ holding:
       step: 1
   boost_mode:
     address: 1555
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Normal
       1: Timer Boost
@@ -109,7 +109,7 @@ holding:
       icon: "mdi:dip-switch"
   main_breaker_limit:
     address: 1556
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Main Breaker Limit
@@ -121,7 +121,7 @@ holding:
       step: 1
   device_lock:
     address: 1557
-    groups: [basic, advanced, all]
+    groups: [basic]
     map:
       0: Unlock
       1: Lock
@@ -132,7 +132,7 @@ holding:
       entity_category: config
   rfid_program:
     address: 1558
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Disabled
       1: Enabled
@@ -146,7 +146,7 @@ holding:
     type: uint32
     swap: word
     multiplier: 0.1
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charge Added Total
@@ -156,7 +156,7 @@ holding:
       precision: 1
   evse_scene:
     address: 1564
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: PV Mode
       1: Standard Mode
@@ -176,7 +176,7 @@ holding:
       - "{{ utcnow().day }}"
       - "{{ utcnow().month }}"
       - "{{ utcnow().year % 100 }}"
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: button
       name: Sync RTC
@@ -205,7 +205,7 @@ holding:
     internal: true
   charge_phase:
     address: 1573
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Three Phase
       1: L1 Phase
@@ -218,7 +218,7 @@ holding:
       entity_category: config
   control_command:
     address: 1575
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: No Command
       1: Available
@@ -234,7 +234,7 @@ holding:
   charge_current:
     address: 1576
     multiplier: 0.01
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: number
       name: Charge Current
@@ -248,7 +248,7 @@ holding:
     type: time
     count: 2
     rectify_time: true
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: time
       name: Timer Boost Start Time
@@ -259,7 +259,7 @@ holding:
     type: time
     count: 2
     rectify_time: true
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: time
       name: Timer Boost End Time
@@ -270,7 +270,7 @@ holding:
     type: time
     count: 2
     rectify_time: true
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: time
       name: Smart Boost End Time
@@ -278,7 +278,7 @@ holding:
       entity_category: config
   smart_boost_energy:
     address: 1594
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Smart Boost Energy
@@ -290,7 +290,6 @@ holding:
       step: 1
   charge_phase_alt:
     address: 1595
-    groups: [all]
     map:
       0: Three Phase
       1: L1 Phase
@@ -304,7 +303,7 @@ holding:
       enabled_by_default: false
   modbus_address:
     address: 1600
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Modbus Address
@@ -316,7 +315,7 @@ holding:
   max_charge_current:
     address: 1640
     multiplier: 0.01
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: number
       name: Max Charge Current
@@ -327,7 +326,7 @@ holding:
       step: 0.1
   evse_mode:
     address: 1641
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Fast
       1: ECO
@@ -343,7 +342,7 @@ input:
     address: 0
     multiplier: 0.01
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charge Voltage L1
@@ -354,7 +353,7 @@ input:
     address: 1
     multiplier: 0.01
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charge Voltage L2
@@ -365,7 +364,7 @@ input:
     address: 2
     multiplier: 0.01
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charge Voltage L3
@@ -376,7 +375,6 @@ input:
     address: 3
     multiplier: 0.01
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge PE Voltage
@@ -389,7 +387,7 @@ input:
     address: 4
     multiplier: 0.01
     scan_interval: 15
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Current L1
@@ -400,7 +398,7 @@ input:
     address: 5
     multiplier: 0.01
     scan_interval: 15
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Current L2
@@ -411,7 +409,7 @@ input:
     address: 6
     multiplier: 0.01
     scan_interval: 15
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Current L3
@@ -421,7 +419,6 @@ input:
   charge_pe_current:
     address: 7
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge PE Current
@@ -432,7 +429,6 @@ input:
   charge_power_l1:
     address: 8
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L1
@@ -443,7 +439,6 @@ input:
   charge_power_l2:
     address: 9
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L2
@@ -454,7 +449,6 @@ input:
   charge_power_l3:
     address: 10
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L3
@@ -465,7 +459,7 @@ input:
   charge_power_total:
     address: 11
     scan_interval: 15
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Power Total
@@ -475,7 +469,6 @@ input:
   charge_frequency_l1:
     address: 12
     multiplier: 0.01
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Frequency L1
@@ -486,7 +479,6 @@ input:
   charge_frequency_l2:
     address: 13
     multiplier: 0.01
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Frequency L2
@@ -497,7 +489,6 @@ input:
   charge_frequency_l3:
     address: 14
     multiplier: 0.01
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Frequency L3
@@ -508,7 +499,7 @@ input:
   charge_added:
     address: 15
     multiplier: 0.1
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Added
@@ -521,7 +512,7 @@ input:
     type: uint32
     swap: word
     multiplier: 0.1
-    groups: [basic, advanced, all]
+    groups: [basic]
     ha:
       platform: sensor
       name: Charge Added - Cumulative
@@ -534,7 +525,6 @@ input:
     type: int16
     multiplier: 0.01
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L1
@@ -548,7 +538,6 @@ input:
     type: int16
     multiplier: 0.01
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L2
@@ -562,7 +551,6 @@ input:
     type: int16
     multiplier: 0.01
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Current L3
@@ -575,7 +563,6 @@ input:
     address: 21
     type: int16
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Power L1
@@ -588,7 +575,6 @@ input:
     address: 22
     type: int16
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Power L2
@@ -601,7 +587,6 @@ input:
     address: 23
     type: int16
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Grid Power L3
@@ -614,7 +599,7 @@ input:
     address: 24
     type: int16
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Grid Power Total
@@ -625,7 +610,6 @@ input:
     address: 25
     multiplier: 0.1
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: CC Voltage
@@ -639,7 +623,6 @@ input:
     address: 26
     multiplier: 0.01
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: CP Voltage
@@ -653,7 +636,6 @@ input:
     address: 27
     multiplier: 0.1
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: PWM Duty Cycle
@@ -664,7 +646,7 @@ input:
       precision: 1
   charger_temperature:
     address: 28
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charger Temperature
@@ -675,7 +657,7 @@ input:
   run_mode:
     address: 29
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Available
       1: Preparing
@@ -700,7 +682,7 @@ input:
     type: uint32
     swap: word
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Fault Code
@@ -709,7 +691,6 @@ input:
   case_type:
     address: 32
     scan_interval: 15
-    groups: [all]
     map:
       0: Case B
       1: Case C
@@ -722,7 +703,6 @@ input:
   power_rating:
     address: 33
     scan_interval: 15
-    groups: [all]
     map:
       0: "7.2 kW"
       1: "11 kW"
@@ -737,7 +717,6 @@ input:
   phase_type:
     address: 34
     scan_interval: 15
-    groups: [all]
     map:
       0: Single Phase
       1: Three Phase
@@ -750,7 +729,7 @@ input:
   model_type:
     address: 35
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: PV Mode
       1: Standard Mode
@@ -763,7 +742,6 @@ input:
   screen_fitted:
     address: 36
     scan_interval: 15
-    groups: [all]
     map:
       0: "No"
       1: "Yes"
@@ -779,7 +757,6 @@ input:
   rssi:
     address: 39
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: RSSI
@@ -790,7 +767,7 @@ input:
   active_charge_phase:
     address: 40
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Three Phase
       1: L1 Phase
@@ -803,7 +780,6 @@ input:
   unbalanced_power_limit:
     address: 41
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Unbalanced Power Limit
@@ -815,7 +791,6 @@ input:
   phase_unbalance:
     address: 42
     scan_interval: 15
-    groups: [all]
     map:
       0: "Off"
       1: "On"
@@ -830,7 +805,7 @@ input:
     type: uint32
     swap: word
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Charging Duration
@@ -842,7 +817,7 @@ input:
   lock_state:
     address: 45
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Unlocked
       1: Locked
@@ -853,7 +828,7 @@ input:
   mainbrk_limit:
     address: 46
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Not Limited
       1: "Limited, Charging"
@@ -865,7 +840,6 @@ input:
   delay_state:
     address: 47
     scan_interval: 15
-    groups: [all]
     map:
       0: Not in Delay
       1: In Random Delay
@@ -878,7 +852,7 @@ input:
   ban_state:
     address: 48
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Okay
       1: Charge Prohibited
@@ -889,7 +863,6 @@ input:
   charge_power_l1_alt:
     address: 256
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L1 Alt
@@ -900,7 +873,6 @@ input:
   charge_power_l2_alt:
     address: 257
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L2 Alt
@@ -911,7 +883,6 @@ input:
   charge_power_l3_alt:
     address: 258
     scan_interval: 15
-    groups: [all]
     ha:
       platform: sensor
       name: Charge Power L3 Alt
@@ -922,7 +893,7 @@ input:
   max_power_charging:
     address: 259
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: "No"
       1: "Yes"
@@ -934,7 +905,7 @@ input:
   charge_mode_active:
     address: 260
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     map:
       0: Fast
       1: ECO
@@ -946,7 +917,7 @@ input:
   green_mode_start_power:
     address: 261
     scan_interval: 15
-    groups: [advanced, all]
+    groups: [advanced]
     ha:
       platform: sensor
       name: Green Mode Start Power
@@ -958,7 +929,6 @@ input:
   charger_status:
     address: 262
     scan_interval: 15
-    groups: [all]
     map:
       0: Available
       1: Preparing
@@ -990,4 +960,3 @@ template:
       entity_category: diagnostic
       enabled_by_default: false
     state: "{% set tz = rtc_tz - 65536 if rtc_tz > 32767 else rtc_tz %}{{ '20%02d-%02d-%02d %02d:%02d:%02d UTC%s%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second, '+' if tz >= 0 else '-', (tz | abs) // 60, (tz | abs) % 60) }}"
-    groups: [all]
