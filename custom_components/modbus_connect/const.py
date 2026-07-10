@@ -25,6 +25,15 @@ PLATFORMS: Final = [
 CONF_SLAVE_ID: Final = "slave_id"
 CONF_FILENAME: Final = "filename"
 CONF_PREFIX: Final = "prefix"
+CONF_FRAMER: Final = "framer"
+
+# Wire framing of the TCP connection (values follow pymodbus FramerType):
+# regular Modbus TCP, or raw RTU frames for transparent RS-485 bridges
+# (Elfin/USR boxes in transparent mode, ser2net, ...). Entries without the
+# key predate the option and mean Modbus TCP.
+FRAMER_SOCKET: Final = "socket"
+FRAMER_RTU: Final = "rtu"
+FRAMER_OPTIONS: Final = [FRAMER_SOCKET, FRAMER_RTU]
 
 # Config entry option keys
 OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"

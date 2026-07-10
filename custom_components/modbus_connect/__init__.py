@@ -8,7 +8,7 @@ from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers import device_registry as dr
 
 from .client import ModbusBlockClient
-from .const import CONF_FILENAME, PLATFORMS
+from .const import CONF_FILENAME, CONF_FRAMER, FRAMER_SOCKET, PLATFORMS
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .loader import async_load_device
 from .schema import DeviceSchemaError
@@ -22,7 +22,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
         raise ConfigEntryError(str(err)) from err
 
     client = ModbusBlockClient.acquire(
-        entry.data[CONF_HOST], entry.data[CONF_PORT], entry.entry_id
+        entry.data[CONF_HOST],
+        entry.data[CONF_PORT],
+        entry.entry_id,
+        framer=entry.data.get(CONF_FRAMER, FRAMER_SOCKET),
     )
     coordinator = ModbusConnectCoordinator(hass, entry, client, device)
     try:

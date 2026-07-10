@@ -17,17 +17,23 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
 )
 
 from .client import async_probe
 from .const import (
     CONF_FILENAME,
+    CONF_FRAMER,
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SLAVE_ID,
     DOMAIN,
+    FRAMER_OPTIONS,
+    FRAMER_SOCKET,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
     OPTION_SHOW_ALL,
@@ -66,6 +72,15 @@ def _connection_schema(defaults: dict[str, Any]) -> vol.Schema:
             vol.Required(CONF_HOST, default=defaults.get(CONF_HOST, vol.UNDEFINED)): str,
             vol.Required(CONF_PORT, default=defaults.get(CONF_PORT, DEFAULT_PORT)): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=65535)
+            ),
+            vol.Required(
+                CONF_FRAMER, default=defaults.get(CONF_FRAMER, FRAMER_SOCKET)
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    options=FRAMER_OPTIONS,
+                    translation_key="framer",
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
             ),
             vol.Required(
                 CONF_SLAVE_ID, default=defaults.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID)

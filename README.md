@@ -213,8 +213,10 @@ automation:
 
 ## Known limitations
 
-- **Modbus TCP only.** Serial (RTU) devices need an RS-485↔TCP gateway such
-  as a Waveshare/Elfin/USR box; the integration does not open serial ports.
+- **No serial ports.** RTU devices need an RS-485↔TCP bridge such as a
+  Waveshare/Elfin/USR box — either as a real Modbus TCP gateway, or in
+  transparent mode with *Modbus RTU over TCP* picked as the protocol in the
+  connection step (also the right choice for `ser2net`).
 - **No discovery.** Modbus has no discovery protocol; the gateway address
   must be entered manually.
 - **Reads are capped at 125 registers** per transaction by the Modbus

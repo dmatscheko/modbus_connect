@@ -133,6 +133,76 @@ async def test_sdm630_polls_in_few_transactions(modbus_server):
         client.release("e2e-test")
 
 
+def _crc16(data: bytes) -> bytes:
+    """Modbus RTU CRC16 (poly 0xA001, reflected), little-endian on the wire."""
+    crc = 0xFFFF
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            crc = (crc >> 1) ^ 0xA001 if crc & 1 else crc >> 1
+    return struct.pack("<H", crc)
+
+
+@pytest.fixture
+async def rtu_server(socket_enabled: None):
+    """A zero-filled RTU-over-TCP server: raw RTU frames (CRC16, no MBAP).
+
+    Understands only the fixed-size read requests (FC3/FC4) — enough to prove
+    the client really frames RTU when asked to.
+    """
+    requests: list[tuple[int, int, int]] = []
+
+    async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        try:
+            while True:
+                frame = await reader.readexactly(8)  # uid fc addr count crc
+                if _crc16(frame[:6]) != frame[6:]:
+                    continue
+                uid, fc, addr, count = struct.unpack(">BBHH", frame[:6])
+                requests.append((fc, addr, count))
+                body = bytes([uid, fc, count * 2]) + bytes(count * 2)
+                writer.write(body + _crc16(body))
+                await writer.drain()
+        except (asyncio.IncompleteReadError, ConnectionResetError):
+            pass
+        finally:
+            writer.close()
+
+    server = await asyncio.start_server(handle, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    yield port, requests
+    server.close()
+    await server.wait_closed()
+
+
+async def test_rtu_over_tcp_framing(rtu_server):
+    port, requests = rtu_server
+    client = ModbusBlockClient.acquire("127.0.0.1", port, "e2e-rtu", framer="rtu")
+    try:
+        assert client.framer == "rtu"
+        assert await client.ensure_connected()
+        async with client.lock:
+            values = await client.read_block(1, Span("holding", 0, 4))
+        assert values == [0, 0, 0, 0]
+        assert requests == [(3, 0, 4)]
+    finally:
+        client.release("e2e-rtu")
+
+
+async def test_framer_mismatch_reuses_existing_connection(modbus_server, caplog):
+    # one TCP endpoint speaks one framing: the first connection wins, loudly
+    port, _ = modbus_server
+    a = ModbusBlockClient.acquire("127.0.0.1", port, "entry-sock")
+    b = ModbusBlockClient.acquire("127.0.0.1", port, "entry-rtu", framer="rtu")
+    try:
+        assert b is a
+        assert a.framer == "socket"
+        assert "framing" in caplog.text
+    finally:
+        a.release("entry-sock")
+        a.release("entry-rtu")
+
+
 async def test_probe(modbus_server):
     port, _ = modbus_server
     assert await async_probe("127.0.0.1", port) is True

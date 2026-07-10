@@ -13,9 +13,12 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.modbus_connect.config_flow import _unique_id
 from custom_components.modbus_connect.const import (
     CONF_FILENAME,
+    CONF_FRAMER,
     CONF_PREFIX,
     CONF_SLAVE_ID,
     DOMAIN,
+    FRAMER_RTU,
+    FRAMER_SOCKET,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
 )
@@ -48,7 +51,13 @@ holding:
 """
 
 DEVICE_STEP = {CONF_FILENAME: "acme_x1.yaml", CONF_NAME: ""}
-CONNECTION = {"host": "192.0.2.1", "port": 502, CONF_SLAVE_ID: 7, CONF_PREFIX: ""}
+CONNECTION = {
+    "host": "192.0.2.1",
+    "port": 502,
+    CONF_FRAMER: FRAMER_SOCKET,
+    CONF_SLAVE_ID: 7,
+    CONF_PREFIX: "",
+}
 UNIQUE_ID = "192.0.2.1:502:7"
 
 
@@ -442,3 +451,41 @@ async def test_reconfigure_same_device_file_keeps_group_selection(
 def test_unique_id_normalizes_host() -> None:
     connection = {"host": " GW.Local ", "port": 502, CONF_SLAVE_ID: 7}
     assert _unique_id(connection) == "gw.local:502:7"
+
+
+async def test_framer_defaults_to_modbus_tcp(hass: HomeAssistant) -> None:
+    # entries created without touching the protocol field store plain Modbus TCP
+    write_device_file(hass)
+    with patch_probe(True), patch_setup():
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], DEVICE_STEP
+        )
+        submission = {k: v for k, v in CONNECTION.items() if k != CONF_FRAMER}
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], submission
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_FRAMER] == FRAMER_SOCKET
+
+
+async def test_rtu_over_tcp_framer_stored(hass: HomeAssistant) -> None:
+    write_device_file(hass)
+    with patch_probe(True), patch_setup():
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], DEVICE_STEP
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {**CONNECTION, CONF_FRAMER: FRAMER_RTU}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_FRAMER] == FRAMER_RTU
+    # framing does not identify a different device
+    assert result["result"].unique_id == UNIQUE_ID

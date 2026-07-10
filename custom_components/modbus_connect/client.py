@@ -10,6 +10,7 @@ import asyncio
 import logging
 from typing import ClassVar
 
+from pymodbus import FramerType
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
@@ -49,11 +50,14 @@ class ModbusBlockClient:
 
     _instances: ClassVar[dict[tuple[str, int], ModbusBlockClient]] = {}
 
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, framer: str = "socket") -> None:
         self.host = host
         self.port = port
+        self.framer = framer
         self.lock = asyncio.Lock()
-        self._client = AsyncModbusTcpClient(host, port=port, timeout=2.0, retries=1)
+        self._client = AsyncModbusTcpClient(
+            host, port=port, framer=FramerType(framer), timeout=2.0, retries=1
+        )
         self._read_funcs = {
             TABLE_HOLDING: self._client.read_holding_registers,
             TABLE_INPUT: self._client.read_input_registers,
@@ -65,12 +69,24 @@ class ModbusBlockClient:
     # --- instance sharing ------------------------------------------------------
 
     @classmethod
-    def acquire(cls, host: str, port: int, entry_id: str) -> ModbusBlockClient:
+    def acquire(
+        cls, host: str, port: int, entry_id: str, *, framer: str = "socket"
+    ) -> ModbusBlockClient:
         """Get (or create) the shared client for a gateway."""
         client = cls._instances.get((host, port))
         if client is None:
-            client = cls(host, port)
+            client = cls(host, port, framer)
             cls._instances[(host, port)] = client
+        elif client.framer != framer:
+            # One TCP endpoint speaks exactly one framing; a second connection
+            # would not help either (many gateways allow a single client).
+            _LOGGER.warning(
+                "Gateway %s:%s is already connected with %s framing; keeping it. "
+                "All entries sharing a gateway must use the same framing",
+                host,
+                port,
+                client.framer,
+            )
         client._refs.add(entry_id)
         return client
 

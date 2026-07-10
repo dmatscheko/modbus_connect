@@ -19,12 +19,14 @@
         "data": {
           "host": "Host",
           "port": "Port",
+          "framer": "Protocol",
           "slave_id": "Modbus device ID",
           "prefix": "Entity ID prefix"
         },
         "data_description": {
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
+          "framer": "Modbus TCP for gateways and devices that speak Modbus TCP. RTU over TCP for transparent serial bridges that forward raw RS-485 frames over the socket (Elfin/USR boxes in transparent mode, ser2net).",
           "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255). Prefilled with the device file's factory default.",
           "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
@@ -47,12 +49,14 @@
         "data": {
           "host": "Host",
           "port": "Port",
+          "framer": "Protocol",
           "slave_id": "Modbus device ID",
           "prefix": "Entity ID prefix"
         },
         "data_description": {
           "host": "Hostname or IP address of the Modbus TCP gateway.",
           "port": "TCP port of the gateway. Almost always 502.",
+          "framer": "Modbus TCP for gateways and devices that speak Modbus TCP. RTU over TCP for transparent serial bridges that forward raw RS-485 frames over the socket (Elfin/USR boxes in transparent mode, ser2net).",
           "slave_id": "Unit/slave ID of the Modbus device behind the gateway (0–255).",
           "prefix": "Used at the start of all entity IDs of this device, e.g. `sensor.[prefix]_[entity]`. Changing it only affects entities created afterwards. Leave empty to let Home Assistant derive entity IDs from the device name."
         }
@@ -77,6 +81,14 @@
         "data_description": {
           "min_scan_interval": "Lower bound in seconds for how often any register is polled. The device file and individual entities set the actual per-entity intervals; this only raises them — it never polls faster."
         }
+      }
+    }
+  },
+  "selector": {
+    "framer": {
+      "options": {
+        "socket": "Modbus TCP",
+        "rtu": "Modbus RTU over TCP"
       }
     }
   },
