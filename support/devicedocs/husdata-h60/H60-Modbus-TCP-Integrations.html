@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+
+<html lang="sv-SE">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<link rel="profile" href="//gmpg.org/xfn/11" />
+<link rel="pingback" href="" />
+
+<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+
+	<!-- This site is optimized with the Yoast SEO plugin v21.6 - https://yoast.com/wordpress/plugins/seo/ -->
+	<title>Modbus TCP Integrations - Husdata, Din värmepump i det smarta hemmet</title>
+	<link rel="canonical" href="https://husdata.se/docs/h60-manual/modbus-tcp-integrations/" />
+	<meta property="og:locale" content="sv_SE" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Modbus TCP Integrations - Husdata, Din värmepump i det smarta hemmet" />
+	<meta property="og:description" content="H66 gateway supportar Modbus TCP 2.0 och agerar slav (server). Detta betyder att en Modbus TCP klient ska ansluta mot H66 på angiven port och kan därigenom efterfråga och sätta register. Funktioner Instruktioner Anslut till din H66 och dess webbinterface. Sätt MODBUS_PORT i konfigurationen till exempelvis 502.Starta om H66 och anslut igen. På H66 HOMERead More" />
+	<meta property="og:url" content="https://husdata.se/docs/h60-manual/modbus-tcp-integrations/" />
+	<meta property="og:site_name" content="Husdata, Din värmepump i det smarta hemmet" />
+	<meta property="article:publisher" content="https://facebook.com/husdata" />
+	<meta property="article:modified_time" content="2026-03-17T20:31:06+00:00" />
+	<meta property="og:image" content="http://www.heatpumponline.se/wp-content/uploads/2020/07/image.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:label1" content="Beräknad lästid" />
+	<meta name="twitter:data1" content="2 minuter" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/","url":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/","name":"Modbus TCP Integrations - Husdata, Din värmepump i det smarta hemmet","isPartOf":{"@id":"https://husdata.se/#website"},"primaryImageOfPage":{"@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/#primaryimage"},"image":{"@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/#primaryimage"},"thumbnailUrl":"http://www.heatpumponline.se/wp-content/uploads/2020/07/image.png","datePublished":"2019-04-22T18:06:46+00:00","dateModified":"2026-03-17T20:31:06+00:00","breadcrumb":{"@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/#breadcrumb"},"inLanguage":"sv-SE","potentialAction":[{"@type":"ReadAction","target":["https://husdata.se/docs/h60-manual/modbus-tcp-integrations/"]}]},{"@type":"ImageObject","inLanguage":"sv-SE","@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/#primaryimage","url":"http://www.heatpumponline.se/wp-content/uploads/2020/07/image.png","contentUrl":"http://www.heatpumponline.se/wp-content/uploads/2020/07/image.png"},{"@type":"BreadcrumbList","@id":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Hem","item":"https://husdata.se/"},{"@type":"ListItem","position":2,"name":"H60/H66 Gateway Manual","item":"https://husdata.se/docs/h60-manual/"},{"@type":"ListItem","position":3,"name":"Modbus TCP Integrations"}]},{"@type":"WebSite","@id":"https://husdata.se/#website","url":"https://husdata.se/","name":"Husdata, Din värmepump i det smarta hemmet","description":"Din värmepump i det smarta hemmet","publisher":{"@id":"https://husdata.se/#organization"},"potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://husdata.se/?s={search_term_string}"},"query-input":"required name=search_term_string"}],"inLanguage":"sv-SE"},{"@type":"Organization","@id":"https://husdata.se/#organization","name":"Husdata, Din värmepump i det smarta hemmet","url":"https://husdata.se/","logo":{"@type":"ImageObject","inLanguage":"sv-SE","@id":"https://husdata.se/#/schema/logo/image/","url":"https://husdata.se/wp-content/uploads/2015/11/HD-Logo3.png","contentUrl":"https://husdata.se/wp-content/uploads/2015/11/HD-Logo3.png","width":304,"height":68,"caption":"Husdata, Din värmepump i det smarta hemmet"},"image":{"@id":"https://husdata.se/#/schema/logo/image/"},"sameAs":["https://facebook.com/husdata"]}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel="alternate" type="application/rss+xml" title="Husdata, Din värmepump i det smarta hemmet &raquo; Webbflöde" href="https://husdata.se/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Husdata, Din värmepump i det smarta hemmet &raquo; Kommentarsflöde" href="https://husdata.se/comments/feed/" />
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://husdata.se/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhusdata.se%2Fdocs%2Fh60-manual%2Fmodbus-tcp-integrations%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://husdata.se/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhusdata.se%2Fdocs%2Fh60-manual%2Fmodbus-tcp-integrations%2F&#038;format=xml" />
+<style id='wp-img-auto-sizes-contain-inline-css' type='text/css'>
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link rel='stylesheet' id='sdm-styles-css' href='https://husdata.se/wp-content/plugins/simple-download-monitor/css/sdm_wp_styles.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='wedocs-styles-css' href='https://husdata.se/wp-content/plugins/wedocs/assets/build/frontend.css?ver=1775313945' type='text/css' media='all' />
+<style id='wp-emoji-styles-inline-css' type='text/css'>
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+/*# sourceURL=wp-emoji-styles-inline-css */
+</style>
+<style id='wp-block-library-inline-css' type='text/css'>
+:root{--wp-block-synced-color:#7a00df;--wp-block-synced-color--rgb:122,0,223;--wp-bound-block-color:var(--wp-block-synced-color);--wp-editor-canvas-background:#ddd;--wp-admin-theme-color:#007cba;--wp-admin-theme-color--rgb:0,124,186;--wp-admin-theme-color-darker-10:#006ba1;--wp-admin-theme-color-darker-10--rgb:0,107,160.5;--wp-admin-theme-color-darker-20:#005a87;--wp-admin-theme-color-darker-20--rgb:0,90,135;--wp-admin-border-width-focus:2px}@media (min-resolution:192dpi){:root{--wp-admin-border-width-focus:1.5px}}.wp-element-button{cursor:pointer}:root .has-very-light-gray-background-color{background-color:#eee}:root .has-very-dark-gray-background-color{background-color:#313131}:root .has-very-light-gray-color{color:#eee}:root .has-very-dark-gray-color{color:#313131}:root .has-vivid-green-cyan-to-vivid-cyan-blue-gradient-background{background:linear-gradient(135deg,#00d084,#0693e3)}:root .has-purple-crush-gradient-background{background:linear-gradient(135deg,#34e2e4,#4721fb 50%,#ab1dfe)}:root .has-hazy-dawn-gradient-background{background:linear-gradient(135deg,#faaca8,#dad0ec)}:root .has-subdued-olive-gradient-background{background:linear-gradient(135deg,#fafae1,#67a671)}:root .has-atomic-cream-gradient-background{background:linear-gradient(135deg,#fdd79a,#004a59)}:root .has-nightshade-gradient-background{background:linear-gradient(135deg,#330968,#31cdcf)}:root .has-midnight-gradient-background{background:linear-gradient(135deg,#020381,#2874fc)}:root{--wp--preset--font-size--normal:16px;--wp--preset--font-size--huge:42px}.has-regular-font-size{font-size:1em}.has-larger-font-size{font-size:2.625em}.has-normal-font-size{font-size:var(--wp--preset--font-size--normal)}.has-huge-font-size{font-size:var(--wp--preset--font-size--huge)}.has-text-align-center{text-align:center}.has-text-align-left{text-align:left}.has-text-align-right{text-align:right}.has-fit-text{white-space:nowrap!important}#end-resizable-editor-section{display:none}.aligncenter{clear:both}.items-justified-left{justify-content:flex-start}.items-justified-center{justify-content:center}.items-justified-right{justify-content:flex-end}.items-justified-space-between{justify-content:space-between}.screen-reader-text{border:0;clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px;word-wrap:normal!important}.screen-reader-text:focus{background-color:#ddd;clip-path:none;color:#444;display:block;font-size:1em;height:auto;left:5px;line-height:normal;padding:15px 23px 14px;text-decoration:none;top:5px;width:auto;z-index:100000}html :where(.has-border-color){border-style:solid}html :where([style*=border-top-color]){border-top-style:solid}html :where([style*=border-right-color]){border-right-style:solid}html :where([style*=border-bottom-color]){border-bottom-style:solid}html :where([style*=border-left-color]){border-left-style:solid}html :where([style*=border-width]){border-style:solid}html :where([style*=border-top-width]){border-top-style:solid}html :where([style*=border-right-width]){border-right-style:solid}html :where([style*=border-bottom-width]){border-bottom-style:solid}html :where([style*=border-left-width]){border-left-style:solid}html :where(img[class*=wp-image-]){height:auto;max-width:100%}:where(figure){margin:0 0 1em}html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:var(--wp-admin--admin-bar--height,0px)}@media screen and (max-width:600px){html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:0px}}
+
+/*# sourceURL=wp-block-library-inline-css */
+</style>
+<style id='wp-block-image-inline-css' type='text/css'>
+.wp-block-image>a,.wp-block-image>figure>a{display:inline-block}.wp-block-image img{box-sizing:border-box;height:auto;max-width:100%;vertical-align:bottom}@media not (prefers-reduced-motion){.wp-block-image img.hide{visibility:hidden}.wp-block-image img.show{animation:show-content-image .4s}}.wp-block-image[style*=border-radius] img,.wp-block-image[style*=border-radius]>a{border-radius:inherit}.wp-block-image.has-custom-border img{box-sizing:border-box}.wp-block-image.aligncenter{text-align:center}.wp-block-image.alignfull>a,.wp-block-image.alignwide>a{width:100%}.wp-block-image.alignfull img,.wp-block-image.alignwide img{height:auto;width:100%}.wp-block-image .aligncenter,.wp-block-image .alignleft,.wp-block-image .alignright,.wp-block-image.aligncenter,.wp-block-image.alignleft,.wp-block-image.alignright{display:table}.wp-block-image .aligncenter>figcaption,.wp-block-image .alignleft>figcaption,.wp-block-image .alignright>figcaption,.wp-block-image.aligncenter>figcaption,.wp-block-image.alignleft>figcaption,.wp-block-image.alignright>figcaption{caption-side:bottom;display:table-caption}.wp-block-image .alignleft{float:left;margin:.5em 1em .5em 0}.wp-block-image .alignright{float:right;margin:.5em 0 .5em 1em}.wp-block-image .aligncenter{margin-left:auto;margin-right:auto}.wp-block-image :where(figcaption){margin-bottom:1em;margin-top:.5em}.wp-block-image.is-style-circle-mask img{border-radius:9999px}@supports ((-webkit-mask-image:none) or (mask-image:none)) or (-webkit-mask-image:none){.wp-block-image.is-style-circle-mask img{border-radius:0;-webkit-mask-image:url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"/></svg>');mask-image:url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="50"/></svg>');mask-mode:alpha;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:contain;mask-size:contain}}:root :where(.wp-block-image.is-style-rounded img,.wp-block-image .is-style-rounded img){border-radius:9999px}.wp-block-image figure{margin:0}.wp-lightbox-container{display:flex;flex-direction:column;position:relative}.wp-lightbox-container img{cursor:zoom-in}.wp-lightbox-container img:hover+button{opacity:1}.wp-lightbox-container button{align-items:center;backdrop-filter:blur(16px) saturate(180%);background-color:#5a5a5a40;border:none;border-radius:4px;cursor:zoom-in;display:flex;height:20px;justify-content:center;opacity:0;padding:0;position:absolute;right:16px;text-align:center;top:16px;width:20px;z-index:100}@media not (prefers-reduced-motion){.wp-lightbox-container button{transition:opacity .2s ease}}.wp-lightbox-container button:focus-visible{outline:3px auto #5a5a5a40;outline:3px auto -webkit-focus-ring-color;outline-offset:3px}.wp-lightbox-container button:hover{cursor:pointer;opacity:1}.wp-lightbox-container button:focus{opacity:1}.wp-lightbox-container button:focus,.wp-lightbox-container button:hover,.wp-lightbox-container button:not(:hover):not(:active):not(.has-background){background-color:#5a5a5a40;border:none}.wp-lightbox-overlay{box-sizing:border-box;cursor:zoom-out;height:100vh;left:0;overflow:hidden;position:fixed;top:0;visibility:hidden;width:100%;z-index:100000}.wp-lightbox-overlay .close-button{align-items:center;cursor:pointer;display:flex;justify-content:center;min-height:40px;min-width:40px;padding:0;position:absolute;right:calc(env(safe-area-inset-right) + 16px);top:calc(env(safe-area-inset-top) + 16px);z-index:5000000}.wp-lightbox-overlay .close-button:focus,.wp-lightbox-overlay .close-button:hover,.wp-lightbox-overlay .close-button:not(:hover):not(:active):not(.has-background){background:none;border:none}.wp-lightbox-overlay .lightbox-image-container{height:var(--wp--lightbox-container-height);left:50%;overflow:hidden;position:absolute;top:50%;transform:translate(-50%,-50%);transform-origin:top left;width:var(--wp--lightbox-container-width);z-index:9999999999}.wp-lightbox-overlay .wp-block-image{align-items:center;box-sizing:border-box;display:flex;height:100%;justify-content:center;margin:0;position:relative;transform-origin:0 0;width:100%;z-index:3000000}.wp-lightbox-overlay .wp-block-image img{height:var(--wp--lightbox-image-height);min-height:var(--wp--lightbox-image-height);min-width:var(--wp--lightbox-image-width);width:var(--wp--lightbox-image-width)}.wp-lightbox-overlay .wp-block-image figcaption{display:none}.wp-lightbox-overlay button{background:none;border:none}.wp-lightbox-overlay .scrim{background-color:#fff;height:100%;opacity:.9;position:absolute;width:100%;z-index:2000000}.wp-lightbox-overlay.active{visibility:visible}@media not (prefers-reduced-motion){.wp-lightbox-overlay.active{animation:turn-on-visibility .25s both}.wp-lightbox-overlay.active img{animation:turn-on-visibility .35s both}.wp-lightbox-overlay.show-closing-animation:not(.active){animation:turn-off-visibility .35s both}.wp-lightbox-overlay.show-closing-animation:not(.active) img{animation:turn-off-visibility .25s both}.wp-lightbox-overlay.zoom.active{animation:none;opacity:1;visibility:visible}.wp-lightbox-overlay.zoom.active .lightbox-image-container{animation:lightbox-zoom-in .4s}.wp-lightbox-overlay.zoom.active .lightbox-image-container img{animation:none}.wp-lightbox-overlay.zoom.active .scrim{animation:turn-on-visibility .4s forwards}.wp-lightbox-overlay.zoom.show-closing-animation:not(.active){animation:none}.wp-lightbox-overlay.zoom.show-closing-animation:not(.active) .lightbox-image-container{animation:lightbox-zoom-out .4s}.wp-lightbox-overlay.zoom.show-closing-animation:not(.active) .lightbox-image-container img{animation:none}.wp-lightbox-overlay.zoom.show-closing-animation:not(.active) .scrim{animation:turn-off-visibility .4s forwards}}@keyframes show-content-image{0%{visibility:hidden}99%{visibility:hidden}to{visibility:visible}}@keyframes turn-on-visibility{0%{opacity:0}to{opacity:1}}@keyframes turn-off-visibility{0%{opacity:1;visibility:visible}99%{opacity:0;visibility:visible}to{opacity:0;visibility:hidden}}@keyframes lightbox-zoom-in{0%{transform:translate(calc((-100vw + var(--wp--lightbox-scrollbar-width))/2 + var(--wp--lightbox-initial-left-position)),calc(-50vh + var(--wp--lightbox-initial-top-position))) scale(var(--wp--lightbox-scale))}to{transform:translate(-50%,-50%) scale(1)}}@keyframes lightbox-zoom-out{0%{transform:translate(-50%,-50%) scale(1);visibility:visible}99%{visibility:visible}to{transform:translate(calc((-100vw + var(--wp--lightbox-scrollbar-width))/2 + var(--wp--lightbox-initial-left-position)),calc(-50vh + var(--wp--lightbox-initial-top-position))) scale(var(--wp--lightbox-scale));visibility:hidden}}
+/*# sourceURL=https://husdata.se/wp-includes/blocks/image/style.min.css */
+</style>
+<style id='wp-block-list-inline-css' type='text/css'>
+ol,ul{box-sizing:border-box}:root :where(.wp-block-list.has-background){padding:1.25em 2.375em}
+/*# sourceURL=https://husdata.se/wp-includes/blocks/list/style.min.css */
+</style>
+
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<link rel='stylesheet' id='contact-form-7-css' href='https://husdata.se/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=5.8.4' type='text/css' media='all' />
+<link rel='stylesheet' id='cookie-law-info-css' href='https://husdata.se/wp-content/plugins/cookie-law-info/legacy/public/css/cookie-law-info-public.css?ver=3.4.0' type='text/css' media='all' />
+<link rel='stylesheet' id='cookie-law-info-gdpr-css' href='https://husdata.se/wp-content/plugins/cookie-law-info/legacy/public/css/cookie-law-info-gdpr.css?ver=3.4.0' type='text/css' media='all' />
+<link rel='stylesheet' id='easy-facebook-likebox-custom-fonts-css' href='https://husdata.se/wp-content/plugins/easy-facebook-likebox/frontend/assets/css/esf-custom-fonts.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='easy-facebook-likebox-popup-styles-css' href='https://husdata.se/wp-content/plugins/easy-facebook-likebox/facebook/frontend/assets/css/esf-free-popup.css?ver=6.7.2' type='text/css' media='all' />
+<link rel='stylesheet' id='easy-facebook-likebox-frontend-css' href='https://husdata.se/wp-content/plugins/easy-facebook-likebox/facebook/frontend/assets/css/easy-facebook-likebox-frontend.css?ver=6.7.2' type='text/css' media='all' />
+<link rel='stylesheet' id='easy-facebook-likebox-customizer-style-css' href='https://husdata.se/wp-admin/admin-ajax.php?action=easy-facebook-likebox-customizer-style&#038;ver=6.7.2' type='text/css' media='all' />
+<link rel='stylesheet' id='woocommerce-layout-css' href='https://husdata.se/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css?ver=8.3.4' type='text/css' media='all' />
+<link rel='stylesheet' id='woocommerce-smallscreen-css' href='https://husdata.se/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css?ver=8.3.4' type='text/css' media='only screen and (max-width: 768px)' />
+<link rel='stylesheet' id='woocommerce-general-css' href='https://husdata.se/wp-content/plugins/woocommerce/assets/css/woocommerce.css?ver=8.3.4' type='text/css' media='all' />
+<style id='woocommerce-inline-inline-css' type='text/css'>
+.woocommerce form .form-row .required { visibility: visible; }
+/*# sourceURL=woocommerce-inline-inline-css */
+</style>
+<link rel='stylesheet' id='woo_conditional_payments_css-css' href='https://husdata.se/wp-content/plugins/conditional-payments-for-woocommerce/frontend/css/woo-conditional-payments.css?ver=3.4.1' type='text/css' media='all' />
+<link rel='stylesheet' id='thinkup-google-fonts-css' href='//fonts.googleapis.com/css?family=Open+Sans%3A300%2C400%2C600%2C700&#038;subset=latin%2Clatin-ext' type='text/css' media='all' />
+<link rel='stylesheet' id='prettyPhoto-css' href='https://husdata.se/wp-content/themes/minamaze/lib/extentions/prettyPhoto/css/prettyPhoto.css?ver=3.1.6' type='text/css' media='all' />
+<link rel='stylesheet' id='thinkup-bootstrap-css' href='https://husdata.se/wp-content/themes/minamaze/lib/extentions/bootstrap/css/bootstrap.min.css?ver=2.3.2' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css' href='https://husdata.se/wp-includes/css/dashicons.min.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='font-awesome-css' href='https://husdata.se/wp-content/themes/minamaze/lib/extentions/font-awesome/css/font-awesome.min.css?ver=4.7.0' type='text/css' media='all' />
+<link rel='stylesheet' id='thinkup-shortcodes-css' href='https://husdata.se/wp-content/themes/minamaze/styles/style-shortcodes.css?ver=1.11.2' type='text/css' media='all' />
+<link rel='stylesheet' id='thinkup-style-css' href='https://husdata.se/wp-content/themes/minamaze/style.css?ver=1.11.2' type='text/css' media='all' />
+<style id='ctc-global-injector-inline-inline-css' type='text/css'>
+.ctc-wrapper { position: relative; } .ctc-copy-btn { display: inline-flex; align-items: center; gap: 6px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: var(--ctc-font-weight, 500); line-height: 1.4; cursor: pointer; border: none; outline: none; transition: all 0.15s ease; } .ctc-copy-btn:focus { outline: 2px solid var(--ctc-bg, #4f46e5); outline-offset: 2px; } .ctc-copy-btn:active { transform: scale(0.97); } .ctc-copy-btn--button { padding: var(--ctc-padding-y, 8px) var(--ctc-padding-x, 16px); background: var(--ctc-bg, #4f46e5); color: var(--ctc-text-color, #fff); border-radius: var(--ctc-border-radius, 6px); font-size: var(--ctc-font-size, 13px); } .ctc-copy-btn--button:hover { background: var(--ctc-hover-bg, #4338ca); filter: brightness(1.05); } .ctc-copy-btn__icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; } .ctc-copy-btn__icon svg { width: 14px; height: 14px; } .ctc-copy-btn__text { white-space: nowrap; } .ctc-copy-btn__icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; } .ctc-copy-btn__icon svg { display: block; fill: transparent; width: 14px; height: 14px; } .ctc-copy-btn--copied svg { fill: currentColor; } .ctc-copy-btn__text { white-space: nowrap; } .ctc-copy-btn--copied { animation: ctc-pulse 0.3s ease; } .ctc-copy-btn--error { opacity: 0.7; } @keyframes ctc-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } .ctc-outside { display: flex; margin: 4px 0; } .ctc-outside--outside_before_left, .ctc-outside--outside_after_left { justify-content: flex-start; } .ctc-outside--outside_before_right, .ctc-outside--outside_after_right { justify-content: flex-end; } .ctc-wrapper--outside_before_left .ctc-copy-btn, .ctc-wrapper--outside_before_right .ctc-copy-btn, .ctc-wrapper--outside_after_left .ctc-copy-btn, .ctc-wrapper--outside_after_right .ctc-copy-btn { position: relative; top: auto; right: auto; bottom: auto; left: auto; } @media print { .ctc-copy-btn, .ctc-cover-overlay { display: none !important; } }
+/*# sourceURL=ctc-global-injector-inline-inline-css */
+</style>
+<link rel='stylesheet' id='esf-custom-fonts-css' href='https://husdata.se/wp-content/plugins/easy-facebook-likebox/frontend/assets/css/esf-custom-fonts.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='esf-insta-frontend-css' href='https://husdata.se/wp-content/plugins/easy-facebook-likebox//instagram/frontend/assets/css/esf-insta-frontend.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='esf-insta-customizer-style-css' href='https://husdata.se/wp-admin/admin-ajax.php?action=esf-insta-customizer-style&#038;ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='thinkup-responsive-css' href='https://husdata.se/wp-content/themes/minamaze/styles/style-responsive.css?ver=1.11.2' type='text/css' media='all' />
+<link rel='stylesheet' id='wp-block-paragraph-css' href='https://husdata.se/wp-includes/blocks/paragraph/style.min.css?ver=6.9.4' type='text/css' media='all' />
+<link rel='stylesheet' id='wp-block-preformatted-css' href='https://husdata.se/wp-includes/blocks/preformatted/style.min.css?ver=6.9.4' type='text/css' media='all' />
+<script type="text/javascript" src="https://husdata.se/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+<script type="text/javascript" id="cookie-law-info-js-extra">
+/* <![CDATA[ */
+var Cli_Data = {"nn_cookie_ids":[],"cookielist":[],"non_necessary_cookies":[],"ccpaEnabled":"","ccpaRegionBased":"","ccpaBarEnabled":"","strictlyEnabled":["necessary","obligatoire"],"ccpaType":"gdpr","js_blocking":"","custom_integration":"","triggerDomRefresh":"","secure_cookies":""};
+var cli_cookiebar_settings = {"animate_speed_hide":"500","animate_speed_show":"500","background":"#FFF","border":"#b1a6a6c2","border_on":"","button_1_button_colour":"#000","button_1_button_hover":"#000000","button_1_link_colour":"#fff","button_1_as_button":"1","button_1_new_win":"","button_2_button_colour":"#333","button_2_button_hover":"#292929","button_2_link_colour":"#444","button_2_as_button":"","button_2_hidebar":"","button_3_button_colour":"#000","button_3_button_hover":"#000000","button_3_link_colour":"#fff","button_3_as_button":"1","button_3_new_win":"","button_4_button_colour":"#000","button_4_button_hover":"#000000","button_4_link_colour":"#fff","button_4_as_button":"1","button_7_button_colour":"#61a229","button_7_button_hover":"#4e8221","button_7_link_colour":"#fff","button_7_as_button":"1","button_7_new_win":"","font_family":"inherit","header_fix":"","notify_animate_hide":"","notify_animate_show":"","notify_div_id":"#cookie-law-info-bar","notify_position_horizontal":"right","notify_position_vertical":"bottom","scroll_close":"1","scroll_close_reload":"","accept_close_reload":"","reject_close_reload":"","showagain_tab":"1","showagain_background":"#fff","showagain_border":"#000","showagain_div_id":"#cookie-law-info-again","showagain_x_position":"100px","text":"#000","show_once_yn":"1","show_once":"10000","logging_on":"","as_popup":"","popup_overlay":"1","bar_heading_text":"","cookie_bar_as":"banner","popup_showagain_position":"bottom-right","widget_position":"left"};
+var log_object = {"ajax_url":"https://husdata.se/wp-admin/admin-ajax.php"};
+//# sourceURL=cookie-law-info-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/cookie-law-info/legacy/public/js/cookie-law-info-public.js?ver=3.4.0" id="cookie-law-info-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/easy-facebook-likebox/facebook/frontend/assets/js/esf-free-popup.min.js?ver=6.7.2" id="easy-facebook-likebox-popup-script-js"></script>
+<script type="text/javascript" id="easy-facebook-likebox-public-script-js-extra">
+/* <![CDATA[ */
+var public_ajax = {"ajax_url":"https://husdata.se/wp-admin/admin-ajax.php","efbl_is_fb_pro":""};
+//# sourceURL=easy-facebook-likebox-public-script-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/easy-facebook-likebox/facebook/frontend/assets/js/public.js?ver=6.7.2" id="easy-facebook-likebox-public-script-js"></script>
+<script type="text/javascript" id="sdm-scripts-js-extra">
+/* <![CDATA[ */
+var sdm_ajax_script = {"ajaxurl":"https://husdata.se/wp-admin/admin-ajax.php"};
+//# sourceURL=sdm-scripts-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/simple-download-monitor/js/sdm_wp_scripts.js?ver=6.9.4" id="sdm-scripts-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/woocommerce/assets/js/jquery-blockui/jquery.blockUI.min.js?ver=2.7.0-wc.8.3.4" id="jquery-blockui-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" id="wc-add-to-cart-js-extra">
+/* <![CDATA[ */
+var wc_add_to_cart_params = {"ajax_url":"/wp-admin/admin-ajax.php","wc_ajax_url":"/?wc-ajax=%%endpoint%%","i18n_view_cart":"View cart","cart_url":"https://husdata.se/varukorg/","is_cart":"","cart_redirect_after_add":"no"};
+//# sourceURL=wc-add-to-cart-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js?ver=8.3.4" id="wc-add-to-cart-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/woocommerce/assets/js/js-cookie/js.cookie.min.js?ver=2.1.4-wc.8.3.4" id="js-cookie-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" id="woocommerce-js-extra">
+/* <![CDATA[ */
+var woocommerce_params = {"ajax_url":"/wp-admin/admin-ajax.php","wc_ajax_url":"/?wc-ajax=%%endpoint%%"};
+//# sourceURL=woocommerce-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js?ver=8.3.4" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" id="woo-conditional-payments-js-js-extra">
+/* <![CDATA[ */
+var conditional_payments_settings = {"name_address_fields":[],"disable_payment_method_trigger":""};
+//# sourceURL=woo-conditional-payments-js-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/conditional-payments-for-woocommerce/frontend/js/woo-conditional-payments.js?ver=3.4.1" id="woo-conditional-payments-js-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/easy-facebook-likebox/frontend/assets/js/imagesloaded.pkgd.min.js?ver=6.9.4" id="imagesloaded.pkgd.min-js"></script>
+<script type="text/javascript" id="esf-insta-public-js-extra">
+/* <![CDATA[ */
+var esf_insta = {"ajax_url":"https://husdata.se/wp-admin/admin-ajax.php","version":"free","nonce":"c194f94622"};
+//# sourceURL=esf-insta-public-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/easy-facebook-likebox//instagram/frontend/assets/js/esf-insta-public.js?ver=1" id="esf-insta-public-js"></script>
+<link rel="https://api.w.org/" href="https://husdata.se/wp-json/" /><link rel="alternate" title="JSON" type="application/json" href="https://husdata.se/wp-json/wp/v2/docs/457" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://husdata.se/xmlrpc.php?rsd" />
+<meta name="generator" content="WordPress 6.9.4" />
+<meta name="generator" content="WooCommerce 8.3.4" />
+<link rel='shortlink' href='https://husdata.se/?p=457' />
+	<noscript><style>.woocommerce-product-gallery{ opacity: 1 !important; }</style></noscript>
+	<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #dbdbdb; }
+</style>
+	<link rel="icon" href="https://husdata.se/wp-content/uploads/2023/01/cropped-favicon_hd-1-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://husdata.se/wp-content/uploads/2023/01/cropped-favicon_hd-1-192x192.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://husdata.se/wp-content/uploads/2023/01/cropped-favicon_hd-1-180x180.png" />
+<meta name="msapplication-TileImage" content="https://husdata.se/wp-content/uploads/2023/01/cropped-favicon_hd-1-270x270.png" />
+		<style type="text/css" id="wp-custom-css">
+			body { font-size: 1.4rem; }
+
+ul.sf-menu li.menu-item a{
+font-size:30px;
+}
+ul.sub-menu li.menu-item a{
+font-size:20px;
+}
+
+.home a.more-link.themebutton {
+background: #494a4b !important;
+}
+
+/* Tvinga G-Translate popup att visa alla språk */
+#gt_popup_wrapper, .gt_white_content {
+    height: auto !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+}
+		</style>
+		</head>
+
+<body class="wp-singular docs-template-default single single-docs postid-457 custom-background wp-custom-logo wp-theme-minamaze theme-minamaze woocommerce-no-js layout-sidebar-none layout-responsive header-style1">
+<div id="body-core" class="hfeed site">
+
+	<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+	<!-- .skip-link -->
+
+	<header id="site-header">
+
+		
+		<div id="pre-header">
+		<div class="wrap-safari">
+		<div id="pre-header-core" class="main-navigation">
+
+			
+			<div id="pre-header-search">	<form method="get" class="searchform" action="https://husdata.se/" role="search">
+		<input type="text" class="search" name="s" value="" placeholder="Search" />
+		<input type="submit" class="searchsubmit" name="submit" value="Search" />
+	</form></div>
+			<div id="pre-header-social"><ul><li class="social message">Följ oss</li><li class="social facebook"><a href="https://www.facebook.com/Husdata" data-tip="bottom" data-original-title="Facebook" target="_blank"><i class="fa fa-facebook"></i></a></li></ul></div>
+		</div>
+		</div>
+		</div>
+		<!-- #pre-header -->
+
+		<div id="header">
+		<div id="header-core">
+
+			<div id="logo">
+			<a href="https://husdata.se/" class="custom-logo-link" rel="home"><img width="304" height="68" src="https://husdata.se/wp-content/uploads/2015/11/HD-Logo3.png" class="custom-logo" alt="Husdata.se" decoding="async" srcset="https://husdata.se/wp-content/uploads/2015/11/HD-Logo3.png 304w, https://husdata.se/wp-content/uploads/2015/11/HD-Logo3-300x67.png 300w" sizes="(max-width: 304px) 100vw, 304px" /></a>			</div>
+
+			<div id="header-links" class="main-navigation">
+			<div id="header-links-inner" class="header-links">
+				<ul id="menu-meny1" class="menu"><li id="menu-item-533" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-533"><a href="https://husdata.se/butik/">Beställ</a>
+<ul class="sub-menu">
+	<li id="menu-item-1807" class="menu-item menu-item-type-post_type menu-item-object-product menu-item-1807"><a href="https://husdata.se/produkt/h66-wifi-gateway/">Beställ H66 WiFi Gateway</a></li>
+	<li id="menu-item-5392" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-5392"><a href="https://husdata.se/produkt/h66-wifi-eth-gateway-styr-din-varmepump/">Beställ H66 Ethernet Gateway</a></li>
+	<li id="menu-item-2745" class="menu-item menu-item-type-post_type_archive menu-item-object-product menu-item-2745"><a href="https://husdata.se/butik/">Visa alla produkter</a></li>
+	<li id="menu-item-4022" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4022"><a href="https://husdata.se/varukorg/">Varukorg</a></li>
+	<li id="menu-item-100" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-100"><a href="https://husdata.se/support/vanliga-fragor-innan-kop/">Vanliga frågor innan köp</a></li>
+	<li id="menu-item-122" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-122"><a href="https://husdata.se/produktutforskaren/">Fungerar det med min pump?</a></li>
+	<li id="menu-item-2741" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2741"><a href="https://husdata.se/kopvillkor/">Köpvillkor</a></li>
+</ul>
+</li>
+<li id="menu-item-1796" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1796"><a>Support</a>
+<ul class="sub-menu">
+	<li id="menu-item-2743" class="menu-item menu-item-type-post_type menu-item-object-docs current-docs-ancestor menu-item-2743"><a href="https://husdata.se/docs/h60-manual/">Manual för Gateway</a></li>
+	<li id="menu-item-2744" class="menu-item menu-item-type-post_type menu-item-object-docs menu-item-2744"><a href="https://husdata.se/docs/heat-pump-installation/">Installationsguider</a></li>
+	<li id="menu-item-338" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-338"><a href="https://husdata.se/docs/">All dokumentation</a></li>
+	<li id="menu-item-103" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-103"><a href="https://husdata.se/support/kontakt/">Kontakta oss / Support</a></li>
+	<li id="menu-item-101" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-101"><a href="https://husdata.se/support/ladda-ner/">Ladda ner filer</a></li>
+	<li id="menu-item-173" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-173"><a href="https://husdata.se/om2/">Om Husdata</a></li>
+</ul>
+</li>
+<li id="menu-item-1721" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1721"><a>Online</a>
+<ul class="sub-menu">
+	<li id="menu-item-1178" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1178"><a target="_blank" href="http://portal.husdata.se">Login</a></li>
+	<li id="menu-item-1179" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1179"><a target="_blank" href="https://portal.husdata.se/userlist.asp">Visa Publika användare</a></li>
+	<li id="menu-item-1177" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1177"><a href="https://husdata.se/online-info/">Husdata Online info</a></li>
+	<li id="menu-item-5025" class="menu-item menu-item-type-post_type menu-item-object-product menu-item-5025"><a href="https://husdata.se/produkt/husdata-online-subscription/">Förläng Online abonnemang</a></li>
+</ul>
+</li>
+<li style="position:relative;" class="menu-item menu-item-gtranslate gt-menu-46325"></li></ul>			</div>
+			</div>
+			<!-- #header-links .main-navigation -->
+
+			<div id="header-responsive"><a class="btn-navbar collapsed" data-toggle="collapse" data-target=".nav-collapse" tabindex="0"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a><div id="header-responsive-inner" class="responsive-links nav-collapse collapse"><ul id="menu-meny1-1" class=""><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-533"><a href="https://husdata.se/butik/">Beställ</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-product menu-item-1807"><a href="https://husdata.se/produkt/h66-wifi-gateway/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Beställ H66 WiFi Gateway</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-5392"><a href="https://husdata.se/produkt/h66-wifi-eth-gateway-styr-din-varmepump/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Beställ H66 Ethernet Gateway</a></li>
+	<li class="menu-item menu-item-type-post_type_archive menu-item-object-product menu-item-2745"><a href="https://husdata.se/butik/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Visa alla produkter</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4022"><a href="https://husdata.se/varukorg/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Varukorg</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-100"><a href="https://husdata.se/support/vanliga-fragor-innan-kop/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Vanliga frågor innan köp</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-122"><a href="https://husdata.se/produktutforskaren/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Fungerar det med min pump?</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2741"><a href="https://husdata.se/kopvillkor/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Köpvillkor</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1796"><a>Support</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-docs current-docs-ancestor menu-item-2743"><a href="https://husdata.se/docs/h60-manual/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Manual för Gateway</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-docs menu-item-2744"><a href="https://husdata.se/docs/heat-pump-installation/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Installationsguider</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-338"><a href="https://husdata.se/docs/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; All dokumentation</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-103"><a href="https://husdata.se/support/kontakt/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Kontakta oss / Support</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-101"><a href="https://husdata.se/support/ladda-ner/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Ladda ner filer</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-173"><a href="https://husdata.se/om2/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Om Husdata</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-1721"><a>Online</a>
+<ul class="sub-menu">
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1178"><a target="_blank" href="http://portal.husdata.se">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Login</a></li>
+	<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1179"><a target="_blank" href="https://portal.husdata.se/userlist.asp">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Visa Publika användare</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1177"><a href="https://husdata.se/online-info/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Husdata Online info</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-product menu-item-5025"><a href="https://husdata.se/produkt/husdata-online-subscription/">&nbsp; &nbsp; &nbsp; &nbsp; &#45; Förläng Online abonnemang</a></li>
+</ul>
+</li>
+<li style="position:relative;" class="menu-item menu-item-gtranslate gt-menu-55923"></li></ul></div></div><!-- #header-responsive -->
+		</div>
+		</div>
+		<!-- #header -->
+			</header>
+	<!-- header -->
+
+		
+	<div id="content">
+	<div id="content-core">
+
+		<div id="main">
+		<div id="intro" class="option1"><div id="intro-core"><h1 class="page-title"><span>Modbus TCP Integrations</span></h1></div></div>
+		<div id="main-core">
+        <div id="primary" class="content-area"><main id="main" class="site-main" role="main">
+        
+            <div class="wedocs-single-wrap">
+
+                                    <div class="wedocs-sidebar wedocs-hide-mobile">
+    
+    <h3 class="widget-title">H60/H66 Gateway Manual</h3>
+
+    <div class='wedocs-single-search-input'>
+        <input
+            name='s'
+            readonly
+            type='search'
+            class='search-field'
+            value=''
+            title='Search for:'
+            placeholder='Quick search...'
+        />
+        <button type='button' class='search-submit'>
+            <svg width='15' height='16' fill='#95a4b9'>
+                <path
+                    fill='#95a4b9'
+                    fill-rule='evenodd'
+                    d='M11.856 10.847l2.883 2.883a.89.89 0 0 1 0 1.257c-.173.174-.401.261-.629.261s-.455-.087-.629-.261l-2.883-2.883c-1.144.874-2.532 1.353-3.996 1.353a6.56 6.56 0 0 1-4.671-1.935c-2.576-2.575-2.576-6.765 0-9.341C3.179.934 4.839.247 6.603.247s3.424.687 4.671 1.935a6.56 6.56 0 0 1 1.935 4.67 6.55 6.55 0 0 1-1.353 3.995zM3.189 3.439c-1.882 1.882-1.882 4.945 0 6.827.912.912 2.124 1.414 3.414 1.414s2.502-.502 3.414-1.414 1.414-2.124 1.414-3.413-.502-2.502-1.414-3.413-2.124-1.414-3.414-1.414-2.502.502-3.414 1.414z'
+                />
+            </svg>
+        </button>
+        <div class='short-key'>⌘K</div>
+    </div>
+
+            <ul class="doc-nav-list">
+            <li class="page_item page-item-264 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/product-overview/">Product overview</a></li>
+<li class="page_item page-item-275 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/quick-start-guide/">Quick start guide</a></li>
+<li class="page_item page-item-276 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/operations/">Operations</a></li>
+<li class="page_item page-item-279 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/troubleshooting/">Troubleshooting</a></li>
+<li class="page_item page-item-281 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/settings-explanation/">Settings explanation</a></li>
+<li class="page_item page-item-324 page_item_has_children wd-state-closed"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/">Home Assistant MQTT integration<span class="wedocs-caret"></span></a>
+<ul class='children'>
+	<li class="page_item page-item-325"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/solution-overview/">Solution overview</a></li>
+	<li class="page_item page-item-326"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/setup-home-assistant-for-h60/">Setup Home Assistant for H66</a></li>
+	<li class="page_item page-item-329"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/configuration-yaml-sample-config/">Configuration.yaml sample config</a></li>
+	<li class="page_item page-item-873"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/dashboard-example/">Dashboard example</a></li>
+	<li class="page_item page-item-1083"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/mqtt-specification/">MQTT Specification</a></li>
+</ul>
+</li>
+<li class="page_item page-item-457 page_item_has_children current_page_item wd-state-open"><a href="https://husdata.se/docs/h60-manual/modbus-tcp-integrations/" aria-current="page">Modbus TCP Integrations<span class="wedocs-caret"></span></a>
+<ul class='children'>
+	<li class="page_item page-item-614"><a href="https://husdata.se/docs/h60-manual/modbus-tcp-integrations/openhab-setup-guide/">OpenHAB setup guide</a></li>
+</ul>
+</li>
+<li class="page_item page-item-334 page_item_has_children wd-state-closed"><a href="https://husdata.se/docs/h60-manual/api-integration/">API Integration<span class="wedocs-caret"></span></a>
+<ul class='children'>
+	<li class="page_item page-item-617"><a href="https://husdata.se/docs/h60-manual/api-integration/domoticz-integration/">Domoticz integration</a></li>
+	<li class="page_item page-item-628"><a href="https://husdata.se/docs/h60-manual/api-integration/athom-homey-app/">Athom Homey App</a></li>
+	<li class="page_item page-item-722"><a href="https://husdata.se/docs/h60-manual/api-integration/statlink-software/">StatLink software installation</a></li>
+</ul>
+</li>
+<li class="page_item page-item-1366 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/webhooks-ifttt/">Webhooks IFTTT Integration</a></li>
+<li class="page_item page-item-1239 page_item_has_children wd-state-closed"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/">For Advanced users<span class="wedocs-caret"></span></a>
+<ul class='children'>
+	<li class="page_item page-item-2017"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/command-line-interface/">Command Line Interface</a></li>
+	<li class="page_item page-item-2018"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/custom-registers/">Custom registers</a></li>
+	<li class="page_item page-item-2973"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/modbus-rtu/">Modbus RTU</a></li>
+	<li class="page_item page-item-3035"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/ext-cable-option-install/">EXT cable option install</a></li>
+	<li class="page_item page-item-3321"><a href="https://husdata.se/docs/h60-manual/for-advanced-users/syslog/">Syslog activation</a></li>
+</ul>
+</li>
+<li class="page_item page-item-1025 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/smart-grid-control-advanced/">Grid Price control (advanced)</a></li>
+<li class="page_item page-item-1046 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/energistyrning-guider/">Energistyrning guider</a></li>
+<li class="page_item page-item-1094 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/power-measurements/">Power measurements</a></li>
+<li class="page_item page-item-1676 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/scheduler-h66/">Scheduler (H66 only)</a></li>
+<li class="page_item page-item-2759 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/notifications/">Notifier (H66 only)</a></li>
+        </ul>
+    </div>
+                
+                <div class="wedocs-single-content">
+                    <ol class="wedocs-breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList"><li><i class="wedocs-icon wedocs-icon-home"></i></li><li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+	            <a itemprop="item" href="https://husdata.se/">
+	            <span itemprop="name">Home</span></a>
+	            <meta itemprop="position" content="1" />
+            </li><li class="delimiter"><i class="wedocs-icon wedocs-icon-angle-right"></i></li><li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+	            <a itemprop="item" href="https://husdata.se/h66/">
+	            <span itemprop="name">Docs</span></a>
+	            <meta itemprop="position" content="2" />
+            </li><li class="delimiter"><i class="wedocs-icon wedocs-icon-angle-right"></i></li><li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+	            <a itemprop="item" href="https://husdata.se/docs/h60-manual/">
+	            <span itemprop="name">H60/H66 Gateway Manual</span></a>
+	            <meta itemprop="position" content="3" />
+            </li> <li class="delimiter"><i class="wedocs-icon wedocs-icon-angle-right"></i></li>  <li><span class="current">Modbus TCP Integrations</span></li></ol>
+                    <article id="post-457" class="post-457 docs type-docs status-publish hentry" itemscope itemtype="http://schema.org/Article">
+                        <header class="entry-header">
+                            <h1 class="entry-title" itemprop="headline">Modbus TCP Integrations</h1>
+                                                            <a
+                                    href="#"
+                                    class="wedocs-print-article wedocs-hide-print wedocs-hide-mobile"
+                                    title="Print this article">
+                                    <i class="wedocs-icon wedocs-icon-print"></i>
+                                </a>
+                                                    </header><!-- .entry-header -->
+
+                        <div class="entry-content" itemprop="articleBody">
+                            
+<p>H66 gateway supportar Modbus TCP 2.0 och agerar slav (server).</p>
+
+
+
+<p>Detta betyder att en Modbus TCP klient ska ansluta mot H66 på angiven port och kan därigenom efterfråga och sätta register.</p>
+
+
+
+<p><strong>Funktioner</strong></p>
+
+
+
+<ul class="wp-block-list">
+<li>Stödjer båda avläsning och skrivning av register</li>
+
+
+
+<li>TCP port sätts i H66 konfigurationen (502 är standardport för Modbus)</li>
+
+
+
+<li>Om porten sätts till 0 inaktiveras Modbus TCP server</li>
+
+
+
+<li>Klient kan afterfråga upp till 20 register i ett anrop</li>
+
+
+
+<li>Använder modbus typ INPUT for alla läsbara parametrar.</li>
+
+
+
+<li>Använder modbus typ HOLDING for alla skrivbara parametrar. </li>
+
+
+
+<li>16-bitars registrformat</li>
+
+
+
+<li>Endast en klient kan vara ansluten</li>
+</ul>
+
+
+
+<p><strong>Instruktioner</strong></p>
+
+
+
+<p>Anslut till din H66 och dess webbinterface. Sätt  MODBUS_PORT i konfigurationen till exempelvis 502.<br>Starta om H66 och anslut igen. På H66 HOME sidan ser du alla värmepumpens sensorer och inställningar. I kolumnen &#8220;Modbus&#8221; ser du vilket Register ID som varje parameter har, samt om den är av typ INPUT eller HOLDING.</p>
+
+
+
+<p>Konfigurera din Modbus-klient att ansluta mot H66 IP Adress och den port du konfigurerat. Testa att låta den skicka en förfrågan på register 0. H66 ska då returnera temperaturvärdet för register 0. (Se lista i H66)</p>
+
+
+
+<p><strong>OBS Modbusaddresser kan ändras ifall du uppdaterar H66 till senare versioner. Om nya variabler för en pump tillkommer i uppdateringen kan numreringen för adresserna förskjutas. Kontrollera alltid och justera efter behov efter en uppdatering av H66.</strong></p>
+
+
+
+<figure class="wp-block-image size-large"><img fetchpriority="high" decoding="async" width="474" height="717" src="http://www.heatpumponline.se/wp-content/uploads/2020/07/image.png" alt="" class="wp-image-784" srcset="https://husdata.se/wp-content/uploads/2020/07/image.png 474w, https://husdata.se/wp-content/uploads/2020/07/image-198x300.png 198w" sizes="(max-width: 474px) 100vw, 474px" /><figcaption class="wp-element-caption">Exempel parameterlista för IVT Greenline HT, Rego 600.<br><br></figcaption></figure>
+
+
+
+<p><strong>Exempel konfiguration för Home Assistant</strong></p>
+
+
+
+<p>Notera den extra &#8220;template sektionen&#8221; för att konvertera heltalet till flyttal. H66 sensor värden ska divideras med 10. Exempelvis inkommet värde 385 blir 38.5 grader.</p>
+
+
+
+<pre class="wp-block-preformatted">modbus:<br>   name: H60<br>   type: tcp<br>   host: 194.4.4.151<br>   port: 502<br><br>sensor:<br> - platform: modbus <br>   scan_interval: 1 <br>   registers: <br>   - name: m_0<br>     hub: H60<br>     register_type: input<br>     register: 0<br>   - name: m_1<br>     hub: H60<br>     register_type: input<br>     register: 1<br>   - name: m_2<br>     hub: H60<br>     register_type: input<br>     register: 2<br> - platform: template<br>   sensors:<br>     RadiatorFram:<br>       unit_of_measurement: °C<br>       value_template: "{{states('sensor.m_0') | float / 10 }}"<br>     Retur:<br>       unit_of_measurement: °C<br>       value_template: "{{states('sensor.m_1') | float / 10 }}"<br>     Framledning:<br>       unit_of_measurement: °C<br>       value_template: "{{states('sensor.m_2') | float / 10 }}"<br><br></pre>
+
+
+
+<p><br><br><br></p>
+<div class="article-child well"><h3>Articles</h3><ul><li class="page_item page-item-614 wd-state-closed"><a href="https://husdata.se/docs/h60-manual/modbus-tcp-integrations/openhab-setup-guide/">OpenHAB setup guide</a></li>
+</ul></div>                        </div><!-- .entry-content -->
+
+                        <nav class="wedocs-doc-nav wedocs-hide-print"><h3 class="assistive-text screen-reader-text">Doc navigation</h3><span class="nav-prev"><a href="https://husdata.se/docs/h60-manual/home-assistant-integration/">&larr; Home Assistant MQTT integration</a></span><span class="nav-next"><a href="https://husdata.se/docs/h60-manual/api-integration/">API Integration &rarr;</a></span></nav>
+                        <footer class="entry-footer wedocs-entry-footer">
+                                                            <div class='help-content wedocs-hide-mobile'>
+                                    <div class='help-panel'>
+                                        <span class='help-icon'>
+                                            <svg width="26" height="25" fill="none" class='wedocs-icon'>
+                                                <path
+                                                    d="M1.429 21.292V9.924c0-.851.425-1.646 1.134-2.118l8.911-5.941c.855-.57 1.969-.57 2.825 0l8.911 5.941c.708.472 1.134 1.267 1.134 2.118v11.367m-22.914 0c0 1.406 1.14 2.546 2.546 2.546h17.822c1.406 0 2.546-1.14 2.546-2.546m-22.914 0l8.593-5.728m14.321 5.728l-8.593-5.728M1.429 9.835l8.593 5.728m14.321-5.728l-8.593 5.728m0 0l-1.452.968c-.855.57-1.969.57-2.825 0l-1.452-.968"
+                                                    stroke="#9559ff"
+                                                    stroke-width="1.67"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </svg>
+                                        </span>
+                                        <span class="wedocs-help-link wedocs-hide-print wedocs-hide-mobile">
+                                            Still stuck?  <a id="wedocs-stuck-modal" href="#">How can we help?</a>
+                                            <div class="wedocs-article-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                                                <meta itemprop="name" content="admin" />
+                                                <meta itemprop="url" content="https://husdata.se/author/admin/" />
+                                            </div>
+
+                                            <meta itemprop="datePublished" content="2019-04-22T19:06:46+01:00" />
+                                            <time itemprop="dateModified" datetime="2026-03-17T21:31:06+01:00">Updated on 2026-03-17</time>
+                                        </span>
+                                    </div>
+                                </div>
+                            
+                                                            <div class='feedback-content'>
+                                    
+<div class="wedocs-feedback-wrap wedocs-hide-print">
+    
+    Was this article helpful to you?
+    <span class="vote-link-wrap">
+        <a href="#" class="wedocs-tip negative" data-id="457" data-type="negative" title="No votes yet">
+            No
+                        <a href="#" class="wedocs-tip positive" data-id="457" data-type="positive" title="No votes yet">
+                Yes
+	                          </a>
+        </a>
+    </span>
+</div>
+                                </div>
+                                                    </footer>
+
+                                                    
+<div class="wedocs-modal-backdrop" id="wedocs-modal-backdrop"></div>
+<div id="wedocs-contact-modal" class="wedocs-contact-modal wedocs-hide-print">
+    <div class="wedocs-modal-header">
+        <h3>How can we help?</h3>
+        <a href="#" id="wedocs-modal-close" class="wedocs-modal-close"><i class="wedocs-icon wedocs-icon-times"></i></a>
+    </div>
+
+    <div class="wedocs-modal-body">
+        <div id="wedocs-modal-errors"></div>
+        <form id="wedocs-contact-modal-form" action="" method="post">
+            <div class="wedocs-form-row">
+                <label for="name">Name</label>
+
+                <div class="wedocs-form-field">
+                    <input type="text" name="name" id="name" placeholder="" value="" required />
+                </div>
+            </div>
+
+            <div class="wedocs-form-row">
+                <label for="email">Email</label>
+
+                <div class="wedocs-form-field">
+                    <input type="email" name="email" id="email" placeholder="you@example.com" value=""  required />
+                </div>
+            </div>
+
+            <div class="wedocs-form-row">
+                <label for="subject">Subject</label>
+
+                <div class="wedocs-form-field">
+                    <input type="text" name="subject" id="subject" placeholder="" value="" required />
+                </div>
+            </div>
+
+            <div class="wedocs-form-row">
+                <label for="message">Message</label>
+
+                <div class="wedocs-form-field">
+                    <textarea type="message" name="message" id="message" required></textarea>
+                </div>
+            </div>
+
+            <div class="wedocs-form-action">
+                <input type="submit" name="submit" value="Send">
+                <input type="hidden" name="doc_id" value="457">
+                <input type="hidden" name="action" value="wedocs_contact_feedback">
+            </div>
+        </form>
+    </div>
+</div>
+                        
+                        
+                    </article><!-- #post-## -->
+                </div><!-- .wedocs-single-content -->
+            </div><!-- .wedocs-single-wrap -->
+
+        
+        </main><!-- .site-main --></div><!-- .content-area -->
+        
+		</div><!-- #main-core -->
+		</div><!-- #main -->
+			</div>
+	</div><!-- #content -->
+
+	<footer>
+		<div id="footer"><div id="footer-core" class="option2"><div id="footer-col1" class="widget-area"><aside class="widget widget_gtranslate"><h3 class="footer-widget-title"><span>Språk</span></h3><div class="gtranslate_wrapper" id="gt-wrapper-40648659"></div></aside></div><div id="footer-col2" class="widget-area"><aside class="widget widget_text"><h3 class="footer-widget-title"><span>Kontakt</span></h3>			<div class="textwidget"><p>Husdata / Arandis AB<br />
+Norra Pitholmsvägen 14<br />
+SE-94146 Piteå</p>
+<p>08-52500782</p>
+<p><a href="https://husdata.se/support/kontakt/">Kontakta oss</a></p>
+</div>
+		</aside></div></div></div><!-- #footer -->		
+		<div id="sub-footer">
+		<div id="sub-footer-core">	
+
+						<!-- #footer-menu -->
+
+			<div class="copyright">
+			Theme by <a href="https://www.thinkupthemes.com/" target="_blank">Think Up Themes Ltd</a>. Powered by <a href="https://www.wordpress.org/" target="_blank">WordPress</a>.			</div>
+			<!-- .copyright -->
+
+		</div>
+		</div>
+	</footer><!-- footer -->
+
+</div><!-- #body-core -->
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/minamaze/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<!--googleoff: all--><div id="cookie-law-info-bar" data-nosnippet="true"><span>För att förbättra din upplevelse använder vi cookies.<br />
+<a role='button' data-cli_action="accept" id="cookie_action_close_header" class="medium cli-plugin-button cli-plugin-main-button cookie_action_close_header cli_action_button wt-cli-accept-btn" style="margin:5px">Acceptera</a><a href="http://www.google.se" id="CONSTANT_OPEN_URL" class="medium cli-plugin-button cli-plugin-main-button cookie_action_close_header_reject cli_action_button wt-cli-reject-btn" data-cli_action="reject" style="margin:5px">Neka</a> <a href="https://husdata.se/cookies-policy/" id="CONSTANT_OPEN_URL" target="_blank" class="cli-plugin-main-link" style="margin:5px">Läs mer</a></span></div><div id="cookie-law-info-again" data-nosnippet="true"><span id="cookie_hdr_showagain">Cookie Policy</span></div><div class="cli-modal" data-nosnippet="true" id="cliSettingsPopup" tabindex="-1" role="dialog" aria-labelledby="cliSettingsPopup" aria-hidden="true">
+  <div class="cli-modal-dialog" role="document">
+	<div class="cli-modal-content cli-bar-popup">
+		  <button type="button" class="cli-modal-close" id="cliModalClose">
+			<svg class="" viewBox="0 0 24 24"><path d="M19 6.41l-1.41-1.41-5.59 5.59-5.59-5.59-1.41 1.41 5.59 5.59-5.59 5.59 1.41 1.41 5.59-5.59 5.59 5.59 1.41-1.41-5.59-5.59z"></path><path d="M0 0h24v24h-24z" fill="none"></path></svg>
+			<span class="wt-cli-sr-only">Stäng</span>
+		  </button>
+		  <div class="cli-modal-body">
+			<div class="cli-container-fluid cli-tab-container">
+	<div class="cli-row">
+		<div class="cli-col-12 cli-align-items-stretch cli-px-0">
+			<div class="cli-privacy-overview">
+				<h4>Privacy Overview</h4>				<div class="cli-privacy-content">
+					<div class="cli-privacy-content-text">This website uses cookies to improve your experience while you navigate through the website. Out of these, the cookies that are categorized as necessary are stored on your browser as they are essential for the working of basic functionalities of the website. We also use third-party cookies that help us analyze and understand how you use this website. These cookies will be stored in your browser only with your consent. You also have the option to opt-out of these cookies. But opting out of some of these cookies may affect your browsing experience.</div>
+				</div>
+				<a class="cli-privacy-readmore" aria-label="Visa mer" role="button" data-readmore-text="Visa mer" data-readless-text="Visa mindre"></a>			</div>
+		</div>
+		<div class="cli-col-12 cli-align-items-stretch cli-px-0 cli-tab-section-container">
+												<div class="cli-tab-section">
+						<div class="cli-tab-header">
+							<a role="button" tabindex="0" class="cli-nav-link cli-settings-mobile" data-target="necessary" data-toggle="cli-toggle-tab">
+								Necessary							</a>
+															<div class="wt-cli-necessary-checkbox">
+									<input type="checkbox" class="cli-user-preference-checkbox"  id="wt-cli-checkbox-necessary" data-id="checkbox-necessary" checked="checked"  />
+									<label class="form-check-label" for="wt-cli-checkbox-necessary">Necessary</label>
+								</div>
+								<span class="cli-necessary-caption">Alltid aktiverad</span>
+													</div>
+						<div class="cli-tab-content">
+							<div class="cli-tab-pane cli-fade" data-id="necessary">
+								<div class="wt-cli-cookie-description">
+									Necessary cookies are absolutely essential for the website to function properly. This category only includes cookies that ensures basic functionalities and security features of the website. These cookies do not store any personal information.								</div>
+							</div>
+						</div>
+					</div>
+																	<div class="cli-tab-section">
+						<div class="cli-tab-header">
+							<a role="button" tabindex="0" class="cli-nav-link cli-settings-mobile" data-target="non-necessary" data-toggle="cli-toggle-tab">
+								Non-necessary							</a>
+															<div class="cli-switch">
+									<input type="checkbox" id="wt-cli-checkbox-non-necessary" class="cli-user-preference-checkbox"  data-id="checkbox-non-necessary" checked='checked' />
+									<label for="wt-cli-checkbox-non-necessary" class="cli-slider" data-cli-enable="Aktiverad" data-cli-disable="Inaktiverad"><span class="wt-cli-sr-only">Non-necessary</span></label>
+								</div>
+													</div>
+						<div class="cli-tab-content">
+							<div class="cli-tab-pane cli-fade" data-id="non-necessary">
+								<div class="wt-cli-cookie-description">
+									Any cookies that may not be particularly necessary for the website to function and is used specifically to collect user personal data via analytics, ads, other embedded contents are termed as non-necessary cookies. It is mandatory to procure user consent prior to running these cookies on your website.								</div>
+							</div>
+						</div>
+					</div>
+										</div>
+	</div>
+</div>
+		  </div>
+		  <div class="cli-modal-footer">
+			<div class="wt-cli-element cli-container-fluid cli-tab-container">
+				<div class="cli-row">
+					<div class="cli-col-12 cli-align-items-stretch cli-px-0">
+						<div class="cli-tab-footer wt-cli-privacy-overview-actions">
+						
+															<a id="wt-cli-privacy-save-btn" role="button" tabindex="0" data-cli-action="accept" class="wt-cli-privacy-btn cli_setting_save_button wt-cli-privacy-accept-btn cli-btn">SPARA OCH ACCEPTERA</a>
+													</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+  </div>
+</div>
+<div class="cli-modal-backdrop cli-fade cli-settings-overlay"></div>
+<div class="cli-modal-backdrop cli-fade cli-popupbar-overlay"></div>
+<!--googleon: all-->	<script type="text/javascript">
+		(function () {
+			var c = document.body.className;
+			c = c.replace(/woocommerce-no-js/, 'woocommerce-js');
+			document.body.className = c;
+		})();
+	</script>
+	<script type="text/javascript" id="wedocs-admin-script-js-extra">
+/* <![CDATA[ */
+var weDocsAdminScriptVars = {"ajaxurl":"https://husdata.se/wp-admin/admin-ajax.php","nonce":"8a335beed7","assetsUrl":"https://husdata.se/wp-content/plugins/wedocs/assets","isPro":""};
+//# sourceURL=wedocs-admin-script-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/wedocs/assets/js/admin-script.js?ver=1775313945" id="wedocs-admin-script-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/wedocs/assets/js/anchor.min.js?ver=2.2.1" id="wedocs-anchorjs-js"></script>
+<script type="text/javascript" id="wedocs-scripts-js-extra">
+/* <![CDATA[ */
+var weDocs_Vars = {"nonce":"8a335beed7","style":"https://husdata.se/wp-content/plugins/wedocs/assets/build/print.css?v=10","assetsUrl":"https://husdata.se/wp-content/plugins/wedocs/assets","ajaxurl":"https://husdata.se/wp-admin/admin-ajax.php","powered":"\u00a9 Husdata, Din v\u00e4rmepump i det smarta hemmet, 2026. Powered by weDocs plugin for WordPress\u003Cbr\u003Ehttps://husdata.se","isSingleDoc":"1","searchModal":"\u003Cdiv role='button' class='doc-search doc-search-container'\u003E\n    \u003Cdiv class='doc-search-modal'\u003E\n        \u003Cdiv class='modal-header doc-search-bar'\u003E\n            \u003Cform class='doc-search-form'\u003E\n                \u003Clabel class='doc-search-magnifier-label' for='doc-search-input' id='doc-search-label'\u003E\n                    \u003Csvg width='20' height='20' class='doc-search-icon' viewBox='0 0 20 20'\u003E\n                        \u003Cpath\n                            fill='none'\n                            stroke-width='2'\n                            stroke='#475569'\n                            fill-rule='evenodd'\n                            stroke-linecap='round'\n                            stroke-linejoin='round'\n                            d='M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z'\n                        \u003E\u003C/path\u003E\n                    \u003C/svg\u003E\n                \u003C/label\u003E\n                \u003Cdiv class='doc-search-loading-indicator' style='width: 20px; display: none;'\u003E\n                    \u003Csvg viewBox='0 0 38 38' stroke='currentColor' stroke-opacity='.5'\u003E\n                        \u003Cg fill='none' fill-rule='evenodd'\u003E\n                            \u003Cg transform='translate(1 1)' stroke-width='2'\u003E\n                                \u003Ccircle stroke-opacity='.3' cx='18' cy='18' r='18'\u003E\u003C/circle\u003E\n                                \u003Cpath d='M36 18c0-9.94-8.06-18-18-18'\u003E\n                                    \u003CanimateTransform attributeName='transform' type='rotate' from='0 18 18' to='360 18 18' dur='1s' repeatCount='indefinite'\u003E\u003C/animateTransform\u003E\n                                \u003C/path\u003E\n                            \u003C/g\u003E\n                        \u003C/g\u003E\n                    \u003C/svg\u003E\n                \u003C/div\u003E\n                \u003Cdiv class='doc-search-field'\u003E\n                    \u003Cinput\n                        type='text'\n                        id='doc-search-input'\n                        placeholder='Search documentation'\n                    /\u003E\n                    \u003Csvg fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"search-clean\"\u003E\n                        \u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\" /\u003E\n                    \u003C/svg\u003E\n                \u003C/div\u003E\n            \u003C/form\u003E\n            \u003Cbutton class='doc-search-cancel' type='reset'\u003E\n                ESC            \u003C/button\u003E\n        \u003C/div\u003E\n        \u003Cdiv class='modal-body doc-search-dropdown'\u003E\n            \u003Cdiv class='doc-search-dropdown-container'\u003E\n                \u003Csection class='doc-search-hits'\u003E\n                    \u003Cdiv class='doc-empty-search'\u003E\n                        Search field cannot be blank                    \u003C/div\u003E\n                \u003C/section\u003E\n            \u003C/div\u003E\n        \u003C/div\u003E\n    \u003C/div\u003E\n\u003C/div\u003E\n","docNavLabel":"Doc: ","searchBlankMsg":"Search field cannot be blank","searchEmptyMsg":"Your search didn't match any documents","sectionNavLabel":"Section: ","searchModalColors":{"active_primary_color":"#3B82F6","active_shade_color":"#D9EBFF","active_font_color":"#fff"}};
+//# sourceURL=wedocs-scripts-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/wedocs/assets/js/frontend.js?ver=1775313945" id="wedocs-scripts-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/contact-form-7/includes/swv/js/index.js?ver=5.8.4" id="swv-js"></script>
+<script type="text/javascript" id="contact-form-7-js-extra">
+/* <![CDATA[ */
+var wpcf7 = {"api":{"root":"https://husdata.se/wp-json/","namespace":"contact-form-7/v1"}};
+//# sourceURL=contact-form-7-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/contact-form-7/includes/js/index.js?ver=5.8.4" id="contact-form-7-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/easy-facebook-likebox/frontend/assets/js/esf-gdpr-consent.js?ver=6.7.2" id="esf-gdpr-consent-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/woocommerce/assets/js/prettyPhoto/jquery.prettyPhoto.min.js?ver=3.1.6-wc.8.3.4" id="prettyPhoto-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/themes/minamaze/lib/extentions/bootstrap/js/bootstrap.js?ver=2.3.2" id="thinkup-bootstrap-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/themes/minamaze/lib/scripts/main-frontend.js?ver=1.11.2" id="thinkup-frontend-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/themes/minamaze/lib/scripts/plugins/ResponsiveSlides/responsiveslides.min.js?ver=1.54" id="responsiveslides-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/themes/minamaze/lib/scripts/plugins/ResponsiveSlides/responsiveslides-call.js?ver=1.11.2" id="thinkup-responsiveslides-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/copy-the-code/assets/frontend/js/lib/ctc.js?ver=5.5.1" id="ctc-lib-core-js"></script>
+<script type="text/javascript" id="ctc-global-injector-frontend-js-extra">
+/* <![CDATA[ */
+var ctcGlobalInjector = {"rules":[{"id":2950,"selector":"panel-wrap woocommerce","exclude_selector":"","visual_style":"button","button_text":"Copy","success_text":"Copy","tooltip_text":"Copy to clipboard","button_position":"outside_after_right","copy_format":"default","copy_as":"text_and_html","analytics_enabled":true,"icon_enabled":true,"icon_position":"left","icon_key":"clipboard","style":{"text_color":"#ffffff","bg_color":"#4f46e5","border_radius":6,"font_size":13,"padding_x":16,"padding_y":8}},{"id":2907,"selector":"pre","exclude_selector":"","visual_style":"button","button_text":"Copy","success_text":"Copy","tooltip_text":"Copy to clipboard","button_position":"outside_after_right","copy_format":"text","copy_as":"text_and_html","analytics_enabled":true,"icon_enabled":true,"icon_position":"left","icon_key":"clipboard","style":{"text_color":"#ffffff","bg_color":"#4f46e5","border_radius":6,"font_size":13,"padding_x":16,"padding_y":8}}],"apiUrl":"https://husdata.se/wp-json/ctc/v1/rules","eventsUrl":"https://husdata.se/wp-json/ctc/v1/analytics/events","isPro":"","postId":"457","postType":"docs","pageUrl":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations/","pageContext":{"post_type":"docs","post_id":457,"page_id":0,"user_logged_in":"no","user_role":"","url":"https://husdata.se/docs/h60-manual/modbus-tcp-integrations","device":"desktop"},"debug":"","styles":{"button":{"defaultConfig":{"text":{"button_text":"Copy Code","success_text":"Copied!"},"icon":{"enabled":true,"position":"left","icon_key":"clipboard","custom_url":null},"style":{"text_color":"#ffffff","background_color":"#4f46e5","hover_background_color":"#4338ca","font_size":"12px","font_weight":"700","padding_x":"12px","padding_y":"6px","border_radius":"6px"}},"icons":{"clipboard":{"label":"Clipboard","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\"/\u003E\u003C/svg\u003E"},"copy":{"label":"Copy","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3\"/\u003E\u003C/svg\u003E"},"paperclip":{"label":"Attachment","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13\"/\u003E\u003C/svg\u003E"},"link":{"label":"Link","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1\"/\u003E\u003C/svg\u003E"},"document":{"label":"Document","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"/\u003E\u003C/svg\u003E"},"check":{"label":"Checkmark","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E"}},"successIcon":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E","baseCSS":"\n\t\t\t.ctc-copy-button {\n\t\t\t\t/* User-customizable via CSS variables */\n\t\t\t\tcolor: var(--ctc-text-color, #ffffff);\n\t\t\t\tbackground-color: var(--ctc-bg, #4f46e5);\n\t\t\t\tfont-size: var(--ctc-font-size, 12px);\n\t\t\t\tfont-weight: var(--ctc-font-weight, 700);\n\t\t\t\tpadding: var(--ctc-padding-y, 6px) var(--ctc-padding-x, 12px);\n\t\t\t\tborder-radius: var(--ctc-border-radius, 6px);\n\n\t\t\t\t/* Hidden CSS - always applied, not customizable via UI */\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tgap: 4px;\n\t\t\t\tborder: none;\n\t\t\t\tcursor: pointer;\n\t\t\t\ttransition: background-color 0.2s ease;\n\t\t\t\tposition: absolute;\n\t\t\t\ttop: 8px;\n\t\t\t\tright: 8px;\n\t\t\t\tz-index: 10;\n\t\t\t\tfont-family: inherit;\n\t\t\t\tline-height: 1;\n\t\t\t}\n\n\t\t\t.ctc-copy-button:hover {\n\t\t\t\tbackground-color: var(--ctc-hover-bg, #4338ca);\n\t\t\t}\n\n\t\t\t.ctc-copy-button:focus {\n\t\t\t\toutline: 2px solid var(--ctc-bg, #4f46e5);\n\t\t\t\toutline-offset: 2px;\n\t\t\t}\n\n\t\t\t.ctc-copy-button .ctc-btn-icon {\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tjustify-content: center;\n\t\t\t}\n\n\t\t\t.ctc-copy-button .ctc-btn-icon svg {\n\t\t\t\twidth: 14px;\n\t\t\t\theight: 14px;\n\t\t\t}\n\n\t\t\t.ctc-copy-button .ctc-btn-icon img {\n\t\t\t\twidth: 14px;\n\t\t\t\theight: 14px;\n\t\t\t\tobject-fit: contain;\n\t\t\t}\n\n\t\t\t.ctc-copy-button .ctc-btn-text {\n\t\t\t\twhite-space: nowrap;\n\t\t\t}\n\n\t\t\t/* Success state */\n\t\t\t.ctc-copy-button.ctc-copied {\n\t\t\t\tbackground-color: #059669;\n\t\t\t}\n\n\t\t\t.ctc-copy-button.ctc-copied:hover {\n\t\t\t\tbackground-color: #047857;\n\t\t\t}\n\t\t"},"icon":{"defaultConfig":{"text":{"tooltip_text":"Copy to clipboard","success_text":"Copied!"},"icon":{"icon_key":"clipboard","custom_url":null},"style":{"icon_color":"#6b7280","icon_hover_color":"#4f46e5","bg_color":"#ffffff","border_color":"#e5e7eb","icon_size":"16px","padding":"8px","border_radius":"8px","border_width":"1px"}},"icons":{"clipboard":{"label":"Clipboard","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\"/\u003E\u003C/svg\u003E"},"copy":{"label":"Copy","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3\"/\u003E\u003C/svg\u003E"},"paperclip":{"label":"Attachment","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13\"/\u003E\u003C/svg\u003E"},"link":{"label":"Link","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1\"/\u003E\u003C/svg\u003E"},"document":{"label":"Document","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\"/\u003E\u003C/svg\u003E"},"check":{"label":"Checkmark","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E"}},"successIcon":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E","baseCSS":"\n\t\t\t.ctc-copy-icon {\n\t\t\t\t/* User-customizable via CSS variables */\n\t\t\t\tcolor: var(--ctc-icon-color, #6b7280);\n\t\t\t\tbackground-color: var(--ctc-icon-bg, #ffffff);\n\t\t\t\tborder-color: var(--ctc-icon-border, #e5e7eb);\n\t\t\t\tborder-width: var(--ctc-icon-border-width, 1px);\n\t\t\t\tpadding: var(--ctc-icon-padding, 8px);\n\t\t\t\tborder-radius: var(--ctc-icon-radius, 8px);\n\n\t\t\t\t/* Hidden CSS - always applied, not customizable via UI */\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tjustify-content: center;\n\t\t\t\tborder-style: solid;\n\t\t\t\tcursor: pointer;\n\t\t\t\ttransition: all 0.2s ease;\n\t\t\t\tposition: absolute;\n\t\t\t\ttop: 8px;\n\t\t\t\tright: 8px;\n\t\t\t\tz-index: 10;\n\t\t\t\tbox-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);\n\t\t\t}\n\n\t\t\t.ctc-copy-icon:hover {\n\t\t\t\tcolor: var(--ctc-icon-hover-color, #4f46e5);\n\t\t\t\tbackground-color: var(--ctc-icon-bg, #ffffff);\n\t\t\t}\n\n\t\t\t.ctc-copy-icon:focus {\n\t\t\t\toutline: 2px solid var(--ctc-icon-hover-color, #4f46e5);\n\t\t\t\toutline-offset: 2px;\n\t\t\t}\n\n\t\t\t.ctc-copy-icon .ctc-icon-svg {\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tjustify-content: center;\n\t\t\t}\n\n\t\t\t.ctc-copy-icon .ctc-icon-svg svg {\n\t\t\t\twidth: var(--ctc-icon-size, 16px);\n\t\t\t\theight: var(--ctc-icon-size, 16px);\n\t\t\t}\n\n\t\t\t.ctc-copy-icon .ctc-icon-img {\n\t\t\t\twidth: var(--ctc-icon-size, 16px);\n\t\t\t\theight: var(--ctc-icon-size, 16px);\n\t\t\t\tobject-fit: contain;\n\t\t\t}\n\n\t\t\t/* Success state */\n\t\t\t.ctc-copy-icon.ctc-copied {\n\t\t\t\tcolor: #059669;\n\t\t\t\tborder-color: #a7f3d0;\n\t\t\t\tbackground-color: #ecfdf5;\n\t\t\t}\n\n\t\t\t/* Tooltip */\n\t\t\t.ctc-copy-icon[data-tooltip]::before {\n\t\t\t\tcontent: attr(data-tooltip);\n\t\t\t\tposition: absolute;\n\t\t\t\ttop: 50%;\n\t\t\t\tright: calc(100% + 8px);\n\t\t\t\ttransform: translateY(-50%);\n\t\t\t\tpadding: 4px 8px;\n\t\t\t\tbackground: #1e293b;\n\t\t\t\tcolor: white;\n\t\t\t\tfont-size: 11px;\n\t\t\t\tfont-weight: 500;\n\t\t\t\tborder-radius: 4px;\n\t\t\t\twhite-space: nowrap;\n\t\t\t\topacity: 0;\n\t\t\t\tvisibility: hidden;\n\t\t\t\ttransition: opacity 0.2s ease, visibility 0.2s ease;\n\t\t\t\tpointer-events: none;\n\t\t\t}\n\n\t\t\t.ctc-copy-icon:hover[data-tooltip]::before,\n\t\t\t.ctc-copy-icon:focus[data-tooltip]::before {\n\t\t\t\topacity: 1;\n\t\t\t\tvisibility: visible;\n\t\t\t}\n\t\t"},"cover":{"defaultConfig":{"text":{"button_text":"Copy","success_text":"Copied!"},"icon":{"enabled":true,"position":"left","icon_key":"clipboard","custom_url":null},"overlay":{"overlay_color":"#0f172a","hover_overlay_color":"#4f46e5","overlay_opacity":20,"blur":2},"button":{"text_color":"#0f172a","bg_color":"#ffffff","hover_bg_color":"#f1f5f9","border_radius":9999,"font_size":10,"padding_x":12,"padding_y":6}},"icons":{"clipboard":{"label":"Clipboard","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\"/\u003E\u003C/svg\u003E"},"copy":{"label":"Copy","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3\"/\u003E\u003C/svg\u003E"},"eye":{"label":"Eye","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\"/\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\"/\u003E\u003C/svg\u003E"},"click":{"label":"Click","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122\"/\u003E\u003C/svg\u003E"},"lock":{"label":"Lock","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z\"/\u003E\u003C/svg\u003E"},"check":{"label":"Checkmark","svg":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E"}},"successIcon":"\u003Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"\u003E\u003Cpath stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"/\u003E\u003C/svg\u003E","baseCSS":"\n\t\t\t/* Cover overlay - hidden by default, visible on hover */\n\t\t\t.ctc-cover-overlay {\n\t\t\t\tposition: absolute;\n\t\t\t\tinset: 0;\n\t\t\t\tz-index: 20;\n\t\t\t\tborder-radius: inherit;\n\t\t\t\ttransition: all 0.3s ease;\n\t\t\t\tcursor: pointer;\n\n\t\t\t\t/* Hidden by default */\n\t\t\t\topacity: 0;\n\t\t\t\tbackground: var(--ctc-cover-overlay, rgba(15, 23, 42, 0.2));\n\t\t\t\tbackdrop-filter: blur(0px);\n\t\t\t\t-webkit-backdrop-filter: blur(0px);\n\t\t\t}\n\n\t\t\t/* Show overlay on hover */\n\t\t\t.ctc-cover-overlay:hover {\n\t\t\t\topacity: 1;\n\t\t\t\tbackground: var(--ctc-cover-hover-overlay, rgba(79, 70, 229, 0.3));\n\t\t\t\tbackdrop-filter: blur(var(--ctc-cover-blur, 2px));\n\t\t\t\t-webkit-backdrop-filter: blur(var(--ctc-cover-blur, 2px));\n\t\t\t}\n\n\t\t\t/* Copy button - centered, appears with overlay on hover */\n\t\t\t.ctc-cover-button {\n\t\t\t\tposition: absolute;\n\t\t\t\ttop: 50%;\n\t\t\t\tleft: 50%;\n\t\t\t\ttransform: translate(-50%, -50%) scale(0.9);\n\t\t\t\topacity: 0;\n\t\t\t\ttransition: all 0.2s ease;\n\n\t\t\t\t/* Button styles from CSS variables */\n\t\t\t\tcolor: var(--ctc-cover-btn-text, #0f172a);\n\t\t\t\tbackground: var(--ctc-cover-btn-bg, rgba(255, 255, 255, 0.95));\n\t\t\t\tfont-size: var(--ctc-cover-btn-font-size, 10px);\n\t\t\t\tfont-weight: 700;\n\t\t\t\tpadding: var(--ctc-cover-btn-padding-y, 6px) var(--ctc-cover-btn-padding-x, 12px);\n\t\t\t\tborder-radius: var(--ctc-cover-btn-radius, 9999px);\n\n\t\t\t\t/* Fixed styles */\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tgap: 6px;\n\t\t\t\tborder: 1px solid rgba(255, 255, 255, 0.5);\n\t\t\t\tbox-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);\n\t\t\t\twhite-space: nowrap;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\n\t\t\t/* Show button when overlay is hovered */\n\t\t\t.ctc-cover-overlay:hover .ctc-cover-button {\n\t\t\t\topacity: 1;\n\t\t\t\ttransform: translate(-50%, -50%) scale(1);\n\t\t\t}\n\n\t\t\t.ctc-cover-button:hover {\n\t\t\t\tbackground: var(--ctc-cover-btn-hover-bg, #f1f5f9);\n\t\t\t\ttransform: translate(-50%, -50%) scale(1.05);\n\t\t\t}\n\n\t\t\t.ctc-cover-button:active {\n\t\t\t\ttransform: translate(-50%, -50%) scale(0.95);\n\t\t\t}\n\n\t\t\t/* Icon styles */\n\t\t\t.ctc-cover-icon {\n\t\t\t\tdisplay: inline-flex;\n\t\t\t\talign-items: center;\n\t\t\t\tjustify-content: center;\n\t\t\t}\n\n\t\t\t.ctc-cover-icon svg {\n\t\t\t\twidth: 12px;\n\t\t\t\theight: 12px;\n\t\t\t}\n\n\t\t\t.ctc-cover-icon img {\n\t\t\t\twidth: 12px;\n\t\t\t\theight: 12px;\n\t\t\t\tobject-fit: contain;\n\t\t\t}\n\n\t\t\t.ctc-cover-text {\n\t\t\t\twhite-space: nowrap;\n\t\t\t}\n\n\t\t\t/* Success state */\n\t\t\t.ctc-cover-overlay.ctc-copied .ctc-cover-button {\n\t\t\t\tbackground: #059669;\n\t\t\t\tcolor: #ffffff;\n\t\t\t\tborder-color: #059669;\n\t\t\t}\n\n\t\t\t/* Ensure parent has relative positioning */\n\t\t\t.ctc-cover-wrapper {\n\t\t\t\tposition: relative;\n\t\t\t}\n\n\t\t\t/* Disable text selection on covered content */\n\t\t\t.ctc-cover-wrapper.ctc-covered {\n\t\t\t\tuser-select: none;\n\t\t\t}\n\t\t"}}};
+//# sourceURL=ctc-global-injector-frontend-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/copy-the-code/assets/frontend/js/global-injector.js?ver=5.5.1" id="ctc-global-injector-frontend-js"></script>
+<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=6LfzBWIjAAAAAN0rav4BNiSHAY3-WDZMmWJ9bRDV&amp;ver=3.0" id="google-recaptcha-js"></script>
+<script type="text/javascript" src="https://husdata.se/wp-includes/js/dist/vendor/wp-polyfill.min.js?ver=3.15.0" id="wp-polyfill-js"></script>
+<script type="text/javascript" id="wpcf7-recaptcha-js-extra">
+/* <![CDATA[ */
+var wpcf7_recaptcha = {"sitekey":"6LfzBWIjAAAAAN0rav4BNiSHAY3-WDZMmWJ9bRDV","actions":{"homepage":"homepage","contactform":"contactform"}};
+//# sourceURL=wpcf7-recaptcha-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://husdata.se/wp-content/plugins/contact-form-7/modules/recaptcha/index.js?ver=5.8.4" id="wpcf7-recaptcha-js"></script>
+<script type="text/javascript" id="gt_widget_script_13099905-js-before">
+/* <![CDATA[ */
+window.gtranslateSettings = /* document.write */ window.gtranslateSettings || {};window.gtranslateSettings['13099905'] = {"default_language":"sv","languages":["sv","en","fi","cs","nl","de","fr"],"url_structure":"none","detect_browser_language":1,"flag_style":"3d","flag_size":24,"wrapper_selector":"li.menu-item-gtranslate.gt-menu-46325","alt_flags":[],"horizontal_position":"inline","flags_location":"\/wp-content\/plugins\/gtranslate\/flags\/"};
+//# sourceURL=gt_widget_script_13099905-js-before
+/* ]]> */
+</script><script src="https://husdata.se/wp-content/plugins/gtranslate/js/popup.js?ver=6.9.4" data-no-optimize="1" data-no-minify="1" data-gt-orig-url="/docs/h60-manual/modbus-tcp-integrations/" data-gt-orig-domain="husdata.se" data-gt-widget-id="13099905" defer></script><script type="text/javascript" id="gt_widget_script_83969095-js-before">
+/* <![CDATA[ */
+window.gtranslateSettings = /* document.write */ window.gtranslateSettings || {};window.gtranslateSettings['83969095'] = {"default_language":"sv","languages":["sv","en","fi","cs","nl","de","fr"],"url_structure":"none","detect_browser_language":1,"flag_style":"3d","flag_size":24,"wrapper_selector":"li.menu-item-gtranslate.gt-menu-55923","alt_flags":[],"horizontal_position":"inline","flags_location":"\/wp-content\/plugins\/gtranslate\/flags\/"};
+//# sourceURL=gt_widget_script_83969095-js-before
+/* ]]> */
+</script><script src="https://husdata.se/wp-content/plugins/gtranslate/js/popup.js?ver=6.9.4" data-no-optimize="1" data-no-minify="1" data-gt-orig-url="/docs/h60-manual/modbus-tcp-integrations/" data-gt-orig-domain="husdata.se" data-gt-widget-id="83969095" defer></script><script type="text/javascript" id="gt_widget_script_40648659-js-before">
+/* <![CDATA[ */
+window.gtranslateSettings = /* document.write */ window.gtranslateSettings || {};window.gtranslateSettings['40648659'] = {"default_language":"sv","languages":["sv","en","fi","cs","nl","de","fr"],"url_structure":"none","detect_browser_language":1,"flag_style":"3d","flag_size":24,"wrapper_selector":"#gt-wrapper-40648659","alt_flags":[],"horizontal_position":"inline","flags_location":"\/wp-content\/plugins\/gtranslate\/flags\/"};
+//# sourceURL=gt_widget_script_40648659-js-before
+/* ]]> */
+</script><script src="https://husdata.se/wp-content/plugins/gtranslate/js/popup.js?ver=6.9.4" data-no-optimize="1" data-no-minify="1" data-gt-orig-url="/docs/h60-manual/modbus-tcp-integrations/" data-gt-orig-domain="husdata.se" data-gt-widget-id="40648659" defer></script><script id="wp-emoji-settings" type="application/json">
+{"baseUrl":"https://s.w.org/images/core/emoji/17.0.2/72x72/","ext":".png","svgUrl":"https://s.w.org/images/core/emoji/17.0.2/svg/","svgExt":".svg","source":{"concatemoji":"https://husdata.se/wp-includes/js/wp-emoji-release.min.js?ver=6.9.4"}}
+</script>
+<script type="module">
+/* <![CDATA[ */
+/*! This file is auto-generated */
+const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(window._wpemojiSettings=a,"wpEmojiSettingsSupports"),s=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const a=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===a[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e<n.data.length;e++)if(0!==n.data[e])return!1;return!0}function u(e,t,n,a){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\udde8\ud83c\uddf6","\ud83c\udde8\u200b\ud83c\uddf6")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!a(e,"\ud83e\u1fac8")}return!1}function f(e,t,n,a){let r;const o=(r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):document.createElement("canvas")).getContext("2d",{willReadFrequently:!0}),s=(o.textBaseline="top",o.font="600 32px Arial",{});return e.forEach(e=>{s[e]=t(o,e,n,a)}),s}function r(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}a.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),c.toString(),p.toString()].join(",")+"));",a=new Blob([e],{type:"text/javascript"});const r=new Worker(URL.createObjectURL(a),{name:"wpTestEmojiSupports"});return void(r.onmessage=e=>{i(n=e.data),r.terminate(),t(n)})}catch(e){}i(n=f(s,u,c,p))}t(n)}).then(e=>{for(const n in e)a.supports[n]=e[n],a.supports.everything=a.supports.everything&&a.supports[n],"flag"!==n&&(a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&a.supports[n]);var t;a.supports.everythingExceptFlag=a.supports.everythingExceptFlag&&!a.supports.flag,a.supports.everything||((t=a.source||{}).concatemoji?r(t.concatemoji):t.wpemoji&&t.twemoji&&(r(t.twemoji),r(t.wpemoji)))});
+//# sourceURL=https://husdata.se/wp-includes/js/wp-emoji-loader.min.js
+/* ]]> */
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<title>Modbus RTU Relay (D) - Waveshare Wiki</title>
+<script>document.documentElement.className="client-js";RLCONF={"wgBreakFrames":!1,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"e02b44d09595d3e7c5592217","wgCSPNonce":!1,"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":!1,"wgNamespaceNumber":0,"wgPageName":"Modbus_RTU_Relay_(D)","wgTitle":"Modbus RTU Relay (D)","wgCurRevisionId":107665,"wgRevisionId":107665,"wgArticleId":17893,"wgIsArticle":!0,"wgIsRedirect":!1,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Modbus_RTU_Relay_(D)","wgRelevantArticleId":17893,"wgIsProbablyEditable":!1,"wgRelevantPageIsProbablyEditable":!1,"wgRestrictionEdit":[],"wgRestrictionMove":[]};RLSTATE={"ext.gadget.tabber":"ready","site.styles":
+"ready","noscript":"ready","user.styles":"ready","user":"ready","user.options":"loading","mediawiki.toc.styles":"ready","skins.tweeki.styles":"ready","skins.tweeki.bootstraptheme.styles":"ready","skins.tweeki.externallinks.styles":"ready","skins.tweeki.awesome.styles":"ready"};RLPAGEMODULES=["site","mediawiki.page.startup","mediawiki.page.ready","mediawiki.toc","ext.FancyBoxThumbs","ext.HighlightjsIntegration","skins.tweeki.messages","skins.tweeki.scripts"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.implement("user.options@1hzgi",function($,jQuery,require,module){/*@nomin*/mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
+});});</script>
+<link rel="stylesheet" href="/w/Uy8Yw0y/aAdkk0o.php?lang=en&amp;modules=mediawiki.toc.styles%7Cskins.tweeki.awesome.styles%7Cskins.tweeki.bootstraptheme.styles%7Cskins.tweeki.externallinks.styles%7Cskins.tweeki.styles&amp;only=styles&amp;skin=tweeki"/>
+<script async="" src="/w/Uy8Yw0y/aAdkk0o.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=tweeki"></script>
+<meta name="ResourceLoaderDynamicStyles" content=""/>
+<link rel="stylesheet" href="/w/Uy8Yw0y/aAdkk0o.php?lang=en&amp;modules=ext.gadget.tabber&amp;only=styles&amp;skin=tweeki"/>
+<link rel="stylesheet" href="/w/Uy8Yw0y/aAdkk0o.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=tweeki"/>
+<meta name="generator" content="MediaWiki 1.35.5"/>
+<meta property="og:image" content="https://www.waveshare.com/w/upload/c/c2/360px-Modbus-RTU-Relay-D-4-intro.jpg"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="shortcut icon" href="/w/favicon.ico"/>
+<link rel="search" type="application/opensearchdescription+xml" href="/w/opensearch_desc.php" title="Waveshare Wiki (en)"/>
+<link rel="EditURI" type="application/rsd+xml" href="https://www.waveshare.com/w/api.php?action=rsd"/>
+<link rel="alternate" type="application/atom+xml" title="Waveshare Wiki Atom feed" href="/w/index.php?title=Special:RecentChanges&amp;feed=atom"/>
+<!--[if lt IE 9]><script src="/w/resources/lib/html5shiv/html5shiv.js"></script><![endif]-->
+</head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-Modbus_RTU_Relay_D rootpage-Modbus_RTU_Relay_D skin-tweeki action-view tweeki-animateLayout tweeki-non-advanced tweeki-user-anon">			<!-- navbar -->
+			<div id="mw-navigation" class="navbar navbar-default navbar-fixed-top navbar-expand-lg fixed-top navbar-light bg-light" role="navigation">
+				<h2>Navigation menu</h2>
+				<div id="mw-head" class="navbar-inner">
+					<div class="container">
+
+						<div class="navbar-header">
+							<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+							</button>
+
+							<a href="/wiki/Main_Page" class="navbar-brand"><img src="https://www.waveshare.com/w/upload/a/a7/Ws-watermark-en.svg" alt="Waveshare Wiki" /></a>
+						</div>
+
+						<div id="navbar" class="navbar-collapse collapse">
+													<ul class="nav navbar-nav">
+							<li class="nav"><a href="#" id="n-raspberry-pi" class="dropdown-toggle" data-toggle="dropdown">Raspberry Pi <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523rpi-boards"><a href="/wiki/Main_Page#RPi-Boards" tabindex="-1">Boards/Kits</a></li><li id="n-main_page.2523rpi-displays"><a href="/wiki/Main_Page#RPi-Displays" tabindex="-1">Displays</a></li><li id="n-main_page.2523rpi-cameras"><a href="/wiki/Main_Page#RPi-Cameras" tabindex="-1">Cameras</a></li><li id="n-main_page.2523rpi-expansions"><a href="/wiki/Main_Page#RPi-Expansions" tabindex="-1">Expansions</a></li><li id="n-main_page.2523rpi-laptops"><a href="/wiki/Main_Page#RPi-Laptops" tabindex="-1">All-in-one</a></li><li id="n-main_page.2523rpi-robots"><a href="/wiki/Main_Page#RPi-Robots" tabindex="-1">Robots</a></li><li id="n-main_page.2523rpi-games"><a href="/wiki/Main_Page#RPi-Games" tabindex="-1">Portable Gaming</a></li><li id="n-main_page.2523rpi-acces"><a href="/wiki/Main_Page#RPi-Acces" tabindex="-1">Accessories</a></li><li id="n-main_page.2523android-linux-boards"><a href="/wiki/Main_Page#Android-Linux-Boards" tabindex="-1">Other Android/Linux Boards</a></li></ul></li><li class="nav"><a href="#" id="n-ai" class="dropdown-toggle" data-toggle="dropdown">AI <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523jetson-ai-boards"><a href="/wiki/Main_Page#Jetson-AI-Boards" tabindex="-1">Boards/Kits</a></li><li id="n-main_page.2523jetson-ai-displays"><a href="/wiki/Main_Page#Jetson-AI-Displays" tabindex="-1">Displays</a></li><li id="n-main_page.2523jetson-ai-cameras"><a href="/wiki/Main_Page#Jetson-AI-Cameras" tabindex="-1">Cameras</a></li><li id="n-main_page.2523jetson-ai-hat"><a href="/wiki/Main_Page#Jetson-AI-HAT" tabindex="-1">Expansions</a></li><li id="n-main_page.2523jetson-ai-robots"><a href="/wiki/Main_Page#Jetson-AI-Robots" tabindex="-1">Robots</a></li></ul></li><li class="nav"><a href="#" id="n-displays" class="dropdown-toggle" data-toggle="dropdown">Displays <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523display-lcd-oleds"><a href="/wiki/Main_Page#Display-LCD-OLEDs" tabindex="-1">LCD/OLED</a></li><li id="n-main_page.2523display-e-paper"><a href="/wiki/Main_Page#Display-e-Paper" tabindex="-1">e-Paper</a></li></ul></li><li class="nav"><a href="#" id="n-iot" class="dropdown-toggle" data-toggle="dropdown">IoT <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523long-range-wireless-comm"><a href="/wiki/Main_Page#Long-range-wireless-comm" tabindex="-1">Long Range Wireless</a></li><li id="n-main_page.2523short-range-wireless-comm"><a href="/wiki/Main_Page#Short-range-wireless-comm" tabindex="-1">Short Range Wireless</a></li><li id="n-main_page.2523wired-communication"><a href="/wiki/Main_Page#Wired-communication" tabindex="-1">Wired Comm / Converter</a></li><li id="n-main_page.2523misc-cameras-av"><a href="/wiki/Main_Page#Misc-cameras-av" tabindex="-1">Cameras / Audio / Video</a></li><li id="n-main_page.2523misc-sensor-modules"><a href="/wiki/Main_Page#Misc-sensor-modules" tabindex="-1">Sensors</a></li><li id="n-main_page.2523misc-servos-motors"><a href="/wiki/Main_Page#Misc-servos-motors" tabindex="-1">Motors / Servos</a></li><li id="n-main_page.2523misc-other-modules"><a href="/wiki/Main_Page#Misc-other-modules" tabindex="-1">others</a></li></ul></li><li class="nav"><a href="#" id="n-robotics" class="dropdown-toggle" data-toggle="dropdown">Robotics <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523robotics-cars"><a href="/wiki/Main_Page#Robotics-cars" tabindex="-1">Mobile Robots</a></li><li id="n-main_page.2523dog-like-robots"><a href="/wiki/Main_Page#Dog-like-Robots" tabindex="-1">Dog-like Robots</a></li><li id="n-main_page.2523robotics-drivers-sensors"><a href="/wiki/Main_Page#Robotics-drivers-sensors" tabindex="-1">Drivers / Sensors</a></li><li id="n-main_page.2523robotics-robot-arms"><a href="/wiki/Main_Page#Robotics-robot-arms" tabindex="-1">Robot Arm / Control</a></li></ul></li><li class="nav"><a href="#" id="n-mcu.252Ffpga" class="dropdown-toggle" data-toggle="dropdown">MCU/FPGA <b class="caret"></b></a><ul class="dropdown-menu " role="menu"><li id="n-main_page.2523arduino-main-boards"><a href="/wiki/Main_Page#Arduino-main-boards" tabindex="-1">Arduino</a></li><li id="n-main_page.2523micro.253Abit"><a href="/wiki/Main_Page#micro:bit" tabindex="-1">micro:bit</a></li><li id="n-main_page.2523mcu.2farm" class="LPC"><a href="/wiki/Main_Page#MCU.2FARM" tabindex="-1">STM32</a></li><li id="n-main_page.2523fpga"><a href="/wiki/Main_Page#FPGA" tabindex="-1">FPGA</a></li></ul></li><li class="nav"><a href="https://service.waveshare.com" id="n-https.253A.252F.252Fservice.waveshare.com" rel="nofollow" target="_blank">Support</a></li>							</ul>
+						
+													<ul class="nav navbar-nav navbar-right">
+							</ul>
+				<form class="navbar-form navbar-right" action="/w/index.php" id="searchform">
+					<div class="form-group"><input type="search" name="search" placeholder="Product name search" title="Search Waveshare Wiki [f]" accesskey="f" id="searchInput" class="search-query form-control"/><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="mw-searchButton" class="searchButton btn hidden"/>
+					</div>
+				</form><ul class="nav navbar-nav navbar-right">							</ul>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			<!-- /navbar -->
+					<div id="mw-page-base"></div>
+			<div id="mw-head-base"></div>
+			<a id="top"></a>
+
+			<!-- content -->
+			<div id="contentwrapper" class="user-loggedout not-editable container with-navbar with-navbar-fixed">
+
+				
+				<div class="row">
+					<div class="col-md-offset-2 col-md-10" role="main">
+								<div class="mw-body" id="content">
+			<div id="mw-js-message" style="display:none;"></div>
+									<h1 id="firstHeading" class="firstHeading page-header" lang="en"><span dir="auto">Modbus RTU Relay (D)</span></h1>
+									<!-- bodyContent -->
+			<div id="bodyContent">
+								<div id="siteSub">From Waveshare Wiki</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="#mw-navigation">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><div class="mw-parser-output"><div class="wiki-pages jet-green-color">
+<table id="infotable" class="a-r at-c roundy bgd-green bl-white" style="margin-left: 5px; margin-bottom: 5px; width: 30%;">
+
+<tbody><tr>
+<td>
+<table class="at-c roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>Modbus RTU Relay (D)</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><a href="https://www.waveshare.com/modbus-rtu-relay-d.htm" target="_blank" rel="nofollow noreferrer noopener"><img alt="360px-Modbus-RTU-Relay-D-4-intro.jpg" src="/w/upload/thumb/c/c2/360px-Modbus-RTU-Relay-D-4-intro.jpg/300px-360px-Modbus-RTU-Relay-D-4-intro.jpg" decoding="async" loading="lazy" width="300" height="225" srcset="/w/upload/c/c2/360px-Modbus-RTU-Relay-D-4-intro.jpg 1.5x" /></a><br /><br /><small>RS485 Relay Module, Digital Input<br />RS485</small>
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>{{{name2}}}</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><br />
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>{{{name3}}}</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><br />
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>{{{name4}}}</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><br />
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>{{{name5}}}</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><br />
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="roundy" style="background: transparent;width:100%;">
+
+<tbody><tr>
+<td class="at-c textwhite"><b>{{{name6}}}</b>
+</td></tr>
+<tr>
+<td class="at-c bgwhite" style="margin:5px;"><br />
+</td></tr></tbody></table>
+</td></tr>
+<tr>
+<td>
+<table class="roundy" style="display:none;">
+<tbody><tr>
+<td style="width:2%;">
+</td>
+<td style="width:3%;">
+</td>
+<th colspan="2" width="90%" class="at-c roundytop bgl-white">Primary Attribute
+</th>
+<td style="width:3%;">
+</td>
+<td style="width:2%;">
+</td></tr>
+<tr>
+<td colspan="6" width="90px" class="at-c roundytl roundytr bgwhite b-green" style="border-width: 0 0 1px 0;"><b>Category:</b>
+</td></tr>
+<tr style="display:none;">
+<th colspan="3" width="90px" class="at-r bgwhite b-green" style="border-width: 0 0 1px 0;">{{{userDefinedInfo}}}:
+</th>
+<td colspan="3" class="at-l b-green bgwhite" style="border-width: 0 0 1px 0;">{{{userdefinedvalue}}}
+</td></tr>
+<tr style="display:none;">
+<td colspan="6" width="90px" class="at-c roundybl roundybr bgwhite"><b>Brand:</b> Waveshare
+</td></tr></tbody></table>
+</td></tr>
+<tr>
+<td>
+<table class="a-r roundy" style="display:none;">
+<tbody><tr>
+<td style="width:2%;">
+</td>
+<td style="width:3%;">
+</td>
+<th colspan="2" width="90%" class="at-c roundytop bgl-white">Website
+</th>
+<td style="width:3%;">
+</td>
+<td style="width:2%;">
+</td></tr>
+<tr>
+<td colspan="6" width="90px" class="at-c roundytl roundytr bgwhite b-green" style="border-width: 0 0 1px 0;"><b>International:</b> <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.com">Website</a>
+</td></tr>
+<tr>
+<td colspan="6" width="90px" class="at-c roundybl roundybr bgwhite"><b>Chinese:</b> <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.net/shop">官网</a>
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="a-r roundy" style="background: transparent; border-collapse:collapse;width:100%;display:none;">
+<tbody><tr>
+<td style="width:2%;">
+</td>
+<td style="width:3%;">
+</td>
+<th colspan="2" width="90%" class="at-c roundytop bgl-white">Onboard Interfaces
+</th>
+<td style="width:3%;">
+</td>
+<td style="width:2%;">
+</td></tr>
+<tr>
+<td colspan="6" width="90px" class="at-l roundy bgwhite b-green" style="border-width: 0 0 1px 0;">
+<table class="roundy bgwhite fulltable" style="text-align:center;">
+
+<tbody><tr>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td></tr>
+<tr>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td></tr>
+<tr>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td></tr>
+<tr>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td></tr>
+<tr>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td>
+<td class="roundy bl-gray bw-1" style="width:25%;display:none;"><small></small>
+</td></tr></tbody></table>
+</td></tr></tbody></table>
+</td></tr>
+<tr style="display:none;">
+<td>
+<table class="a-r roundy" style="background: transparent; border-collapse:collapse;width:100%;;display:none;">
+<tbody><tr>
+<td style="width:2%;">
+</td>
+<td style="width:3%;">
+</td>
+<th colspan="2" width="90%" class="at-c roundytop bgl-white">Related Products
+</th>
+<td style="width:3%;">
+</td>
+<td style="width:2%;">
+</td></tr>
+<tr>
+<td colspan="6" width="90px" class="at-l roundy bgwhite b-green" style="border-width: 0 0 1px 0;">
+</td></tr></tbody></table>
+</td></tr></tbody></table>
+<div class="tabber">
+<div class="tabbertab" title="说明" id="myintro">
+<div id="toc" class="toc" role="navigation" aria-labelledby="mw-toc-heading"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none" /><div class="toctitle" lang="en" dir="ltr"><h2 id="mw-toc-heading">Contents</h2><span class="toctogglespan"><label class="toctogglelabel" for="toctogglecheckbox"></label></span></div>
+<ul>
+<li class="toclevel-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Electrical_and_Relay_Safety_Instructions"><span class="tocnumber">1.1</span> <span class="toctext">Electrical and Relay Safety Instructions</span></a>
+<ul>
+<li class="toclevel-3"><a href="#1._Load_Matching"><span class="tocnumber">1.1.1</span> <span class="toctext">1. Load Matching</span></a></li>
+<li class="toclevel-3"><a href="#2._Short_Circuit_and_Overcurrent_Protection"><span class="tocnumber">1.1.2</span> <span class="toctext">2. Short Circuit and Overcurrent Protection</span></a></li>
+<li class="toclevel-3"><a href="#3._Arc_and_Switching_Protection"><span class="tocnumber">1.1.3</span> <span class="toctext">3. Arc and Switching Protection</span></a></li>
+<li class="toclevel-3"><a href="#4._Installation_Environment"><span class="tocnumber">1.1.4</span> <span class="toctext">4. Installation Environment</span></a></li>
+<li class="toclevel-3"><a href="#5._Power-Off_Operation"><span class="tocnumber">1.1.5</span> <span class="toctext">5. Power-Off Operation</span></a></li>
+<li class="toclevel-3"><a href="#6._Status_Confirmation"><span class="tocnumber">1.1.6</span> <span class="toctext">6. Status Confirmation</span></a></li>
+<li class="toclevel-3"><a href="#7._Regular_Inspection"><span class="tocnumber">1.1.7</span> <span class="toctext">7. Regular Inspection</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-1"><a href="#Specifications"><span class="tocnumber">1.2</span> <span class="toctext">Specifications</span></a></li>
+<li class="toclevel-2 tocsection-2"><a href="#Primary_Functions"><span class="tocnumber">1.3</span> <span class="toctext">Primary Functions</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Wiring_Description"><span class="tocnumber">1.4</span> <span class="toctext">Wiring Description</span></a>
+<ul>
+<li class="toclevel-3 tocsection-4"><a href="#Digital_Input_Wiring"><span class="tocnumber">1.4.1</span> <span class="toctext">Digital Input Wiring</span></a>
+<ul>
+<li class="toclevel-4 tocsection-5"><a href="#Passive_Dry_Contact_Wiring"><span class="tocnumber">1.4.1.1</span> <span class="toctext">Passive Dry Contact Wiring</span></a></li>
+<li class="toclevel-4 tocsection-6"><a href="#Active_Wet_Contact_Wiring"><span class="tocnumber">1.4.1.2</span> <span class="toctext">Active Wet Contact Wiring</span></a></li>
+</ul>
+</li>
+<li class="toclevel-3 tocsection-7"><a href="#Relay_Output_Wiring"><span class="tocnumber">1.4.2</span> <span class="toctext">Relay Output Wiring</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-8"><a href="#Operation_Modes_Introduction"><span class="tocnumber">1.5</span> <span class="toctext">Operation Modes Introduction</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Dimensions"><span class="tocnumber">1.6</span> <span class="toctext">Dimensions</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Hardware_Connection"><span class="tocnumber">1.7</span> <span class="toctext">Hardware Connection</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Example_Demonstration"><span class="tocnumber">1.8</span> <span class="toctext">Example Demonstration</span></a>
+<ul>
+<li class="toclevel-3 tocsection-12"><a href="#SSCOM_Serial_Port_Debugging_Assistant"><span class="tocnumber">1.8.1</span> <span class="toctext">SSCOM Serial Port Debugging Assistant</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="#Modbus_Poll_Software"><span class="tocnumber">1.8.2</span> <span class="toctext">Modbus Poll Software</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-14"><a href="#Demo_Test"><span class="tocnumber">1.9</span> <span class="toctext">Demo Test</span></a>
+<ul>
+<li class="toclevel-3 tocsection-15"><a href="#Raspberry_Pi"><span class="tocnumber">1.9.1</span> <span class="toctext">Raspberry Pi</span></a></li>
+<li class="toclevel-3 tocsection-16"><a href="#STM32"><span class="tocnumber">1.9.2</span> <span class="toctext">STM32</span></a></li>
+<li class="toclevel-3 tocsection-17"><a href="#Arduino"><span class="tocnumber">1.9.3</span> <span class="toctext">Arduino</span></a></li>
+<li class="toclevel-3 tocsection-18"><a href="#PLC"><span class="tocnumber">1.9.4</span> <span class="toctext">PLC</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-19"><a href="#Development_Protocol_V2"><span class="tocnumber">2</span> <span class="toctext">Development Protocol V2</span></a>
+<ul>
+<li class="toclevel-2"><a href="#Function_Code_Introduction"><span class="tocnumber">2.1</span> <span class="toctext">Function Code Introduction</span></a></li>
+<li class="toclevel-2"><a href="#Register_Address_Introduction"><span class="tocnumber">2.2</span> <span class="toctext">Register Address Introduction</span></a></li>
+<li class="toclevel-2"><a href="#Operation_Command_Introduction"><span class="tocnumber">2.3</span> <span class="toctext">Operation Command Introduction</span></a>
+<ul>
+<li class="toclevel-3"><a href="#Control_Single_Relay"><span class="tocnumber">2.3.1</span> <span class="toctext">Control Single Relay</span></a></li>
+<li class="toclevel-3"><a href="#Control_All_Relays"><span class="tocnumber">2.3.2</span> <span class="toctext">Control All Relays</span></a></li>
+<li class="toclevel-3"><a href="#Read_Relay_Status"><span class="tocnumber">2.3.3</span> <span class="toctext">Read Relay Status</span></a></li>
+<li class="toclevel-3"><a href="#Write_Relay_Status"><span class="tocnumber">2.3.4</span> <span class="toctext">Write Relay Status</span></a></li>
+<li class="toclevel-3"><a href="#Relay_Flash_ON.2FOFF_Command"><span class="tocnumber">2.3.5</span> <span class="toctext">Relay Flash ON/OFF Command</span></a></li>
+<li class="toclevel-3"><a href="#Read_Input_Status"><span class="tocnumber">2.3.6</span> <span class="toctext">Read Input Status</span></a></li>
+<li class="toclevel-3"><a href="#Read_Relay_Control_Mode"><span class="tocnumber">2.3.7</span> <span class="toctext">Read Relay Control Mode</span></a></li>
+<li class="toclevel-3"><a href="#Set_Single_Relay_Control_Mode"><span class="tocnumber">2.3.8</span> <span class="toctext">Set Single Relay Control Mode</span></a></li>
+<li class="toclevel-3"><a href="#Set_Multiple_Relay_Control_Mode"><span class="tocnumber">2.3.9</span> <span class="toctext">Set Multiple Relay Control Mode</span></a></li>
+<li class="toclevel-3"><a href="#Set_Baudrate_Command"><span class="tocnumber">2.3.10</span> <span class="toctext">Set Baudrate Command</span></a></li>
+<li class="toclevel-3"><a href="#Set_Device_Address_Command"><span class="tocnumber">2.3.11</span> <span class="toctext">Set Device Address Command</span></a></li>
+<li class="toclevel-3"><a href="#Read_Device_Address_Command"><span class="tocnumber">2.3.12</span> <span class="toctext">Read Device Address Command</span></a></li>
+<li class="toclevel-3"><a href="#Read_Software_Version_Command"><span class="tocnumber">2.3.13</span> <span class="toctext">Read Software Version Command</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2"><a href="#Exception_Function_Code"><span class="tocnumber">2.4</span> <span class="toctext">Exception Function Code</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-20"><a href="#Resources"><span class="tocnumber">3</span> <span class="toctext">Resources</span></a>
+<ul>
+<li class="toclevel-2 tocsection-21"><a href="#Demo"><span class="tocnumber">3.1</span> <span class="toctext">Demo</span></a></li>
+<li class="toclevel-2 tocsection-22"><a href="#Software"><span class="tocnumber">3.2</span> <span class="toctext">Software</span></a></li>
+<li class="toclevel-2 tocsection-23"><a href="#Related_resources"><span class="tocnumber">3.3</span> <span class="toctext">Related resources</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-24"><a href="#FAQ"><span class="tocnumber">4</span> <span class="toctext">FAQ</span></a></li>
+<li class="toclevel-1 tocsection-25"><a href="#Support"><span class="tocnumber">5</span> <span class="toctext">Support</span></a></li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Overview">Overview</span></h1>
+<p><font color="red">
+</font></p><font color="red">
+<h3><span class="mw-headline" id="Electrical_and_Relay_Safety_Instructions">Electrical and Relay Safety Instructions</span></h3>
+<ul><li>This product must be operated by professional electricians or qualified personnel. During use, ensure electrical safety, leakage protection, and proper insulation.</li>
+<li>Before installing, maintaining, or replacing the relay device, always turn off the power and unplug the device.</li>
+<li>Do not attempt to disassemble the relay device to avoid damage or the risk of electric shock.</li>
+<li>Properly install and place the relay device. Do not use it in humid, overheated, flammable, or explosive environments to prevent accidents caused by improper installation or use.</li></ul>
+<h4><span class="mw-headline" id="1._Load_Matching">1. Load Matching</span></h4>
+<ul><li>Ensure the relay's rated voltage and current match the load. Do not exceed the rated capacity.</li>
+<li>For inductive loads (motors, coils, lamps, etc.), the starting current may be much higher than the rated current. Choose a relay with sufficient current margin.</li></ul>
+<h4><span class="mw-headline" id="2._Short_Circuit_and_Overcurrent_Protection">2. Short Circuit and Overcurrent Protection</span></h4>
+<ul><li>Install a <b>fuse</b> or <b>circuit breaker</b> in the relay circuit to prevent damage due to short circuits or accidental overcurrent.</li>
+<li>Ensure the load circuit has no short circuits during wiring, and select protection components with appropriate current ratings if necessary.</li></ul>
+<h4><span class="mw-headline" id="3._Arc_and_Switching_Protection">3. Arc and Switching Protection</span></h4>
+<ul><li>Relay switching generates arcs, which can cause contact wear or welding.</li>
+<li>For inductive loads, it is recommended to use <b>RC snubber circuits</b> or <b>varistors</b> for arc suppression.</li></ul>
+<h4><span class="mw-headline" id="4._Installation_Environment">4. Installation Environment</span></h4>
+<ul><li>Do not use the relay in humid, high-temperature, flammable, explosive, or dusty environments.</li>
+<li>Install the relay securely to avoid vibrations or shocks that may cause misoperation or damage.</li></ul>
+<h4><span class="mw-headline" id="5._Power-Off_Operation">5. Power-Off Operation</span></h4>
+<ul><li>Always cut off power before maintenance, wiring, or replacing the relay to ensure personnel and device safety.</li>
+<li>Latching relays are only powered when changing state. Avoid strong vibrations or strong magnetic fields while the relay is unpowered.</li></ul>
+<h4><span class="mw-headline" id="6._Status_Confirmation">6. Status Confirmation</span></h4>
+<ul><li>After powering on, confirm or reset the relay status as needed to prevent abnormal operation caused by transportation, installation, or external disturbances.</li>
+<li>Avoid power interruption during relay operation to prevent uncertain status or contact damage.</li></ul>
+<h4><span class="mw-headline" id="7._Regular_Inspection">7. Regular Inspection</span></h4>
+<ul><li>Periodically inspect relay contacts, terminals, and insulation to ensure proper operation.</li>
+<li>If abnormal heating, odor, or burn marks are detected, immediately cut off power and replace the relay.</li></ul>
+</font><p><font color="red"></font>
+This is an industrial 8-channel relay module controlled via RS485 bus, with 8-ch digital input, utilizing Modbus RTU protocol. It features embedded protection circuits such as power isolation, magnetical isolation, TVS, etc. It also comes with an ABS enclosure. This relay module is very easy to use. Due to its fast communication, stability, reliability, and safety, it is an ideal choice for industrial control equipments and/or applications with high communication requirements.
+</p>
+<h2><span class="mw-headline" id="Specifications">Specifications</span></h2>
+<table class="wikitable">
+
+<tbody><tr>
+<th>Power Supply
+</th>
+<td>DC 7~36V
+</td></tr>
+<tr>
+<th>Communication Interface
+</th>
+<td>RS485
+</td></tr>
+<tr>
+<th>Baudrate
+</th>
+<td>4800, 9600, 19200, 38400, 57600, 115200, 128000, 256000
+</td></tr>
+<tr>
+<th>Default Communication Format
+</th>
+<td>9600, N, 8, 1
+</td></tr>
+<tr>
+<th>Relay Channels
+</th>
+<td>8 Channels
+</td></tr>
+<tr>
+<th>Contact Form
+</th>
+<td>1NO 1NC
+</td></tr>
+<tr>
+<th>Contact Load
+</th>
+<td>≤10A&#160;250V&#160;AC&#160;or&#160;≤10A&#160;30V&#160;DC
+</td></tr>
+<tr>
+<th>Digital Input
+</th>
+<td>8DI, 5~36V, passive/active input (NPN or PNP), built-in bi-directional optocoupler
+</td></tr>
+<tr>
+<th>Modbus Protocol
+</th>
+<td>Standard Modbus RTU protocol
+</td></tr>
+<tr>
+<th>RS485 Address Setting
+</th>
+<td>1~255
+</td></tr>
+<tr>
+<th>Indicator
+</th>
+<td>STA: MCU indicator, keep flashing when MCU normally working<br />TXD: Transmit Data indicator, lights up when transmitting data<br />RXD: Receive Data indicator, lights up when receiving data
+</td></tr></tbody></table>
+<h2><span class="mw-headline" id="Primary_Functions">Primary Functions</span></h2>
+<p>Supports reading digital input by sending Modbus RTU protocol commands via RS485, and can control relay output based on input. <br />
+<a href="/wiki/File:Modbus_RTU_Relay_(D)_Primary-01.png" class="image"><img alt="Modbus RTU Relay (D) Primary-01.png" src="/w/upload/7/79/Modbus_RTU_Relay_%28D%29_Primary-01.png" decoding="async" loading="lazy" width="823" height="701" /></a>
+</p>
+<h2><span class="mw-headline" id="Wiring_Description">Wiring Description</span></h2>
+<p><a href="/wiki/File:Modbus_RTU_Relay_(D)_Primary01.jpg" class="image"><img alt="Modbus RTU Relay (D) Primary01.jpg" src="/w/upload/9/9c/Modbus_RTU_Relay_%28D%29_Primary01.jpg" decoding="async" loading="lazy" width="600" height="450" /></a><br />
+DI1-DI8 are the 8-channel signal input terminals, and DGND is the signal terminal ground. COM is the common terminal for the input signal, it can be NC (Not Connected), connected to the positive or negative poles of the power supply, directly powered from the power supply or connected to an independent power supply.
+</p>
+<ul><li>NC: dry contact passive input.</li>
+<li>Connect to the positive pole of power supply: low active, NPN wet contact active input, voltage: 5V-30V DC.</li>
+<li>Connect to the negative pole of power supply: high active, PNP wet contact active input.</li></ul>
+<h3><span class="mw-headline" id="Digital_Input_Wiring">Digital Input Wiring</span></h3>
+<p><a href="/wiki/File:Modbus_RTU_Relay_(D)_Primary02.png" class="image"><img alt="Modbus RTU Relay (D) Primary02.png" src="/w/upload/3/3c/Modbus_RTU_Relay_%28D%29_Primary02.png" decoding="async" loading="lazy" width="815" height="639" /></a>
+</p>
+<h4><span class="mw-headline" id="Passive_Dry_Contact_Wiring">Passive Dry Contact Wiring</span></h4>
+<ul><li>Passive dry contact input</li></ul>
+<p><a href="/wiki/File:Modbus_RTU_Relay_(D)_Dry01.png" class="image"><img alt="Modbus RTU Relay (D) Dry01.png" src="/w/upload/5/5d/Modbus_RTU_Relay_%28D%29_Dry01.png" decoding="async" loading="lazy" width="401" height="312" /></a>
+</p>
+<h4><span class="mw-headline" id="Active_Wet_Contact_Wiring">Active Wet Contact Wiring</span></h4>
+<ul><li>Active wet contact NPN input</li></ul>
+<p><a href="/wiki/File:Modbus_RTU_IO_8CH_Wiring_Diagram02.png" class="image"><img alt="Modbus RTU IO 8CH Wiring Diagram02.png" src="/w/upload/5/5b/Modbus_RTU_IO_8CH_Wiring_Diagram02.png" decoding="async" loading="lazy" width="600" height="339" /></a><br />
+</p>
+<ul><li>Active wet contact PNP input</li></ul>
+<p><a href="/wiki/File:Modbus_RTU_IO_8CH_Wiring_Diagram03.png" class="image"><img alt="Modbus RTU IO 8CH Wiring Diagram03.png" src="/w/upload/9/97/Modbus_RTU_IO_8CH_Wiring_Diagram03.png" decoding="async" loading="lazy" width="600" height="392" /></a>
+</p>
+<h3><span class="mw-headline" id="Relay_Output_Wiring">Relay Output Wiring</span></h3>
+<p>The device comes with a relay with a contact capacity of 10A 250V AC or 10A 30V DC, which allows direct control of household 220V AC equipment or DC equipment up to 30V. <br />
+<a href="/wiki/File:Modbus_RTU_Relay_(D)Relay.png" class="image"><img alt="Modbus RTU Relay (D)Relay.png" src="/w/upload/e/e5/Modbus_RTU_Relay_%28D%29Relay.png" decoding="async" loading="lazy" width="836" height="440" /></a>
+</p>
+<h2><span class="mw-headline" id="Operation_Modes_Introduction">Operation Modes Introduction</span></h2>
+<p><a href="/wiki/File:Modbus-RTU-Relay-D-details-11.jpg" class="image"><img alt="Modbus-RTU-Relay-D-details-11.jpg" src="/w/upload/c/ce/Modbus-RTU-Relay-D-details-11.jpg" decoding="async" loading="lazy" width="957" height="878" /></a><br /><a href="/wiki/File:Modbus-RTU-Relay-D-details-13.jpg" class="image"><img alt="Modbus-RTU-Relay-D-details-13.jpg" src="/w/upload/d/df/Modbus-RTU-Relay-D-details-13.jpg" decoding="async" loading="lazy" width="959" height="833" /></a><br />
+<font color="red">
+Precautions
+</font></p><font color="red">
+<ul><li>The default is the Normal Mode, the relay is only controlled by commands.</li>
+<li>Except for the Normal Mode, other modes support controlling relays via input.</li>
+<li>Except for the Linkage Control, other modes support controlling relays via commands.</li></ul>
+</font><p><font color="red"></font>
+</p>
+<h2><span class="mw-headline" id="Dimensions">Dimensions</span></h2>
+<p><a href="/wiki/File:Modbus_RTU_Relay_(D)-Dim.jpg" class="image"><img alt="Modbus RTU Relay (D)-Dim.jpg" src="/w/upload/0/0b/Modbus_RTU_Relay_%28D%29-Dim.jpg" decoding="async" loading="lazy" width="960" height="1050" /></a>
+</p>
+<h2><span class="mw-headline" id="Hardware_Connection">Hardware Connection</span></h2>
+<ul><li>Connect the USB TO 485 to the target boards via cables, A-A and B-B connected as shown below:<br /></li></ul>
+<p><a href="/wiki/File:Modbus_RTU_Relay_(D)1.jpg" class="image"><img alt="Modbus RTU Relay (D)1.jpg" src="/w/upload/d/d3/Modbus_RTU_Relay_%28D%291.jpg" decoding="async" loading="lazy" width="960" height="460" /></a><br />
+</p>
+<h2><span class="mw-headline" id="Example_Demonstration">Example Demonstration</span></h2>
+<p>The demo shows how the following two software operate. <br />
+SSCOM serial port debugging assistant is more convenient to operate, free of installation, and more convenient for complete display and analysis of instructions, but the disadvantage is that the data is not intuitive. <br />
+Modbus Poll software is directly operated on the register, and the data display is more convenient to observe, but the disadvantage is that the instruction is not displayed completely, so you need to be familiar with the Modbus register operation. <br />
+<font color="red">You can test using any method. It is recommended to use the SSCOM serial port debugging assistant software for the first test. <br /></font>
+</p>
+<h3><span class="mw-headline" id="SSCOM_Serial_Port_Debugging_Assistant">SSCOM Serial Port Debugging Assistant</span></h3>
+<ul><li>Download SSCOM Serial port debugging assistant and open it on the computer, open the corresponding port number, and set the baud rate as 9600. Click Multi-Char to open the Send Multi-Char window, and click the function to send the corresponding command.</li></ul>
+<p><a href="/wiki/File:Modbus-RTU-Relay-2-1.png" class="image"><img alt="Modbus-RTU-Relay-2-1.png" src="/w/upload/thumb/4/41/Modbus-RTU-Relay-2-1.png/600px-Modbus-RTU-Relay-2-1.png" decoding="async" loading="lazy" width="600" height="457" srcset="/w/upload/thumb/4/41/Modbus-RTU-Relay-2-1.png/900px-Modbus-RTU-Relay-2-1.png 1.5x, /w/upload/4/41/Modbus-RTU-Relay-2-1.png 2x" /></a><br />
+<font color="red">
+Note: The module defaults to normal mode at the factory, the relay can be directly commanded and controlled. If there is a command to return normally, but the relay does not act, the module may have been changed to other control mode, you can query it by reading the relay control mode command.
+</font>
+</p>
+<ul><li>If you need to send other commands, choose SendHEX. For checksum validation, select ModbusCRC16. After entering the first six bytes of the command, clicking SEND will automatically add the CRC check code.</li></ul>
+<p><a href="/wiki/File:Modbus-RTU-Relay-3.png" class="image"><img alt="Modbus-RTU-Relay-3.png" src="/w/upload/thumb/e/e3/Modbus-RTU-Relay-3.png/600px-Modbus-RTU-Relay-3.png" decoding="async" loading="lazy" width="600" height="457" srcset="/w/upload/thumb/e/e3/Modbus-RTU-Relay-3.png/900px-Modbus-RTU-Relay-3.png 1.5x, /w/upload/e/e3/Modbus-RTU-Relay-3.png 2x" /></a><br />
+</p>
+<ul><li>For detailed control commands, please see the development protocol.</li></ul>
+<h3><span class="mw-headline" id="Modbus_Poll_Software">Modbus Poll Software</span></h3>
+<ul><li>The serial port software is not convenient to observe the data, you can choose <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.modbustools.com/download.html">Modbus Poll software</a> to read the data. Download and install the Modbus Poll software.</li>
+<li>Open the software, select Setup-&gt;Read/Write Definition, select the actual device address for Slave ID, select 01 Read Coils function code for Function, and change Quantity to 8 channels. Click OK to confirm.</li></ul>
+<p><a href="/wiki/File:Modbus-RTU-Relay-C-1.png" class="image"><img alt="Modbus-RTU-Relay-C-1.png" src="/w/upload/thumb/d/d5/Modbus-RTU-Relay-C-1.png/600px-Modbus-RTU-Relay-C-1.png" decoding="async" loading="lazy" width="600" height="494" srcset="/w/upload/thumb/d/d5/Modbus-RTU-Relay-C-1.png/900px-Modbus-RTU-Relay-C-1.png 1.5x, /w/upload/d/d5/Modbus-RTU-Relay-C-1.png 2x" /></a>
+</p>
+<ul><li>Select Connection-&gt;Connect..., choose the corresponding serial port, set the baud rate to 9600, and select 8 Data bits and None Parity. Click OK to connect.</li></ul>
+<p><a href="/wiki/File:Modbus-RTU-Analog-Input-3.png" class="image"><img alt="Modbus-RTU-Analog-Input-3.png" src="/w/upload/thumb/8/8d/Modbus-RTU-Analog-Input-3.png/600px-Modbus-RTU-Analog-Input-3.png" decoding="async" loading="lazy" width="600" height="516" srcset="/w/upload/8/8d/Modbus-RTU-Analog-Input-3.png 1.5x" /></a>
+</p>
+<ul><li>After the connection is normal, you can check the current relay status. Select the corresponding channel, then double-click the status value to pop up the send page. Choose On or Off, then Click Send to control the relay opening and closing.</li></ul>
+<p><a href="/wiki/File:Modbus-RTU-Relay-C-2.png" class="image"><img alt="Modbus-RTU-Relay-C-2.png" src="/w/upload/thumb/5/51/Modbus-RTU-Relay-C-2.png/600px-Modbus-RTU-Relay-C-2.png" decoding="async" loading="lazy" width="600" height="492" srcset="/w/upload/thumb/5/51/Modbus-RTU-Relay-C-2.png/900px-Modbus-RTU-Relay-C-2.png 1.5x, /w/upload/5/51/Modbus-RTU-Relay-C-2.png 2x" /></a>
+</p>
+<ul><li>Choose File-&gt;New to create a new window, select Setup-&gt;Read/Write Definition, choose the actual device address for Slave ID, select 02 for Function, set Address to 0, set Quantity to 8 channels, and change the Scan Rate to 100ms. Click OK to confirm.</li></ul>
+<p><a href="/wiki/File:600px-Modbus-RTU-Relay-D-5.jpg" class="image"><img alt="600px-Modbus-RTU-Relay-D-5.jpg" src="/w/upload/9/92/600px-Modbus-RTU-Relay-D-5.jpg" decoding="async" loading="lazy" width="600" height="493" /></a>
+</p>
+<ul><li>The new window 2 can display the current input status, change the input interface level, and the corresponding values will also change.</li></ul>
+<p><a href="/wiki/File:600px-Modbus-RTU-Relay-D-6.jpg" class="image"><img alt="600px-Modbus-RTU-Relay-D-6.jpg" src="/w/upload/9/9e/600px-Modbus-RTU-Relay-D-6.jpg" decoding="async" loading="lazy" width="600" height="493" /></a>
+</p>
+<h2><span class="mw-headline" id="Demo_Test">Demo Test</span></h2>
+<p>Note: RS485 can not be directly connected to the serial port of the Raspberry Pi, otherwise it may burn the device, you need to add 485 level conversion. For Raspberry Pi, it is recommended to work with the RS485 CAN HAT module. For NUCLEO-F103RB and Arduino, it is recommended to work with the RS485 CAN Shield module.<br />
+</p>
+<h3><span class="mw-headline" id="Raspberry_Pi">Raspberry Pi</span></h3>
+<p>Open the Raspberry Pi terminal and enter the following command to enter the configuration interface <br />
+</p>
+<pre>sudo raspi-config
+Select Interfacing Options -&gt; Serial Port, select Yes to open the hardware serial port
+</pre>
+<p>Then restart Raspberry Pi:<br />
+</p>
+<pre>sudo reboot
+</pre>
+<p>Insert the RS485 CAN HAT into the Raspberry Pi, and connect the Modbus RTU Relay module to the RS485 CAN HAT through A and B.<br />
+If you are using other 485 devices, make sure to connect A-A, B-B.<br />
+Run the following commands to run the demo:
+</p>
+<pre>sudo apt-get install unzip
+wget wget https://files.waveshare.com/wiki/Modbus-RTU-Relay-D/Modbus_RTU_Relay_D_Code.zip
+unzip Modbus_RTU_Relay_D_Code.zip
+cd Modbus_RTU_IO_Code/Python3
+sudo python3 main.py
+</pre>
+<p>After the demo normally runs, each channel can be opened and closed sequentially, and finally the current input status is displayed. <br />
+</p>
+<h3><span class="mw-headline" id="STM32">STM32</span></h3>
+<p>Note: The STM32 demo is based on the NUCLEO-F103RB and RS485 CAN Shield module. <br />
+</p><p>1. Download <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/Modbus-RTU-Relay-D/Modbus_RTU_Relay_D_Code.zip">Demo</a>, find the STM32 project file Modbus Relay.uvprojx in the path Modbus_RTU_Relay_D_Code\STM32\MDK-ARM, and double-click to open the STM32 project file. Note that you should ensure Keil5 software is installed on your computer before using it.<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-stm32-1.png" class="image"><img alt="900px-Modbus-RTU-Relay-stm32-1.png" src="/w/upload/thumb/4/4a/900px-Modbus-RTU-Relay-stm32-1.png/600px-900px-Modbus-RTU-Relay-stm32-1.png" decoding="async" loading="lazy" width="600" height="401" srcset="/w/upload/4/4a/900px-Modbus-RTU-Relay-stm32-1.png 1.5x" /></a><br />
+2. ​​Connect the STM32 to a computer via the STM32 download and debug probe.​ Compile and download the program to the development board. <br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-stm32-2.png" class="image"><img alt="900px-Modbus-RTU-Relay-stm32-2.png" src="/w/upload/thumb/8/89/900px-Modbus-RTU-Relay-stm32-2.png/600px-900px-Modbus-RTU-Relay-stm32-2.png" decoding="async" loading="lazy" width="600" height="330" srcset="/w/upload/8/89/900px-Modbus-RTU-Relay-stm32-2.png 1.5x" /></a><br />
+3. Install the RS485 CAN Shield module on the STM32. Connect the RS485_A on the RS485 CAN Shield module to the RS485_A on the Modbus RTU Relay via a wire, and connect the RS485_B on the RS485 CAN Shield module to the RS485_B on the Modbus RTU Relay via a wire. Then power on the Modbus RTU Relay and the STM32 sequentially. <br />
+</p><p>4. After powering on, the serial port will output the transmitted commands, which can be observed using a serial port assistant. Meanwhile, the relays will sequentially turn on (e.g., 1→2→3→4). Once all relays are fully activated, they will then sequentially turn off (e.g., 1→2→3→4). You can observe whether the relay is normally engaged through the LED indicator light. <br />
+</p><p><a href="/wiki/File:Modbus-RTU-Relay-2-1.png" class="image"><img alt="Modbus-RTU-Relay-2-1.png" src="/w/upload/thumb/4/41/Modbus-RTU-Relay-2-1.png/600px-Modbus-RTU-Relay-2-1.png" decoding="async" loading="lazy" width="600" height="457" srcset="/w/upload/thumb/4/41/Modbus-RTU-Relay-2-1.png/900px-Modbus-RTU-Relay-2-1.png 1.5x, /w/upload/4/41/Modbus-RTU-Relay-2-1.png 2x" /></a><br />
+</p>
+<h3><span class="mw-headline" id="Arduino">Arduino</span></h3>
+<p>Note: The Arduino demo is based on the UNO PLUS and RS485 CAN Shield module. <br />
+1. Download <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/Modbus-RTU-Relay-D/Modbus_RTU_Relay_D_Code.zip">Demo</a>, find the Arduino project file Modbus_RTU_Relay.ino in the path Modbus_RTU_Relay_D_Code\Arduino\Modbus_RTU_Relay, and double-click to open the Arduino project file. Note that you should ensure Arduino IDE software is installed on your computer before using it. <br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-arduino-1.png" class="image"><img alt="900px-Modbus-RTU-Relay-arduino-1.png" src="/w/upload/thumb/6/6e/900px-Modbus-RTU-Relay-arduino-1.png/600px-900px-Modbus-RTU-Relay-arduino-1.png" decoding="async" loading="lazy" width="600" height="400" srcset="/w/upload/6/6e/900px-Modbus-RTU-Relay-arduino-1.png 1.5x" /></a><br />
+</p><p>2. Connect the Arduino to the computer via a USB cable. In the Arduino IDE software, select the Arduino board model under Tools-&gt;Board. Choose the COM port that the Arduino is connected to under Tools-&gt;Port. <br />
+3. After seeing the prompt to connect to the computer in the lower right corner, click to compile and flash the program, and wait for the flashing to complete.<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-arduino-2.png" class="image"><img alt="900px-Modbus-RTU-Relay-arduino-2.png" src="/w/upload/thumb/e/ee/900px-Modbus-RTU-Relay-arduino-2.png/600px-900px-Modbus-RTU-Relay-arduino-2.png" decoding="async" loading="lazy" width="600" height="338" srcset="/w/upload/e/ee/900px-Modbus-RTU-Relay-arduino-2.png 1.5x" /></a><br />
+</p><p>4. Install the RS485 CAN Shield module on the Arduino. Connect the RS485_A on the RS485 CAN Shield module to the RS485_A on the Modbus RTU Relay via a wire, and connect the RS485_B on the RS485 CAN Shield module to the RS485_B on the Modbus RTU Relay via a wire. Then power on the Modbus RTU Relay and the Arduino sequentially. <br />
+</p><p>5. After powering on, the serial port will output the transmitted commands, which can be observed using a serial port assistant. Meanwhile, the relays will sequentially turn on (e.g., 1→2→3→4). Once all relays are fully activated, they will then sequentially turn off (e.g., 1→2→3→4). You can observe whether the relay is normally engaged through the LED indicator light. <br />
+</p><p>Note: The data in the figure below is in ASCII code containing spaces and line breaks, and is not the actual data transmitted. <br />
+<a href="/wiki/File:Modbus-RTU-Relay-3-1.png" class="image"><img alt="Modbus-RTU-Relay-3-1.png" src="/w/upload/thumb/0/0d/Modbus-RTU-Relay-3-1.png/600px-Modbus-RTU-Relay-3-1.png" decoding="async" loading="lazy" width="600" height="457" srcset="/w/upload/thumb/0/0d/Modbus-RTU-Relay-3-1.png/900px-Modbus-RTU-Relay-3-1.png 1.5x, /w/upload/0/0d/Modbus-RTU-Relay-3-1.png 2x" /></a><br />
+</p>
+<h3><span class="mw-headline" id="PLC">PLC</span></h3>
+<p>Note: The PLC demo is based on SIMATIC S7-200 SMART. <br />
+</p><p>1. Download <a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/Modbus-RTU-Relay-D/Modbus_RTU_Relay_D_Code.zip">Demo</a>, find the PLC project file modbus_rtu.smart in the path Modbus_RTU_Relay_Code\PLC, and double-click to open the PLC project file. Note that you should ensure STEP 7-MicroWIN SMART software is installed on your computer before using it.<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-plc-1.png" class="image"><img alt="900px-Modbus-RTU-Relay-plc-1.png" src="/w/upload/thumb/d/d5/900px-Modbus-RTU-Relay-plc-1.png/600px-900px-Modbus-RTU-Relay-plc-1.png" decoding="async" loading="lazy" width="600" height="320" srcset="/w/upload/d/d5/900px-Modbus-RTU-Relay-plc-1.png 1.5x" /></a><br />
+2. Connect the PLC to the computer via a network cable. Click to download<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-plc-2.png" class="image"><img alt="900px-Modbus-RTU-Relay-plc-2.png" src="/w/upload/thumb/f/ff/900px-Modbus-RTU-Relay-plc-2.png/600px-900px-Modbus-RTU-Relay-plc-2.png" decoding="async" loading="lazy" width="600" height="361" srcset="/w/upload/f/ff/900px-Modbus-RTU-Relay-plc-2.png 1.5x" /></a><br />
+3. Select the communication interface in the communication popup, find your device, and click Confirm<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-plc-3.png" class="image"><img alt="900px-Modbus-RTU-Relay-plc-3.png" src="/w/upload/thumb/0/08/900px-Modbus-RTU-Relay-plc-3.png/600px-900px-Modbus-RTU-Relay-plc-3.png" decoding="async" loading="lazy" width="600" height="389" srcset="/w/upload/0/08/900px-Modbus-RTU-Relay-plc-3.png 1.5x" /></a><br />
+4. In the download pop-up window, check the boxes for program blocks, data blocks, and system blocks, and then click Download. <br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-plc-4.png" class="image"><img alt="900px-Modbus-RTU-Relay-plc-4.png" src="/w/upload/thumb/d/d3/900px-Modbus-RTU-Relay-plc-4.png/600px-900px-Modbus-RTU-Relay-plc-4.png" decoding="async" loading="lazy" width="600" height="353" srcset="/w/upload/d/d3/900px-Modbus-RTU-Relay-plc-4.png 1.5x" /></a><br />
+5. Connect the 485_A on the PLC module to RS485_A on the Modbus RTU Relay with a wire, and connect the 485_B on the PLC module to RS485_B on the Modbus RTU Relay with a wire. Then power on the Modbus RTU Relay. <br />
+</p><p>6. After powering on the Modbus RTU Relay, in the STEP 7-MicroWIN SMART software, find the "PLC" tab in the upper menu bar, switch to this tab, and click the green "RUN" button in the lower "Operation" area to perform the operation to make the PLC enter the running state<br />
+<a href="/wiki/File:900px-Modbus-RTU-Relay-plc-5.png" class="image"><img alt="900px-Modbus-RTU-Relay-plc-5.png" src="/w/upload/thumb/6/64/900px-Modbus-RTU-Relay-plc-5.png/600px-900px-Modbus-RTU-Relay-plc-5.png" decoding="async" loading="lazy" width="600" height="409" srcset="/w/upload/6/64/900px-Modbus-RTU-Relay-plc-5.png 1.5x" /></a><br />
+7. After the PLC runs, the relays will sequentially turn on (e.g., 1→2→3→4). Once all relays are fully activated, they will then sequentially turn off (e.g., 1→2→3→4). You can observe whether the relay is normally engaged through the LED indicator light. <br />
+</p><p><br />
+</p>
+</div>
+<h1><span class="mw-headline" id="Development_Protocol_V2">Development Protocol V2</span></h1>
+<div class="wiki-pages jet-green-color">
+<h2><span class="mw-headline" id="Function_Code_Introduction">Function Code Introduction</span></h2>
+<table class="wikitable">
+<tbody><tr>
+<th>Function Code</th>
+<th>Description
+</th></tr>
+<tr>
+<td>01</td>
+<td>Read relay status
+</td></tr>
+<tr>
+<td>02</td>
+<td>Read input status
+</td></tr>
+<tr>
+<td>03</td>
+<td>Read save register
+</td></tr>
+<tr>
+<td>05</td>
+<td>Write single relay
+</td></tr>
+<tr>
+<td>06</td>
+<td>Set single register
+</td></tr>
+<tr>
+<td>0F</td>
+<td>Write multiple relays
+</td></tr>
+<tr>
+<td>10</td>
+<td>Set multiple registers
+</td></tr></tbody></table>
+<h2><span class="mw-headline" id="Register_Address_Introduction">Register Address Introduction</span></h2>
+<table class="wikitable">
+<tbody><tr>
+<th>Address (HEX)</th>
+<th>Address storage content</th>
+<th>Register value</th>
+<th>Permission</th>
+<th>Modbus Function Code
+</th></tr>
+<tr>
+<td>0x0000<br />……<br />0x0007</td>
+<td>Channels 1~8 relay addresses</td>
+<td>0xFF00: relay on<br />0x0000: relay off<br />0x5500: relay toggle<br /></td>
+<td>Read/Write</td>
+<td>0x01, 0x05, 0x0F
+</td></tr>
+<tr>
+<td>0x00FF</td>
+<td>Control All Registers</td>
+<td>0xFF00: all relays on<br />0x0000: all relays off<br />0x5500: all relays toggle</td>
+<td>Write</td>
+<td>0x05
+</td></tr>
+<tr>
+<td>0x0200<br />……<br />0x0207</td>
+<td>Channels 1~8 relays flash on</td>
+<td>Delay time: data*100ms<br />Value: 0x0007, delay time: 7*100MS = 700MS</td>
+<td>Write</td>
+<td>0x05
+</td></tr>
+<tr>
+<td>0x0400<br />……<br />0x0407</td>
+<td>Channels 1~8 relays flash off</td>
+<td>Delay time: data*100ms<br />Value: 0x0007, delay time: 7*100MS = 700MS</td>
+<td>Write</td>
+<td>0x05
+</td></tr>
+<tr>
+<td>1x0000<br />……<br />1x0007</td>
+<td>Channels 1~8 input addresses</td>
+<td>Indicates channel 1~8 input channel status</td>
+<td>Read</td>
+<td>0x02
+</td></tr>
+<tr>
+<td>4x1000<br />……<br />4x1007</td>
+<td>Channels 1~8 relay control mode</td>
+<td>0x0000~0x0003 four control modes</td>
+<td>Read/Write</td>
+<td>0x03, 0x06, 0x10
+</td></tr>
+<tr>
+<td>4x2000</td>
+<td>UART Parameters</td>
+<td>The high eight bits indicate the parity mode: 0x00~0x02<br />The low eight bits indicate the baud rate mode: 0x00~0x07</td>
+<td>Read/Write</td>
+<td>0x03, 0x06
+</td></tr>
+<tr>
+<td>4x4000</td>
+<td>Device Address</td>
+<td>Directly store Modbus address<br />Device address: 0x0001-0x00FF</td>
+<td>Read/Write</td>
+<td>0x03, 0x06
+</td></tr>
+<tr>
+<td>4x8000</td>
+<td>Software Version</td>
+<td>Converting to decimal and then shifting the decimal point two places to the left will represent the software version<br />0x0064 = 100 = V1.00</td>
+<td>Read</td>
+<td>0x03
+</td></tr></tbody></table>
+<h2><span class="mw-headline" id="Operation_Command_Introduction">Operation Command Introduction</span></h2>
+<h3><span class="mw-headline" id="Control_Single_Relay">Control Single Relay</span></h3>
+<p>Send code: 01 05 00 00 FF 00 8C 3A
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Relay control
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Address</td>
+<td>The register address of the relay to be controlled, 0x0000-0x0007
+</td></tr>
+<tr>
+<td>FF 00</td>
+<td>Command</td>
+<td>0xFF00: relay on;<br />0x0000: relay off;<br />0x5500: relay toggle;
+</td></tr>
+<tr>
+<td>8C 3A</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Return code: 01 05 00 00 FF 00 8C 3A
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Relay control
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Address</td>
+<td>The register address of the relay to be controlled, 0x0000-0x0007
+</td></tr>
+<tr>
+<td>FF 00</td>
+<td>Command</td>
+<td>0xFF00: relay on;<br />0x0000: relay off;<br />0x5500: relay toggle
+</td></tr>
+<tr>
+<td>8C 3A</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]:
+</p>
+<pre>Relay 0 on:     01 05 00 00 FF 00 8C 3A
+Relay 0 off:    01 05 00 00 00 00 CD CA
+Relay 1 on:     01 05 00 01 FF 00 DD FA
+Relay 1 off:    01 05 00 01 00 00 9C 0A
+Relay 2 on:     01 05 00 02 FF 00 2D FA
+Relay 2 off:    01 05 00 02 00 00 6C 0A
+Relay 3 on:     01 05 00 03 FF 00 7C 3A
+Relay 3 off:    01 05 00 03 00 00 3D CA
+Relay 0 toggle: 01 05 00 00 55 00 F2 9A
+Relay 1 toggle: 01 05 00 01 55 00 A3 5A
+Relay 2 toggle: 01 05 00 02 55 00 53 5A
+Relay 3 toggle: 01 05 00 03 55 00 02 9A
+</pre>
+<h3><span class="mw-headline" id="Control_All_Relays">Control All Relays</span></h3>
+<p>Send code: 01 05 00 FF FF 00 BC 0A
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Relay control
+</td></tr>
+<tr>
+<td>00 FF</td>
+<td>Address</td>
+<td>Fixed 0x00FF
+</td></tr>
+<tr>
+<td>FF 00</td>
+<td>Command</td>
+<td>0xFF00: relay on;<br />0x0000: relay off;<br />0x5500: relay toggle
+</td></tr>
+<tr>
+<td>BC 0A</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Return code: 01 05 00 FF FF 00 BC 0A
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Relay control
+</td></tr>
+<tr>
+<td>00 FF</td>
+<td>Address</td>
+<td>Fixed 0x00FF
+</td></tr>
+<tr>
+<td>FF 00</td>
+<td>Command</td>
+<td>0xFF00: relay on;<br />0x0000: relay off;<br />0x5500: relay toggle
+</td></tr>
+<tr>
+<td>BC 0A</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]:
+</p>
+<pre>All relays on:     01 05 00 FF FF 00 BC 0A
+All relays off:    01 05 00 FF 00 00 FD FA
+All relays toggle: 01 05 00 FF 55 00 C2 AA
+</pre>
+<h3><span class="mw-headline" id="Read_Relay_Status">Read Relay Status</span></h3>
+<p>Send code: 01 01 00 00 00 08 3D CC
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>01</td>
+<td>01 Command</td>
+<td>Query relay status
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Relay Start Address</td>
+<td>The register address of the relay, 0x0000 - 0x0007
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Relay Number</td>
+<td>The number of relays to be read, which must not exceed the maximum number of relays
+</td></tr>
+<tr>
+<td>3D CC</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 01 01 01 00 51 88
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>01</td>
+<td>01 Command</td>
+<td>Query relay status
+</td></tr>
+<tr>
+<td>01</td>
+<td>Byte Number</td>
+<td>The number of all bytes of the returned status information
+</td></tr>
+<tr>
+<td>00</td>
+<td>Query status</td>
+<td>Received relay status<br />Bit0: the first relay status;<br />Bit1: the second relay status;<br />And so on, with the idle high bit being zero<br />
+</td></tr>
+<tr>
+<td>51 88</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Send:    01 01 00 00 00 08  3D CC
+Receive: 01 01 01 00 51 88         //All relays off
+Send:    01 01 00 00 00 08  3D CC
+Receive: 01 01 01 01 90 48         //Relay 0 is on, others are off
+Send:    01 01 00 00 00 08  3D CC
+Receive: 01 01 01 41 91 B8         //Relay 0 and 6 are on, others are off
+</pre>
+<h3><span class="mw-headline" id="Write_Relay_Status">Write Relay Status</span></h3>
+<p>Send code: 01 0F 00 00 00 08 01 FF BE D5
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>0F</td>
+<td>0F Command</td>
+<td>Write relay status
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Relay Start Address</td>
+<td>The register address of the relay to be controlled, 0x0000 - 0x0007
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Relay Number</td>
+<td>The number of relays to be operated, which must not exceed the maximum number of relays
+</td></tr>
+<tr>
+<td>01</td>
+<td>Byte Number</td>
+<td>The byte number of the status
+</td></tr>
+<tr>
+<td>FF</td>
+<td>Relay Status</td>
+<td>Bit0: the first relay status;<br />Bit1: the second relay status;<br />And so on, with the idle high bit being zero<br />
+</td></tr>
+<tr>
+<td>BE D5</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 01 0F 00 00 00 01 94 0B
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>0F</td>
+<td>0F Command</td>
+<td>Control all registers
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Address</td>
+<td>The register address of the relay to be controlled, 0x0000-0x0007
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Relay Number</td>
+<td>The number of relays to be operated<br />
+</td></tr>
+<tr>
+<td>54 0D</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>All relays on:   01 0F 00 00 00 08 01 FF BE D5
+All relays off:  01 0F 00 00 00 08 01 00 FE 95
+0-1 on; 2-7 off: 01 0F 00 00 00 08 01 03 BE 94
+</pre>
+<h3><span id="Relay_Flash_ON/OFF_Command"></span><span class="mw-headline" id="Relay_Flash_ON.2FOFF_Command">Relay Flash ON/OFF Command</span></h3>
+<p>Send code: 01 05 02 00 00 07 8D B0
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Single control command
+</td></tr>
+<tr>
+<td>02</td>
+<td>Command</td>
+<td>02: flash on, 04: flash off
+</td></tr>
+<tr>
+<td>00</td>
+<td>Relay Address</td>
+<td>The address of the relay to be controlled, 0x00~0x07
+</td></tr>
+<tr>
+<td>00 07</td>
+<td>Delay Time</td>
+<td>The delay time: data*100ms<br />Value: 0x0007, delay time: 7*100MS = 700MS<br />The maximum setting for the flash-on flash-off time is 0x7FFF
+</td></tr>
+<tr>
+<td>8D B0</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 01 05 02 00 00 07 8D B0
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>05</td>
+<td>05 Command</td>
+<td>Single control command
+</td></tr>
+<tr>
+<td>02</td>
+<td>Command</td>
+<td>02: flash on, 04: flash off
+</td></tr>
+<tr>
+<td>00</td>
+<td>Relay Address</td>
+<td>The address of the relay to be controlled, 0x00~0x07
+</td></tr>
+<tr>
+<td>00 07</td>
+<td>Delay Time</td>
+<td>The delay time: data*100ms<br />Value: 0x0007, delay time: 7*100MS = 700MS<br />The maximum setting for the flash-on flash-off time is 0x7FFF
+</td></tr>
+<tr>
+<td>8D B0</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Relay 0 flash on:  01 05 02 00 00 07 8D B0  //700MS = 7*100MS = 700MS
+Relay 1 flash on:  01 05 02 01 00 08 9C 74  //800MS
+Relay 0 flash off: 01 05 04 00 00 05 0C F9  //500MS
+Relay 1 flash off: 01 05 04 01 00 06 1D 38  //600MS
+</pre>
+<h3><span class="mw-headline" id="Read_Input_Status">Read Input Status</span></h3>
+<p>Send code: 01 02 00 00 00 08 79 CC
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>02</td>
+<td>02 Command</td>
+<td>Read input status
+</td></tr>
+<tr>
+<td>00 00</td>
+<td>Input Start Address</td>
+<td>The address of the input register, 0x0000 - 0x0007
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Register Number</td>
+<td>The number of the input channels to be read, which must not exceed the maximum number of the input
+</td></tr>
+<tr>
+<td>79 CC</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 01 02 01 00 A1 88
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>02</td>
+<td>02 Command</td>
+<td>Read input status
+</td></tr>
+<tr>
+<td>01</td>
+<td>Byte Number</td>
+<td>The number of all bytes of the returned status information
+</td></tr>
+<tr>
+<td>00</td>
+<td>Query status</td>
+<td>Received input channel status <br />Bit0: the first channel status;<br />Bit1: the second channel status;<br />And so on, with the idle high bit being zero<br />
+</td></tr>
+<tr>
+<td>A1 88</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Send:    01 02 00 00 00 08 79 CC
+Receive: 01 01 01 00 51 88        //Inputs are all untriggered
+Send:    01 02 00 00 00 08 79 CC
+Receive: 01 02 01 01 60 48        //Channel 1 input is triggered, and the rest of channels are not triggered
+Send:    01 02 00 00 00 08 79 CC
+Receive: 01 02 01 41 61 B8        //Channel 1 and 7 input are triggered, and the rest of channels are not triggered
+</pre>
+<h3><span class="mw-headline" id="Read_Relay_Control_Mode">Read Relay Control Mode</span></h3>
+<p>Send code: 01 03 10 00 00 08 40 CC
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read Holding Register
+</td></tr>
+<tr>
+<td>10 00</td>
+<td>Register Start Address</td>
+<td>0x1000 - 0x1007 corresponds to 1~8 input channels
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Register Number</td>
+<td>The number of the registers to be read, which must not exceed the maximum number of the input channels
+</td></tr>
+<tr>
+<td>40 CC</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 01 03 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 E4 59
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read Holding Register
+</td></tr>
+<tr>
+<td>10</td>
+<td>Byte Number</td>
+<td>The number of all bytes of the returned status information
+</td></tr>
+<tr>
+<td>00 00 <br />……<br />00 00<br /></td>
+<td>Control Mode</td>
+<td>Indicates relay 1 - 8 control mode, 0x0000~0x0003 indicate four control modes<br />0x0000: <code><font color="#337ab7"><b>Normal mode</b></font></code>, the relay is directly controlled by commands;<br />0x0001: <code><font color="#337ab7"><b>Linkage mode</b></font></code>, relay status is the same as the corresponding input channel status;<br />0x0002: <code><font color="#337ab7"><b>Toggle mode</b></font></code>, the corresponding relay toggles once when the input channel inputs a pulse;<br />0x0003: <code><font color="#337ab7"><b>Edge Trigger Mode</b></font></code>, the corresponding relay status changes once when the input channel level changes once<br /><div role="note" class="note note-error"><b>Note: </b>All modes except Linkage mode support relay control by command. </div>
+</td></tr>
+<tr>
+<td>E4 59</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Read relay 1-8 control mode: 01 03 10 00 00 08 40 CC
+Read relay 1 control mode:   01 03 10 00 00 01 80 CA
+Read relay 2 control mode:   01 03 10 01 00 01 D1 0A
+Read relay 3-5 control mode: 01 03 10 02 00 03 A0 CB
+</pre>
+<h3><span class="mw-headline" id="Set_Single_Relay_Control_Mode">Set Single Relay Control Mode</span></h3>
+<p>Send code: 01 06 10 00 00 01 4C CA
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 Command</td>
+<td>Write single register
+</td></tr>
+<tr>
+<td>10 00</td>
+<td>Register Start Address</td>
+<td>0x1000 - 0x1007 corresponds to relay control modes for channels 1~8
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Control Mode</td>
+<td>Indicates relay 1 - 8 control mode, 0x0000~0x0003 indicate four control modes<br />0x0000: <code><font color="#337ab7"><b>Normal mode</b></font></code>, the relay is directly controlled by commands;<br />0x0001: <code><font color="#337ab7"><b>Linkage mode</b></font></code>, relay status is the same as the corresponding input channel status;<br />0x0002: <code><font color="#337ab7"><b>Toggle mode</b></font></code>, the corresponding relay toggles once when the input channel inputs a pulse;<br />0x0003: <code><font color="#337ab7"><b>Edge Trigger Mode</b></font></code>, the corresponding relay status changes once when the input channel level changes once<br /><div role="note" class="note note-error"><b>Note: </b>All modes except Linkage mode support relay control by command. </div>
+</td></tr>
+<tr>
+<td>4C CA</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Return code: 01 06 10 00 00 01 4C CA
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 Command</td>
+<td>Write single register
+</td></tr>
+<tr>
+<td>10 00</td>
+<td>Register Start Address</td>
+<td>0x1000 - 0x1007 correspond to relay control modes for channels 1~8
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Control Mode</td>
+<td>Relay control modes, 0x0000~0x0003 indicate four control modes
+</td></tr>
+<tr>
+<td>4C CA</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Set relay 1 as Linkage mode: 01 06 10 00 00 01 4C CA
+Set relay 2 as toggle mode:  01 06 10 01 00 02 5D 0B
+</pre>
+<h3><span class="mw-headline" id="Set_Multiple_Relay_Control_Mode">Set Multiple Relay Control Mode</span></h3>
+<p>Send code: 01 10 10 00 00 08 10 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 7C B1 
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>10</td>
+<td>10 Command</td>
+<td>Write multiple registers
+</td></tr>
+<tr>
+<td>10 00</td>
+<td>Register Start Address</td>
+<td>0x1000 - 0x1007 correspond to relay control modes for channels 1~8
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Register Number</td>
+<td>Set register number, which must not exceed the maximum number of the input channels
+</td></tr>
+<tr>
+<td>10</td>
+<td>Byte Number</td>
+<td>Set the byte number of the input
+</td></tr>
+<tr>
+<td>00 01 <br />……<br />00 01<br /></td>
+<td>Control Mode</td>
+<td>Indicates relay 1 - 8 control mode, 0x0000~0x0003 indicate four control modes<br />0x0000: <code><font color="#337ab7"><b>Normal mode</b></font></code>, the relay is directly controlled by commands;<br />0x0001: <code><font color="#337ab7"><b>Linkage mode</b></font></code>, relay status is the same as the corresponding input channel status;<br />0x0002: <code><font color="#337ab7"><b>Toggle mode</b></font></code>, the corresponding relay toggles once when the input channel inputs a pulse;<br />0x0003: <code><font color="#337ab7"><b>Edge Trigger Mode</b></font></code>, the corresponding relay status changes once when the input channel level changes once<br /><div role="note" class="note note-error"><b>Note: </b>All modes except Linkage mode support relay control by command. </div>
+</td></tr>
+<tr>
+<td>7C B1</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Return code: 01 10 10 00 00 08 C5 0F
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>10</td>
+<td>10 Command</td>
+<td>Write multiple registers
+</td></tr>
+<tr>
+<td>10 00</td>
+<td>Register Start Address</td>
+<td>0x1000 - 0x1007 correspond to relay control modes for channels 1~8
+</td></tr>
+<tr>
+<td>00 08</td>
+<td>Register Number</td>
+<td>Set register number, up to 8 channels
+</td></tr>
+<tr>
+<td>C5 0F</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]<br />
+</p>
+<pre>Set channel 1-8 relay as Linkage mode: 01 10 10 00 00 08 10 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 7C B1<br />
+Set channel 3-5 relay as Toggle mode: 01 10 10 02 00 03 06 00 02 00 02 00 02 4A 4B
+</pre>
+<h3><span class="mw-headline" id="Set_Baudrate_Command">Set Baudrate Command</span></h3>
+<p>Send code: 00 06 20 00 00 05 43 D8
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 command</td>
+<td>Set the baud rate and device address
+</td></tr>
+<tr>
+<td>20 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00</td>
+<td>Parity Method</td>
+<td>0x00: no parity, 0x01: even parity; 0x02: odd parity
+</td></tr>
+<tr>
+<td>05</td>
+<td>Baud Rate Value</td>
+<td>Corresponding baud rate<br />0x00: 4800<br />0x01: 9600<br />0x02: 19200<br />0x03: 38400<br />0x04: 57600<br />0x05: 115200<br />0x06: 128000<br />0x07: 256000<br />
+</td></tr>
+<tr>
+<td>43 D8</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 00 06 20 00 00 05 43 D8
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 command</td>
+<td>Set the baud rate and device address
+</td></tr>
+<tr>
+<td>20 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00</td>
+<td>Parity Method</td>
+<td>0x00: no parity, 0x01: odd parity; 0x02: even parity
+</td></tr>
+<tr>
+<td>05</td>
+<td>Baud Rate</td>
+<td>Corresponding baud rate<br />0x00: 4800<br />0x01: 9600<br />0x02: 19200<br />0x03: 38400<br />0x04: 57600<br />0x05: 115200<br />0x06: 128000<br />0x07: 256000<br />
+</td></tr>
+<tr>
+<td>43 D8</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Set the baud rate as 4800:   01 06 20 00 00 00 82 0A
+Set the baud rate as 9600:   01 06 20 00 00 01 43 CA
+Set the baud rate as 115200: 01 06 20 00 00 05 42 09
+</pre>
+<h3><span class="mw-headline" id="Set_Device_Address_Command">Set Device Address Command</span></h3>
+<p>Send code: 00 06 40 00 00 01 5C 1B
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 command</td>
+<td>Set the baud rate and device address
+</td></tr>
+<tr>
+<td>40 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Device Address</td>
+<td>Set the device address, 0x0001-0x00FF
+</td></tr>
+<tr>
+<td>5C 1B</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 00 06 40 00 00 01 5C 1B
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>06</td>
+<td>06 command</td>
+<td>Set the baud rate and device address
+</td></tr>
+<tr>
+<td>40 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Device Address</td>
+<td>Set the device address, 0x0001-0x00FF
+</td></tr>
+<tr>
+<td>5C 1B</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 1 device]
+</p>
+<pre>Set the device address as 0x01: 00 06 40 00 00 01 5C 1B
+Set the device address as 0x02: 00 06 40 00 00 02 1C 1A
+Set the device address as 0x03: 00 06 40 00 00 03 DD DA
+</pre>
+<h3><span class="mw-headline" id="Read_Device_Address_Command">Read Device Address Command</span></h3>
+<p>Send code: 00 03 40 00 00 01 90 1B
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read the device address
+</td></tr>
+<tr>
+<td>40 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Byte Number</td>
+<td>Fixed 0x0001
+</td></tr>
+<tr>
+<td>90 1B</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 00 03 02 00 02 04 45
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read the software version and device address
+</td></tr>
+<tr>
+<td>02</td>
+<td>Byte Number</td>
+<td>The number of bytes returned
+</td></tr>
+<tr>
+<td>00 02</td>
+<td>Device Address</td>
+<td>Set the device address, 0x0001-0x00FF
+</td></tr>
+<tr>
+<td>04 45</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example: [Address 2 device]
+</p>
+<pre>Send:    00 03 40 00 00 01 90 1B
+Receive: 00 03 02 00 02 04 45       //Address: 0x02
+</pre>
+<h3><span class="mw-headline" id="Read_Software_Version_Command">Read Software Version Command</span></h3>
+<p>Send code: 00 03 80 00 00 01 AC 1B
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read the software version and device address
+</td></tr>
+<tr>
+<td>80 00</td>
+<td>Command Register</td>
+<td>0x2000: set the baud rate; 0x4000: set the device address, 0x8000: read software version
+</td></tr>
+<tr>
+<td>00 01</td>
+<td>Byte Number</td>
+<td>Fixed 0x0001
+</td></tr>
+<tr>
+<td>AC 1B</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>Receive code: 00 03 02 00 C8 84 12
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>00</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>03</td>
+<td>03 Command</td>
+<td>Read the software version and device address
+</td></tr>
+<tr>
+<td>02</td>
+<td>Byte Number</td>
+<td>The number of bytes returned
+</td></tr>
+<tr>
+<td>00 C8</td>
+<td>Software Version</td>
+<td>Converting to decimal and then shifting the decimal point two places to the left will represent the software version<br />0x00C8 = 200 = V2.00
+</td></tr>
+<tr>
+<td>84 12</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>For example:
+</p>
+<pre>Send:    00 03 80 00 00 01 AC 1B
+Receive: 00 03 02 00 C8 84 12       //0x00C8 = 200 =V2.00
+</pre>
+<h2><span class="mw-headline" id="Exception_Function_Code">Exception Function Code</span></h2>
+<p>When the received command is incorrect or the device is abnormal, an exception response will be returned in the following format:
+</p><p>Receive: 01 85 03 02 91
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Field</th>
+<th>Description</th>
+<th>Note
+</th></tr>
+<tr>
+<td>01</td>
+<td>Device Address</td>
+<td>0x00 indicates the broadcast address, 0x01-0xFF indicates the device address
+</td></tr>
+<tr>
+<td>85</td>
+<td>Exception Function Code</td>
+<td>Exception function code = Request function code + 0x80
+</td></tr>
+<tr>
+<td>03</td>
+<td>Byte Number</td>
+<td>Exception Code
+</td></tr>
+<tr>
+<td>02 91</td>
+<td>CRC16</td>
+<td>The CRC16 checksum of the first 6 bytes of data
+</td></tr></tbody></table>
+<p>An exception code is a single-byte value that indicates the type of error. Several commonly used exception codes defined by the Modbus protocol:
+</p>
+<table class="wikitable">
+<tbody><tr>
+<th>Exception Code</th>
+<th>Name</th>
+<th>Description
+</th></tr>
+<tr>
+<td>0x01</td>
+<td>Illegal Function</td>
+<td>The requested function code is not supported
+</td></tr>
+<tr>
+<td>0x02</td>
+<td>Illegal Data Address</td>
+<td>The requested data address is incorrect
+</td></tr>
+<tr>
+<td>0x03</td>
+<td>Illegal Data Value</td>
+<td>The requested data value or operation cannot be executed
+</td></tr>
+<tr>
+<td>0x04</td>
+<td>Server Failure</td>
+<td>Server equipment failure
+</td></tr>
+<tr>
+<td>0x05</td>
+<td>Response</td>
+<td>The request has been received and is being processed
+</td></tr>
+<tr>
+<td>0x06</td>
+<td>Device Busy</td>
+<td>The device is currently busy and cannot perform the requested operation
+</td></tr></tbody></table>
+<div class="tabbertab" title="Resources" id="myresources">
+<h1><span class="mw-headline" id="Resources">Resources</span></h1>
+<h3><span class="mw-headline" id="Demo">Demo</span></h3>
+<ul><li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/Modbus-RTU-Relay-(D)/Modbus_RTU_Relay_D_Code.zip">Demo</a></li></ul>
+<h3><span class="mw-headline" id="Software">Software</span></h3>
+<ul><li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/Modbus-RTU-Relay-(D)/Sscom5.13.1_for_Modbus_RTU_Relay_D.zip">Sscom5.13.1_for_Modbus_RTU_Relay_D</a></li>
+<li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.modbustools.com/download.html">Modbus Poll software</a></li>
+<li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://files.waveshare.com/wiki/common/SecureCRT.7z">SecureCRT software</a></li></ul>
+<h3><span class="mw-headline" id="Related_resources">Related resources</span></h3>
+<ul><li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.com/wiki/Modbus_Protocol_Specification">Modbus Protocol Specification</a></li>
+<li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.com/wiki/Modbus_Series_BootLoader_Description">Modbus Series BootLoader Description</a></li>
+<li><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.com/wiki/Template:Modbus_RTU_Relay_D_Protocol">Development Protocol V1</a></li></ul>
+</div>
+<div class="tabbertab" title="FAQ" id="myfaq">
+<h1><span class="mw-headline" id="FAQ">FAQ</span></h1>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion1">
+								Question:  After the flash-on and flash-off parameters are set, does it need to be powered off and restarted to take effect? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion1" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>No, after sending a flash-on and flash-off command and running it, you can directly send a second command without restarting
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion2">
+								Question:  How long does it take to collect the change after the digital input of the relay changes? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion2" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>Reference value 75ms (including command send and receive time)
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion3">
+								Question:  Where can I download the driver for my device? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion3" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>The device does not require an additional driver download. You can control the device relay's on/off or query the relay status by sending Modbus commands through the device's 485 interface.
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion4">
+								Question:  Can relay components use the module's own power supply to output voltage/current to the normally open/normally closed terminals? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion4" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>No
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion5">
+								Question:  Can the slave address be set by a DIP switch? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion5" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>There is no DIP switch, it can only be set through commands
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion6">
+								Question:  What should I do if I forget the communication parameters of the 485? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion6" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>Please refer to
+<a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://www.waveshare.com/wiki/Modbus_Series_BootLoader_Description">Modbus Series BootLoader Description</a>
+to enter the boot mode, then you can select option 3 to read communication parameters or select option 2 to reset communication parameters
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion7">
+								Question:  What should I do if the SecureCRT session window is garbled when entering boot mode? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion7" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>Check if the 485 bus is reversed. If not, connect a 120 Ω terminal resistor across the A and B cables
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion8">
+								Question:  If you want to make the circuit remain in the default connected/disconnected state, how should the wiring be done? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion8" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>The default connection state, also known as the normally closed state, can be seen on Channel 1. The terminals within the red box above Channel 1 are connected by default; when turned on, they become disconnected. <br />
+The default disconnection state, also known as the normally open state, wiring can be seen on Channel 3. The terminals within the red box above Channel 3 are disconnected by default; when turned on, they become connected. <br />
+Note: The positive and negative wiring method shown in the diagram is for reference only. Please adjust to the appropriate positive and negative terminal connections according to the specific situation during actual use. <br />
+<a href="/wiki/File:600px-Modbus_POE_ETH_Relay_Open_close_wiring_diagram.png" class="image"><img alt="600px-Modbus POE ETH Relay Open close wiring diagram.png" src="/w/upload/7/73/600px-Modbus_POE_ETH_Relay_Open_close_wiring_diagram.png" decoding="async" loading="lazy" width="600" height="210" /></a><br />
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;"></font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion9">
+								Question:  What is the power consumption of the device? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion9" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>Under 12V power supply, the reference power consumption when in standby mode (all relays in the off state): 0.4W, the reference power consumption when relays are in the on state: 3.9W. <br />Please refer to actual conditions for specific power consumption
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion10">
+								Question:  How to power the device? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion10" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>Power via circular DC interface or via screw terminals, choose one of the two DC power supply methods. <br />
+Warning: To ensure personal and equipment safety, do not use both wiring methods for power supply at the same time. <br />
+Method 1:
+<a href="/wiki/File:600px-Supplying_power_to_the_relay_Method1.png" class="image"><img alt="600px-Supplying power to the relay Method1.png" src="/w/upload/6/63/600px-Supplying_power_to_the_relay_Method1.png" decoding="async" loading="lazy" width="600" height="524" /></a><br />
+Method 2:
+<a href="/wiki/File:600px-Supplying_power_to_the_relay_Method2.png" class="image"><img alt="600px-Supplying power to the relay Method2.png" src="/w/upload/1/15/600px-Supplying_power_to_the_relay_Method2.png" decoding="async" loading="lazy" width="600" height="646" /></a><br />
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;">{{{5}}}</font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<div class="panel-group">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#accordion11">
+								Question:  Why does the device provide command feedback when sending relay on/off action commands, but the relay does not activate, whereas it does activate when DI and DGND are shorted? 
+							</a>
+						</h4>
+					</div>
+					<div id="accordion11" class="panel-collapse collapse in">
+						<div class="panel-body">
+<div>&#160;<b>Answer:</b></div>
+<div>
+<p>This is because the device is in linkage mode, and the on/off action of the relay in this mode cannot be controlled by commands, but can only be controlled by DI. <br />
+Solution: Send the command "Set Relay Control Mode" to switch the device to another mode, and then you can control the relay on/off via commands.
+</p>
+</div>
+<div style="display:none;"></div>
+<div style="display:none;"></div>
+<p><font color="red" style="display:none;"></font>
+</p>
+						</div>
+					</div>
+				</div>
+</div>
+<p><br />
+</p>
+<br /></div>
+<div class="tabbertab" title="Support" id="mysupport">
+<h1><span class="mw-headline" id="Support">Support</span></h1>
+<p><br /><br />
+<br />
+</p>
+<div style="background:linear-gradient(to bottom right,#91C942,#7DB036); border-radius:15px; width:100%;min-width:750px;">
+<div style="display:flex;flex-direction: row;align-items: flex-start;">
+<div style="flex:l; font-size:15px; width:70%; margin-top:20px; margin-bottom:20px; margin-right:40px;padding-left:40px;">
+<p style="font-size:20px; font-weight:bold;">
+Technical Support
+</p>
+<p>
+If you need technical support or have any feedback/review, please click the <b>Submit Now</b> button to submit a ticket, Our support team will check and reply to you within 1 to 2 working days. Please be patient as we make every effort to help you to resolve the issue. 
+<br /> 
+Working Time: 9 AM - 6 PM GMT+8 (Monday to Friday)
+</p>
+</div>
+<div style="margin-top:94px;">
+<div id="service" style="display:flex; flex:r; background-color:#393939; color:white; text-align:center; font-size:20px; border-radius:20px;">
+<p><a target="_blank" rel="nofollow noreferrer noopener" class="external text" href="https://service.waveshare.com/">Submit Now</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></div></div>
+<!-- 
+NewPP limit report
+Cached time: 20260710223717
+Cache expiry: 0
+Dynamic content: true
+Complications: []
+CPU time usage: 0.216 seconds
+Real time usage: 0.334 seconds
+Preprocessor visited node count: 1114/1000000
+Post‐expand include size: 34881/2097152 bytes
+Template argument size: 7105/2097152 bytes
+Highest expansion depth: 8/40
+Expensive parser function count: 0/100
+Unstrip recursion depth: 0/20
+Unstrip post‐expand size: 10467/5000000 bytes
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  143.424      1 -total
+ 40.33%   57.840     11 Template:FAQ
+ 22.09%   31.682      1 Template:Infobox_item
+ 17.77%   25.481      1 Template:Modbus_RTU_Relay_D_Protocol_V2
+  8.87%   12.720      1 Template:Relay_Terms_and_Conditions
+  8.60%   12.336      3 Template:Note
+  8.32%   11.938      1 Template:Servicebox1
+  7.30%   10.468      1 Template:Amazon_nolink
+-->
+</div></div>								<div class="printfooter">
+				Retrieved from "<a dir="ltr" href="https://www.waveshare.com/w/index.php?title=Modbus_RTU_Relay_(D)&amp;oldid=107665">https://www.waveshare.com/w/index.php?title=Modbus_RTU_Relay_(D)&amp;oldid=107665</a>"				</div>
+												<div id="catlinks" class="catlinks catlinks-allhidden" data-mw="interface"></div>												<div class="visualClear"></div>
+							</div>
+			<!-- /bodyContent -->
+		</div>
+						</div>
+				</div>
+			</div>
+			<!-- /content -->
+
+			<!-- sidebar-left -->
+			<div class="sidebar-wrapper sidebar-left-wrapper">
+				<div class="sidebar-container container">
+					<div class="row">
+						<div id="sidebar-left" class="col-md-2 col-md-offset-0">
+							<div id="tweekiTOC"></div>						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /sidebar-left -->
+					<!-- footer -->
+			<div id="footer" role="contentinfo" class="footer container footer-sticky bg-light">
+			<ul id="footer-custom"><li class="dropup"><a href="/w/index.php?title=Special:UserLogin&amp;returnto=Modbus+RTU+Relay+%28D%29" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o">Login / Create Account</a></li></ul><div style="clear:both"></div>			</div>
+			<!-- /footer -->
+		
+<script>
+var fbtFancyBoxOptions = {};
+</script>
+
+<script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.216","walltime":"0.334","ppvisitednodes":{"value":1114,"limit":1000000},"postexpandincludesize":{"value":34881,"limit":2097152},"templateargumentsize":{"value":7105,"limit":2097152},"expansiondepth":{"value":8,"limit":40},"expensivefunctioncount":{"value":0,"limit":100},"unstrip-depth":{"value":0,"limit":20},"unstrip-size":{"value":10467,"limit":5000000},"timingprofile":["100.00%  143.424      1 -total"," 40.33%   57.840     11 Template:FAQ"," 22.09%   31.682      1 Template:Infobox_item"," 17.77%   25.481      1 Template:Modbus_RTU_Relay_D_Protocol_V2","  8.87%   12.720      1 Template:Relay_Terms_and_Conditions","  8.60%   12.336      3 Template:Note","  8.32%   11.938      1 Template:Servicebox1","  7.30%   10.468      1 Template:Amazon_nolink"]},"cachereport":{"timestamp":"20260710223717","ttl":0,"transientcontent":true}}});mw.config.set({"wgBackendResponseTime":762});});</script>	<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1930d51f94490c5',t:'MTc4MzcyMzAzNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
