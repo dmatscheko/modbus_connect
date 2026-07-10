@@ -334,9 +334,25 @@ global entity ids instead of the device's keys. The Jinja engine used here
 
 ## Validating and debugging a file
 
-Schema errors are loud by design: an invalid file is skipped and the log names
-the file, the entity, and the reason — enum fields even list every valid
-value. Once a file loads, *Download diagnostics* on the device page shows the
+For autocomplete and inline validation while editing, put this as the first
+line of the file (VS Code needs the YAML extension; most editors with a YAML
+language server work):
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
+```
+
+The [schema](device_files.schema.json) knows every Modbus key, the per-platform
+`ha:` fields (generated from the same Home Assistant introspection the
+integration validates with), and the `template:` shapes — typos and
+wrong-platform fields are flagged as you type. It is an editor-side typo net;
+the integration's own validation on load stays authoritative for cross-field
+rules.
+
+Schema errors are loud by design: an invalid file is skipped, and both the
+config flow's device picker and the log name the file, the entity, and the
+reason — enum fields even list every valid value. Once a file loads,
+*Download diagnostics* on the device page shows the
 parsed definition, the read-planning state, and the current values, and the
 README's [troubleshooting](../README.md#troubleshooting) section covers wrong
 values (byte order, multipliers) and unreachable registers.

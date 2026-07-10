@@ -305,7 +305,10 @@ Brand assets live in `support/` (SVG sources and `build_brand.py` to
 regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
 which Home Assistant ≥ 2026.3 serves locally), next to
 `support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
-with decoded views, write, register scan; see its `--help`).
+with decoded views, write, register scan; see its `--help`) — and
+`support/build_json_schema.py`, which regenerates the editor schema for
+device files ([docs/device_files.schema.json](docs/device_files.schema.json));
+a test fails when the committed schema is stale.
 
 Releases are cut from the GitHub **Actions** tab: run the *Release* workflow
 and enter the version (e.g. `0.3.0`). It re-runs the full gate (ruff, mypy,
