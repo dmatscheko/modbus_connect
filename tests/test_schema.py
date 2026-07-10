@@ -1224,6 +1224,24 @@ def test_rectify_time_rejected_on_non_time():
         )
 
 
+def test_internal_time_readback_allows_rectify_time():
+    # a linked time's read-back mirror: internal, time-typed, byte-swapped (SolaX GEN4)
+    dev = parse_device(
+        doc(t={"address": 151, "type": "time", "swap": "byte", "rectify_time": True,
+               "internal": True}),
+        "t.yaml",
+    )
+    assert dev.entities[0].rectify_time is True
+    assert dev.entities[0].swap == "byte"
+
+
+def test_internal_rectify_time_requires_time_type():
+    with pytest.raises(DeviceSchemaError, match="rectify_time"):
+        parse_device(
+            doc(t={"address": 151, "rectify_time": True, "internal": True}), "t.yaml"
+        )
+
+
 # --- entity groups -----------------------------------------------------------
 
 

@@ -474,12 +474,17 @@ def _parse_platform(ctx: _Ctx, raw: dict[str, Any]) -> tuple[str, dict[str, Any]
             )
         for bad in (
             "on", "off", "write_value", "static_value", "optimistic_default",
-            "write_multiple", "rectify_time",
+            "write_multiple",
         ):
             if raw.get(bad) is not None:
                 raise ctx.fail(f"'{bad}' is not valid for internal entities")
         if raw.get("duplicate_as_sensor"):
             raise ctx.fail("'duplicate_as_sensor' is not valid for internal entities")
+        # rectify_time is a decode option, so an internal time read-back may carry
+        # it; _check_platform_semantics is skipped for internal entities, so the
+        # "time only" rule is enforced here on the value type instead.
+        if raw.get("rectify_time") is not None and raw.get("type") != "time":
+            raise ctx.fail("'rectify_time' is only valid for time entities")
         return "internal", {}
 
     if not isinstance(ha_raw, dict) or "platform" not in ha_raw:

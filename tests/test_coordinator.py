@@ -1,6 +1,7 @@
 """Coordinator behavior tests with a fake client (no network)."""
 
 import asyncio
+from datetime import time as dt_time
 from typing import Any
 
 import pytest
@@ -576,6 +577,46 @@ async def test_read_register_packed_read_full_write(hass, monkeypatch):
     assert coordinator.data["min_soc"] == 25  # low byte of reg 150 via the readback entity
     await coordinator.async_write(defn, 40)
     assert client.written == [(103, [40])]  # full value written to reg 103
+
+
+async def test_read_register_time_keeps_time_object(hass, monkeypatch):
+    # SolaX GEN4: a time setting written to reg 104 (hour high, minute low) echoes
+    # byte-swapped on reg 151. The plain "{{ key }}" link must hand the readback's
+    # decoded datetime.time through unchanged — Jinja would stringify it and the
+    # time entity would reject the value.
+    client = FakeClient({151: (30 << 8) | 4, 104: 0})  # minute 30 high, hour 4 low
+    readback = EntityDef(
+        key="charge_start_readback", platform="internal", address=151,
+        type="time", swap="byte", rectify_time=True,
+    )
+    defn = EntityDef(
+        key="charge_start", platform="time", address=104, type="time",
+        read_register="{{ charge_start_readback }}", ha={},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(readback, defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_start"] == dt_time(4, 30)
+    assert not any(s.start <= 104 < s.end for s in client.reads)  # write reg never read
+    await coordinator.async_write(defn, dt_time(6, 15))
+    assert client.written == [(104, [(6 << 8) | 15])]  # written hour-high to its own register
+
+
+async def test_read_register_expression_renders_via_jinja(hass, monkeypatch):
+    # a read_register that is more than a plain key reference still renders as a template
+    client = FakeClient({144: 250})
+    readback = EntityDef(key="cc_readback", platform="internal", address=144)
+    defn = EntityDef(
+        key="charge_current", platform="number", address=36,
+        read_register="{{ (cc_readback or 0) / 10 }}",
+        ha={"native_min_value": 0, "native_max_value": 50},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(readback, defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_current"] == pytest.approx(25.0)
 
 
 async def test_static_value_entity_never_reads_and_writes_fc16(hass, monkeypatch):

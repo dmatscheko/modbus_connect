@@ -182,6 +182,27 @@ holding:
       name: Sync RTC
       icon: "mdi:home-clock"
       entity_category: config
+  rtc_tz:
+    address: 1565
+    internal: true
+  rtc_second:
+    address: 1566
+    internal: true
+  rtc_minute:
+    address: 1567
+    internal: true
+  rtc_hour:
+    address: 1568
+    internal: true
+  rtc_day:
+    address: 1569
+    internal: true
+  rtc_month:
+    address: 1570
+    internal: true
+  rtc_year:
+    address: 1571
+    internal: true
   charge_phase:
     address: 1573
     groups: [advanced, all]
@@ -817,6 +838,7 @@ input:
       state_class: total
       unit_of_measurement: s
       icon: "mdi:timer"
+      precision: 0
   lock_state:
     address: 45
     scan_interval: 15
@@ -957,3 +979,15 @@ input:
       name: Run Mode Alt
       icon: "mdi:ev-station"
       enabled_by_default: false
+
+# Computed sensors (values SolaX derives in code, rebuilt as templates).
+template:
+  rtc:
+    ha:
+      platform: sensor
+      name: RTC
+      icon: "mdi:clock"
+      entity_category: diagnostic
+      enabled_by_default: false
+    state: "{% set tz = rtc_tz - 65536 if rtc_tz > 32767 else rtc_tz %}{{ '20%02d-%02d-%02d %02d:%02d:%02d UTC%s%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second, '+' if tz >= 0 else '-', (tz | abs) // 60, (tz | abs) % 60) }}"
+    groups: [all]

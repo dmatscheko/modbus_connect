@@ -41,6 +41,11 @@ _LOGGER = logging.getLogger(__name__)
 
 type ModbusConnectConfigEntry = ConfigEntry[ModbusConnectCoordinator]
 
+# A read_register template that is just one key, e.g. "{{ other_key }}". Rendering
+# through Jinja would stringify the source value; plain references instead copy it
+# as-is, which keeps non-string values (a time readback's datetime.time) intact.
+_DIRECT_LINK = re.compile(r"\s*\{\{\s*([A-Za-z_]\w*)\s*\}\}\s*\Z")
+
 
 def render_over_values(
     template: Template, data: dict[str, Any] | None, *, parse_result: bool = True
@@ -572,6 +577,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         source = defn.read_register
         if source is None:
             return None
+        direct = _DIRECT_LINK.match(source)
+        if direct is not None:
+            return data.get(direct.group(1))
         template = self._link_templates.get(defn.key)
         if template is None:
             template = self._link_templates[defn.key] = Template(source, self.hass)

@@ -4,10 +4,15 @@
 Unlike ``modbus_local_gateway-convert.py`` this is NOT standalone: it imports the
 upstream SolaX plugin modules, so it needs Home Assistant installed and a checkout of
 https://github.com/wills106/homeassistant-solax-modbus. It filters the entity
-descriptions to a target inverter spec (bitmask) and emits our declarative device-config
-format, skipping computed/local entities (no real register, value_function, callable
-scale, write_method=local) and reporting what it dropped. Regenerates the bundled
-Solax_X3_Hybrid_G4.yaml and Solax_X3_HAC.yaml.
+descriptions to a target inverter spec (bitmask) and Modbus protocol document version
+(modbus_min/modbus_max) and emits our declarative device-config format, skipping
+computed/local entities (no real register, value_function, callable scale,
+write_method=local) and reporting what it dropped. Settings that echo on a different
+register than they are written to (selects, numbers, and the gen4time mirrors of the
+time entities) read through a linked ``_readback`` entity, so write-only command
+registers are never polled; single-write registers with no read-back at all become
+seeded ``static_value`` controls. Regenerates the bundled Solax_X3_Hybrid_G4.yaml and
+Solax_X3_HAC.yaml.
 
 Usage (point SOLAX_MODBUS_REPO at your checkout, else the default path is used):
 
@@ -66,56 +71,48 @@ def fast_tier(e):
     return enum_str(getattr(e, "native_unit_of_measurement", None)) not in SLOW_UNITS
 
 
-# solax register_data_type -> (our type | None for uint16 default, swap, mask)
+# solax register_data_type -> (our type | None for uint16 default, is-32bit, mask)
 DTYPE = {
-    "_uint16": (None, None, None),
-    "_int16": ("int16", None, None),
-    "_uint32": ("uint32", "word", None),
-    "_int32": ("int32", "word", None),
-    "_float32": ("float32", "word", None),
-    "_ulsb16msb16": ("uint32", "word", None),
-    "_int8L": (None, None, 0x00FF),
-    "_int8H": (None, None, 0xFF00),
-    "_string": ("string", None, None),
+    "_uint16": (None, False, None),
+    "_int16": ("int16", False, None),
+    "_uint32": ("uint32", True, None),
+    "_int32": ("int32", True, None),
+    "_float32": ("float32", True, None),
+    "_ulsb16msb16": ("uint32", True, None),
+    "_int8L": (None, False, 0x00FF),
+    "_int8H": (None, False, 0xFF00),
+    "_string": ("string", False, None),
 }
 WRITE_LOCAL = 3
 # write_method 2 (MULTISINGLE) and 4 (MULTI) both use FC16. Registers written this
 # way are "direct" command registers with no read-back — write-only in our terms.
 WRITE_FC16 = (2, 4)
 
+# SolaX reads a setting's current time through an internal sensor whose `scale`
+# is one of these callables; each maps to the equivalent fields of our `time`
+# type (our packed form is hour-high/minute-low, so gen4's minute-high mirrors
+# need a byte swap). rectify_time keeps SolaX's 24:00 end-of-day readable.
+TIME_SCALE_FIELDS = {
+    "value_function_gen4time": {"type": "time", "swap": "byte", "rectify_time": True},
+    "value_function_sofartime": {"type": "time", "rectify_time": True},
+    "value_function_gen23time": {"type": "time", "count": 2, "rectify_time": True},
+    "value_function_separate_registers_time": {"type": "time", "count": 2, "rectify_time": True},
+}
 
-def make_static(e, b, ha, option_map):
-    """A write-only command register: FC16, never read, always shows the seeded value
+
+def make_static(e, b, ha, option_map, multiple=True):
+    """A write-only command register: never read, always shows the seeded value
     (from initvalue) and off by default (advanced/expert direct-control registers).
-    The presence of static_value marks the entity write-only."""
-    b["write_multiple"] = True
+    The presence of static_value marks the entity write-only; FC16 registers also
+    set write_multiple."""
+    if multiple:
+        b["write_multiple"] = True
     iv = getattr(e, "initvalue", None)
     if option_map is not None:  # select: seed is an option label
         b["static_value"] = str(option_map.get(iv, next(iter(option_map.values()))))
     else:  # number: seed is the numeric initvalue (0 if unset)
         b["static_value"] = iv if iv is not None else 0
     ha["enabled_by_default"] = False
-
-
-def base_fields(e):
-    """Modbus-level fields shared by all register-backed entities. Returns None if unconvertible."""
-    reg = getattr(e, "register", None)
-    if reg is None or reg < 0:
-        return None  # computed / local-only
-    dtype = getattr(e, "register_data_type", None) or "_uint16"
-    if dtype in ("_words",) or dtype not in DTYPE:
-        return None
-    typ, swap, mask = DTYPE[dtype]
-    out = {"address": reg}
-    if typ:
-        out["type"] = typ
-    if dtype == "_string":
-        out["count"] = getattr(e, "wordcount", None) or 1
-    if swap:
-        out["swap"] = swap
-    if mask is not None:
-        out["mask"] = mask
-    return out
 
 
 def ha_common(e, platform):
@@ -140,6 +137,9 @@ def ha_common(e, platform):
         ha["entity_category"] = enum_str(ec)
     if getattr(e, "entity_registry_enabled_default", True) is False:
         ha["enabled_by_default"] = False
+    sdp = getattr(e, "suggested_display_precision", None)
+    if platform == "sensor" and sdp is not None:  # numbers show whole steps already
+        ha["precision"] = sdp
     return ha
 
 
@@ -152,6 +152,9 @@ def apply_scale(e, b, ha):
     is a value_function (callable) we can't express, making this a read source only."""
     scale = getattr(e, "scale", 1)
     if callable(scale):
+        if getattr(scale, "__name__", "") == "value_function_disabled_enabled":
+            b["map"] = {0: "Disabled", 1: "Enabled"}  # the callable is just this map
+            return False
         return True  # register-only read source; a merging writable supplies the conversion
     if isinstance(scale, dict):
         b["map"] = {int(k): str(v) for k, v in scale.items()}
@@ -160,7 +163,7 @@ def apply_scale(e, b, ha):
     if mult != 1:
         b["multiplier"] = round(mult, 10)
     if 0 < mult < 1 and ha.get("unit_of_measurement") is not None:
-        ha["precision"] = getattr(e, "rounding", 1)
+        ha.setdefault("precision", getattr(e, "rounding", 1))
     return False
 
 
@@ -174,9 +177,17 @@ class _Converter:
     handles one entity so no single one carries the whole pipeline's complexity.
     """
 
-    def __init__(self, pi, spec):
+    def __init__(self, pi, spec, protocol=None):
         self.pi = pi
         self.spec = spec
+        # Modbus protocol *document* version to convert for (SolaX gates entities on
+        # it via modbus_min/modbus_max, and the device reports its own on holding
+        # 0x82 — the modbus_protocol_version sensor). None keeps every variant,
+        # first-wins (the pre-gating behavior).
+        self.protocol = protocol
+        # Plugin-wide 32-bit word order; individual entities may override with
+        # their own order32 (SolaX applies the same attribute to strings).
+        self.order32 = enum_str(getattr(pi, "order32", None)) or "little"
         self.skipped = Counter()
         # read_of indexes convertible sensors by key, plus SolaX's `internal` read-back
         # mirrors (used to display a setting's current value) so writables can read
@@ -190,7 +201,40 @@ class _Converter:
         self.boundaries = set()  # (table, address) of SolaX newblock flags
 
     def match(self, e):
-        return self.pi.matchInverterWithMask(self.spec, e.allowedtypes)
+        if not self.pi.matchInverterWithMask(self.spec, e.allowedtypes):
+            return False
+        if self.protocol is not None:
+            lo, hi = getattr(e, "modbus_min", None), getattr(e, "modbus_max", None)
+            if (lo is not None and self.protocol < lo) or (hi is not None and self.protocol > hi):
+                self.skipped["protocol-version"] += 1
+                return False
+        return True
+
+    def base_fields(self, e):
+        """Modbus-level fields shared by all register-backed entities. Returns None
+        if unconvertible."""
+        reg = getattr(e, "register", None)
+        if reg is None or reg < 0:
+            return None  # computed / local-only
+        dtype = getattr(e, "register_data_type", None) or "_uint16"
+        if dtype in ("_words",) or dtype not in DTYPE:
+            return None
+        typ, wide, mask = DTYPE[dtype]
+        order = enum_str(getattr(e, "order32", None)) or self.order32
+        if dtype == "_string" and order != "big":
+            return None  # pymodbus renders little-order strings word-reversed
+        if dtype == "_ulsb16msb16" and order != "little":
+            return None  # the big-order variant is not a plain uint32
+        out = {"address": reg}
+        if typ:
+            out["type"] = typ
+        if dtype == "_string":
+            out["count"] = getattr(e, "wordcount", None) or 1
+        if wide and order == "little":
+            out["swap"] = "word"
+        if mask is not None:
+            out["mask"] = mask
+        return out
 
     def add(self, table, key, b):
         if key in self.seen:
@@ -211,8 +255,11 @@ class _Converter:
         rbase = dict(rbase)
         # If the read source has no scale conversion (SolaX's value_function scales
         # are dropped, leaving just the register/mask), borrow the writable's — the
-        # two ends of a setting share the same map/multiplier. Never borrow onto a
-        # source that already has the other kind: map+multiplier cannot combine.
+        # two ends of a setting share the same map/multiplier. A read source with
+        # its OWN map keeps it: the two registers may encode the same labels with
+        # different values (lock_state writes 0/2014/6868 but reads back 0/1/2).
+        # Never borrow onto a source that already has the other kind: map+multiplier
+        # cannot combine.
         if "map" not in rbase and "map" in wbase and "multiplier" not in rbase:
             rbase["map"] = wbase["map"]
         elif "multiplier" not in rbase and "multiplier" in wbase and "map" not in rbase:
@@ -224,11 +271,19 @@ class _Converter:
     def _emit_writable(self, e, b, ha, omap):
         """Wire a select/number's write path (FC16 direct command -> static seed, else
         link the split read-back), attach its ha block, and add it under holding."""
+        skey = getattr(e, "sensor_key", None) or e.key
         if getattr(e, "write_method", 1) in WRITE_FC16:
             make_static(e, b, ha, omap)
+        elif skey not in self.read_of:
+            # Nothing ever reads this register back (upstream keeps only a local
+            # echo; the register may read as something else entirely, e.g. the
+            # remote-control duration shares its address with the protocol-version
+            # register): seed it like the FC16 direct commands, but write with FC6.
+            make_static(e, b, ha, omap, multiple=False)
         else:
-            # A writable may name its companion read-back sensor via sensor_key.
-            self.link_readback(getattr(e, "sensor_key", None) or e.key, "holding", b)
+            # The writable's companion read-back sensor (named via sensor_key when
+            # the key differs).
+            self.link_readback(skey, "holding", b)
         b["ha"] = ha
         self.add("holding", e.key, b)
 
@@ -246,12 +301,22 @@ class _Converter:
         if getattr(e, "value_function", None) is not None:
             self.skipped["sensor:value_function"] += 1
             return
-        b = base_fields(e)
+        b = self.base_fields(e)
         if b is None:
             self.skipped["sensor:no-register"] += 1
             return
         ha = ha_common(e, "sensor")
-        read_source_only = apply_scale(e, b, ha)
+        # A time-format mirror (SolaX reads a time setting's current value through
+        # an internal sensor with a time-rendering scale): expressed as our `time`
+        # type so the linked time entity receives a real time-of-day.
+        time_fields = TIME_SCALE_FIELDS.get(
+            getattr(getattr(e, "scale", None), "__name__", None)
+        )
+        if time_fields is not None:
+            b.update(time_fields)
+            read_source_only = True  # only ever a time entity's read source
+        else:
+            read_source_only = apply_scale(e, b, ha)
         if e.key in self.read_of:  # first wins (prefer the real register over variants)
             return
         if fast_tier(e):  # live value: poll faster than the device default
@@ -275,7 +340,7 @@ class _Converter:
         if not od:
             self.skipped["select:no-options"] += 1
             return
-        b = base_fields(e)
+        b = self.base_fields(e)
         if b is None:
             self.skipped["select:no-register"] += 1
             return
@@ -297,7 +362,7 @@ class _Converter:
         if lo is None or hi is None:
             self.skipped["number:no-min-max"] += 1
             return
-        b = base_fields(e)
+        b = self.base_fields(e)
         if b is None:
             self.skipped["number:no-register"] += 1
             return
@@ -311,8 +376,11 @@ class _Converter:
         self._emit_writable(e, b, ha, None)
 
     def add_time(self, e):
-        """A time. GEN4 packs HH:MM in one register (hour*256 + minute); the EV
-        charger uses two registers (hour, then minute) -> our ``count: 2`` form."""
+        """A time. GEN4 packs HH:MM in one register (hour*256 + minute, GEN2/3 pack
+        the reverse -> ``swap: byte``); the EV charger uses two registers (hour,
+        then minute) -> our ``count: 2`` form. Like selects/numbers, a time's
+        current value may echo on a different register (SolaX's gen4time mirrors);
+        that read-back is linked so the write register itself is never read."""
         if not self.match(e):
             return
         if e.key in self.seen:
@@ -326,11 +394,26 @@ class _Converter:
         if wordcount not in (1, 2):
             self.skipped["time:multi-register"] += 1  # only 1- and 2-register forms handled
             return
-        # rectify_time: a stop time of 24:00 (end of day) shows as 23:59 rather than
-        # dropping out — otherwise that slot would be unavailable.
-        b = {"address": reg, "type": "time", "rectify_time": True, "ha": ha_common(e, "time")}
+        b = {"address": reg, "type": "time"}
         if wordcount == 2:  # separate registers: first = hour, second = minute
             b["count"] = 2
+        else:
+            # The option_dict reveals the packed write format: value 1 means 00:01
+            # when the hour is in the high byte (our native form) and 01:00 when the
+            # minute is (GEN2/3) — then reads and writes both need the byte swap.
+            packed_1 = (getattr(e, "option_dict", None) or {}).get(1)
+            if packed_1 == "01:00":
+                b["swap"] = "byte"
+            elif packed_1 not in (None, "00:01"):
+                self.skipped["time:unknown-packing"] += 1
+                return
+        self.link_readback(getattr(e, "sensor_key", None) or e.key, "holding", b)
+        if "read_register" not in b:
+            # This entity decodes its own register; a stop time of 24:00 (end of
+            # day) shows as 23:59 rather than dropping out — otherwise that slot
+            # would be unavailable. (Linked read-backs carry their own rectify.)
+            b["rectify_time"] = True
+        b["ha"] = ha_common(e, "time")
         self.add("holding", e.key, b)
 
     def add_button(self, e):
@@ -373,11 +456,11 @@ class _Converter:
         return self.entities, self.skipped, self.boundaries
 
 
-def convert(pi, spec):
+def convert(pi, spec, protocol=None):
     """Convert a plugin's entity descriptions for one inverter spec into our
     declarative entities. See :class:`_Converter` for how a setting's split
-    read/write registers are recombined."""
-    return _Converter(pi, spec).run()
+    read/write registers are recombined and what ``protocol`` gates."""
+    return _Converter(pi, spec, protocol).run()
 
 
 # --- entity groups -----------------------------------------------------------
@@ -500,7 +583,7 @@ def _emit_templates(buf, templates):
     """Emit the computed-sensor ``template:`` section (energy-flow splits)."""
     if not templates:
         return
-    buf.write("\n# Computed sensors (energy-flow splits SolaX derives in code).\n")
+    buf.write("\n# Computed sensors (values SolaX derives in code, rebuilt as templates).\n")
     buf.write("template:\n")
     for t in templates:
         buf.write(f"  {t['key']}:\n")
@@ -515,8 +598,11 @@ def emit_yaml(meta, entities, templates=()):
     import io
     buf = io.StringIO()
     buf.write("# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.\n")
-    buf.write("device:\n")
     meta = dict(meta)
+    note = meta.pop("note", None)
+    if note:
+        buf.write(f"# {note}\n")
+    buf.write("device:\n")
     default_groups = meta.pop("default_groups", None)
     split_before = meta.pop("split_before", None)
     _emit_mapping(buf, "  ", meta)
@@ -581,9 +667,9 @@ def validate_output(text, filename):
     parse_device(yaml.safe_load(text), filename=filename)
 
 
-def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset()):
+def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset(), protocol=None):
     P = load_plugin(module)
-    ents, skipped, boundaries = convert(P.plugin_instance, spec_fn(P))
+    ents, skipped, boundaries = convert(P.plugin_instance, spec_fn(P), protocol)
     ents = list(ents) + list(extras)  # device-info + computed registers, appended post-dedupe
     dupes = [k for k, n in Counter(k for _, k, _ in ents).items() if n > 1]
     if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
@@ -608,10 +694,18 @@ def internal(table, key, **fields):
     return (table, key, {**fields, "internal": True})
 
 
-def PW(name):
-    """A power-sensor ha block (W, measurement)."""
+def PW(name, **extra):
+    """A power-sensor ha block (W, measurement); extra keys (icon, ...) are merged."""
     return {"platform": "sensor", "name": name, "device_class": "power",
-            "state_class": "measurement", "unit_of_measurement": "W"}
+            "state_class": "measurement", "unit_of_measurement": "W", **extra}
+
+
+def rtc_template(state):
+    """The RTC diagnostic sensor (upstream's `rtc`): the device clock rendered from
+    the raw date/time registers, for spotting drift (see the Sync RTC button)."""
+    return {"key": "rtc", "state": state,
+            "ha": {"platform": "sensor", "name": "RTC", "icon": "mdi:clock",
+                   "entity_category": "diagnostic", "enabled_by_default": False}}
 
 
 def rtc_button(address, items):
@@ -639,6 +733,8 @@ if __name__ == "__main__":
     run(
         "plugin_solax", lambda P: P.X3 | P.HYBRID | P.GEN4,
         {
+            "note": "Registers follow SolaX Modbus protocol document V1.02+; the device reports "
+                    "its version in the Modbus Protocol Version diagnostic sensor (holding 130).",
             "manufacturer": "SolaX Power", "model": "X3-Hybrid G4",
             "max_register_read": 100, "max_read_gap": 64, "scan_interval": 30,
             "prefix": "Solax X3-Hybrid",
@@ -649,6 +745,12 @@ if __name__ == "__main__":
             "default_groups": ["basic"],
         },
         "Solax_X3_Hybrid_G4.yaml",
+        # SolaX gates registers on the Modbus protocol *document* version (several
+        # moved or changed scale at V1.00/1.01/1.02). 102 targets the current G4
+        # register map; the device reports its own version in the Modbus Protocol
+        # Version diagnostic sensor (holding 130) — regenerate with that value if
+        # it differs.
+        protocol=102,
         extras=[
             internal("holding", "firmware_dsp", address=123),
             internal("holding", "firmware_arm", address=124),
@@ -657,12 +759,27 @@ if __name__ == "__main__":
             # (pv_power_total already exists as a native uint32 register on the G4.)
             ("holding", "measured_power", {"address": 70, "type": "int32", "swap": "word", "ha": PW("Measured power")}),
             rtc_button(0x00, RTC_LOCAL),  # value_function_sync_rtc: local time at 0x00-0x05
+            # the inverter clock (upstream `rtc`, 6 words at 0x85): sec/min/hour/day/month/year
+            internal("holding", "rtc_second", address=133),
+            internal("holding", "rtc_minute", address=134),
+            internal("holding", "rtc_hour", address=135),
+            internal("holding", "rtc_day", address=136),
+            internal("holding", "rtc_month", address=137),
+            internal("holding", "rtc_year", address=138),
         ],
         # energy-flow splits SolaX computes in code — rebuilt as templates over the raw values
         templates=[
-            {"key": "grid_import", "state": "{{ [-(measured_power or 0), 0] | max }}", "ha": PW("Grid import")},
-            {"key": "grid_export", "state": "{{ [measured_power or 0, 0] | max }}", "ha": PW("Grid export")},
-            {"key": "house_load", "state": "{{ (inverter_power or 0) - (measured_power or 0) }}", "ha": PW("House load")},
+            {"key": "grid_import", "state": "{{ [-(measured_power or 0), 0] | max }}",
+             "ha": PW("Grid import", icon="mdi:home-import-outline")},
+            {"key": "grid_export", "state": "{{ [measured_power or 0, 0] | max }}",
+             "ha": PW("Grid export", icon="mdi:home-export-outline")},
+            {"key": "house_load",
+             "state": "{{ (inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}",
+             "ha": PW("House load", icon="mdi:home-lightning-bolt")},
+            # PV-side alternative of the same figure (upstream house_load_alt, disabled there too)
+            {"key": "house_load_alt",
+             "state": "{{ (pv_power_total or 0) - (battery_power_charge or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}",
+             "ha": PW("House load alt", icon="mdi:home-lightning-bolt", enabled_by_default=False)},
             {"key": "battery_charge_power", "state": "{{ [battery_power_charge or 0, 0] | max }}", "ha": PW("Battery charge power")},
             {"key": "battery_discharge_power", "state": "{{ [-(battery_power_charge or 0), 0] | max }}", "ha": PW("Battery discharge power")},
             # BMS charge-power ceiling = battery voltage x BMS max charge current (SolaX
@@ -670,7 +787,13 @@ if __name__ == "__main__":
             # BMS current sensor is unavailable.
             {"key": "bms_max_charge",
              "state": "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}",
-             "ha": PW("BMS max charge")},
+             "ha": PW("BMS max charge", icon="mdi:battery-charging-high")},
+            {"key": "battery_voltage_cell_difference",
+             "state": "{{ ((cell_voltage_high or 0) - (cell_voltage_low or 0)) | round(3) }}",
+             "ha": {"platform": "sensor", "name": "Battery voltage cell difference",
+                    "device_class": "voltage", "state_class": "measurement",
+                    "unit_of_measurement": "V", "enabled_by_default": False}},
+            rtc_template("{{ '20%02d-%02d-%02d %02d:%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second) }}"),
         ],
         basic=HYBRID_BASIC,
     )
@@ -691,6 +814,23 @@ if __name__ == "__main__":
             # blocks auto-conversion; the /100 lives in the sw_version template)
             internal("input", "firmware_version", address=37),
             rtc_button(0x61D, RTC_UTC),  # value_function_sync_rtc_evc: tz + UTC time at 0x61D
+            # the charger clock (upstream `rtc`, 7 words at 0x61D): the timezone
+            # offset in minutes (two's-complement), then sec/min/hour/day/month/year
+            internal("holding", "rtc_tz", address=1565),
+            internal("holding", "rtc_second", address=1566),
+            internal("holding", "rtc_minute", address=1567),
+            internal("holding", "rtc_hour", address=1568),
+            internal("holding", "rtc_day", address=1569),
+            internal("holding", "rtc_month", address=1570),
+            internal("holding", "rtc_year", address=1571),
+        ],
+        templates=[
+            # the stored time with its stored UTC offset, no conversion (upstream rtc)
+            rtc_template(
+                "{% set tz = rtc_tz - 65536 if rtc_tz > 32767 else rtc_tz %}"
+                "{{ '20%02d-%02d-%02d %02d:%02d:%02d UTC%s%02d:%02d' | format(rtc_year, rtc_month, rtc_day, "
+                "rtc_hour, rtc_minute, rtc_second, '+' if tz >= 0 else '-', (tz | abs) // 60, (tz | abs) % 60) }}"
+            ),
         ],
         basic=HAC_BASIC,
     )

@@ -1,4 +1,5 @@
 # Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
+# Registers follow SolaX Modbus protocol document V1.02+; the device reports its version in the Modbus Protocol Version diagnostic sensor (holding 130).
 device:
   manufacturer: SolaX Power
   model: X3-Hybrid G4
@@ -145,6 +146,17 @@ holding:
     ha:
       platform: sensor
       name: Safety code
+      icon: "mdi:dip-switch"
+      enabled_by_default: false
+  matebox_enabled:
+    address: 30
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: MateBox enabled
       icon: "mdi:dip-switch"
       enabled_by_default: false
   charger_use_mode:
@@ -346,8 +358,8 @@ holding:
   charge_start_1:
     address: 104
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ charge_start_1_readback }}"
     ha:
       platform: time
       name: Charge Start 1
@@ -356,8 +368,8 @@ holding:
   charge_end_1:
     address: 105
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ charge_end_1_readback }}"
     ha:
       platform: time
       name: Charge End 1
@@ -366,8 +378,8 @@ holding:
   discharge_start_1:
     address: 106
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ discharge_start_1_readback }}"
     ha:
       platform: time
       name: Discharge Start 1
@@ -376,8 +388,8 @@ holding:
   discharge_end_1:
     address: 107
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ discharge_end_1_readback }}"
     ha:
       platform: time
       name: Discharge End 1
@@ -398,8 +410,8 @@ holding:
   charge_start_2:
     address: 109
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ charge_start_2_readback }}"
     ha:
       platform: time
       name: Charge Start 2
@@ -408,8 +420,8 @@ holding:
   charge_end_2:
     address: 110
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ charge_end_2_readback }}"
     ha:
       platform: time
       name: Charge End 2
@@ -418,8 +430,8 @@ holding:
   discharge_start_2:
     address: 111
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ discharge_start_2_readback }}"
     ha:
       platform: time
       name: Discharge Start 2
@@ -428,8 +440,8 @@ holding:
   discharge_end_2:
     address: 112
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ discharge_end_2_readback }}"
     ha:
       platform: time
       name: Discharge End 2
@@ -529,7 +541,8 @@ holding:
       enabled_by_default: false
   remotecontrol_duration_direct:
     address: 130
-    groups: [advanced, all]
+    static_value: 60
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Duration (mode 1; direct)
@@ -538,6 +551,7 @@ holding:
       min: 0
       max: 28800
       step: 60
+      enabled_by_default: false
   modbus_protocol_version:
     address: 130
     groups: [advanced, all]
@@ -548,7 +562,8 @@ holding:
       entity_category: diagnostic
   remotecontrol_target_soc_direct:
     address: 131
-    groups: [advanced, all]
+    static_value: 0
+    groups: [all]
     ha:
       platform: number
       name: Remotecontrol Target SOC (mode 3; direct)
@@ -556,6 +571,7 @@ holding:
       min: 0
       max: 100
       step: 1
+      enabled_by_default: false
   remotecontrol_target_energy_direct:
     address: 132
     type: int32
@@ -580,6 +596,9 @@ holding:
       name: Bootloader Version
       icon: "mdi:information"
       entity_category: diagnostic
+  rtc_second:
+    address: 133
+    internal: true
   remotecontrol_charge_discharge_power_direct:
     address: 134
     type: int32
@@ -596,6 +615,12 @@ holding:
       max: 30000
       step: 100
       enabled_by_default: false
+  rtc_minute:
+    address: 134
+    internal: true
+  rtc_hour:
+    address: 135
+    internal: true
   remotecontrol_timeout_direct:
     address: 136
     static_value: 0
@@ -610,6 +635,9 @@ holding:
       max: 28800
       step: 60
       enabled_by_default: false
+  rtc_day:
+    address: 136
+    internal: true
   remotecontrol_push_mode_power_direct:
     address: 137
     type: int32
@@ -626,6 +654,12 @@ holding:
       max: 30000
       step: 100
       enabled_by_default: false
+  rtc_month:
+    address: 137
+    internal: true
+  rtc_year:
+    address: 138
+    internal: true
   charger_use_mode_readback:
     address: 139
     map:
@@ -727,6 +761,12 @@ holding:
     address: 150
     mask: 65280
     internal: true
+  charge_start_1_readback:
+    address: 151
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   shadow_fix_function_level_pv2_gmppt:
     address: 152
     groups: [advanced, all]
@@ -740,6 +780,12 @@ holding:
       platform: select
       name: Shadow Fix Function Level PV2 (GMPPT)
       icon: "mdi:dip-switch"
+  charge_end_1_readback:
+    address: 152
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   hotstandby:
     address: 153
     groups: [advanced, all]
@@ -751,6 +797,12 @@ holding:
       platform: select
       name: HotStandBy
       icon: "mdi:dip-switch"
+  discharge_start_1_readback:
+    address: 153
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   extend_bms_setting:
     address: 154
     groups: [advanced, all]
@@ -762,6 +814,12 @@ holding:
       platform: select
       name: Extend BMS Setting
       icon: "mdi:dip-switch"
+  discharge_end_1_readback:
+    address: 154
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   charge_and_discharge_period2_enable_readback:
     address: 155
     map:
@@ -781,6 +839,18 @@ holding:
       platform: select
       name: Shadow Fix Function Level PV1 (GMPPT)
       icon: "mdi:dip-switch"
+  charge_start_2_readback:
+    address: 156
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  charge_end_2_readback:
+    address: 157
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   phase_power_balance_x3:
     address: 158
     groups: [advanced, all]
@@ -793,6 +863,18 @@ holding:
       name: Phase Power Balance X3
       icon: "mdi:dip-switch"
       entity_category: config
+  discharge_start_2_readback:
+    address: 158
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  discharge_end_2_readback:
+    address: 159
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   remote_control_power_control_mode_direct:
     address: 160
     static_value: Disabled
@@ -883,6 +965,12 @@ holding:
       max: 30000
       step: 100
       enabled_by_default: false
+  battery_heating_start_time_1_readback:
+    address: 164
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   meter_2_direction:
     address: 165
     groups: [all]
@@ -896,6 +984,12 @@ holding:
       icon: "mdi:meter-electric"
       entity_category: config
       enabled_by_default: false
+  battery_heating_end_time_1_readback:
+    address: 165
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   discharge_cut_off_point_different:
     address: 166
     groups: [advanced, all]
@@ -934,6 +1028,12 @@ holding:
       max: 100
       step: 1
       enabled_by_default: false
+  battery_heating_start_time_2_readback:
+    address: 166
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   remotecontrol_timeout_8_9_direct:
     address: 167
     static_value: 0
@@ -948,6 +1048,12 @@ holding:
       max: 28800
       step: 60
       enabled_by_default: false
+  battery_heating_end_time_2_readback:
+    address: 167
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   registration_code_pocket:
     address: 170
     type: string
@@ -1134,8 +1240,8 @@ holding:
   battery_heating_start_time_1:
     address: 208
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ battery_heating_start_time_1_readback }}"
     ha:
       platform: time
       name: Battery Heating Start Time 1
@@ -1144,8 +1250,8 @@ holding:
   battery_heating_end_time_1:
     address: 209
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ battery_heating_end_time_1_readback }}"
     ha:
       platform: time
       name: Battery Heating End Time 1
@@ -1154,8 +1260,8 @@ holding:
   battery_heating_start_time_2:
     address: 210
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ battery_heating_start_time_2_readback }}"
     ha:
       platform: time
       name: Battery Heating Start Time 2
@@ -1164,8 +1270,8 @@ holding:
   battery_heating_end_time_2:
     address: 211
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ battery_heating_end_time_2_readback }}"
     ha:
       platform: time
       name: Battery Heating End Time 2
@@ -1202,8 +1308,8 @@ holding:
   peakshaving_discharge_start_time_1:
     address: 234
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ peakshaving_discharge_start_time_1_readback }}"
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 1
@@ -1212,8 +1318,8 @@ holding:
   peakshaving_discharge_stop_time_1:
     address: 235
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ peakshaving_discharge_stop_time_1_readback }}"
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 1
@@ -1222,8 +1328,8 @@ holding:
   peakshaving_discharge_start_time_2:
     address: 236
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ peakshaving_discharge_start_time_2_readback }}"
     ha:
       platform: time
       name: PeakShaving Discharge Start Time 2
@@ -1232,8 +1338,8 @@ holding:
   peakshaving_discharge_stop_time_2:
     address: 237
     type: time
-    rectify_time: true
     groups: [advanced, all]
+    read_register: "{{ peakshaving_discharge_stop_time_2_readback }}"
     ha:
       platform: time
       name: PeakShaving Discharge Stop Time 2
@@ -1241,6 +1347,7 @@ holding:
       entity_category: config
   peakshaving_discharge_limit_1:
     address: 238
+    multiplier: 0.1
     groups: [advanced, all]
     read_register: "{{ peakshaving_discharge_limit_1_readback }}"
     ha:
@@ -1253,6 +1360,7 @@ holding:
       step: 100
   peakshaving_discharge_limit_2:
     address: 239
+    multiplier: 0.1
     groups: [advanced, all]
     read_register: "{{ peakshaving_discharge_limit_2_readback }}"
     ha:
@@ -1359,6 +1467,16 @@ holding:
       platform: select
       name: CT Cycle Detection
       icon: "mdi:dip-switch"
+  drm_function_enable:
+    address: 258
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: DRM Function Enable
+      enabled_by_default: false
   ct_type:
     address: 259
     groups: [all]
@@ -1405,6 +1523,18 @@ holding:
       name: Machine Style
       icon: "mdi:information"
       entity_category: diagnostic
+  meter_function:
+    address: 264
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: Meter Function
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+      enabled_by_default: false
   meter_1_id:
     address: 265
     groups: [all]
@@ -1481,6 +1611,16 @@ holding:
       icon: "mdi:meter-electric"
       entity_category: diagnostic
       enabled_by_default: false
+  fvrt_function:
+    address: 278
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: FVRT Function
+      enabled_by_default: false
   fvrt_vac_upper:
     address: 279
     multiplier: 0.1
@@ -1525,6 +1665,26 @@ holding:
       platform: sensor
       name: PV Connection Mode
       enabled_by_default: false
+  shut_down:
+    address: 284
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: Shut Down
+      enabled_by_default: false
+  micro_grid:
+    address: 285
+    groups: [all]
+    map:
+      0: Disabled
+      1: Enabled
+    ha:
+      platform: sensor
+      name: Micro Grid
+      enabled_by_default: false
   selfuse_mode_backup_readback:
     address: 286
     map:
@@ -1565,11 +1725,37 @@ holding:
       1: Master
       2: Slave
     internal: true
+  peakshaving_discharge_start_time_1_readback:
+    address: 335
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  peakshaving_discharge_stop_time_1_readback:
+    address: 336
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  peakshaving_discharge_start_time_2_readback:
+    address: 337
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
+  peakshaving_discharge_stop_time_2_readback:
+    address: 338
+    type: time
+    swap: byte
+    rectify_time: true
+    internal: true
   peakshaving_discharge_limit_1_readback:
     address: 339
+    multiplier: 0.1
     internal: true
   peakshaving_discharge_limit_2_readback:
     address: 340
+    multiplier: 0.1
     internal: true
   peakshaving_charge_from_grid_readback:
     address: 341
@@ -2661,55 +2847,6 @@ input:
       unit_of_measurement: "%"
       icon: "mdi:battery-heart"
       enabled_by_default: false
-  grid_reactive_power_total:
-    address: 192
-    type: int32
-    swap: word
-    scan_interval: 15
-    groups: [all]
-    ha:
-      platform: sensor
-      name: Grid Reactive Power Total
-      device_class: reactive_power
-      state_class: measurement
-      unit_of_measurement: var
-      enabled_by_default: false
-  grid_reactive_power_l1:
-    address: 193
-    type: int16
-    scan_interval: 15
-    groups: [all]
-    ha:
-      platform: sensor
-      name: Grid Reactive Power L1
-      device_class: reactive_power
-      state_class: measurement
-      unit_of_measurement: var
-      enabled_by_default: false
-  grid_reactive_power_l2:
-    address: 194
-    type: int16
-    scan_interval: 15
-    groups: [all]
-    ha:
-      platform: sensor
-      name: Grid Reactive Power L2
-      device_class: reactive_power
-      state_class: measurement
-      unit_of_measurement: var
-      enabled_by_default: false
-  grid_reactive_power_l3:
-    address: 195
-    type: int16
-    scan_interval: 15
-    groups: [all]
-    ha:
-      platform: sensor
-      name: Grid Reactive Power L3
-      device_class: reactive_power
-      state_class: measurement
-      unit_of_measurement: var
-      enabled_by_default: false
   grid_power_factor_total:
     address: 196
     type: int16
@@ -2869,6 +3006,58 @@ input:
       unit_of_measurement: A
       enabled_by_default: false
       precision: 1
+  grid_reactive_power_total:
+    address: 210
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [all]
+    ha:
+      platform: sensor
+      name: Grid Reactive Power Total
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l3:
+    address: 212
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [all]
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L3
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l1:
+    address: 222
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [all]
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L1
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
+  grid_reactive_power_l2:
+    address: 224
+    type: int32
+    swap: word
+    scan_interval: 15
+    groups: [all]
+    ha:
+      platform: sensor
+      name: Grid Reactive Power L2
+      device_class: reactive_power
+      state_class: measurement
+      unit_of_measurement: var
+      enabled_by_default: false
   modbus_power_control:
     address: 256
     scan_interval: 15
@@ -3030,7 +3219,7 @@ input:
       unit_of_measurement: Wh
       enabled_by_default: false
 
-# Computed sensors (energy-flow splits SolaX derives in code).
+# Computed sensors (values SolaX derives in code, rebuilt as templates).
 template:
   grid_import:
     ha:
@@ -3039,6 +3228,7 @@ template:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:home-import-outline"
     state: "{{ [-(measured_power or 0), 0] | max }}"
     groups: [basic, advanced, all]
   grid_export:
@@ -3048,6 +3238,7 @@ template:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:home-export-outline"
     state: "{{ [measured_power or 0, 0] | max }}"
     groups: [basic, advanced, all]
   house_load:
@@ -3057,8 +3248,20 @@ template:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
-    state: "{{ (inverter_power or 0) - (measured_power or 0) }}"
+      icon: "mdi:home-lightning-bolt"
+    state: "{{ (inverter_power or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}"
     groups: [advanced, all]
+  house_load_alt:
+    ha:
+      platform: sensor
+      name: House load alt
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:home-lightning-bolt"
+      enabled_by_default: false
+    state: "{{ (pv_power_total or 0) - (battery_power_charge or 0) - (measured_power or 0) + (meter_2_measured_power or 0) }}"
+    groups: [all]
   battery_charge_power:
     ha:
       platform: sensor
@@ -3084,5 +3287,25 @@ template:
       device_class: power
       state_class: measurement
       unit_of_measurement: W
+      icon: "mdi:battery-charging-high"
     state: "{{ ((battery_voltage_charge or 0) * (bms_charge_max_current if bms_charge_max_current is not none else (battery_charge_max_current or 20))) | int }}"
     groups: [advanced, all]
+  battery_voltage_cell_difference:
+    ha:
+      platform: sensor
+      name: Battery voltage cell difference
+      device_class: voltage
+      state_class: measurement
+      unit_of_measurement: V
+      enabled_by_default: false
+    state: "{{ ((cell_voltage_high or 0) - (cell_voltage_low or 0)) | round(3) }}"
+    groups: [all]
+  rtc:
+    ha:
+      platform: sensor
+      name: RTC
+      icon: "mdi:clock"
+      entity_category: diagnostic
+      enabled_by_default: false
+    state: "{{ '20%02d-%02d-%02d %02d:%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second) }}"
+    groups: [all]

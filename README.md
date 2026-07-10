@@ -180,8 +180,8 @@ entities are not merely disabled — they stop being provided, so Home Assistant
 greys them out as "no longer provided", *keeps their registry row* (your renames,
 areas, and enabled/disabled state), and restores them the moment the group is
 turned back on. Hidden entities also drop out of the Modbus read plan. The
-bundled SolaX Hybrid file, for instance, goes from 232 entities / 210 register
-reads on *all* down to 27 / 29 on *basic*.
+bundled SolaX Hybrid file, for instance, goes from 241 entities / 220 register
+reads on *all* down to 30 / 32 on *basic*.
 
 If you'd rather be rid of the greyed-out leftovers, the Configuration device has
 a **Remove hidden entities** button: it deletes every registry entry the current
