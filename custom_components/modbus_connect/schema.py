@@ -216,6 +216,9 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "split_before",
         "scan_interval",
         "min_scan_interval",
+        "timeout",
+        "retries",
+        "request_delay",
         "modbus_id",
         "prefix",
         "sw_version",
@@ -233,6 +236,19 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         min_scan_interval = _int_in_range(
             ctx, "device.min_scan_interval", min_scan_interval, 1, 86400
         )
+    timeout = device.get("timeout")
+    if timeout is not None:
+        timeout = _number(ctx, "device.timeout", timeout)
+        if not 0 < timeout <= 60:
+            raise ctx.fail("device.timeout must be > 0 and <= 60 seconds")
+    retries = device.get("retries")
+    if retries is not None:
+        retries = _int_in_range(ctx, "device.retries", retries, 0, 10)
+    request_delay = device.get("request_delay")
+    if request_delay is not None:
+        request_delay = _number(ctx, "device.request_delay", request_delay)
+        if not 0 <= request_delay <= 5:
+            raise ctx.fail("device.request_delay must be between 0 and 5 seconds")
     bad_addresses = _parse_address_hints(ctx, device, "bad_addresses")
     boundaries = _parse_address_hints(ctx, device, "split_before")
     modbus_id = device.get("modbus_id")
@@ -260,6 +276,9 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "boundaries": boundaries,
         "scan_interval": scan_interval,
         "min_scan_interval": min_scan_interval,
+        "timeout": timeout,
+        "retries": retries,
+        "request_delay": request_delay,
         "modbus_id": modbus_id,
         "prefix": prefix,
         "default_groups": default_groups,

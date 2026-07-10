@@ -40,6 +40,12 @@ device:
                            #   their own inherit this (optional, default 30)
   min_scan_interval: 10    # floor: never poll faster than this (optional; unset
                            #   imposes no floor). The options dialog can only raise it
+  timeout: 5               # seconds to wait per request (optional, default 2);
+                           #   raise for slow devices and low baud rates
+  retries: 2               # retransmits per unanswered request (optional, default 1)
+  request_delay: 0.05      # seconds of enforced silence between any two requests
+                           #   (optional, default 0) — for gateways that need the bus
+                           #   quiet between frames; typical values 0.02–0.1
   modbus_id: 1             # factory-default Modbus device ID (optional);
                            #   prefills the config flow for this device
   prefix: sdm630           # default entity-id prefix (optional); the config
@@ -93,7 +99,11 @@ coil:
 
 ## The `device:` section
 
-The commented example above covers the keys. `sw_version`, `hw_version`, and
+The commented example above covers the keys. `timeout`, `retries`, and
+`request_delay` tune the connection for slow devices and picky RS-485
+gateways; the connection is shared by every config entry on the same gateway,
+so when device files disagree, the largest requested value wins.
+`sw_version`, `hw_version`, and
 `serial_number` fill the fields of the same name on the device page. Each is a
 Jinja template over the device's register values — declare the registers you
 reference (usually as `internal:` entities, since they need no entity of their

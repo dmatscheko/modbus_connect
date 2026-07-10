@@ -310,6 +310,28 @@ def eid(hass: HomeAssistant, entry: MockConfigEntry, platform: str, key: str) ->
     return entity_id
 
 
+async def test_connection_tuning_reaches_the_client(hass: HomeAssistant) -> None:
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "tuned.yaml").write_text(
+        DEVICE_YAML.replace(
+            "model: X1",
+            "model: X1\n  timeout: 5\n  retries: 3\n  request_delay: 0.05",
+        ),
+        encoding="utf-8",
+    )
+    entry = make_entry("tuned.yaml")
+    entry.add_to_hass(hass)
+    with patch.object(
+        ModbusBlockClient, "acquire", return_value=FakeClient()
+    ) as acquire:
+        assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert acquire.call_args.kwargs["timeout"] == 5
+    assert acquire.call_args.kwargs["retries"] == 3
+    assert acquire.call_args.kwargs["request_delay"] == pytest.approx(0.05)
+
+
 async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
     entry = make_entry()
     assert await setup_entry(hass, entry, FakeClient())

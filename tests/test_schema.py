@@ -171,6 +171,50 @@ def test_interval_and_planning_hints_parsed():
     assert dev.entities[0].scan_interval == 60
 
 
+def test_connection_tuning_parsed():
+    data = {
+        "device": {
+            "manufacturer": "Acme",
+            "model": "X1",
+            "timeout": 5,
+            "retries": 3,
+            "request_delay": 0.05,
+        },
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    dev = parse_device(data, "t.yaml")
+    assert dev.timeout == 5
+    assert dev.retries == 3
+    assert dev.request_delay == pytest.approx(0.05)
+
+
+def test_connection_tuning_defaults_absent():
+    dev = parse_device(doc(x={"address": 1, "ha": {"platform": "sensor"}}), "t.yaml")
+    assert dev.timeout is None
+    assert dev.retries is None
+    assert dev.request_delay is None
+
+
+@pytest.mark.parametrize(
+    ("field", "match"),
+    [
+        ({"timeout": 0}, "device.timeout"),
+        ({"timeout": 61}, "device.timeout"),
+        ({"timeout": "fast"}, "device.timeout"),
+        ({"retries": 11}, "device.retries"),
+        ({"request_delay": -0.1}, "device.request_delay"),
+        ({"request_delay": 6}, "device.request_delay"),
+    ],
+)
+def test_connection_tuning_invalid(field, match):
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1", **field},
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(data, "t.yaml")
+
+
 @pytest.mark.parametrize(
     ("hints", "match"),
     [

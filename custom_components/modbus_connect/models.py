@@ -245,6 +245,14 @@ class DeviceDef:
     # option can raise further but never lower.
     scan_interval: int | None = None
     min_scan_interval: int | None = None
+    # Connection tuning for slow devices and picky RS-485 gateways. ``timeout``
+    # (seconds per request) and ``retries`` feed the gateway connection;
+    # ``request_delay`` (seconds) enforces silence between any two transactions
+    # on it. The connection is shared per gateway: when several entries share
+    # one, the largest requested value wins.
+    timeout: float | None = None
+    retries: int | None = None
+    request_delay: float | None = None
     modbus_id: int | None = None  # factory-default Modbus device id
     prefix: str | None = None  # default entity-id prefix
     # Device-info templates, rendered once from the first read (see coordinator).

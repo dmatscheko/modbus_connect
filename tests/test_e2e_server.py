@@ -10,6 +10,7 @@ counts wire transactions exactly and does not depend on pymodbus server APIs.
 
 import asyncio
 import struct
+import time
 from pathlib import Path
 
 import pytest
@@ -187,6 +188,44 @@ async def test_rtu_over_tcp_framing(rtu_server):
         assert requests == [(3, 0, 4)]
     finally:
         client.release("e2e-rtu")
+
+
+async def test_settings_max_wins_and_release_recomputes(modbus_server):
+    port, _ = modbus_server
+    slow = ModbusBlockClient.acquire(
+        "127.0.0.1", port, "slow", timeout=8.0, retries=4, request_delay=0.2
+    )
+    fast = ModbusBlockClient.acquire("127.0.0.1", port, "fast", timeout=1.0)
+    try:
+        assert fast is slow
+        # the shared connection meets the most demanding entry
+        assert slow._client.comm_params.timeout_connect == 8.0
+        assert slow._client.ctx.retries == 4
+        assert slow._request_delay == pytest.approx(0.2)
+        # a released entry no longer pins the maxima
+        slow.release("slow")
+        assert slow._client.comm_params.timeout_connect == 1.0
+        assert slow._client.ctx.retries == 1
+        assert slow._request_delay == 0.0
+    finally:
+        slow.release("fast")
+
+
+async def test_request_delay_spaces_transactions(modbus_server):
+    port, _ = modbus_server
+    client = ModbusBlockClient.acquire(
+        "127.0.0.1", port, "e2e-delay", request_delay=0.1
+    )
+    try:
+        assert await client.ensure_connected()
+        async with client.lock:
+            await client.read_block(1, Span("holding", 0, 1))
+            start = time.monotonic()
+            await client.read_block(1, Span("holding", 0, 1))
+        # the second transaction waited out the configured silence
+        assert time.monotonic() - start >= 0.09
+    finally:
+        client.release("e2e-delay")
 
 
 async def test_framer_mismatch_reuses_existing_connection(modbus_server, caplog):

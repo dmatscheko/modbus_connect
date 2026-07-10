@@ -33,6 +33,8 @@ class _FakeClient:
 def _client(fake: _FakeClient) -> ModbusBlockClient:
     client = ModbusBlockClient.__new__(ModbusBlockClient)  # skip real connection setup
     client._client = fake  # type: ignore[attr-defined]
+    client._request_delay = 0.0
+    client._last_io = 0.0
     return client
 
 

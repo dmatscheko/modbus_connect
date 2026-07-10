@@ -26,6 +26,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
         entry.data[CONF_PORT],
         entry.entry_id,
         framer=entry.data.get(CONF_FRAMER, FRAMER_SOCKET),
+        timeout=device.timeout,
+        retries=device.retries,
+        request_delay=device.request_delay,
     )
     coordinator = ModbusConnectCoordinator(hass, entry, client, device)
     try:
