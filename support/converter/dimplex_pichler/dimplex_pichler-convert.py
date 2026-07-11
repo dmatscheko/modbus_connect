@@ -14,7 +14,7 @@ Every entity is stamped with the *facts* a rule might need (its raw source name,
 unit, whether it is a raw internal reading, which source it came from). Everything
 else — grouping, the composite climate/fan templates, the Dimplex *Sync clock*
 button, per-entity overrides — is *policy* and lives in
-``support/converter/<device>/augment.yaml``, applied by :func:`augment.write_augmented`.
+``support/devicedocs/<slug>/augment.yaml``, applied by :func:`augment.write_augmented`.
 
 The MLG upstream checkout is found via ``$MLG_GATEWAY_REPO`` (default: a
 ``modbus_local_gateway`` checkout beside this repo), the same source the MLG
@@ -98,7 +98,7 @@ def run() -> None:
         header = (
             f"{dev.get('manufacturer', '')} {dev.get('model', '')} — regenerated from source "
             f"(modbus_local_gateway base + manufacturer Modbus doc); "
-            f"policy in support/converter/{name}/augment.yaml"
+            f"policy in support/devicedocs/{augment.folder_for(name)}/augment.yaml"
         ).strip()
         summary = augment.write_augmented(ir, name, header=header)
         note = f"  (skipped {len(skipped)} write-only source rows)" if skipped else ""

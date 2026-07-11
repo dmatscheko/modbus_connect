@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Husdata_H60.yaml'; entity groups from support/converter/Husdata_H60/augment.yaml
+# Converted from modbus_local_gateway 'Husdata_H60.yaml'; entity groups from support/devicedocs/husdata-h60/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Water feed out to underfloor:

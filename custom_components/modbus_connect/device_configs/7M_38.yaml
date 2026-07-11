@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway '7M_38.yaml'; entity groups from support/converter/7M_38/augment.yaml
+# Converted from modbus_local_gateway '7M_38.yaml'; entity groups from support/devicedocs/finder-7m38/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   L1 Voltage:

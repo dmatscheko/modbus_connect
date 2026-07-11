@@ -121,6 +121,8 @@ def gen_one(cfg_name: str, folder: str) -> str | None:
 def main() -> None:
     only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
     for cfg_name, folder in R.CONFIG_TO_FOLDER.items():
+        if folder in R.DOC_EXCLUDED:
+            continue
         if only and folder not in only:
             continue
         md = gen_one(cfg_name, folder)

@@ -396,7 +396,7 @@ def convert_file(path: Path, out_dir: Path) -> int:
     ir = to_intermediate(convert_device(doc, path.name))
     header = (
         f"Converted from modbus_local_gateway '{path.name}'; "
-        f"entity groups from support/converter/{name}/augment.yaml"
+        f"entity groups from support/devicedocs/{augment.folder_for(name)}/augment.yaml"
     )
     augment.write_augmented(ir, name, header=header, dest_dir=out_dir)
     count = sum(len(ir.get(s, ())) for s in augment.TABLES)

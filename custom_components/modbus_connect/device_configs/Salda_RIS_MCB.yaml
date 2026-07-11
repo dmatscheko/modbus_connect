@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Salda_RIS_MCB.yaml'; entity groups from support/converter/Salda_RIS_MCB/augment.yaml
+# Converted from modbus_local_gateway 'Salda_RIS_MCB.yaml'; entity groups from support/devicedocs/salda-ris-mcb/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Fan Speed:

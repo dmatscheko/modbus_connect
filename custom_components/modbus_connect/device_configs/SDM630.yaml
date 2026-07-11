@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'SDM630.yaml'; entity groups from support/converter/SDM630/augment.yaml
+# Converted from modbus_local_gateway 'SDM630.yaml'; entity groups from support/devicedocs/eastron-sdm630/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Serial Number:

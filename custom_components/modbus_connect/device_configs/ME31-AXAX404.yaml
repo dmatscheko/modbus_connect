@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'ME31-AXAX404.yaml'; entity groups from support/converter/ME31-AXAX404/augment.yaml
+# Converted from modbus_local_gateway 'ME31-AXAX404.yaml'; entity groups from support/devicedocs/ebyte-me31-axax404/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: ebyte

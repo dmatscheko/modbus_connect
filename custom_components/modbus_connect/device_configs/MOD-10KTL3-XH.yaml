@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'MOD-10KTL3-XH.yaml'; entity groups from support/converter/MOD-10KTL3-XH/augment.yaml
+# Converted from modbus_local_gateway 'MOD-10KTL3-XH.yaml'; entity groups from support/devicedocs/growatt-mod-10ktl3-xh/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Italian:

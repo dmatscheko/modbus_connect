@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'MIC-2500TL-X.yaml'; entity groups from support/converter/MIC-2500TL-X/augment.yaml
+# Converted from modbus_local_gateway 'MIC-2500TL-X.yaml'; entity groups from support/devicedocs/growatt-mic-2500tl-x/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Italian:

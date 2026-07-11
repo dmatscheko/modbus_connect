@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'SPH-3600TL-BL_UP.yaml'; entity groups from support/converter/SPH-3600TL-BL_UP/augment.yaml
+# Converted from modbus_local_gateway 'SPH-3600TL-BL_UP.yaml'; entity groups from support/devicedocs/growatt-sph-3600tl-bl-up/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Italian:

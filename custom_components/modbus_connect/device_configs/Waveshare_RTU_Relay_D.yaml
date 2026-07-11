@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml'; entity groups from support/converter/Waveshare_RTU_Relay_D/augment.yaml
+# Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml'; entity groups from support/devicedocs/waveshare-modbus-rtu-relay-d/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Software Version:

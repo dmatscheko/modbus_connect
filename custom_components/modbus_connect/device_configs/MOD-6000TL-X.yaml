@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'MOD-6000TL-X.yaml'; entity groups from support/converter/MOD-6000TL-X/augment.yaml
+# Converted from modbus_local_gateway 'MOD-6000TL-X.yaml'; entity groups from support/devicedocs/growatt-mod-6000tl-x/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Italian:

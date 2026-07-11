@@ -1,4 +1,4 @@
-# Dimplex Sole/Wasser-Wärmepumpe SI 11TU — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Dimplex-SI-11TU/augment.yaml
+# Dimplex Sole/Wasser-Wärmepumpe SI 11TU — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/devicedocs/dimplex-si-11tu/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Sole/Wasser-Wärmepumpe SI 11TU:

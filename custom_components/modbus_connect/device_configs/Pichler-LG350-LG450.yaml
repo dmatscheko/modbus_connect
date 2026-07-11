@@ -1,4 +1,4 @@
-# Pichler Lüftungsgerät LG 350 - LG 450 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Pichler-LG350-LG450/augment.yaml
+# Pichler Lüftungsgerät LG 350 - LG 450 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/devicedocs/pichler-lg350-lg450/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Lüftungsgerät LG 350 - LG 450:

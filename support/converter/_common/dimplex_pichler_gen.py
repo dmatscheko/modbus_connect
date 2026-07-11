@@ -10,7 +10,7 @@ documented register the base does *not* already cover.
 It produces plain *facts* only: address, type, scaling, enum, unit-derived
 ``device_class``/``state_class``, and a raw source name. All *policy* (grouping,
 which readings are expert-tier internals, the composite templates, per-entity
-overrides) lives in ``support/converter/<device>/augment.yaml``. Each generated
+overrides) lives in ``support/devicedocs/<slug>/augment.yaml``. Each generated
 entity therefore carries a ``_tags`` set the augment rules match on:
 
     raw-name:<source name>   source:doc   unit:<uom>   internal (raw internal reading)

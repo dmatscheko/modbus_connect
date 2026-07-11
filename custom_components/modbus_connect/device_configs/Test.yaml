@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Test.yaml'; entity groups from support/converter/Test/augment.yaml
+# Converted from modbus_local_gateway 'Test.yaml'; entity groups from support/devicedocs/test/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Remote On/Off:

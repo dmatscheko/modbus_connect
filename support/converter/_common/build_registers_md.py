@@ -39,33 +39,13 @@ TABLE_META = {
 }
 TABLE_ORDER = ["holding", "input", "coil", "discrete"]
 
-# config filename -> kebab-case device folder
-CONFIG_TO_FOLDER = {
-    "Dimplex-SI-11TU.yaml": "dimplex-si-11tu",
-    "SDM230.yaml": "eastron-sdm230",
-    "SDM630.yaml": "eastron-sdm630",
-    "ME31-AXAX404.yaml": "ebyte-me31-axax404",
-    "7M_24.yaml": "finder-7m24",
-    "7M_38.yaml": "finder-7m38",
-    "Fröling_BWP300PV.yaml": "froeling-bwp300-pv",
-    "MIC-2500TL-X.yaml": "growatt-mic-2500tl-x",
-    "MIN-6000TL-XH.yaml": "growatt-min-6000tl-xh",
-    "MOD-6000TL-X.yaml": "growatt-mod-6000tl-x",
-    "MOD-10KTL3-XH.yaml": "growatt-mod-10ktl3-xh",
-    "SPH-3600TL-BL_UP.yaml": "growatt-sph-3600tl-bl-up",
-    "Husdata_H60.yaml": "husdata-h60",
-    "Pichler-LG150-LG250.yaml": "pichler-lg150-lg250",
-    "Pichler-LG350-LG450.yaml": "pichler-lg350-lg450",
-    "Salda_RIS_MCB.yaml": "salda-ris-mcb",
-    "Schneider_ATV312.yaml": "schneider-atv312",
-    "Schneider_ATV312_expert.yaml": "schneider-atv312-expert",
-    "Solax_X3_Hybrid_G4.yaml": "solax-x3-hybrid-g4",
-    "Solax_X3_HAC.yaml": "solax-x3-hac",
-    "Varmann Qtherm.yaml": "varmann-qtherm",
-    "Waveshare_30_POE.yaml": "waveshare-modbus-poe-eth-relay-30ch",
-    "Waveshare_RTU_Relay_D.yaml": "waveshare-modbus-rtu-relay-d",
-    # Test.yaml intentionally excluded (example only)
-}
+# config filename -> kebab-case device folder (single source of truth: device_folders.json,
+# also read by augment.py to locate each device's augment.yaml policy). Test.yaml maps to
+# "test" but is excluded from generated docs (example only, no public register document).
+CONFIG_TO_FOLDER = json.loads(
+    (Path(__file__).resolve().parent / "device_folders.json").read_text(encoding="utf-8")
+)
+DOC_EXCLUDED = {"test"}
 
 
 def fmtnum(x) -> str:
@@ -217,12 +197,17 @@ def human_size(n: int) -> str:
     return f"{n / 1024 / 1024:.1f} MB"
 
 
+# Repo-generated / tooling files that share the device folder but are NOT manufacturer
+# source documents, so they never appear in the "Local copy" list.
+_NON_SOURCE_FILES = {"registers.md", "groups.md", "caveats.md", "augment.yaml"}
+
+
 def local_files(folder: str, primary: str | None) -> list[str]:
-    """Downloaded docs on disk (excluding the generated registers.md), primary first."""
+    """Downloaded manufacturer docs on disk (excluding repo-generated/policy files), primary first."""
     d = OUT_DIR / folder
     if not d.exists():
         return []
-    files = [f for f in sorted(d.iterdir()) if f.is_file() and f.name != "registers.md"]
+    files = [f for f in sorted(d.iterdir()) if f.is_file() and f.name not in _NON_SOURCE_FILES]
     files.sort(key=lambda f: (f.name != primary, f.name.lower()))
     return files
 
@@ -331,6 +316,8 @@ def main() -> None:
     only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
 
     for cfg_name, folder in CONFIG_TO_FOLDER.items():
+        if folder in DOC_EXCLUDED:
+            continue
         if only and folder not in only:
             continue
         cfg_path = CFG_DIR / cfg_name

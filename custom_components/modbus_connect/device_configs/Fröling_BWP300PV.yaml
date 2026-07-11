@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml'; entity groups from support/converter/Fröling_BWP300PV/augment.yaml
+# Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml'; entity groups from support/devicedocs/froeling-bwp300-pv/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Aus:

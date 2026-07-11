@@ -17,21 +17,25 @@ the interpreter itself is fine:
 Every converter separates **facts** (what it knows about each entity — where it came
 from, its raw name, whether it is a raw internal reading) from **policy** (what to do
 with it — grouping, field tweaks). Facts are stamped as a per-entity `tags` list on an
-in-memory *tagged intermediate*; policy lives in a declarative
-`support/converter/<device>/augment.yaml`. A single shared library applies the policy and
-writes the file, so **every bundled config comes out in one canonical style**.
+in-memory *tagged intermediate*; policy lives in a declarative `augment.yaml` that sits
+**next to that device's documentation**, in `support/devicedocs/<slug>/augment.yaml`.
+A single shared library applies the policy and writes the file, so **every bundled config
+comes out in one canonical style**.
 
 ```
 per-device converter (may handle many devices)
   └─ builds a TAGGED INTERMEDIATE in memory (normal config + `tags` per entity)
        └─ augment.write_augmented(ir, "<device>")   ← the ONE writer
-            loads support/converter/<device>/augment.yaml  (absent → no policy)
+            loads support/devicedocs/<slug>/augment.yaml  (absent → no policy)
             → applies its ops → emits canonical YAML (tags stripped) → validates
             → writes device_configs/<device>.yaml
 ```
 
-`<device>` is the output basename: `support/converter/SDM630/augment.yaml` →
-`device_configs/SDM630.yaml`.
+`<device>` is the output basename; `<slug>` is its kebab-case docs folder. The mapping is
+`_common/device_folders.json` (e.g. `SDM630` → `eastron-sdm630`), the single source of
+truth shared by `augment.py` (to find the policy) and the doc generators. So a device's
+policy and its docs live together: `support/devicedocs/eastron-sdm630/augment.yaml` +
+`registers.md` + the source PDF → `device_configs/SDM630.yaml`.
 
 ### `_common/augment.py` — the shared library (the single writer)
 
@@ -66,12 +70,12 @@ are **lists of `{lang: text}` translation units**, each matched against a source
 German-sourced device (map value `Kühlen`) and an English-sourced one (`Cool`), with no
 duplicate entry. Two layers:
 
-- **`_common/translations.yaml`** — the shared **translate-once memory**. Add a concept's
-  unit here once; the generator applies it to *every* device config that uses any of its
-  values. This is the home for the shared HVAC/domain vocabulary (enum values, group labels).
-- **`<device>/augment.yaml` → `translations:`** — a per-device list for **device-specific**
-  strings (the model lives here) and to **override** a shared unit (per language) for one
-  device. A device unit overrides a shared one when they share a value.
+- **`support/devicedocs/translations.yaml`** — the shared **translate-once memory**. Add a
+  concept's unit here once; the generator applies it to *every* device config that uses any
+  of its values. Home for the shared HVAC/domain vocabulary (enum values, group labels).
+- **`support/devicedocs/<slug>/augment.yaml` → `translations:`** — a per-device list for
+  **device-specific** strings (the model lives here) and to **override** a shared unit (per
+  language) for one device. A device unit overrides a shared one when they share a value.
 
 At emit time `augment.py` collects the strings each device actually uses, looks each up in
 the shared and device indexes (device wins per language), and writes **only those** into
@@ -84,9 +88,10 @@ e.g. the mode is `Cool` and the group label is `Cooling`, both mapping to German
 
 That last warning matters: because a translated `map:`/`flags:` value changes what
 templates see, a template must compare the stable map key via **`key('entity') == N`**,
-never the label (`== 'Sommer'`). See `_common/translations.yaml`, and the migrated climate
-templates in `Dimplex-SI-11TU/augment.yaml` and `Pichler-*/augment.yaml`, for worked
-examples. (`key()` needs a real mapped entity; a template-derived value like Pichler's
+never the label (`== 'Sommer'`). See `support/devicedocs/translations.yaml`, and the migrated
+climate templates in `devicedocs/dimplex-si-11tu/augment.yaml` and
+`devicedocs/pichler-*/augment.yaml`, for worked examples. (`key()` needs a real mapped
+entity; a template-derived value like Pichler's
 `aktuelle_luftungsstufe` has no map, so its labels stay literal and must not be translated.)
 
 The emitter writes one canonical style regardless of how a converter built its dicts:
@@ -95,22 +100,34 @@ register fields follow `ENTITY_FIELD_ORDER` and the keys inside every `ha:` bloc
 
 ## Layout
 
+The converter tree holds **only tooling** — the per-device grouping/patch policy lives with
+that device's documentation under `support/devicedocs/<slug>/`, so there is no per-device
+duplication between the two trees.
+
 ```
-support/converter/
+support/converter/                 # tooling only (no per-device folders)
 ├── convert_all.py                 # orchestrator: runs all converters in the right order
-├── <device>/augment.yaml          # one per generated config — its grouping/patch policy
 ├── modbus_local_gateway/…-convert.py   # MLG device_configs      -> ~19 bundled configs
 ├── dimplex_pichler/…-convert.py        # MLG base + manufacturer docs -> the 3 Dimplex/Pichler configs
 ├── solax/…-convert.py                  # SolaX plugin            -> the 2 Solax_* configs
 └── _common/
     ├── augment.py             # THE shared library + emitter + DSL (single writer)
-    ├── translations.yaml      # shared translate-once memory (source string -> {lang: text})
+    ├── device_folders.json    # config basename -> devicedocs <slug> (single source of truth)
     ├── dimplex_pichler_gen.py # manufacturer doc (xlsx/html) -> the Dimplex/Pichler expansion entities
     ├── build_registers_md.py  # every config (+ sources.json) -> devicedocs/*/registers.md
     ├── build_groups_md.py     # every grouped config          -> devicedocs/*/groups.md
     ├── sources.json           # per-device primary-source metadata (for registers.md)
     ├── sources.py             # parsers for the downloaded manufacturer docs (xlsx / html)
     └── pichler_entities.py    # one Pichler LS-Control xlsx row -> one entity dict
+
+support/devicedocs/
+├── translations.yaml          # shared translate-once memory (source string -> {lang: text})
+└── <slug>/                     # one folder per device — policy AND docs together
+    ├── augment.yaml            # this device's grouping/patch policy (+ translations:)
+    ├── registers.md            # generated register reference
+    ├── groups.md               # generated entity-group reference
+    ├── caveats.md              # hand-written notes (optional)
+    └── <manufacturer doc>      # the source PDF/xlsx/html
 ```
 
 `sources.py` and `pichler_entities.py` parse the manufacturer documents under

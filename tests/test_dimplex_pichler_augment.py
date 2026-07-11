@@ -43,7 +43,7 @@ def _upstream_or_skip():
 @pytest.mark.parametrize("name", conv.DEVICES)
 def test_config_is_regenerated_from_source(name):
     ir, _ = conv.build_intermediate(name, _upstream_or_skip())
-    spec = aug.load(_ROOT / "support/converter" / name / "augment.yaml")
+    spec = aug.load(_ROOT / "support/devicedocs" / aug.folder_for(name) / "augment.yaml")
     assert spec is not None, f"missing augment.yaml for {name}"
     aug.apply(ir, spec)
     aug.resolve_translations(ir, aug.load_shared_translations())  # as write_augmented does

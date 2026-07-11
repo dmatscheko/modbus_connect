@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'MIN-6000TL-XH.yaml'; entity groups from support/converter/MIN-6000TL-XH/augment.yaml
+# Converted from modbus_local_gateway 'MIN-6000TL-XH.yaml'; entity groups from support/devicedocs/growatt-min-6000tl-xh/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Italian:

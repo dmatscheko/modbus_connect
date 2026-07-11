@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Varmann Qtherm.yaml'; entity groups from support/converter/Varmann Qtherm/augment.yaml
+# Converted from modbus_local_gateway 'Varmann Qtherm.yaml'; entity groups from support/devicedocs/varmann-qtherm/augment.yaml
 # Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   Heating:
