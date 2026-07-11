@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_test.txt
       - name: Ruff
-        run: ruff check custom_components tests converter support
+        run: ruff check custom_components tests support
       - name: Mypy
         run: mypy
       - name: Run tests with coverage

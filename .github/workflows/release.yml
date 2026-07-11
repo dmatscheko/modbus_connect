@@ -63,7 +63,7 @@ jobs:
       # GITHUB_TOKEN never trigger other workflows, so the bump commit below
       # would reach main untested otherwise.
       - name: Ruff
-        run: ruff check custom_components tests converter support
+        run: ruff check custom_components tests support
       - name: Mypy
         run: mypy
       - name: Run tests with coverage
