@@ -61,6 +61,24 @@ translations:
   Kühlen:
     de: Kühlen
     en: Cooling
+  Aus:
+    de: Aus
+    en: "Off"
+  Heizen:
+    de: Heizen
+    en: Heating
+  Schwimmbad:
+    de: Schwimmbad
+    en: Pool
+  Warmwasser:
+    de: Warmwasser
+    en: Hot water
+  Abtauen:
+    de: Abtauen
+    en: Defrost
+  Sperre:
+    de: Sperre
+    en: Blocked
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:

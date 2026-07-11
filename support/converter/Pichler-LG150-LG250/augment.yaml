@@ -26,6 +26,13 @@ device:
     fan_control: "Fan & flow"
     firmware: Firmware / model
 
+# Device-specific translations (the model). Shared vocabulary — group labels, enum
+# values — comes from support/converter/_common/translations.yaml automatically.
+translations:
+  Lüftungsgerät LG 150 - LG 250:
+    de: Lüftungsgerät LG 150 - LG 250
+    en: Ventilation unit LG 150 - LG 250
+
 ops:
   # --- base-sensor state_class fixes --------------------------------------- #
   # Runtime counters accumulate; fan speeds / air-flows / remaining time measure.
@@ -79,11 +86,15 @@ ops:
         {{ {'Zuluft': soll_zulufttemperatur_number,
             'Raum': soll_raumlufttemperatur_number,
             'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
-      hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+      # Compare stable map keys (betriebsmodus 1 = Sommer, bypass 2 = Bypass), not
+      # labels, so these survive translating the enum text (see _common/translations.yaml).
+      # aktuelle_luftungsstufe is a template value (no map), so its labels stay literal
+      # and must not be translated.
+      hvac_mode: "{{ 'cool' if key('betriebsmodus_sommer_winter_select') == 1 else 'heat' }}"
       hvac_action: |-
         {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
-           else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
-                if position_bypassklappe == 'Bypass'
+           else ('cooling' if key('betriebsmodus_sommer_winter_select') == 1 else 'heating')
+                if key('position_bypassklappe') == 2
            else 'fan' }}
       min_temp: 15
       max_temp: 30

@@ -56,14 +56,33 @@ selector (all clauses AND together):
 `missing_group`. A `device:` block merges into device metadata (`default_groups`,
 `group_labels`, …). See `tests/test_augment.py` for worked examples.
 
-A top-level **`translations:`** block (sibling of `device:`/`ops:`) is emitted verbatim
-as the file's multi-language catalog — `{source string: {lang: text}}`. The integration
-resolves it at load against Home Assistant's language (falling back to English, then the
-source string), so it localizes the device model, group labels, entity names, and
-`map:`/`flags:` values without the converter touching any of those strings. Because a
-translated `map:` value changes what templates see, templates must compare the stable
-map key via `key('entity')`, not the label — see `Dimplex-SI-11TU/augment.yaml` for a
-worked catalog and the migrated climate templates.
+### Translations (multi-language configs)
+
+Human-facing strings (device model, group labels, entity/template names, `map:`/`flags:`
+values) can carry per-language text. The integration resolves it at load against Home
+Assistant's language, falling back to English then the source string. Two layers, both
+`{source string: {lang: text}}`:
+
+- **`_common/translations.yaml`** — the shared **translate-once memory**. Put a string's
+  translation here once; the generator applies it to *every* device config that uses that
+  string. This is the primary home for the shared HVAC/domain vocabulary (enum values,
+  common group labels).
+- **`<device>/augment.yaml` → `translations:`** — per-device entries that **override** the
+  shared memory (per language), for a string that needs different text in one device.
+
+At emit time `augment.py` collects the strings each device actually uses, resolves them
+(shared, overridden by the device block), and writes **only those** into the file's
+top-level `translations:` block — so no file carries a translation it does not need. It
+then **warns on stderr** about used strings with no translation anywhere (the to-do list
+for extending the memory), and about any template that still compares a *translated* label
+as a literal.
+
+That last warning matters: because a translated `map:`/`flags:` value changes what
+templates see, a template must compare the stable map key via **`key('entity') == N`**,
+never the label (`== 'Sommer'`). See `_common/translations.yaml`, and the migrated climate
+templates in `Dimplex-SI-11TU/augment.yaml` and `Pichler-*/augment.yaml`, for worked
+examples. (`key()` needs a real mapped entity; a template-derived value like Pichler's
+`aktuelle_luftungsstufe` has no map, so its labels stay literal and must not be translated.)
 
 The emitter writes one canonical style regardless of how a converter built its dicts:
 register fields follow `ENTITY_FIELD_ORDER` and the keys inside every `ha:` block follow
@@ -80,6 +99,7 @@ support/converter/
 ├── solax/…-convert.py                  # SolaX plugin            -> the 2 Solax_* configs
 └── _common/
     ├── augment.py             # THE shared library + emitter + DSL (single writer)
+    ├── translations.yaml      # shared translate-once memory (source string -> {lang: text})
     ├── dimplex_pichler_gen.py # manufacturer doc (xlsx/html) -> the Dimplex/Pichler expansion entities
     ├── build_registers_md.py  # every config (+ sources.json) -> devicedocs/*/registers.md
     ├── build_groups_md.py     # every grouped config          -> devicedocs/*/groups.md

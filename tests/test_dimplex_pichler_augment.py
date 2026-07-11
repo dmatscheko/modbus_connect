@@ -46,6 +46,7 @@ def test_config_is_regenerated_from_source(name):
     spec = aug.load(_ROOT / "support/converter" / name / "augment.yaml")
     assert spec is not None, f"missing augment.yaml for {name}"
     aug.apply(ir, spec)
+    aug.resolve_translations(ir, aug.load_shared_translations())  # as write_augmented does
     regenerated = yaml.safe_load(aug.emit(ir, header="test"))
 
     parse_device(regenerated, filename=f"{name}.yaml")  # still a legal device file

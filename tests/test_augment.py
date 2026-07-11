@@ -229,3 +229,66 @@ def test_round_trip_validates_against_schema():
     assert device.default_groups == ("basic",)
     # tags did not survive into the parsed model or the text
     assert "_tags" not in text
+
+
+# --- shared translation memory -------------------------------------------------
+
+_SHARED = {
+    "X1": {"de": "X1", "en": "Model One"},
+    "Sommer": {"de": "Sommer", "en": "Summer"},
+    "Auto": {"de": "Auto", "en": "Automatic"},
+    "Cooling": {"en": "Cooling", "de": "Kühlung"},
+}
+
+
+def _translations_ir():
+    ir = aug.intermediate({"manufacturer": "Acme", "model": "X1",
+                           "group_labels": {"cooling": "Cooling", "x": "Custom Label"}})
+    aug.add_entity(ir, "holding", "mode", address=1,
+                   map={0: "Sommer", 1: "Auto", 9: "ObskurerModus"},
+                   ha={"platform": "select", "name": "Betriebsart"})
+    aug.add_entity(ir, "holding", "offset", address=2, map={0: "-5 °C", 1: "0 °C"},
+                   ha={"platform": "select", "name": "Offset"})
+    return ir
+
+
+def test_shared_translations_applied_used_only():
+    ir = _translations_ir()
+    u_enum, u_names = aug.resolve_translations(ir, _SHARED)
+    cat = ir["translations"]
+    # used strings that have a translation are emitted (model, group label, enum values)...
+    assert cat["X1"]["en"] == "Model One"
+    assert cat["Sommer"]["en"] == "Summer"
+    assert cat["Cooling"]["de"] == "Kühlung"
+    # ...unused shared entries are not carried by this device
+    assert "Auto" in cat  # (Auto IS used by 'mode')
+    # untranslated used strings are reported, not emitted
+    assert "ObskurerModus" not in cat and "ObskurerModus" in u_enum
+    assert "Custom Label" not in cat and "Custom Label" in u_enum
+    assert "Betriebsart" in u_names
+    # pure numeric value labels are neither collected nor reported
+    assert "-5 °C" not in cat and "-5 °C" not in u_enum
+
+
+def test_device_translations_override_shared_per_language():
+    ir = _translations_ir()
+    ir["translations"] = {"Auto": {"en": "Auto mode"}}  # device fixes just the English
+    aug.resolve_translations(ir, _SHARED)
+    assert ir["translations"]["Auto"] == {"de": "Auto", "en": "Auto mode"}
+
+
+def test_label_comparison_lint_flags_translated_literal():
+    ir = _translations_ir()
+    aug.add_entity(ir, "template", "clim", ha={"platform": "climate"},
+                   hvac_mode="{{ 'x' if mode == 'Sommer' else 'y' }}",
+                   hvac_action="{{ 'z' if key('mode') == 0 else 'w' }}")
+    aug.resolve_translations(ir, _SHARED)
+    hits = aug.label_comparisons_in_templates(ir, ir["translations"])
+    # the '== Sommer' literal is flagged; the key('mode') == 0 comparison is not
+    assert hits == {"clim": {"Sommer"}}
+
+
+def test_load_shared_translations_reads_committed_file():
+    shared = aug.load_shared_translations()
+    assert shared["Sommer"] == {"de": "Sommer", "en": "Summer"}
+    assert shared["Energy & runtime"]["de"] == "Energie & Laufzeit"

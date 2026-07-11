@@ -1,4 +1,61 @@
 # Pichler Lüftungsgerät LG 150 - LG 250 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Pichler-LG150-LG250/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Lüftungsgerät LG 150 - LG 250:
+    de: Lüftungsgerät LG 150 - LG 250
+    en: Ventilation unit LG 150 - LG 250
+  Modbus configuration:
+    en: Modbus configuration
+    de: Modbus-Konfiguration
+  CO2 control:
+    en: CO2 control
+    de: CO2-Regelung
+  Humidity control:
+    en: Humidity control
+    de: Feuchteregelung
+  Heat exchanger / bypass:
+    en: Heat exchanger / bypass
+    de: Wärmetauscher / Bypass
+  Pre/post-heater:
+    en: Pre/post-heater
+    de: Vor-/Nachheizung
+  Defrost / frost:
+    en: Defrost / frost
+    de: Abtauung / Frost
+  External sensors:
+    en: External sensors
+    de: Externe Sensoren
+  Filter:
+    en: Filter
+    de: Filter
+  "Fan & flow":
+    en: "Fan & flow"
+    de: "Ventilator & Luftmenge"
+  Firmware / model:
+    en: Firmware / model
+    de: Firmware / Modell
+  Sommer:
+    de: Sommer
+    en: Summer
+  Winter:
+    de: Winter
+    en: Winter
+  Aus:
+    de: Aus
+    en: "Off"
+  Bypass:
+    de: Bypass
+    en: Bypass
+  Fehler:
+    de: Fehler
+    en: Fault
+  Wärmerückgewinnung:
+    de: Wärmerückgewinnung
+    en: Heat recovery
+  Vorheizregister:
+    de: Vorheizregister
+    en: Preheater coil
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
@@ -1735,11 +1792,11 @@ template:
       {{ {'Zuluft': soll_zulufttemperatur_number,
           'Raum': soll_raumlufttemperatur_number,
           'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
-    hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+    hvac_mode: "{{ 'cool' if key('betriebsmodus_sommer_winter_select') == 1 else 'heat' }}"
     hvac_action: |-
       {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
-         else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
-              if position_bypassklappe == 'Bypass'
+         else ('cooling' if key('betriebsmodus_sommer_winter_select') == 1 else 'heating')
+              if key('position_bypassklappe') == 2
          else 'fan' }}
     min_temp: 15
     max_temp: 30

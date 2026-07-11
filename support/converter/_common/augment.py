@@ -41,6 +41,9 @@ import yaml
 # support/converter/_common/augment.py  ->  parents: _common, converter, support, <repo>
 _CONVERTER_DIR = Path(__file__).resolve().parents[1]
 _DEST_DIR = Path(__file__).resolve().parents[2].parent / "custom_components/modbus_connect/device_configs"
+# The shared translate-once memory: every source string's per-language text, applied
+# to any device that uses the string (a device's own translations: block overrides it).
+_SHARED_TRANSLATIONS = Path(__file__).resolve().parent / "translations.yaml"
 
 TABLES = ("holding", "input", "coil", "discrete")
 SECTIONS = (*TABLES, "template")
@@ -502,6 +505,145 @@ def load(path: str | Path) -> dict | None:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
+def load_shared_translations(path: str | Path | None = None) -> dict:
+    """The shared translate-once memory (``{source string: {lang: text}}``); ``{}`` if absent."""
+    path = Path(path) if path else _SHARED_TRANSLATIONS
+    if not path.exists():
+        return {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+# A pure value label — a number with an optional unit ("-19 °C", "50 %", "3") —
+# carries no translatable words, so it is never collected or reported.
+_NUMERIC_LABEL = re.compile(
+    r"[+-]?[\d.,]+\s*(°C|°F|%|K|Ω|V|A|W|VA|Hz|kWh|Wh|rpm|bar|h|min|s)?", re.IGNORECASE
+)
+
+
+def _worth_translating(text: str) -> bool:
+    return not _NUMERIC_LABEL.fullmatch(text.strip())
+
+
+def _collect_translatable(ir: dict) -> tuple[list[str], list[str]]:
+    """Every human-facing string the integration localizes, in first-seen order,
+    split into ``(enum_like, names)``. ``enum_like`` — the device model, group
+    labels, and ``map:``/``flags:`` values — drives states, group switches, and
+    template ``key()`` comparisons, so untranslated ones are worth listing;
+    ``names`` (entity/template display names) are display-only. Pure numeric value
+    labels are skipped (nothing to translate)."""
+    enum_like: dict[str, None] = {}
+    names: dict[str, None] = {}
+
+    def add(bucket: dict[str, None], value: object) -> None:
+        if isinstance(value, str) and value.strip() and _worth_translating(value):
+            bucket.setdefault(value, None)
+
+    device = ir.get("device") or {}
+    add(enum_like, device.get("model"))
+    for label in (device.get("group_labels") or {}).values():
+        add(enum_like, label)
+    for _section, entity in _iter(ir):
+        add(names, (entity.get("ha") or {}).get("name"))
+        for block in ("map", "flags"):
+            for value in (entity.get(block) or {}).values():
+                add(enum_like, value)
+    for shared in enum_like:  # a string used both ways counts as enum_like
+        names.pop(shared, None)
+    return list(enum_like), list(names)
+
+
+def resolve_translations(ir: dict, shared: dict) -> tuple[list[str], list[str]]:
+    """Replace ``ir['translations']`` with this device's emitted catalog and report gaps.
+
+    The catalog is every translatable string the file uses (plus any the device's
+    own ``translations:`` names explicitly), resolved from the shared memory with
+    the device's entries overriding it per language. Only strings with at least one
+    translation are emitted, so the file carries exactly what it needs and no more.
+    Returns ``(untranslated_enum_like, untranslated_names)`` for coverage reporting.
+    """
+    device_block = ir.get("translations") or {}
+    enum_like, names = _collect_translatable(ir)
+    order = list(dict.fromkeys([*enum_like, *names, *device_block]))
+    resolved: dict[str, dict] = {}
+    for source in order:
+        base = shared.get(source)
+        over = device_block.get(source)
+        merged = {
+            **(base if isinstance(base, dict) else {}),
+            **(over if isinstance(over, dict) else {}),
+        }
+        if merged:
+            resolved[source] = merged
+    ir["translations"] = resolved
+    return (
+        [s for s in enum_like if s not in resolved],
+        [s for s in names if s not in resolved],
+    )
+
+
+_JINJA_LITERAL = re.compile(r"""['"]([^'"]+)['"]""")
+
+
+def _walk_strings(node: object):
+    """Yield every string reachable inside a (possibly nested) template entity."""
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, dict):
+        for value in node.values():
+            yield from _walk_strings(value)
+    elif isinstance(node, (list, tuple)):
+        for value in node:
+            yield from _walk_strings(value)
+
+
+def label_comparisons_in_templates(ir: dict, resolved: dict) -> dict[str, set[str]]:
+    """Find template Jinja that still references a *translated* label as a quoted
+    literal (``== 'Sommer'``, ``{'Zuluft': …}``, ``not in ['Stufe 1']``). These
+    break the moment the language changes, because the decoded value moves but the
+    literal does not — they must compare the stable map key via ``key('entity')``.
+    Returns ``{template key: {offending labels}}``."""
+    hits: dict[str, set[str]] = {}
+    for entity in ir.get("template", []):
+        for text in _walk_strings(entity):
+            if "{{" not in text and "{%" not in text:
+                continue  # only Jinja bodies; plain action-map labels are fine
+            for literal in _JINJA_LITERAL.findall(text):
+                if literal in resolved:
+                    hits.setdefault(entity.get("key", "?"), set()).add(literal)
+    return hits
+
+
+def _warn_label_comparisons(device_name: str, ir: dict) -> None:
+    for key, labels in label_comparisons_in_templates(ir, ir.get("translations") or {}).items():
+        for label in sorted(labels):
+            print(
+                f"  WARNING {device_name}: template '{key}' compares the translated label "
+                f"{label!r} as a literal — use key('<entity>') == <map key> instead, "
+                f"or it will break in other languages",
+                file=sys.stderr,
+            )
+
+
+def _report_translation_coverage(
+    device_name: str, resolved: dict, untranslated_enum: list[str], untranslated_names: list[str]
+) -> None:
+    """One-line coverage summary per translated device, plus the untranslated
+    enum/label strings (the ones that matter for states and templates). A device
+    with no translations at all stays silent — it is simply single-language."""
+    if not resolved:
+        return
+    print(
+        f"  {device_name}: translations — {len(resolved)} applied; untranslated: "
+        f"{len(untranslated_enum)} enum/label, {len(untranslated_names)} name(s)",
+        file=sys.stderr,
+    )
+    cap = 40
+    for source in untranslated_enum[:cap]:
+        print(f"    untranslated enum/label: {source!r}", file=sys.stderr)
+    if len(untranslated_enum) > cap:
+        print(f"    ... and {len(untranslated_enum) - cap} more enum/label strings", file=sys.stderr)
+
+
 def write_augmented(
     ir: dict,
     device_name: str,
@@ -520,6 +662,11 @@ def write_augmented(
 
     spec = load(augment_dir / device_name / "augment.yaml")
     final = apply(ir, spec)
+    # Fold the shared translate-once memory (overridden by the device's own
+    # translations:) into the per-device catalog, and report untranslated strings.
+    untranslated = resolve_translations(final, load_shared_translations())
+    _report_translation_coverage(device_name, final.get("translations") or {}, *untranslated)
+    _warn_label_comparisons(device_name, final)
     if header is None:
         header = (
             f"Generated by the converter — do not edit here; "
