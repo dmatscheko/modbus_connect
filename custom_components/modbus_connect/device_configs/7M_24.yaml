@@ -76,6 +76,7 @@ input:
   Counter N1:
     address: 462
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter N1
@@ -86,6 +87,7 @@ input:
   Counter N2:
     address: 464
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter N2
@@ -96,6 +98,7 @@ input:
   Counter N3:
     address: 466
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter N3
@@ -106,6 +109,7 @@ input:
   Counter N4:
     address: 468
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter N4
@@ -116,6 +120,7 @@ input:
   Counter C1:
     address: 470
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C1
@@ -126,6 +131,7 @@ input:
   Counter C2:
     address: 472
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C2
@@ -136,6 +142,7 @@ input:
   Counter C3:
     address: 474
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C3
@@ -146,6 +153,7 @@ input:
   Counter C4:
     address: 476
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C4
@@ -156,6 +164,7 @@ input:
   Counter C5:
     address: 478
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C5
@@ -166,6 +175,7 @@ input:
   Counter C6:
     address: 480
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C6
@@ -176,6 +186,7 @@ input:
   Counter C7:
     address: 482
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C7
@@ -186,6 +197,7 @@ input:
   Counter C8:
     address: 484
     type: uint32
+    multiplier: 0.1
     ha:
       platform: sensor
       name: Counter C8

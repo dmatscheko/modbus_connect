@@ -3,6 +3,21 @@
 device:
   manufacturer: Dimplex
   model: Sole/Wasser-Wärmepumpe SI 11TU
+  default_groups: [basic]
+  group_labels:
+    schedule: Schedule / time program
+    clock: Clock
+    heating_circuit_2: Heating circuit 2
+    heating_circuit_3: Heating circuit 3
+    cooling: Cooling
+    solar: Solar
+    ventilation: Ventilation
+    room_climate: Room climate sensors
+    smart_grid: Smart Grid
+    hot_water: Hot water (extra)
+    energy: Energy & runtime
+    heat_source: Heat source (brine)
+    status: Component status
   max_register_read: 100
   max_read_gap: 64
   prefix: Dimplex SI
@@ -10,6 +25,7 @@ device:
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   operating_mode:
+    groups: [basic]
     address: 5015
     map:
       0: Sommer
@@ -23,6 +39,7 @@ holding:
       name: Betriebsmodus
       icon: mdi:cog
   heating_parallel_shift:
+    groups: [basic]
     address: 5036
     map:
       0: -19 °C
@@ -71,6 +88,7 @@ holding:
       entity_category: config
       enabled_by_default: false
   heating_room_temperature:
+    groups: [basic]
     address: 46
     ha:
       platform: number
@@ -82,9 +100,11 @@ holding:
       entity_category: config
       enabled_by_default: false
   heating_fixed_target:      # setpoint owned by the Heizung climate entity (see template:)
+    groups: [basic]
     address: 5037
     internal: true
   heating_curve_end_point:
+    groups: [basic]
     address: 5038
     ha:
       platform: number
@@ -96,6 +116,7 @@ holding:
       entity_category: config
       enabled_by_default: false
   heating_hysteresis:
+    groups: [basic]
     address: 47
     multiplier: 0.1
     ha:
@@ -109,6 +130,7 @@ holding:
       entity_category: config
       enabled_by_default: false
   external_block_software:
+    groups: [basic]
     address: 5130
     map:
       0: Hardwareeingang
@@ -120,6 +142,7 @@ holding:
       icon: mdi:lock
       entity_category: config
   hot_water_hysteresis:
+    groups: [basic]
     address: 5045
     ha:
       platform: number
@@ -131,9 +154,11 @@ holding:
       entity_category: config
       enabled_by_default: false
   hot_water_fixed_target:      # setpoint owned by the Warmwasser climate entity (see template:)
+    groups: [basic]
     address: 5047
     internal: true
   hot_water_min_fixed_target:
+    groups: [basic]
     address: 5145
     ha:
       platform: number
@@ -145,6 +170,7 @@ holding:
       entity_category: config
       enabled_by_default: false
   hot_water_max_fixed_target:
+    groups: [basic]
     address: 5048
     ha:
       platform: number
@@ -157,8 +183,403 @@ holding:
       enabled_by_default: false
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
+  solltemp_dyn_kuehlung:
+    address: 5043
+    groups: [cooling]
+    ha:
+      platform: number
+      name: Solltemp. dyn. Kühlung
+      min: 10
+      max: 35
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  auswahl_heizkreis_2:
+    address: 5082
+    groups: [heating_circuit_2]
+    ha:
+      platform: sensor
+      name: Auswahl Heizkreis 2
+  heizkurvenendpunkt:
+    address: 5084
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Heizkurvenendpunkt
+      min: 20
+      max: 70
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  festwertemperatur:
+    address: 5085
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Festwertemperatur
+      min: 20
+      max: 60
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  parallelverschiebung:
+    address: 5086
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Parallelverschiebung
+      min: 0
+      max: 38
+      entity_category: config
+  mischerlaufzeit:
+    address: 5087
+    groups: [energy]
+    ha:
+      platform: number
+      name: Mischerlaufzeit
+      min: 1
+      max: 6
+      entity_category: config
+  mischerhysterese:
+    address: 93
+    groups: [advanced]
+    ha:
+      platform: sensor
+      name: Mischerhysterese
+  maximale_temperatur:
+    address: 5088
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Maximale Temperatur
+      min: 30
+      max: 70
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  kuehlung_raumsolltemperatur:
+    address: 5089
+    groups: [cooling]
+    ha:
+      platform: number
+      name: Kühlung Raumsolltemperatur
+      min: 0
+      max: 30
+      entity_category: config
+  anzahl_partystunden:
+    address: 5016
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Anzahl Partystunden
+      min: 0
+      max: 72
+      entity_category: config
+  anzahl_urlaubstage:
+    address: 5017
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Anzahl Urlaubstage
+      min: 0
+      max: 150
+      entity_category: config
+  stufen:
+    address: 5034
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Stufen
+      min: 0
+      max: 5
+      entity_category: config
+  zeitwert_stosslueften:
+    address: 127
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Zeitwert Stoßlüften
+      min: 15
+      max: 90
+      entity_category: config
+  hysterese:
+    address: 5049
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Hysterese
+      min: 1
+      max: 20
+      entity_category: config
+  solltemperatur:
+    address: 5051
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Solltemperatur
+      min: 5
+      max: 60
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  mischer_hysterese:
+    address: 48
+    groups: [advanced]
+    ha:
+      platform: sensor
+      name: Mischer Hysterese
+  grenztemperatur_parallel:
+    address: 5020
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Grenztemperatur parallel
+      min: -25
+      max: 35
+      unit_of_measurement: °C
+      device_class: temperature
+      entity_category: config
+  mischerlaufzeit_2:
+    address: 5021
+    groups: [energy]
+    ha:
+      platform: number
+      name: Mischerlaufzeit
+      min: 30
+      max: 85
+      entity_category: config
+  absenkung:
+    address: 5065
+    groups: [advanced]
+    ha:
+      platform: sensor
+      name: Absenkung
+  start_stunde_1:
+    address: 5066
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Start Stunde 1
+      min: 0
+      max: 23
+      entity_category: config
+  start_minute_1:
+    address: 5067
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Start Minute 1
+      min: 0
+      max: 59
+      entity_category: config
+  ende_stunde_1:
+    address: 5068
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Ende Stunde 1
+      min: 0
+      max: 23
+      entity_category: config
+  ende_minute_1:
+    address: 5069
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Ende Minute 1
+      min: 0
+      max: 59
+      entity_category: config
+  start_stunde_2:
+    address: 5070
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Start Stunde 2
+      min: 0
+      max: 23
+      entity_category: config
+  start_minute_2:
+    address: 5071
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Start Minute 2
+      min: 0
+      max: 59
+      entity_category: config
+  ende_stunde_2:
+    address: 5072
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Ende Stunde 2
+      min: 0
+      max: 23
+      entity_category: config
+  ende_minute_2:
+    address: 5073
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Ende Minute 2
+      min: 0
+      max: 59
+      entity_category: config
+  sonntag:
+    address: 5074
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Sonntag
+      min: 0
+      max: 3
+      entity_category: config
+  montag:
+    address: 5075
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Montag
+      min: 0
+      max: 3
+      entity_category: config
+  dienstag:
+    address: 5076
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Dienstag
+      min: 0
+      max: 3
+      entity_category: config
+  mittwoch:
+    address: 5077
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Mittwoch
+      min: 0
+      max: 3
+      entity_category: config
+  donnerstag:
+    address: 5078
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Donnerstag
+      min: 0
+      max: 3
+      entity_category: config
+  freitag:
+    address: 5079
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Freitag
+      min: 0
+      max: 3
+      entity_category: config
+  samstag:
+    address: 5080
+    groups: [schedule]
+    ha:
+      platform: number
+      name: Samstag
+      min: 0
+      max: 3
+      entity_category: config
+  absenk_anhebwert:
+    address: 5081
+    groups: [advanced]
+    ha:
+      platform: number
+      name: Absenk- / Anhebwert
+      min: 0
+      max: 19
+      entity_category: config
+  stunde:
+    address: 5006
+    groups: [clock]
+    ha:
+      platform: number
+      name: Stunde
+      min: 0
+      max: 23
+      entity_category: config
+  minute:
+    address: 5007
+    groups: [clock]
+    ha:
+      platform: number
+      name: Minute
+      min: 0
+      max: 59
+      entity_category: config
+  monat:
+    address: 5008
+    groups: [clock]
+    ha:
+      platform: number
+      name: Monat
+      min: 1
+      max: 12
+      entity_category: config
+  wochentag:
+    address: 5009
+    groups: [clock]
+    ha:
+      platform: number
+      name: Wochentag
+      min: 1
+      max: 7
+      entity_category: config
+  tag:
+    address: 5010
+    groups: [clock]
+    ha:
+      platform: number
+      name: Tag
+      min: 1
+      max: 31
+      entity_category: config
+  jahr:
+    address: 5011
+    groups: [clock]
+    ha:
+      platform: number
+      name: Jahr
+      min: 0
+      max: 99
+      entity_category: config
+  smart_grid:
+    address: 5167
+    groups: [smart_grid]
+    ha:
+      platform: number
+      name: Smart Grid
+      min: 0
+      max: 13
+      entity_category: config
+  sync_clock:
+    address: 5006
+    write_value:
+      - "{{ now().hour }}"
+      - "{{ now().minute }}"
+      - "{{ now().month }}"
+      - "{{ now().isoweekday() }}"
+      - "{{ now().day }}"
+      - "{{ now().year % 100 }}"
+    groups: [clock]
+    ha:
+      platform: button
+      name: Sync clock
+      icon: "mdi:clock-check"
+      entity_category: config
+
 input:
   test_temp_what_is_this:
+    groups: [basic]
     address: 8
     multiplier: 0.1
     ha:
@@ -169,6 +590,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   outside_temp:
+    groups: [basic]
     address: 1
     multiplier: 0.1
     ha:
@@ -179,6 +601,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   heating_return_temp:
+    groups: [basic]
     address: 2
     multiplier: 0.1
     ha:
@@ -189,6 +612,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   heating_1st_loop_temp:
+    groups: [basic]
     address: 27
     multiplier: 0.1
     ha:
@@ -199,6 +623,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   heating_2nd_loop_temp:
+    groups: [basic]
     address: 9
     multiplier: 0.1
     ha:
@@ -210,6 +635,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   heating_3rd_loop_temp:
+    groups: [basic]
     address: 10
     multiplier: 0.1
     ha:
@@ -221,6 +647,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   heating_return_target:
+    groups: [basic]
     address: 53
     multiplier: 0.1
     ha:
@@ -232,6 +659,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   heating_1st_loop_return_target:
+    groups: [basic]
     address: 29
     multiplier: 0.1
     ha:
@@ -242,6 +670,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   heating_2nd_loop_return_target:
+    groups: [basic]
     address: 54
     multiplier: 0.1
     ha:
@@ -253,6 +682,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   heating_3rd_loop_return_target:
+    groups: [basic]
     address: 55
     multiplier: 0.1
     ha:
@@ -264,6 +694,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   hot_water_temp:
+    groups: [basic]
     address: 3
     multiplier: 0.1
     ha:
@@ -274,6 +705,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   hot_water_target:
+    groups: [basic]
     address: 58
     multiplier: 0.1
     ha:
@@ -285,6 +717,7 @@ input:
       icon: mdi:thermometer
       enabled_by_default: false
   flow_temp:
+    groups: [basic]
     address: 5
     multiplier: 0.1
     ha:
@@ -295,6 +728,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   source_input_temp:
+    groups: [basic]
     address: 6
     multiplier: 0.1
     ha:
@@ -305,6 +739,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   source_output_temp:
+    groups: [basic]
     address: 7
     multiplier: 0.1
     ha:
@@ -315,6 +750,7 @@ input:
       state_class: measurement
       icon: mdi:thermometer
   compressor1_hours:
+    groups: [basic]
     address: 72
     never_resets: true
     ha:
@@ -326,6 +762,7 @@ input:
       icon: mdi:history
       entity_category: diagnostic
   primary_pump_hours:
+    groups: [basic]
     address: 74
     never_resets: true
     ha:
@@ -337,6 +774,7 @@ input:
       icon: mdi:history
       entity_category: diagnostic
   heating_pump_hours:
+    groups: [basic]
     address: 76
     never_resets: true
     ha:
@@ -348,6 +786,7 @@ input:
       icon: mdi:history
       entity_category: diagnostic
   hot_water_pump_hours:
+    groups: [basic]
     address: 77
     never_resets: true
     ha:
@@ -359,6 +798,7 @@ input:
       icon: mdi:history
       entity_category: diagnostic
   additional_pump_hours:
+    groups: [basic]
     address: 71
     never_resets: true
     ha:
@@ -370,6 +810,7 @@ input:
       icon: mdi:history
       entity_category: diagnostic
   heating_energy:
+    groups: [basic]
     address: 5096
     sum_scale:
     - 1
@@ -386,6 +827,7 @@ input:
       icon: mdi:meter-electric
       entity_category: diagnostic
   hot_water_energy:
+    groups: [basic]
     address: 5099
     sum_scale:
     - 1
@@ -402,6 +844,7 @@ input:
       icon: mdi:meter-electric
       entity_category: diagnostic
   operation_status:
+    groups: [basic]
     address: 103
     map:
       0: Aus
@@ -420,6 +863,7 @@ input:
       icon: mdi:message-processing
       entity_category: diagnostic
   blocking_status:
+    groups: [basic]
     address: 104
     map:
       0: keine Meldung
@@ -455,6 +899,7 @@ input:
       icon: mdi:message-alert
       entity_category: diagnostic
   fault_status:
+    groups: [basic]
     address: 105
     map:
       0: kein Fehler
@@ -487,6 +932,7 @@ input:
       icon: mdi:message-alert
       entity_category: diagnostic
   sensor_status:
+    groups: [basic]
     address: 106
     map:
       0: keine Meldung
@@ -524,8 +970,210 @@ input:
       entity_category: diagnostic
 
 # Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
+  raumtemperatur_1_rt_rth_econ:
+    address: 11
+    type: float16
+    groups: [room_climate]
+    ha:
+      platform: sensor
+      name: Raumtemperatur 1 / RT-RTH Econ
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  raumtemperatur_2:
+    address: 12
+    type: float16
+    groups: [room_climate]
+    ha:
+      platform: sensor
+      name: Raumtemperatur 2
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  raumfeuchte_1_rt_rth_econ:
+    address: 13
+    type: float16
+    groups: [room_climate]
+    ha:
+      platform: sensor
+      name: Raumfeuchte 1 / RT-RTH Econ
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  raumfeuchte_2:
+    address: 14
+    type: float16
+    groups: [room_climate]
+    ha:
+      platform: sensor
+      name: Raumfeuchte 2
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  vorlauftemperatur:
+    address: 19
+    type: float16
+    groups: [advanced]
+    ha:
+      platform: sensor
+      name: Vorlauftemperatur (R11)
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  ruecklauftemperatur:
+    address: 20
+    type: float16
+    groups: [advanced]
+    ha:
+      platform: sensor
+      name: Rücklauftemperatur (R4)
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  ruecklauftemp_gem_primaerkreis:
+    address: 21
+    type: float16
+    groups: [heat_source]
+    ha:
+      platform: sensor
+      name: Rücklauftemp. gem. Primärkreis (R24)
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  solarspeicher:
+    address: 23
+    type: float16
+    groups: [solar]
+    ha:
+      platform: sensor
+      name: Solarspeicher (R22)
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  aussenlufttemperatur:
+    address: 120
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Außenlufttemperatur
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  zulufttemperatur:
+    address: 121
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Zulufttemperatur
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  ablufttemperatur:
+    address: 122
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Ablufttemperatur
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  fortlufttemperatur:
+    address: 123
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Fortlufttemperatur
+      unit_of_measurement: °C
+      device_class: temperature
+      state_class: measurement
+  drehzahl_zuluftventilator:
+    address: 125
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Drehzahl Zuluftventilator
+  drehzahl_abluftventilator:
+    address: 126
+    type: float16
+    groups: [ventilation]
+    ha:
+      platform: sensor
+      name: Drehzahl Abluftventilator
+  verdichter_2:
+    address: 73
+    groups: [status]
+    ha:
+      platform: sensor
+      name: Verdichter 2
+  waermeerzeuger:
+    address: 75
+    groups: [status]
+    ha:
+      platform: sensor
+      name: 2.Wärmeerzeuger (E10)
+  flanschheizung:
+    address: 78
+    groups: [status]
+    ha:
+      platform: sensor
+      name: Flanschheizung (E9)
+  schwimmbadpumpe:
+    address: 79
+    groups: [status]
+    ha:
+      platform: sensor
+      name: Schwimmbadpumpe (M19)
+  waermemenge_heizen_5_8:
+    address: 5097
+    groups: [energy]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Heizen 5-8
+  waermemenge_heizen_9_12:
+    address: 5098
+    groups: [energy]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Heizen 9-12
+  waermemenge_warmwasser_5_8:
+    address: 5100
+    groups: [hot_water]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Warmwasser 5-8
+  waermemenge_warmwasser_9_12:
+    address: 5101
+    groups: [hot_water]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Warmwasser 9-12
+  waermemenge_schwimmbad_1_4:
+    address: 5102
+    groups: [energy]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Schwimmbad 1-4
+  waermemenge_schwimmbad_5_8:
+    address: 5103
+    groups: [energy]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Schwimmbad 5-8
+  waermemenge_schwimmbad_9_12:
+    address: 5104
+    groups: [energy]
+    ha:
+      platform: sensor
+      name: Wärmemenge * Schwimmbad 9-12
+
 discrete:
   hot_water_thermostat:
+    groups: [basic]
     address: 3
     ha:
       platform: binary_sensor
@@ -534,6 +1182,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   utility_block:
+    groups: [basic]
     address: 5
     ha:
       platform: binary_sensor
@@ -542,6 +1191,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   external_block:
+    groups: [basic]
     address: 6
     ha:
       platform: binary_sensor
@@ -550,6 +1200,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   compressor1:
+    groups: [basic]
     address: 41
     ha:
       platform: binary_sensor
@@ -557,6 +1208,7 @@ discrete:
       device_class: running
       entity_category: diagnostic
   primary_pump:
+    groups: [basic]
     address: 43
     ha:
       platform: binary_sensor
@@ -564,6 +1216,7 @@ discrete:
       device_class: running
       entity_category: diagnostic
   heating_pump:
+    groups: [basic]
     address: 45
     ha:
       platform: binary_sensor
@@ -571,6 +1224,7 @@ discrete:
       device_class: running
       entity_category: diagnostic
   hot_water_pump:
+    groups: [basic]
     address: 46
     ha:
       platform: binary_sensor
@@ -578,6 +1232,7 @@ discrete:
       device_class: running
       entity_category: diagnostic
   mixer_open:
+    groups: [basic]
     address: 47
     ha:
       platform: binary_sensor
@@ -586,6 +1241,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   additional_pump:
+    groups: [basic]
     address: 49
     ha:
       platform: binary_sensor
@@ -593,6 +1249,7 @@ discrete:
       device_class: running
       entity_category: diagnostic
   heating_pump_m15:
+    groups: [basic]
     address: 51
     ha:
       platform: binary_sensor
@@ -601,6 +1258,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   mixer_m22_open:
+    groups: [basic]
     address: 52
     ha:
       platform: binary_sensor
@@ -609,6 +1267,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   pool_pump:
+    groups: [basic]
     address: 56
     ha:
       platform: binary_sensor
@@ -617,6 +1276,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   error_indicator:
+    groups: [basic]
     address: 57
     ha:
       platform: binary_sensor
@@ -625,6 +1285,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   heating_pump_m14:
+    groups: [basic]
     address: 59
     ha:
       platform: binary_sensor
@@ -633,6 +1294,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   cooling_pump:
+    groups: [basic]
     address: 60
     ha:
       platform: binary_sensor
@@ -641,6 +1303,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   heating_pump_m20:
+    groups: [basic]
     address: 61
     ha:
       platform: binary_sensor
@@ -649,6 +1312,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   room_thermostat_mode:
+    groups: [basic]
     address: 66
     ha:
       platform: binary_sensor
@@ -656,6 +1320,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   cooling_primary_pump:
+    groups: [basic]
     address: 68
     ha:
       platform: binary_sensor
@@ -664,6 +1329,7 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   solar_pump:
+    groups: [basic]
     address: 71
     ha:
       platform: binary_sensor
@@ -673,8 +1339,73 @@ discrete:
       enabled_by_default: false
 
 # Template entities: thermostats composed from the device's decoded values.
+  aktiv_zeit_1:
+    address: 125
+    groups: [schedule]
+    ha:
+      platform: binary_sensor
+      name: Aktiv Zeit 1
+  aktiv_zeit_2:
+    address: 126
+    groups: [schedule]
+    ha:
+      platform: binary_sensor
+      name: Aktiv Zeit 2
+  schwimmbadthermostat:
+    address: 4
+    groups: [status]
+    ha:
+      platform: binary_sensor
+      name: Schwimmbadthermostat
+  verdichter_2_2:
+    address: 42
+    groups: [status]
+    ha:
+      platform: binary_sensor
+      name: Verdichter 2
+  waermeerzeuger_2:
+    address: 44
+    groups: [status]
+    ha:
+      platform: binary_sensor
+      name: 2.Wärmeerzeuger (E10)
+  mischer:
+    address: 48
+    groups: [heating_circuit_2]
+    ha:
+      platform: binary_sensor
+      name: Mischer (M21) ZU
+  flanschheizung_2:
+    address: 50
+    groups: [status]
+    ha:
+      platform: binary_sensor
+      name: Flanschheizung (E9)
+  mischer_2:
+    address: 53
+    groups: [heating_circuit_3]
+    ha:
+      platform: binary_sensor
+      name: Mischer (M22) Zu
+
+coil:
+
+  smart_grid_1:
+    address: 3
+    groups: [smart_grid]
+    ha:
+      platform: switch
+      name: Smart Grid 1
+  smart_grid_2:
+    address: 4
+    groups: [smart_grid]
+    ha:
+      platform: switch
+      name: Smart Grid 2
+
 template:
   warmwasser:                              # hot-water thermostat (R3 temp + fixed setpoint)
+    groups: [basic]
     ha:
       platform: climate
       name: Warmwasser
@@ -688,6 +1419,7 @@ template:
     set_temperature: {entity: hot_water_fixed_target}
 
   heizung:                                 # heating thermostat (flow temp + fixed setpoint)
+    groups: [basic]
     ha:
       platform: climate
       name: Heizung

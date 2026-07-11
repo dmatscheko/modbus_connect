@@ -18,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 131 (Holding 51, Input 80) · plus 2 composite template entities
+**Registers in this file:** 186 (Holding 76, Input 110) · plus 2 composite template entities
 
 ## Registers
 
@@ -75,6 +75,31 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x005A` (90) — Freigabe Kühlen<br>`freigabe_kuhlen_select` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0067` (103) — Zeitprogramm Lüftungsstufen<br>`zeitprogramm_luftungsstufen_select` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0068` (104) — Zeitprogramm Temperaturregelung<br>`zeitprogramm_temperaturregelung_select` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0069` (105) — Firmware Version Touch Display<br>`firmwareversion_touchdisplay` | Holding (4x) | FC03 read | uint16 |
+| `0x00D0` (208) — Modbus address<br>`modbusadresse` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x00D1` (209) — Modbus baudrate<br>`modbusbaudrate` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x00D2` (210) — Modbus parity<br>`modbusparitaet` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 3 opts |
+| `0x003B` (59) — Activate modbus sensors<br>`modbussensorsenabled` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x0050` (80) — Fan regulation<br>`fagregtype` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0052` (82) — EPB CO2<br>`epb_activate` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x006C` (108) — EPB CO2 Regulation<br>`epb_co2control` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0087` (135) — Touch Display Show Air Quality<br>`displayshowairqulity` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0088` (136) — Baudrate Modbus sensors<br>`baudratesensorbus` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0093` (147) — PreHeaterMaxTemperature<br>`preheatermaxtemperature` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
+| `0x009D` (157) — EnableAirfilterAlarm<br>`enableairfilteralarm` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x009E` (158) — EnableExtractSmoke 0=off 1=NO 2=NC<br>`enableextractsmoke` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 3 opts |
+| `0x089A` (2202) — Relative humidity setpoint Winter<br>`hum_reg_sollwert_winter` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x089B` (2203) — Enable Presence mode<br>`userenablepresence` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x089C` (2204) — Enable Summernight cooling<br>`summernightcool_enable` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x089D` (2205) — Summernight cooling enable T<br>`summernightcool_temp_on` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x089E` (2206) — Summernight cooling disable T<br>`summernightcool_temp_off` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
+| `0x089F` (2207) — Summernight cooling release T<br>`summernightcool_activation` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
+| `0x08A0` (2208) — Summernight cooling start hour<br>`summernightcool_starttime_hour` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
+| `0x08A1` (2209) — Summernight cooling start minute<br>`summernightcool_starttime_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A2` (2210) — Summernight cooling stopp hour<br>`summernightcool_stoptime_hour` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A3` (2211) — Summernight cooling stopp minute<br>`summernightcool_stoptime_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A4` (2212) — Summernight cooling ventilation level<br>`summernightcool_fanlevel` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A5` (2213) — Summernight cooling release ventilation level<br>`summernightcool_enable_level` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0002` (2) — L5/Ai1 CO2 Sensor<br>`l5_ai1_co2_sensor` | Input (3x) | FC04 read | uint16 · ×0.4884 |
 | `0x0003` (3) — L7/Ai2 rF Sensor<br>`l7_ai2_rf_sensor` | Input (3x) | FC04 read | uint16 · ×0.02442 |
 | `0x000D` (13) — Außentemperatur gedämpft<br>`aussentemperatur_gedaempft` | Input (3x) | FC04 read | uint16 · ×0.1 · -100 |
@@ -155,3 +180,33 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0055` (85) — Betriebsstunden Heizregister<br>`betriebsstunden_heizregister` | Input (3x) | FC04 read | uint16 |
 | `0x0056` (86) — Betriebsstunden Bypass<br>`betriebsstunden_bypass` | Input (3x) | FC04 read | uint16 |
 | `0x0057` (87) — Betriebsstunden Stufe 1<br>`betriebsstunden_luftungsstufe_1` | Input (3x) | FC04 read | uint16 |
+| `0x1450` (5200) — CO2 air qualitity modbus sensor 3<br>`msensor3_co2_id_104` | Input (3x) | FC04 read | uint16 |
+| `0x1451` (5201) — Relative humidity modbus sensor 3<br>`msensor3_rf_id_104` | Input (3x) | FC04 read | uint16 |
+| `0x1452` (5202) — CO2 air qualitity modbus sensor 4<br>`msensor4_co2_id_105` | Input (3x) | FC04 read | uint16 |
+| `0x1453` (5203) — Relative humidity modbus sensor 4<br>`msensor4_rf_id_105` | Input (3x) | FC04 read | uint16 |
+| `0x1454` (5204) — CO2 air qualitity modbus sensor 5<br>`msensor5_co2_id_106` | Input (3x) | FC04 read | uint16 |
+| `0x1455` (5205) — Relative humidity modbus sensor 5<br>`msensor5_rf_id_106` | Input (3x) | FC04 read | uint16 |
+| `0x1456` (5206) — CO2 air qualitity modbus sensor 6<br>`msensor6_co2_id_4` | Input (3x) | FC04 read | uint16 |
+| `0x1457` (5207) — Relative humidity modbus sensor 6<br>`msensor6_rf_id_4` | Input (3x) | FC04 read | uint16 |
+| `0x1458` (5208) — Extract air duct pressure<br>`abl_kanaldruck_pa` | Input (3x) | FC04 read | uint16 |
+| `0x145A` (5210) — Supply air duct pressure<br>`zul_kanaldruck_pa` | Input (3x) | FC04 read | uint16 |
+| `0x145C` (5212) — Current CO2 control value<br>`aktueller_co2_wert` | Input (3x) | FC04 read | uint16 |
+| `0x145D` (5213) — Error modbus communication to external pressure sensor<br>`z23_modbus_kommunikation_drucksensor` | Input (3x) | FC04 read | uint16 |
+| `0x145E` (5214) — Low supply air duct pressure<br>`z24_niedriger_zuluftkanaldruck` | Input (3x) | FC04 read | uint16 |
+| `0x145F` (5215) — High supply air duct pressure<br>`z25_hoher_zuluftkanaldruck` | Input (3x) | FC04 read | uint16 |
+| `0x1460` (5216) — Low extract air duct pressure<br>`z26_niedriger_abluftkanaldruck` | Input (3x) | FC04 read | uint16 |
+| `0x1461` (5217) — High extract air duct pressure<br>`z27_hoher_abluftkanaldruck` | Input (3x) | FC04 read | uint16 |
+| `0x1462` (5218) — Pre-heater air reduction<br>`vhr_luftreduktion` | Input (3x) | FC04 read | uint16 |
+| `0x1463` (5219) — Pre-heater Volume flow reduction<br>`vhr_volumenstromreduzierung` | Input (3x) | FC04 read | uint16 |
+| `0x146A` (5226) — Z28 danger condensation<br>`z28_danger_condensation` | Input (3x) | FC04 read | uint16 |
+| `0x146B` (5227) — Z29 Airfilter SUP<br>`z29_airfilter_sup` | Input (3x) | FC04 read | uint16 |
+| `0x146C` (5228) — Z30 Airfilter ETA<br>`z30_airfilter_eta` | Input (3x) | FC04 read | uint16 |
+| `0x146D` (5229) — Z31 External Preheater alarm<br>`z31_external_preheater_alarm` | Input (3x) | FC04 read | uint16 |
+| `0x146E` (5230) — Z32 Door contact<br>`z32_door_contact` | Input (3x) | FC04 read | uint16 |
+| `0x146F` (5231) — Filterpressure SUP<br>`sensorfilterpress_sup` | Input (3x) | FC04 read | uint16 |
+| `0x1470` (5232) — Filterpressure ETA<br>`sensorfilterpress_eta` | Input (3x) | FC04 read | uint16 |
+| `0x1471` (5233) — Current rH value<br>`currentrhvalue` | Input (3x) | FC04 read | uint16 |
+| `0x1480` (5248) — Sommernacht Kühlung Status<br>`summernightcooling_status` | Input (3x) | FC04 read | uint16 |
+| `0x1481` (5249) — Sommernacht Kühlung Testzeit<br>`summernightcooling_time` | Input (3x) | FC04 read | uint16 |
+| `0x1482` (5250) — Sommernacht Kühlung Wiederholungszeit<br>`summernightcooling_time_check` | Input (3x) | FC04 read | uint16 |
+| `0x1483` (5251) — Din1 Extern Sommernacht Kühlung aktiviert<br>`din1_externalsummernightcoolingenabled` | Input (3x) | FC04 read | uint16 |

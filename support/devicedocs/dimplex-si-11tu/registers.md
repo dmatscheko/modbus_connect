@@ -18,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 56 (Holding 11, Input 26, Discrete 19) · plus 2 composite template entities
+**Registers in this file:** 134 (Holding 54, Input 51, Coil 2, Discrete 27) · plus 2 composite template entities
 
 ## Registers
 
@@ -35,6 +35,49 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x13B7` (5047) — hot_water_fixed_target _(internal)_ | Holding (4x) | FC03 read | uint16 |
 | `0x1419` (5145) — Warmwasser Solltemperatur Minimal<br>`hot_water_min_fixed_target` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13B8` (5048) — Warmwasser Solltemperatur Maximal<br>`hot_water_max_fixed_target` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13B3` (5043) — Solltemp. dyn. Kühlung<br>`solltemp_dyn_kuehlung` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13DA` (5082) — Auswahl Heizkreis 2<br>`auswahl_heizkreis_2` | Holding (4x) | FC03 read | uint16 |
+| `0x13DC` (5084) — Heizkurvenendpunkt<br>`heizkurvenendpunkt` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13DD` (5085) — Festwertemperatur<br>`festwertemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13DE` (5086) — Parallelverschiebung<br>`parallelverschiebung` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13DF` (5087) — Mischerlaufzeit<br>`mischerlaufzeit` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x005D` (93) — Mischerhysterese<br>`mischerhysterese` | Holding (4x) | FC03 read | uint16 |
+| `0x13E0` (5088) — Maximale Temperatur<br>`maximale_temperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13E1` (5089) — Kühlung Raumsolltemperatur<br>`kuehlung_raumsolltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1398` (5016) — Anzahl Partystunden<br>`anzahl_partystunden` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1399` (5017) — Anzahl Urlaubstage<br>`anzahl_urlaubstage` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13AA` (5034) — Stufen<br>`stufen` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x007F` (127) — Zeitwert Stoßlüften<br>`zeitwert_stosslueften` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13B9` (5049) — Hysterese<br>`hysterese` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13BB` (5051) — Solltemperatur<br>`solltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x0030` (48) — Mischer Hysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read | uint16 |
+| `0x139C` (5020) — Grenztemperatur parallel<br>`grenztemperatur_parallel` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x139D` (5021) — Mischerlaufzeit<br>`mischerlaufzeit_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13C9` (5065) — Absenkung<br>`absenkung` | Holding (4x) | FC03 read | uint16 |
+| `0x13CA` (5066) — Start Stunde 1<br>`start_stunde_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13CB` (5067) — Start Minute 1<br>`start_minute_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13CC` (5068) — Ende Stunde 1<br>`ende_stunde_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13CD` (5069) — Ende Minute 1<br>`ende_minute_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13CE` (5070) — Start Stunde 2<br>`start_stunde_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13CF` (5071) — Start Minute 2<br>`start_minute_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D0` (5072) — Ende Stunde 2<br>`ende_stunde_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D1` (5073) — Ende Minute 2<br>`ende_minute_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D2` (5074) — Sonntag<br>`sonntag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D3` (5075) — Montag<br>`montag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D4` (5076) — Dienstag<br>`dienstag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D5` (5077) — Mittwoch<br>`mittwoch` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D6` (5078) — Donnerstag<br>`donnerstag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D7` (5079) — Freitag<br>`freitag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D8` (5080) — Samstag<br>`samstag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13D9` (5081) — Absenk- / Anhebwert<br>`absenk_anhebwert` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x138E` (5006) — Stunde<br>`stunde` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x138F` (5007) — Minute<br>`minute` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1390` (5008) — Monat<br>`monat` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1391` (5009) — Wochentag<br>`wochentag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1392` (5010) — Tag<br>`tag` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x1393` (5011) — Jahr<br>`jahr` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x142F` (5167) — Smart Grid<br>`smart_grid` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x138E` (5006) — Sync clock<br>`sync_clock` | Holding (4x) | FC16 write-only | uint16 |
 | `0x0008` (8) — TEST What is this<br>`test_temp_what_is_this` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0001` (1) — Außentemperatur (R1)<br>`outside_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0002` (2) — Heizung Rücklauftemperatur (R2)<br>`heating_return_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
@@ -61,6 +104,33 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0068` (104) — Sperrmeldung<br>`blocking_status` | Input (3x) | FC04 read | uint16 · enum · 27 opts |
 | `0x0069` (105) — Störmeldung<br>`fault_status` | Input (3x) | FC04 read | uint16 · enum · 24 opts |
 | `0x006A` (106) — Sensorfehler<br>`sensor_status` | Input (3x) | FC04 read | uint16 · enum · 28 opts |
+| `0x000B` (11) — Raumtemperatur 1 / RT-RTH Econ<br>`raumtemperatur_1_rt_rth_econ` | Input (3x) | FC04 read | float16 |
+| `0x000C` (12) — Raumtemperatur 2<br>`raumtemperatur_2` | Input (3x) | FC04 read | float16 |
+| `0x000D` (13) — Raumfeuchte 1 / RT-RTH Econ<br>`raumfeuchte_1_rt_rth_econ` | Input (3x) | FC04 read | float16 |
+| `0x000E` (14) — Raumfeuchte 2<br>`raumfeuchte_2` | Input (3x) | FC04 read | float16 |
+| `0x0013` (19) — Vorlauftemperatur (R11)<br>`vorlauftemperatur` | Input (3x) | FC04 read | float16 |
+| `0x0014` (20) — Rücklauftemperatur (R4)<br>`ruecklauftemperatur` | Input (3x) | FC04 read | float16 |
+| `0x0015` (21) — Rücklauftemp. gem. Primärkreis (R24)<br>`ruecklauftemp_gem_primaerkreis` | Input (3x) | FC04 read | float16 |
+| `0x0017` (23) — Solarspeicher (R22)<br>`solarspeicher` | Input (3x) | FC04 read | float16 |
+| `0x0078` (120) — Außenlufttemperatur<br>`aussenlufttemperatur` | Input (3x) | FC04 read | float16 |
+| `0x0079` (121) — Zulufttemperatur<br>`zulufttemperatur` | Input (3x) | FC04 read | float16 |
+| `0x007A` (122) — Ablufttemperatur<br>`ablufttemperatur` | Input (3x) | FC04 read | float16 |
+| `0x007B` (123) — Fortlufttemperatur<br>`fortlufttemperatur` | Input (3x) | FC04 read | float16 |
+| `0x007D` (125) — Drehzahl Zuluftventilator<br>`drehzahl_zuluftventilator` | Input (3x) | FC04 read | float16 |
+| `0x007E` (126) — Drehzahl Abluftventilator<br>`drehzahl_abluftventilator` | Input (3x) | FC04 read | float16 |
+| `0x0049` (73) — Verdichter 2<br>`verdichter_2` | Input (3x) | FC04 read | uint16 |
+| `0x004B` (75) — 2.Wärmeerzeuger (E10)<br>`waermeerzeuger` | Input (3x) | FC04 read | uint16 |
+| `0x004E` (78) — Flanschheizung (E9)<br>`flanschheizung` | Input (3x) | FC04 read | uint16 |
+| `0x004F` (79) — Schwimmbadpumpe (M19)<br>`schwimmbadpumpe` | Input (3x) | FC04 read | uint16 |
+| `0x13E9` (5097) — Wärmemenge * Heizen 5-8<br>`waermemenge_heizen_5_8` | Input (3x) | FC04 read | uint16 |
+| `0x13EA` (5098) — Wärmemenge * Heizen 9-12<br>`waermemenge_heizen_9_12` | Input (3x) | FC04 read | uint16 |
+| `0x13EC` (5100) — Wärmemenge * Warmwasser 5-8<br>`waermemenge_warmwasser_5_8` | Input (3x) | FC04 read | uint16 |
+| `0x13ED` (5101) — Wärmemenge * Warmwasser 9-12<br>`waermemenge_warmwasser_9_12` | Input (3x) | FC04 read | uint16 |
+| `0x13EE` (5102) — Wärmemenge * Schwimmbad 1-4<br>`waermemenge_schwimmbad_1_4` | Input (3x) | FC04 read | uint16 |
+| `0x13EF` (5103) — Wärmemenge * Schwimmbad 5-8<br>`waermemenge_schwimmbad_5_8` | Input (3x) | FC04 read | uint16 |
+| `0x13F0` (5104) — Wärmemenge * Schwimmbad 9-12<br>`waermemenge_schwimmbad_9_12` | Input (3x) | FC04 read | uint16 |
+| `0x0003` (3) — Smart Grid 1<br>`smart_grid_1` | Coil (0x) | FC01 read · FC05 write | bool (bit) |
+| `0x0004` (4) — Smart Grid 2<br>`smart_grid_2` | Coil (0x) | FC01 read · FC05 write | bool (bit) |
 | `0x0003` (3) — Warmwasserthermostat<br>`hot_water_thermostat` | Discrete (1x) | FC02 read | bool (bit) |
 | `0x0005` (5) — EVU-Sperre<br>`utility_block` | Discrete (1x) | FC02 read | bool (bit) |
 | `0x0006` (6) — Sperre Extern<br>`external_block` | Discrete (1x) | FC02 read | bool (bit) |
@@ -80,3 +150,11 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0042` (66) — Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus<br>`room_thermostat_mode` | Discrete (1x) | FC02 read | bool (bit) |
 | `0x0044` (68) — Primärpumpe Kühlen (M12) Modus<br>`cooling_primary_pump` | Discrete (1x) | FC02 read | bool (bit) |
 | `0x0047` (71) — Solarpumpe (M23) Modus<br>`solar_pump` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x007D` (125) — Aktiv Zeit 1<br>`aktiv_zeit_1` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x007E` (126) — Aktiv Zeit 2<br>`aktiv_zeit_2` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x0004` (4) — Schwimmbadthermostat<br>`schwimmbadthermostat` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x002A` (42) — Verdichter 2<br>`verdichter_2_2` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x002C` (44) — 2.Wärmeerzeuger (E10)<br>`waermeerzeuger_2` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x0030` (48) — Mischer (M21) ZU<br>`mischer` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x0032` (50) — Flanschheizung (E9)<br>`flanschheizung_2` | Discrete (1x) | FC02 read | bool (bit) |
+| `0x0035` (53) — Mischer (M22) Zu<br>`mischer_2` | Discrete (1x) | FC02 read | bool (bit) |
