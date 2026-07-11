@@ -12,7 +12,8 @@ from custom_components.modbus_connect.schema import parse_device
 # The converter is a standalone script with a hyphenated filename (named after the source
 # format it converts), so it is loaded by path rather than imported as a module.
 _convert_path = (
-    Path(__file__).resolve().parent.parent / "converter" / "modbus_local_gateway-convert.py"
+    Path(__file__).resolve().parent.parent
+    / "support" / "converter" / "modbus_local_gateway" / "modbus_local_gateway-convert.py"
 )
 _spec = importlib.util.spec_from_file_location("mlg_convert", _convert_path)
 _mlg = importlib.util.module_from_spec(_spec)

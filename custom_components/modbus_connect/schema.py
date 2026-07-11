@@ -168,7 +168,8 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
     if _OLD_FORMAT_SECTIONS & set(data):
         raise ctx.fail(
             "this looks like an old modbus_local_gateway device file; "
-            "convert it with converter/modbus_local_gateway-convert.py first"
+            "convert it with support/converter/modbus_local_gateway/"
+            "modbus_local_gateway-convert.py first"
         )
     unknown = set(data) - {"device", "template", *SECTIONS}
     if unknown:

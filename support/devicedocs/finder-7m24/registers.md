@@ -7,10 +7,10 @@
 - **Finder — MODBUS Communication Protocol 7M.24 / 7M.38** (v2, 2021-06-30)
 - Source: [https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf](https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf)
 - Source type: official-manufacturer (Finder CDN, cdn.findernet.com)
-- Register addresses vs device file: verified — IEEE-754 float bank (FC04, reference base 30000, big-endian HI-word first): Freq 32498, U1 32500, I1 32516, P1 32530…; energy counters 30462–30485 (uint32)
+- Register addresses vs device file: verified — IEEE-754 float bank (FC04, reference base 30000, big-endian HI-word first); energy counters 30462–30485 (uint32, ×0.1 → Wh)
 - Local copy: [`Modbus-7M24-7M38_v2_30062021.pdf`](./Modbus-7M24-7M38_v2_30062021.pdf) — 742 KB
 
-> One combined Finder document covers 7M.24, 7M.38 (and 7M.40). The document specifies ×0.1 (‘x 0,1 Wh’) on the energy counters (30462–30485); both device files apply that multiplier.
+> One combined Finder document covers 7M.24, 7M.38 (and 7M.40). The document specifies ×0.1 (‘x 0,1 Wh’) on the energy counters (30462–30485); both device files apply that multiplier. Input registers only, FC04, reference base 30000, IEEE-754 big-endian (HI word at the lower address).
 
 ## Scope & conventions
 
@@ -31,15 +31,15 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x09EA` (2538) — Reactive Power | Input (3x) | FC04 read | float32 |
 | `0x09C2` (2498) — Frequency | Input (3x) | FC04 read | float32 |
 | `0x09FA` (2554) — Power Factor | Input (3x) | FC04 read | float32 |
-| `0x01CE` (462) — Counter N1 | Input (3x) | FC04 read | uint32 |
-| `0x01D0` (464) — Counter N2 | Input (3x) | FC04 read | uint32 |
-| `0x01D2` (466) — Counter N3 | Input (3x) | FC04 read | uint32 |
-| `0x01D4` (468) — Counter N4 | Input (3x) | FC04 read | uint32 |
-| `0x01D6` (470) — Counter C1 | Input (3x) | FC04 read | uint32 |
-| `0x01D8` (472) — Counter C2 | Input (3x) | FC04 read | uint32 |
-| `0x01DA` (474) — Counter C3 | Input (3x) | FC04 read | uint32 |
-| `0x01DC` (476) — Counter C4 | Input (3x) | FC04 read | uint32 |
-| `0x01DE` (478) — Counter C5 | Input (3x) | FC04 read | uint32 |
-| `0x01E0` (480) — Counter C6 | Input (3x) | FC04 read | uint32 |
-| `0x01E2` (482) — Counter C7 | Input (3x) | FC04 read | uint32 |
-| `0x01E4` (484) — Counter C8 | Input (3x) | FC04 read | uint32 |
+| `0x01CE` (462) — Counter N1 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01D0` (464) — Counter N2 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01D2` (466) — Counter N3 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01D4` (468) — Counter N4 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01D6` (470) — Counter C1 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01D8` (472) — Counter C2 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01DA` (474) — Counter C3 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01DC` (476) — Counter C4 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01DE` (478) — Counter C5 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01E0` (480) — Counter C6 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01E2` (482) — Counter C7 | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x01E4` (484) — Counter C8 | Input (3x) | FC04 read | uint32 · ×0.1 |

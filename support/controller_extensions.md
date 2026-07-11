@@ -107,7 +107,7 @@ live measurements, a **multi-register transactional write** each tick, and a
 **teardown** step. A one-shot stateless render cannot express a control loop.
 
 That is why the converter drops it: any button carrying a `value_function` is
-skipped (`converter/homeassistant_solax_modbus-convert.py`, `add_button`), the
+skipped (`support/converter/solax/homeassistant_solax_modbus-convert.py`, `add_button`), the
 same way register-less computed sensors are.
 
 ## What you *can* do today
@@ -158,5 +158,5 @@ device.
 
 - Upstream button + loop: `homeassistant-solax-modbus`
   `custom_components/solax_modbus/plugin_solax.py:1501` and `:709`.
-- Time/`value_function` handling and skips: `converter/homeassistant_solax_modbus-convert.py`.
+- Time/`value_function` handling and skips: `support/converter/solax/homeassistant_solax_modbus-convert.py`.
 - Device-file format (what *is* expressible): [docs/device_files.md](../docs/device_files.md).

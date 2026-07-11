@@ -317,7 +317,7 @@ authentication, and no fixed entity set to translate).
 python3 -m venv .venv
 .venv/bin/pip install -r requirements_test.txt
 .venv/bin/python -m pytest tests/ --cov=custom_components.modbus_connect
-.venv/bin/ruff check custom_components tests converter support
+.venv/bin/ruff check custom_components tests support
 .venv/bin/mypy custom_components/modbus_connect   # strict, see pyproject.toml
 ```
 

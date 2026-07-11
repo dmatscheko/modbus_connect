@@ -31,11 +31,13 @@ Workflow that has worked well:
    hardware/firmware it was tested against.
 
 Files converted from another integration's format belong with their
-converter: `converter/modbus_local_gateway-convert.py` and
-`converter/homeassistant_solax_modbus-convert.py` regenerate most bundled
-files — if your file is derived from one of those sources, prefer fixing the
-converter over hand-editing the output (hand-edited files are the exception
-and are listed in the converters' headers).
+converter under `support/converter/`:
+`support/converter/modbus_local_gateway/modbus_local_gateway-convert.py` and
+`support/converter/solax/homeassistant_solax_modbus-convert.py` regenerate most
+bundled files — if your file is derived from one of those sources, prefer fixing
+the converter over hand-editing the output (hand-edited files are the exception
+and are listed in the converters' headers). See `support/converter/README.md`
+for the full tooling (config expansion, doc generation).
 
 ## Code changes
 

@@ -726,7 +726,7 @@ def yaml_str(v):
 
 
 DEST = str(
-    Path(__file__).resolve().parent.parent
+    Path(__file__).resolve().parents[3]
     / "custom_components/modbus_connect/device_configs"
 )
 
@@ -736,7 +736,7 @@ def validate_output(text, filename):
     bug fails the conversion loudly instead of the config entry later."""
     import yaml
 
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "custom_components"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "custom_components"))
     from modbus_connect.schema import parse_device
 
     parse_device(yaml.safe_load(text), filename=filename)

@@ -1,0 +1,208 @@
+{
+  "solax-x3-hybrid-g4": {
+    "url": "https://github.com/user-attachments/files/19076476/Solax.Hybrid_X1.X3-G4_ModbusTCP.RTU_V3.36-English_240611.1.pdf",
+    "title": "SolaX — Energy Storage Inverter Modbus TCP & RTU Communication Protocol (Hybrid X1&X3-G4)",
+    "version": "V3.36, 2024-06-11",
+    "source_type": "manufacturer-authored PDF, community-hosted (SolaX does not publish it publicly)",
+    "primary_file": "SolaX-Hybrid-X1X3-G4-ModbusTCPRTU-V3.36-EN-240611.pdf",
+    "match": "verified — 0x1F use-mode, 0x42 export limit, 0x7C ARM/DSP + power-control, 0xEA peak-shaving, VPP/schedule; 0-based PDU, big-endian words",
+    "notes": "SolaX does not publish its Modbus protocol publicly; this is the genuine SolaX-authored PDF (the revision homeassistant-solax-modbus references), redistributed via GitHub. A second doc, V001.02 (matches the device-file header ‘V1.02+’, lists X3-Hybrid G4 / G4 PRO / X1-Hybrid G4), is also in this folder. The inverter supports FC06 (write single) and FC16 (write multiple); the remote-control block requires FC16, and writes require the inverter unlocked."
+  },
+  "solax-x3-hac": {
+    "url": "https://github.com/user-attachments/files/18746087/X1.X3-HAC.EV.Charger.Modbus.TCP.RTU.V1.0.0-EN.pdf",
+    "title": "SolaX — X1/X3-HAC EV Charger Modbus RTU/TCP Communication Protocol",
+    "version": "V1.0.0 EN",
+    "source_type": "manufacturer-authored PDF, community-hosted (SolaX does not publish it publicly)",
+    "primary_file": "SolaX-X1X3-HAC-EV-Charger-ModbusTCP-RTU-V1.0.0-EN.pdf",
+    "match": "verified — holding 0x060E–0x0669 → device-file 1548–1641 (device-lock, charge-current, boost timers, EVSE mode), input 0x00–0x36; 0-based PDU",
+    "notes": "Exact-model document (title page ‘X1/X3-HAC EV charger’); the power-rating enum includes 2 = 11 kW. SolaX does not publish publicly; genuine SolaX PDF redistributed via GitHub."
+  },
+  "growatt-mic-2500tl-x": {
+    "url": "https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf",
+    "title": "Growatt Inverter Modbus RTU Protocol (a.k.a. Protocol II)",
+    "version": "V1.24 (first release 2020-04-28)",
+    "source_type": "manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)",
+    "primary_file": "Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf",
+    "match": "verified — 3000-range TL-X input group (3001 Ppv uint32, 3023 Pac, 3025 Fac ×0.01Hz, 3049 Eac today, 3093 Temp)",
+    "notes": "Growatt does not host the protocol PDF publicly; this is the widely-referenced verbatim mirror in the grott project, carrying Growatt’s letterhead on every page. Big-endian / high-word-first; FC03 read holding, FC04 read input, FC06 write single, FC16 write multiple. Single-phase string inverter (no storage registers)."
+  },
+  "growatt-min-6000tl-xh": {
+    "url": "https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf",
+    "title": "Growatt Inverter Modbus RTU Protocol (a.k.a. Protocol II)",
+    "version": "V1.24 (first release 2020-04-28)",
+    "source_type": "manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)",
+    "primary_file": "Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf",
+    "match": "verified — 3000-range TL-XH input group + storage extension (3125–3249: vbat/soc/pchr); storage settings live in the 3000-range holding (3036/3037/3047/3048/3049)",
+    "notes": "Growatt does not host the protocol PDF publicly; verbatim grott mirror of the manufacturer document. Big-endian / high-word-first; FC03/FC04 read, FC06/FC16 write. TL-XH storage config is in the 3000-range holding (not the 1000-range)."
+  },
+  "growatt-mod-6000tl-x": {
+    "url": "https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf",
+    "title": "Growatt Inverter Modbus RTU Protocol (a.k.a. Protocol II)",
+    "version": "V1.24 (first release 2020-04-28)",
+    "source_type": "manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)",
+    "primary_file": "Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf",
+    "match": "verified — 3000-range three-phase group (3030/3031/3032 Vac2/Iac2/Pac2, 3034–3036 phase 3, 3038–3040 line-line)",
+    "notes": "Growatt does not host the protocol PDF publicly; verbatim grott mirror. Three-phase string inverter; uses the same 3000-range ‘TL-X and TL-XH’ input group as MOD TL3-XH (NOT the separate ‘TL3-X MAX/MID/MAC’ 0–249 layout). Big-endian; FC03/FC04 read, FC06/FC16 write."
+  },
+  "growatt-mod-10ktl3-xh": {
+    "url": "https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf",
+    "title": "Growatt Inverter Modbus RTU Protocol (a.k.a. Protocol II)",
+    "version": "V1.24 (first release 2020-04-28)",
+    "source_type": "manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)",
+    "primary_file": "Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf",
+    "match": "verified — explicitly named ‘MOD TL3-XH’ in the doc (03: 0–124, 3000–3124; 04: 3000–3124, 3125–3249); three-phase hybrid + storage 3125–3249",
+    "notes": "Growatt does not host the protocol PDF publicly; verbatim grott mirror. Best explicit model-name match in the document. Big-endian; FC03/FC04 read, FC06/FC16 write."
+  },
+  "growatt-sph-3600tl-bl-up": {
+    "url": "https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf",
+    "title": "Growatt Inverter Modbus RTU Protocol (a.k.a. Protocol II)",
+    "version": "V1.24 (first release 2020-04-28)",
+    "source_type": "manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)",
+    "primary_file": "Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf",
+    "match": "verified — SPH storage family: base 0–124 input (37 Fac, 38 Vac1, 40 Pac1 uint32, 93 Temp) + storage 1000–1124 (input 1009–1041 battery/SOC; holding 1044/1070/1090)",
+    "notes": "Growatt does not host the protocol PDF publicly; verbatim grott mirror. SPH storage config lives in the 1000-range holding (unlike the TL-XH 3000-range). Big-endian; FC03/FC04 read, FC06/FC16 write."
+  },
+  "eastron-sdm230": {
+    "url": "https://downloads.innon.com/hubfs/downloads.innon.com/Power%20Meters/SDM230-MOD-MID/Manuals/SDM230-PROTOCOL.pdf",
+    "title": "Eastron SDM230-Modbus — Modbus Protocol Implementation",
+    "version": "Eastron Europe (undated) + eastron.com.cn V1.2 + user manual V1.8",
+    "source_type": "official-manufacturer (Eastron-authored; protocol PDFs are login-gated on eastron.* so the protocol copy is from a distributor mirror)",
+    "primary_file": "eastroneurope-SDM230-Protocol.pdf",
+    "match": "verified — measurements = input float32 pairs from 0x0000 (FC04, MSB-register first); config = holding (FC03 read / FC16 write): Node 0x14, Baud 0x1C, energy 0x48–0x4E",
+    "notes": "Eastron gates protocol PDFs behind login on its own sites, so the protocol copy is the genuine Eastron-branded doc mirrored by the Innon distributor; the official eastrongroup.com user manual (V1.8) is also included. Note: the device-file baud map (…5=1200 bps) matches the older eastron.com.cn V1.2 protocol; the newer Europe revision lists 3=19200/4=38400 instead — both protocol PDFs are in this folder."
+  },
+  "eastron-sdm630": {
+    "url": "https://www.eastroneurope.com/images/uploads/products/protocol/SDM630_MODBUS_Protocol.pdf",
+    "title": "Eastron SDM630-Modbus — Modbus Protocol Implementation",
+    "version": "V1.8",
+    "source_type": "official-manufacturer (eastroneurope.com protocol directory, no login)",
+    "primary_file": "SDM630_MODBUS_Protocol.pdf",
+    "match": "verified — measurements = input float32 pairs 0x0000–0x0180 (FC04, MSB-register first); holding Node 0x14, Baud 0x1C (map exact), serial 0xFC00 uint32",
+    "notes": "Served directly from eastroneurope.com’s official product-protocol directory. The SDM630-Modbus ‘V2’ hardware revision shares this same register map. Config = holding FC03 read / FC16 write (float32 = 2 registers)."
+  },
+  "finder-7m24": {
+    "url": "https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf",
+    "title": "Finder — MODBUS Communication Protocol 7M.24 / 7M.38",
+    "version": "v2, 2021-06-30",
+    "source_type": "official-manufacturer (Finder CDN, cdn.findernet.com)",
+    "primary_file": "Modbus-7M24-7M38_v2_30062021.pdf",
+    "match": "verified — IEEE-754 float bank (FC04, reference base 30000, big-endian HI-word first); energy counters 30462–30485 (uint32, ×0.1 → Wh)",
+    "notes": "One combined Finder document covers 7M.24, 7M.38 (and 7M.40). The document specifies ×0.1 (‘x 0,1 Wh’) on the energy counters (30462–30485); both device files apply that multiplier. Input registers only, FC04, reference base 30000, IEEE-754 big-endian (HI word at the lower address)."
+  },
+  "finder-7m38": {
+    "url": "https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf",
+    "title": "Finder — MODBUS Communication Protocol 7M.24 / 7M.38",
+    "version": "v2, 2021-06-30",
+    "source_type": "official-manufacturer (Finder CDN, cdn.findernet.com)",
+    "primary_file": "Modbus-7M24-7M38_v2_30062021.pdf",
+    "match": "verified — IEEE-754 float bank (FC04, reference base 30000, big-endian HI-word first); energy counters 30462–30485 (uint32, ×0.1 → Wh)",
+    "notes": "One combined Finder document covers 7M.24, 7M.38 (and 7M.40). The document specifies ×0.1 (‘x 0,1 Wh’) on the energy counters (30462–30485); both device files apply that multiplier. Input registers only, FC04, reference base 30000, IEEE-754 big-endian (HI word at the lower address)."
+  },
+  "schneider-atv312": {
+    "url": "https://www.se.com/ww/en/download/document/BBV51701/",
+    "title": "Schneider Electric — Altivar 312 Communication Variables Manual (BBV51701)",
+    "version": "V1, 06/2009",
+    "source_type": "official-manufacturer (download.schneider-electric.com)",
+    "primary_file": "ATV312_communication_variables_EN_BBV51701.pdf",
+    "match": "verified — logical ‘W’ word addresses are used directly as Modbus addresses (8501 CMD, 8502 LFr, 8503 PISP, 6001 Add, 9001/9002 ACC/dEC); all appear in the manual’s address index",
+    "notes": "BBV51701 is the register-list manual (control / monitoring / configuration variables + address index). The companion BBV52816 (Modbus communication manual — framing / wiring) is also in this folder. ATV312 uses FC03 read, FC06 write-single, FC16 write-multiple; no address offset."
+  },
+  "schneider-atv312-expert": {
+    "url": "https://www.se.com/ww/en/download/document/BBV51701/",
+    "title": "Schneider Electric — Altivar 312 Communication Variables Manual (BBV51701)",
+    "version": "V1, 06/2009",
+    "source_type": "official-manufacturer (download.schneider-electric.com)",
+    "primary_file": "ATV312_communication_variables_EN_BBV51701.pdf",
+    "match": "verified — same drive & manual as schneider-atv312; the Expert subset (6001/6003/6004/6005 comm-config, 8541/8542 control image, 5240 keypad, 5242–5244 analog inputs, 5261 AO1R) all appear in BBV51701",
+    "notes": "Same physical drive as Schneider ATV312 — the ‘Expert’ device file is a curated register subset. The register-list manual BBV51701 and the companion BBV52816 (Modbus framing/wiring) are duplicated in this folder for self-containment. FC03 read, FC06/FC16 write."
+  },
+  "pichler-lg150-lg250": {
+    "url": "https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20150AB-LG250A/LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx",
+    "title": "Pichler / LS-Control — Modbus register list (controller ES1015, LG150AB/LG250A)",
+    "version": "v2.0.0",
+    "source_type": "official-manufacturer (pichlerluft.at)",
+    "primary_file": "LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx",
+    "match": "verified — Setpoints sheet = holding (FC03 read / FC06 write, address base 1), Datapoints = input (FC04, base 0); device-file holding addresses & enums map 1:1",
+    "notes": "Pichler / LS-Control workbook (sheets: Modbus Settings / Setpoints / Datapoints); controller ES1015. The XLS ‘Address’ column is 1-based; the device file uses the same 1-based holding addresses."
+  },
+  "pichler-lg350-lg450": {
+    "url": "https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20350_LG%20450_LG%20740_LG%201000%20SK/LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx",
+    "title": "Pichler / LS-Control — Modbus register list (controller ES2020, LG350/450/740/1000)",
+    "version": "v2.0.0",
+    "source_type": "official-manufacturer (pichlerluft.at)",
+    "primary_file": "LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx",
+    "match": "verified — Setpoints = holding (FC03/FC06, base 1), Datapoints = input (FC04); device-file addresses & enums match (e.g. addr 7 Regelung 1=Abluft)",
+    "notes": "Same LS-Control workbook family (controller ES2020; also covers LG740 / LG1000). Holding = FC03 read / FC06 write; XLS address column is 1-based."
+  },
+  "waveshare-modbus-poe-eth-relay-30ch": {
+    "url": "https://www.waveshare.com/wiki/Modbus_POE_ETH_Relay_30CH",
+    "title": "Waveshare Wiki — Modbus POE ETH Relay (30CH)",
+    "version": "living wiki page (retrieved 2026-07-11)",
+    "source_type": "official-manufacturer (Waveshare product wiki)",
+    "primary_file": "wiki.html",
+    "match": "verified — relays = coils 0x0000–0x001D (FC01 read / FC05 write; 0xFF00 on, 0x0000 off, 0x5500 toggle); software version = holding 0x8000 (÷100)",
+    "notes": "The full Modbus protocol is documented inline on the wiki (no separate PDF is published). Also documents flash on/off (interval = data × 100 ms) and the all-relays register 0x00FF."
+  },
+  "waveshare-modbus-rtu-relay-d": {
+    "url": "https://www.waveshare.com/wiki/Modbus_RTU_Relay_(D)",
+    "title": "Waveshare Wiki — Modbus RTU Relay (D)",
+    "version": "living wiki page (retrieved 2026-07-11)",
+    "source_type": "official-manufacturer (Waveshare product wiki)",
+    "primary_file": "wiki.html",
+    "match": "verified — relays = coils 0x0000–0x0007 (FC01/FC05); digital inputs = discrete inputs 0x0000–0x0007 (FC02); software version = holding 0x8000 (÷100)",
+    "notes": "The (D) variant adds 8 opto-isolated digital inputs, exposed as discrete inputs. Full protocol documented inline on the wiki (no separate PDF)."
+  },
+  "ebyte-me31-axax404": {
+    "url": "https://www.cdebyte.com/products/ME31-AXAX4040/4",
+    "title": "EBYTE — ME31-AXAX4040 User Manual (EN)",
+    "version": "V1.6",
+    "source_type": "official-manufacturer (cdebyte.com)",
+    "primary_file": "ME31-AXAX4040_User_Manual_EN_V1.6.pdf",
+    "match": "verified — 4 relay outputs = coils 0x0000–0x0003 (FC01 read / FC05 write); 4 digital inputs documented as discrete inputs 0x0000–0x0003 (FC02)",
+    "notes": "The product code is ME31-AXAX4040 (4 relay out / 4 dry-contact in); the device-file name ‘ME31-AXAX404’ is a truncation. Note: the device file models the 4 digital inputs as coils (FC01) at addr 0–3, whereas the manual documents them as discrete inputs (FC02) at the same addresses."
+  },
+  "salda-ris-mcb": {
+    "url": "http://salda.lt/mcb/downloads/doc/MCB%201.29%20Modbus%20table%202026-04-22.xlsx",
+    "title": "Salda — MCB Modbus register table (v1.29) + MCB / mini-MCB manual",
+    "version": "register table v1.29 (2026-04-22); manual v2019.1",
+    "source_type": "official-manufacturer (salda.lt MCB config server)",
+    "primary_file": "MCB 1.29 Modbus table 2026-04-22.xlsx",
+    "match": "partial — holding regs match (fan-mode addr 1, setpoint addr 2) and the ‘Modbus PDU = XLS − 1’ (1-based XLS) note is confirmed; but the 4 temperature input addresses (0/3/6/9) do not match the table’s T1–T4 (18–21)",
+    "notes": "The .xlsx is the register table the device-file comment refers to (sheets: Holding / Coils / Discrete inputs / Input register / System state / Alarm list). The device file already notes its live temperatures use a custom layout, not the documented T1–T4. A ~30 MB MCB / mini-MCB installation manual PDF is also included in this folder."
+  },
+  "varmann-qtherm": {
+    "url": "https://www.varmann.ru/download/downloads_files/Exchange_Protocol_with_VARMANN_convector_control_units.pdf",
+    "title": "VARMANN — Exchange Protocol with convector control units",
+    "version": "unversioned (firmware ≥ 1013; PDF metadata 2016–2019)",
+    "source_type": "official-manufacturer (varmann.ru; Russian-language)",
+    "primary_file": "Exchange_Protocol_with_VARMANN_convector_control_units.pdf",
+    "match": "verified — holding 0x00–0x17 map one-for-one (0x02 UstTmp ×10, 0x06 UstFan %, 0x13 I_Manual bit flags, 0x09 TmpOut ×10); FC03 read, FC06 write-single, FC16 write-multiple; default slave 16",
+    "notes": "The manufacturer document is Russian-language (VARMANN is a Russian brand). Note: the doc defines register 0x03 HeatChill as 1=heat / 2=cool / 3=heat+cool, whereas the device file maps 0=Heating / 1=Cooling / 2=Auto (shifted by −1)."
+  },
+  "dimplex-si-11tu": {
+    "url": "https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP",
+    "title": "Dimplex — NWPM Modbus TCP Datenpunktliste (Wärmepumpenmanager)",
+    "version": "Dimplex wiki page v27, 2024-10-21",
+    "source_type": "official-manufacturer (Dimplex wiki)",
+    "primary_file": "NWPM-Modbus-TCP-Datenpunktliste.html",
+    "match": "verified — settings/holding 5015 Betriebsmodus, 5036 Parallelverschiebung, 5045/5145 Warmwasser, 5096 Wärmemenge; operating-data input 1 Außentemperatur, 103 Statusmeldung",
+    "notes": "Requires the optional NWPM / NWPM-Touch Modbus-TCP extension. The datapoint list carries two address columns — ‘WPM-Software J/L/M’ (the newer 5xxx map this device file uses) and legacy ‘WPM-Software H’. Saved as HTML via the Confluence REST API because the wiki is a JavaScript app. The doc lists function codes FC01/03/05/06/15/16."
+  },
+  "husdata-h60": {
+    "url": "https://husdata.se/wp-content/uploads/2015/11/H1-Manual-10.184.pdf",
+    "extra_urls": [
+      "https://husdata.se/docs/h60-manual/modbus-tcp-integrations/"
+    ],
+    "title": "Husdata — H1 Interface Developer’s Manual (Common-register ID-code table)",
+    "version": "H1 manual fw 10.18 (© 2013–2014); H60 Modbus-TCP page retrieved 2026-07-11",
+    "source_type": "official-manufacturer (husdata.se / Arandis AB)",
+    "primary_file": "H1-Manual-10.184.pdf",
+    "match": "partial — the Common-register ID-code table matches the device file’s sensors (0001 Radiator return … 0009 Hot water; 0107/0111 setpoints) and its int16 ×0.1 scaling (type-0 ‘divide by 10’, two’s-complement); but the exact Modbus offsets (0,1,…,9,27) are assigned per heat-pump by H60 firmware, not enumerated in a static document",
+    "notes": "The H1 developer’s manual is the register/ID-code reference the whole H-series (incl. H60) shares. Husdata exposes readable params as input registers (FC04, read-only) and writable ones as holding — matching this device file. The concrete address↔sensor mapping is shown per heat-pump model in the H60 web UI’s ‘Modbus’ column, so it varies by pump/firmware."
+  },
+  "froeling-bwp300-pv": {
+    "url": "https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/",
+    "source_type": "none",
+    "notes": "Fröling publishes no Modbus register document for the BWP 300 PV (an OEM domestic-hot-water heat pump). Its official technical documents are storage-tank installation manuals with no Modbus content. The upstream modbus_local_gateway config — from which this device file derives — cites no source, and its register map (holding 4–33, input 0–119) points to a third-party controller and appears vendor-supplied/reverse-engineered. Any Fröling Modbus spec, if one exists, is behind the login-gated connect.froeling.com partner portal. The table below therefore reflects the device file only; treat its addresses as community-provided, not manufacturer-confirmed."
+  }
+}

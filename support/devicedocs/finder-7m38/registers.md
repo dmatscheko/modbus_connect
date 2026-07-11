@@ -7,10 +7,10 @@
 - **Finder — MODBUS Communication Protocol 7M.24 / 7M.38** (v2, 2021-06-30)
 - Source: [https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf](https://cdn.findernet.com/app/uploads/2021/09/20090052/Modbus-7M24-7M38_v2_30062021.pdf)
 - Source type: official-manufacturer (Finder CDN, cdn.findernet.com)
-- Register addresses vs device file: verified — per-phase + totals IEEE-754 float bank (FC04, base 30000, HI-word first): U1 32500, P1 32530, Pt 32536…; energy counters 30462–30485 (uint32, ×0.1)
+- Register addresses vs device file: verified — IEEE-754 float bank (FC04, reference base 30000, big-endian HI-word first); energy counters 30462–30485 (uint32, ×0.1 → Wh)
 - Local copy: [`Modbus-7M24-7M38_v2_30062021.pdf`](./Modbus-7M24-7M38_v2_30062021.pdf) — 742 KB
 
-> One combined Finder document covers 7M.24, 7M.38 (and 7M.40). Input registers only, FC04, reference base 30000, IEEE-754 big-endian (HI word at the lower address).
+> One combined Finder document covers 7M.24, 7M.38 (and 7M.40). The document specifies ×0.1 (‘x 0,1 Wh’) on the energy counters (30462–30485); both device files apply that multiplier. Input registers only, FC04, reference base 30000, IEEE-754 big-endian (HI word at the lower address).
 
 ## Scope & conventions
 
