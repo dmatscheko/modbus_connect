@@ -13,6 +13,10 @@ device:
   prefix: Pichler LG
   modbus_id: 20
   max_read_gap: 64
+  # The AHU-type register (LG150/LG250/LG320) is the hardware variant — show it as the
+  # device's hardware version. Read from an always-available internal copy (ahu_type_hw,
+  # added in ops) so it resolves even when the advanced tier (the ahu_type select) is off.
+  hw_version: "{{ ahu_type_hw }}"
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -42,6 +46,7 @@ translations:
   - {de: Vorheizregister 0-100%, en: Preheater 0-100%}
   - {de: Relais K6 für LG250A, en: Relay K6 for LG250A}
   - {de: Filterfehler zurücksetzen, en: Reset Filter Error}
+  - {de: Fehlerprotokoll löschen, en: Clear error log}
   - {de: Wasser, en: Water}
   - {de: Lüftungsgerätetyp, en: AHU Type}
   - {de: 'Luftvolumenstrom-Differenz, ETA-Balance', en: 'Air volume flow difference, ETA-Balance'}
@@ -186,6 +191,25 @@ ops:
   - add: {table: holding, key: filter_snooze_button, after: filter_reset_button,
           address: 33, write_value: 2, groups: [basic],
           ha: {platform: button, name: Filter später erinnern, icon: "mdi:alarm-snooze",
+               entity_category: config}}
+
+  # ahu_type stays a writable select (users can select a higher tier when a larger unit is
+  # fitted). An always-read internal copy of the same register feeds device.hw_version, so
+  # the hardware version shows even when the advanced tier (and the select) is hidden.
+  - add: {table: holding, key: ahu_type_hw, after: ahu_type,
+          address: 64, internal: true, map: {0: LG150, 1: LG250, 3: LG320}}
+
+  # reset_eventlog is a write-only command register (map has no readable idle value, so the
+  # select was always unavailable) — present its two actions as explicit buttons instead.
+  - remove: true
+    where: {key: reset_eventlog}
+  - add: {table: holding, key: clear_error_log_button, after: reset_hour_counter,
+          address: 63, write_value: 1, groups: [advanced],
+          ha: {platform: button, name: Clear error log, icon: "mdi:playlist-remove",
+               entity_category: config}}
+  - add: {table: holding, key: reset_filter_error_button, after: clear_error_log_button,
+          address: 63, write_value: 2, groups: [advanced],
+          ha: {platform: button, name: Reset Filter Error, icon: "mdi:filter-remove-outline",
                entity_category: config}}
 
   # --- composite Home Assistant entities ----------------------------------- #

@@ -12,6 +12,7 @@ device:
   prefix: Pichler LG
   modbus_id: 20
   max_read_gap: 64
+  hw_version: "{{ ahu_type_hw }}"
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -631,6 +632,24 @@ holding:
       unit_of_measurement: h
       device_class: duration
       entity_category: config
+  clear_error_log_button:
+    address: 63
+    write_value: 1
+    groups: [advanced]
+    ha:
+      platform: button
+      name: Clear error log
+      icon: "mdi:playlist-remove"
+      entity_category: config
+  reset_filter_error_button:
+    address: 63
+    write_value: 2
+    groups: [advanced]
+    ha:
+      platform: button
+      name: Reset Filter Error
+      icon: "mdi:filter-remove-outline"
+      entity_category: config
   test_sd_card:
     address: 55
     groups: [advanced]
@@ -713,15 +732,6 @@ holding:
       min: 0.0
       max: 5000.0
       entity_category: config
-  reset_eventlog:
-    address: 63
-    groups: [advanced]
-    map:
-      1: Clear error log
-      2: Reset Filter Error
-    ha:
-      platform: select
-      name: Reset
   ahu_type:
     address: 64
     groups: [advanced]
@@ -732,6 +742,14 @@ holding:
     ha:
       platform: select
       name: AHU Type
+  ahu_type_hw:
+    address: 64
+    groups: [advanced]
+    map:
+      0: LG150
+      1: LG250
+      3: LG320
+    internal: true
   vhr_ssr_temp:
     address: 65
     multiplier: 0.1
@@ -1850,12 +1868,6 @@ translations:
   Error:
     de: Störung
     en: Error
-  Clear error log:
-    de: Fehlerprotokoll löschen
-    en: Clear error log
-  Reset Filter Error:
-    de: Filterfehler zurücksetzen
-    en: Reset Filter Error
   "2xdamper for LG150":
     de: "2x Klappe für LG150"
     en: "2xdamper for LG150"
@@ -2057,6 +2069,12 @@ translations:
   Reset operating hours counter:
     de: Betriebsstundenzähler zurücksetzen
     en: Reset operating hours counter
+  Clear error log:
+    de: Fehlerprotokoll löschen
+    en: Clear error log
+  Reset Filter Error:
+    de: Filterfehler zurücksetzen
+    en: Reset Filter Error
   Test SD-Card:
     de: Test SD-Karte
     en: Test SD-Card
@@ -2081,9 +2099,6 @@ translations:
   Maximum fanspeed difference ventilation level 3:
     de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 3
     en: Maximum fanspeed difference ventilation level 3
-  Reset:
-    de: Zurücksetzen
-    en: Reset
   AHU Type:
     de: Lüftungsgerätetyp
     en: AHU Type
