@@ -252,7 +252,12 @@ in the README's [Entity groups](../README.md#entity-groups) section.
 Composite entities built from the device's values with real Home Assistant
 Jinja templates. Every entity key of the device file is available as a plain
 variable (and via the `values` dict); all normal HA template functions work
-too. Templates re-render on every device poll.
+too. One extra helper is provided: **`key('some_entity')`** returns the raw
+register value behind a mapped entity's current option (its `map:` key) instead
+of the decoded label — so `key('operating_mode') == 0` is a stable, language-
+independent test where `operating_mode == 'Off'` is not (see
+[Translations](#translations)). For an entity without a `map:`, `key()` just
+returns its value. Templates re-render on every device poll.
 
 ```yaml
 holding:
@@ -371,6 +376,78 @@ setup is internal API (and core has no template *climate*), its entities would
 not belong to this device or unload with it, and you would have to reference
 global entity ids instead of the device's keys. The Jinja engine used here
 *is* Home Assistant's own — only the thin entity glue is local.
+
+## Translations
+
+Human-facing strings default to a single language — whatever you write is shown
+verbatim, exactly as before. To offer more than one language, add a top-level
+`translations:` block that maps a **source string** (the text as it appears
+elsewhere in the file) to its per-language variants:
+
+```yaml
+translations:
+  Brine/water heat pump SI 11TU:      # the source string, used as the lookup key
+    en: Brine/water heat pump SI 11TU
+    de: Sole/Wasser-Wärmepumpe SI 11TU
+  Schedule / time program:
+    en: Schedule / time program
+    de: Zeitplan / Zeitprogramm
+  Summer:
+    en: Summer
+    de: Sommer
+
+device:
+  model: Brine/water heat pump SI 11TU      # ← translated via the catalog
+  group_labels:
+    schedule: Schedule / time program       # ← translated
+holding:
+  operating_mode:
+    address: 1
+    map:
+      0: Summer                              # ← map/flag values translated
+      1: Winter
+    ha:
+      platform: select
+      name: Operating mode                   # ← entity names translated
+```
+
+On load, the integration picks the language from Home Assistant's configured
+language (**Settings → System → General**) and rewrites each translatable string
+in place. It never changes what your `.yaml` says — the source strings stay the
+lookup keys, so you keep authoring in one language (typically English) and the
+catalog supplies the rest.
+
+Which strings are translated: the device **`model`**, **`group_labels`**, every
+entity/template **`ha: name`**, and **`map:`** / **`flags:`** values. Not
+translated: `manufacturer` (a brand), `prefix`, and entity keys — those must
+stay stable because they seed entity ids.
+
+Resolution for a string found in the catalog: the exact configured language
+(e.g. `de`), then its base language (`de-DE` → `de`), then `en`, and finally the
+source string itself. A string that is not a catalog key — and *every* string
+when there is no `translations:` block — is used verbatim. So partial catalogs
+are fine: translate what you have, and the rest falls back to English.
+
+Two things to keep in mind:
+
+- **It is the server's language, not per-user.** Home Assistant resolves these
+  names once, in the backend, using the instance language; every user sees the
+  same strings. (This is the same limitation HA itself has for dynamically named
+  entities.) Changing the language takes effect after the integration reloads.
+- **A translated `map:` value becomes the entity's stored state** (e.g. the state
+  is `Sommer` rather than `Summer`). That is what the recorder stores and what
+  automations comparing option text must match, so switching languages changes
+  those stored strings. Keep each language's values unique, just as option text
+  must already be unique in one language.
+- **Inside `template:` entries, compare the map _key_, not the label.** A test like
+  `operating_mode == 'Sommer'` breaks once `Sommer` is translated (the decoded
+  value follows the language, the literal in the template does not). Use the
+  `key()` helper — `key('operating_mode') == 0` — which returns the stable
+  register value and never moves. The same applies to a mapped write action: its
+  values *are* translated in lockstep with the target's `map:` (so
+  `set_hvac_mode: {map: {heat: Sommer}}` keeps working), but a plain-string
+  comparison in a template does not. When you add translations to a file that has
+  templates referencing enum values, migrate those comparisons to `key()`.
 
 ## Validating and debugging a file
 

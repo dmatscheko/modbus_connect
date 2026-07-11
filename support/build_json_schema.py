@@ -319,6 +319,24 @@ def _device_block() -> dict[str, Any]:
     }
 
 
+def _translations_block() -> dict[str, Any]:
+    """The optional top-level translations: catalog.
+
+    Source string -> {language code: text}; both levels non-empty. Used to
+    localize human-facing strings (device model, group labels, entity names,
+    map/flag values) that appear verbatim elsewhere in the file.
+    """
+    return {
+        "type": "object",
+        "additionalProperties": {
+            "type": "object",
+            "additionalProperties": STRING,
+            "minProperties": 1,
+        },
+        "minProperties": 1,
+    }
+
+
 def build() -> dict[str, Any]:
     word_section = {
         "type": "object",
@@ -341,6 +359,7 @@ def build() -> dict[str, Any]:
         "type": "object",
         "required": ["device"],
         "properties": {
+            "translations": _translations_block(),
             "device": _device_block(),
             "holding": word_section,
             "input": word_section,

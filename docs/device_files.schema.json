@@ -8,6 +8,17 @@
     "device"
   ],
   "properties": {
+    "translations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "minProperties": 1
+      },
+      "minProperties": 1
+    },
     "device": {
       "type": "object",
       "required": [

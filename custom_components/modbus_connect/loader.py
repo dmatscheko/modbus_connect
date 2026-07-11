@@ -41,10 +41,10 @@ def _discover(hass: HomeAssistant) -> dict[str, Path]:
     return files
 
 
-def _load_file(path: Path, filename: str) -> DeviceDef:
+def _load_file(path: Path, filename: str, language: str = "en") -> DeviceDef:
     with path.open(encoding="utf-8") as fh:
         data = yaml.load(fh, Loader=_YamlLoader)
-    return parse_device(data, filename=filename)
+    return parse_device(data, filename=filename, language=language)
 
 
 def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
@@ -53,7 +53,7 @@ def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
     if path is None:
         raise DeviceSchemaError(f"device file '{filename}' not found")
     try:
-        return _load_file(path, filename.lower())
+        return _load_file(path, filename.lower(), hass.config.language)
     except yaml.YAMLError as err:
         raise DeviceSchemaError(f"{filename}: invalid YAML: {err}") from err
 
@@ -62,9 +62,10 @@ def _load_all(hass: HomeAssistant) -> tuple[dict[str, DeviceDef], dict[str, str]
     """Discover and load every device file. Runs entirely in one executor job."""
     devices: dict[str, DeviceDef] = {}
     errors: dict[str, str] = {}
+    language = hass.config.language
     for name, path in _discover(hass).items():
         try:
-            devices[name] = _load_file(path, name)
+            devices[name] = _load_file(path, name, language)
         except (DeviceSchemaError, yaml.YAMLError, OSError) as err:
             _LOGGER.warning("Skipping device file %s: %s", path, err)
             # One line per file; schema errors already lead with the filename

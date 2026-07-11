@@ -178,7 +178,8 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         template = self._compiled.get(cache_key)
         if template is None:
             template = self._compiled[cache_key] = Template(source, self.hass)
-        return render_over_values(template, self.coordinator.data)
+        data = self.coordinator.data
+        return render_over_values(template, data, key_fn=self.coordinator.key_lookup(data))
 
     def render_number(self, field: str) -> float | None:
         """Render a template that must produce a number."""

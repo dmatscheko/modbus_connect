@@ -753,3 +753,67 @@ async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
         await coordinator.async_refresh()
         entity._advance()
         assert entity.native_value == pytest.approx(expected / 1000)
+
+
+# --- key() template helper: compare enums by stable map key, not by label ------
+
+KEY_YAML = """
+translations:
+  "Off": {en: "Off", de: "Aus"}
+  "Auto": {en: "Auto", de: "Automatik"}
+device:
+  manufacturer: Acme
+  model: HeatPump
+holding:
+  mode:
+    address: 0
+    map: {0: "Off", 1: "Auto"}
+    ha: {platform: select}
+  power:
+    address: 1
+    ha: {platform: sensor}
+template:
+  raw_mode:
+    ha: {platform: sensor}
+    state: "{{ key('mode') }}"
+  is_auto:
+    ha: {platform: sensor}
+    state: "{{ 'yes' if key('mode') == 1 else 'no' }}"
+  raw_power:
+    ha: {platform: sensor}
+    state: "{{ key('power') }}"
+"""
+
+
+async def _key_setup(hass, monkeypatch, language):
+    device = parse_device(yaml.safe_load(KEY_YAML), "key.yaml", language=language)
+    client = FakeClient({0: 1, 1: 250})  # mode = register 1 = "Auto", power = 250
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert coordinator.last_update_success
+    return device, coordinator
+
+
+async def test_key_helper_returns_raw_map_key(hass, monkeypatch):
+    device, coordinator = await _key_setup(hass, monkeypatch, "en")
+    assert coordinator.data["mode"] == "Auto"  # the decoded display label
+    raw = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
+                      template_def(device, "raw_mode"))
+    is_auto = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
+                          template_def(device, "is_auto"))
+    passthrough = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
+                              template_def(device, "raw_power"))
+    assert raw.native_value == 1  # the map key behind "Auto", not the label
+    assert is_auto.native_value == "yes"
+    assert passthrough.native_value == 250  # non-mapped entity: its plain value
+
+
+async def test_key_helper_is_language_independent(hass, monkeypatch):
+    device, coordinator = await _key_setup(hass, monkeypatch, "de")
+    assert coordinator.data["mode"] == "Automatik"  # label is translated ...
+    raw = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
+                      template_def(device, "raw_mode"))
+    is_auto = make_entity(hass, ModbusConnectTemplateSensor, coordinator,
+                          template_def(device, "is_auto"))
+    assert raw.native_value == 1  # ... but the key is unchanged, so
+    assert is_auto.native_value == "yes"  # key('mode') == 1 still holds under de

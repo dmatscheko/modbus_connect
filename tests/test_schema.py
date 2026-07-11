@@ -1594,3 +1594,170 @@ def test_ha_field_error_lists_only_applicable_aliases():
     names = {n.strip() for n in valid.split(",")}
     assert "unit" not in names  # aliases native_unit_of_measurement: not on selects
     assert "enabled_by_default" in names  # its target exists on every platform
+
+
+# --- translations: central catalog (Approach B) --------------------------------
+
+# A device file exercising every localizable surface via source strings that
+# also appear as translation keys.
+TL_DOC = {
+    "translations": {
+        "Brine/water heat pump": {
+            "en": "Brine/water heat pump",
+            "de": "Sole/Wasser-Wärmepumpe",
+        },
+        "Schedule / time program": {
+            "en": "Schedule / time program",
+            "de": "Zeitplan / Zeitprogramm",
+        },
+        "Operating mode": {"en": "Operating mode", "de": "Betriebsart"},
+        "Summer": {"en": "Summer", "de": "Sommer"},
+        "Fault A": {"en": "Fault A", "de": "Fehler A"},
+    },
+    "device": {
+        "manufacturer": "Dimplex",
+        "model": "Brine/water heat pump",
+        "group_labels": {"schedule": "Schedule / time program"},
+    },
+    "holding": {
+        "operating_mode": {
+            "address": 1,
+            "map": {0: "Summer", 1: "Winter"},  # "Winter" has no catalog entry
+            "groups": ["schedule"],
+            "ha": {"platform": "select", "name": "Operating mode"},
+        },
+        "faults": {
+            "address": 2,
+            "flags": {0: "Fault A"},
+            "ha": {"platform": "sensor", "name": "Faults"},
+        },
+    },
+}
+
+
+def test_translations_localize_all_surfaces_de():
+    dev = parse_device(TL_DOC, "t.yaml", language="de")
+    assert dev.model == "Sole/Wasser-Wärmepumpe"
+    assert dev.group_label("schedule") == "Zeitplan / Zeitprogramm"
+    mode = next(e for e in dev.entities if e.key == "operating_mode")
+    assert mode.ha["name"] == "Betriebsart"
+    assert mode.value_map == {0: "Sommer", 1: "Winter"}  # untranslated key kept
+    faults = next(e for e in dev.entities if e.key == "faults")
+    assert faults.flags == {0: "Fehler A"}
+
+
+def test_translations_english_uses_source_strings():
+    dev = parse_device(TL_DOC, "t.yaml", language="en")
+    assert dev.model == "Brine/water heat pump"
+    assert dev.group_label("schedule") == "Schedule / time program"
+    mode = next(e for e in dev.entities if e.key == "operating_mode")
+    assert mode.ha["name"] == "Operating mode"
+    assert mode.value_map == {0: "Summer", 1: "Winter"}
+
+
+def test_translations_region_tag_falls_back_to_primary_subtag():
+    # de-DE has no entries of its own; it must resolve through "de".
+    dev = parse_device(TL_DOC, "t.yaml", language="de-DE")
+    assert dev.model == "Sole/Wasser-Wärmepumpe"
+    mode = next(e for e in dev.entities if e.key == "operating_mode")
+    assert mode.value_map[0] == "Sommer"
+
+
+def test_translations_unknown_language_falls_back_to_english():
+    dev = parse_device(TL_DOC, "t.yaml", language="fr")
+    assert dev.model == "Brine/water heat pump"
+    assert dev.group_label("schedule") == "Schedule / time program"
+
+
+def test_translations_default_language_is_english():
+    dev = parse_device(TL_DOC, "t.yaml")  # no language kwarg
+    assert dev.model == "Brine/water heat pump"
+
+
+def test_translations_missing_target_and_no_english_keeps_source():
+    doc_de_only = {
+        "translations": {"Only DE": {"de": "Nur DE"}},
+        "device": {"manufacturer": "Acme", "model": "Only DE"},
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    # Requested language present -> translated.
+    assert parse_device(doc_de_only, "t.yaml", language="de").model == "Nur DE"
+    # Requested language absent and no "en" fallback -> source string verbatim.
+    assert parse_device(doc_de_only, "t.yaml", language="en").model == "Only DE"
+
+
+def test_no_translations_block_is_verbatim():
+    doc_plain = {
+        "device": {"manufacturer": "Acme", "model": "Wärmepumpe X"},
+        "holding": {
+            "m": {"address": 1, "map": {0: "Sommer"},
+                  "ha": {"platform": "select", "name": "Betriebsart"}},
+        },
+    }
+    dev = parse_device(doc_plain, "t.yaml", language="de")
+    assert dev.model == "Wärmepumpe X"
+    assert dev.entities[0].ha["name"] == "Betriebsart"
+    assert dev.entities[0].value_map == {0: "Sommer"}
+
+
+def test_translations_top_level_key_accepted():
+    # 'translations' must not trip the unknown-top-level-key guard.
+    data = {
+        "translations": {"A": {"en": "A"}},
+        "device": {"manufacturer": "Acme", "model": "A"},
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    assert parse_device(data, "t.yaml").entities[0].key == "x"
+
+
+@pytest.mark.parametrize(
+    "block, match",
+    [
+        ([], "must be a non-empty mapping"),
+        ({}, "must be a non-empty mapping"),
+        ({"": {"en": "x"}}, "keys must be non-empty strings"),
+        ({"A": "x"}, r"translations\['A'\].*mapping of language"),
+        ({"A": {}}, r"translations\['A'\].*mapping of language"),
+        ({"A": {"": "x"}}, "language codes must be non-empty"),
+        ({"A": {"en": 5}}, r"translations\['A'\]\['en'\] must be a non-empty string"),
+        ({"A": {"en": ""}}, r"translations\['A'\]\['en'\] must be a non-empty string"),
+    ],
+)
+def test_translations_validation_errors(block, match):
+    data = {
+        "translations": block,
+        "device": {"manufacturer": "Acme", "model": "A"},
+        "holding": {"x": {"address": 1, "ha": {"platform": "sensor"}}},
+    }
+    with pytest.raises(DeviceSchemaError, match=match):
+        parse_device(data, "t.yaml")
+
+
+def test_translations_localize_action_map_in_lockstep():
+    # A template action writing an option label of a (translated) target must
+    # translate that label in lockstep, or the write would miss the target's map.
+    # Numbers and untranslated labels pass through untouched.
+    data = {
+        "translations": {"Auto": {"en": "Auto", "de": "Automatik"}},
+        "device": {"manufacturer": "Acme", "model": "M"},
+        "holding": {
+            "mode": {"address": 0, "map": {0: "Off", 1: "Auto"},
+                     "ha": {"platform": "select"}},
+            "setpoint": {"address": 1, "ha": {"platform": "number", "min": 0, "max": 60}},
+        },
+        "template": {
+            "clim": {
+                "ha": {"platform": "climate", "name": "Clim"},
+                "current_temperature": "{{ 20 }}",
+                "target_temperature": "{{ 21 }}",
+                "hvac_mode": "{{ 'heat' }}",
+                "min_temp": 20, "max_temp": 60, "temp_step": 0.5,
+                "set_temperature": {"entity": "setpoint"},
+                "set_hvac_mode": {"entity": "mode", "map": {"heat": "Auto", "off": "Off"}},
+            },
+        },
+    }
+    dev = parse_device(data, "t.yaml", language="de")
+    clim = next(t for t in dev.templates if t.key == "clim")
+    # "Auto" tracks the target's translated map; "Off" (not in catalog) stays.
+    assert clim.config["set_hvac_mode"].value_map == {"heat": "Automatik", "off": "Off"}

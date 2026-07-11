@@ -9,6 +9,7 @@ import re
 import struct
 import time
 from collections import deque
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
@@ -51,7 +52,11 @@ _DIRECT_LINK = re.compile(r"\s*\{\{\s*([A-Za-z_]\w*)\s*\}\}\s*\Z")
 
 
 def render_over_values(
-    template: Template, data: dict[str, Any] | None, *, parse_result: bool = True
+    template: Template,
+    data: dict[str, Any] | None,
+    *,
+    parse_result: bool = True,
+    key_fn: Callable[[str], Any] | None = None,
 ) -> Any:
     """Render a compiled template over the device's decoded values.
 
@@ -59,12 +64,18 @@ def render_over_values(
     keys that are not valid identifiers. Returns None if the template raises.
     This is the one convention shared by the template: section, ``read_register``,
     and the device-info fields.
+
+    ``key_fn`` is exposed as ``key(name)``: it returns the raw register value
+    behind a mapped entity's current option (its ``map:`` key), so a template can
+    compare against the stable number instead of the translated label — e.g.
+    ``key('operation_status') == 4`` rather than ``operation_status == 'Warmwasser'``.
     """
     values = data or {}
+    variables: dict[str, Any] = {**values, "values": values}
+    if key_fn is not None:
+        variables["key"] = key_fn
     try:
-        return template.async_render(
-            variables={**values, "values": values}, parse_result=parse_result
-        )
+        return template.async_render(variables=variables, parse_result=parse_result)
     except TemplateError:
         return None
 
@@ -254,6 +265,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ]
         self._link_templates: dict[str, Any] = {}
         self.entity_defs = {e.key: e for e in device.entities}
+        # value label -> raw map key, per mapped entity, for the template key()
+        # helper. Built once (maps never change at runtime); a translated map
+        # reverses just the same, so key() stays language-independent.
+        self._value_reverse: dict[str, dict[Any, int]] = {
+            e.key: {label: raw for raw, label in e.value_map.items()}
+            for e in device.entities
+            if e.value_map is not None
+        }
         user_min: int = entry.options.get(OPTION_MIN_SCAN_INTERVAL) or 0
         interval_for, floor = resolve_scan_intervals(device, user_min)
         self._interval_for = {e.key: interval_for[e.key] for e in self._readers}
@@ -511,7 +530,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         referencing an unread (None) register."""
         if source is None:
             return None
-        value = render_over_values(Template(source, self.hass), self.data, parse_result=False)
+        value = render_over_values(
+            Template(source, self.hass),
+            self.data,
+            parse_result=False,
+            key_fn=self.key_lookup(self.data),
+        )
         if value is None:
             return None
         value = str(value).strip()
@@ -618,6 +642,24 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for a in range(defn.address, defn.address + defn.count)
         )
 
+    def key_lookup(self, data: dict[str, Any] | None) -> Callable[[str], Any]:
+        """Build the template ``key(name)`` helper bound to ``data``.
+
+        ``key('mode')`` returns the raw register value behind a mapped entity's
+        current option (its ``map:`` key) — a stable number that does not move
+        when the option label is translated. A non-mapped (or unknown) entity
+        yields its plain value, so ``key(x)`` is always safe to write.
+        """
+        reverse = self._value_reverse
+        values = data or {}
+
+        def key(name: str) -> Any:
+            entry = reverse.get(name)
+            value = values.get(name)
+            return entry.get(value) if entry is not None else value
+
+        return key
+
     def _render_link(self, defn: EntityDef, data: dict[str, Any]) -> Any:
         """Render a read_register template to this entity's current value."""
         source = defn.read_register
@@ -629,7 +671,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         template = self._link_templates.get(defn.key)
         if template is None:
             template = self._link_templates[defn.key] = Template(source, self.hass)
-        return render_over_values(template, data)
+        return render_over_values(template, data, key_fn=self.key_lookup(data))
 
     async def _read_with_fallback(self, block: Span, spans: set[Span]) -> tuple[int, int]:
         """Read one block; on failure retry its spans without gap bridging.
@@ -804,7 +846,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         words: list[int] = []
         for item in items:
             rendered = (
-                render_over_values(Template(item, self.hass), self.data)
+                render_over_values(
+                    Template(item, self.hass),
+                    self.data,
+                    key_fn=self.key_lookup(self.data),
+                )
                 if isinstance(item, str)
                 else item
             )
@@ -842,7 +888,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if defn.platform == "button" and isinstance(value, str):
             # a single Jinja template write_value: render it, then encode through
             # the codec below (honouring the entity's type/map/etc.).
-            value = render_over_values(Template(value, self.hass), self.data)
+            value = render_over_values(
+                Template(value, self.hass), self.data, key_fn=self.key_lookup(self.data)
+            )
             if value is None:
                 raise WriteError(
                     f"{defn.key}: write_value template rendered to nothing"

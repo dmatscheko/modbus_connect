@@ -10,6 +10,7 @@ and entity named.
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cache
 from typing import Any
@@ -147,11 +148,22 @@ class DeviceSchemaError(Exception):
 
 
 class _Ctx:
-    """Error-message context (filename + entity key)."""
+    """Error-message context (filename + entity key) plus the translation lookup.
 
-    def __init__(self, filename: str, key: str = "") -> None:
+    ``localize`` maps a human-facing source string to its translation for the
+    target language; it is identity for standalone callers and for files without
+    a ``translations:`` block, so single-language files behave exactly as before.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        key: str = "",
+        localize: Callable[[str], str] | None = None,
+    ) -> None:
         self.filename = filename
         self.key = key
+        self.localize: Callable[[str], str] = localize or (lambda text: text)
 
     def fail(self, message: str) -> DeviceSchemaError:
         where = f"{self.filename}: " if self.filename else ""
@@ -160,8 +172,80 @@ class _Ctx:
         return DeviceSchemaError(where + message)
 
 
-def parse_device(data: Any, filename: str = "") -> DeviceDef:
-    """Validate a loaded YAML document and build a DeviceDef."""
+def _parse_translations(ctx: _Ctx, raw: Any) -> dict[str, dict[str, str]]:
+    """Parse the optional top-level ``translations:`` block.
+
+    Maps a source string (as written elsewhere in the file, typically English)
+    to a ``{language code: text}`` mapping. Absent -> ``{}``, meaning every
+    string is used verbatim.
+    """
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict) or not raw:
+        raise ctx.fail(
+            "'translations' must be a non-empty mapping of source text -> "
+            "{language: text}"
+        )
+    out: dict[str, dict[str, str]] = {}
+    for src, langs in raw.items():
+        if not isinstance(src, str) or not src:
+            raise ctx.fail(f"translations keys must be non-empty strings, got {src!r}")
+        if not isinstance(langs, dict) or not langs:
+            raise ctx.fail(
+                f"translations[{src!r}] must be a non-empty mapping of "
+                "language code -> text"
+            )
+        entry: dict[str, str] = {}
+        for lang, text in langs.items():
+            if not isinstance(lang, str) or not lang.strip():
+                raise ctx.fail(
+                    f"translations[{src!r}] language codes must be non-empty "
+                    f"strings, got {lang!r}"
+                )
+            if not isinstance(text, str) or not text:
+                raise ctx.fail(
+                    f"translations[{src!r}][{lang!r}] must be a non-empty string"
+                )
+            entry[lang] = text
+        out[src] = entry
+    return out
+
+
+def _make_localizer(
+    catalog: dict[str, dict[str, str]], language: str
+) -> Callable[[str], str]:
+    """Build the source-string -> translation function for ``language``.
+
+    Resolution tries the full language tag, then its primary subtag
+    (``de-DE`` -> ``de``), then English; a string that is absent from the
+    catalog (and every string when the catalog is empty) is returned unchanged.
+    """
+    order: list[str] = []
+    for lang in (language, language.split("-")[0], "en"):
+        if lang and lang not in order:
+            order.append(lang)
+
+    def localize(text: str) -> str:
+        entry = catalog.get(text)
+        if entry is None:
+            return text
+        for lang in order:
+            translated = entry.get(lang)
+            if translated is not None:
+                return translated
+        return text
+
+    return localize
+
+
+def parse_device(data: Any, filename: str = "", language: str = "en") -> DeviceDef:
+    """Validate a loaded YAML document and build a DeviceDef.
+
+    ``language`` selects which entry of each ``translations:`` mapping to use for
+    human-facing strings (device model, group labels, entity names, map/flag
+    values), falling back to English and then to the source string. It defaults
+    to English so standalone callers (the converter, tests) need not pass it.
+    """
     ctx = _Ctx(filename)
     if not isinstance(data, dict):
         raise ctx.fail("file does not contain a YAML mapping")
@@ -171,12 +255,15 @@ def parse_device(data: Any, filename: str = "") -> DeviceDef:
             "convert it with support/converter/modbus_local_gateway/"
             "modbus_local_gateway-convert.py first"
         )
-    unknown = set(data) - {"device", "template", *SECTIONS}
+    unknown = set(data) - {"device", "template", "translations", *SECTIONS}
     if unknown:
         raise ctx.fail(
             f"unknown top-level keys: {sorted(unknown)} "
             f"(entities live in {'/'.join(SECTIONS)} sections)"
         )
+
+    catalog = _parse_translations(ctx, data.get("translations"))
+    ctx.localize = _make_localizer(catalog, language)
 
     device = data.get("device")
     if not isinstance(device, dict):
@@ -282,7 +369,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
     group_labels = _parse_group_labels(ctx, device.get("group_labels"))
     return {
         "manufacturer": device["manufacturer"],
-        "model": device["model"],
+        "model": ctx.localize(device["model"]),
         "max_read": _int_in_range(ctx, "device.max_register_read",
                                   device.get("max_register_read", DEFAULT_MAX_READ), 1, 2000),
         "max_gap": _int_in_range(ctx, "device.max_read_gap",
@@ -345,7 +432,9 @@ def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[Enti
                     f"'{section}:' — keys must be unique across sections"
                 )
             section_of[key] = section
-            entities.append(_parse_entity(_Ctx(filename, key), key, raw, section))
+            entities.append(
+                _parse_entity(_Ctx(filename, key, ctx.localize), key, raw, section)
+            )
 
     if not entities:
         raise ctx.fail(
@@ -369,7 +458,9 @@ def _parse_templates(
             raise ctx.fail(
                 f"template '{key}' collides with an entity of the same name"
             )
-        templates.append(_parse_template(_Ctx(filename, key), key, raw, defs_by_key))
+        templates.append(
+            _parse_template(_Ctx(filename, key, ctx.localize), key, raw, defs_by_key)
+        )
     return templates
 
 
@@ -412,7 +503,7 @@ def _parse_group_labels(ctx: _Ctx, raw: Any) -> tuple[tuple[str, str], ...]:
             raise ctx.fail(f"device.group_labels keys must be non-empty strings, got {name!r}")
         if not isinstance(label, str) or not label.strip():
             raise ctx.fail(f"device.group_labels[{name!r}] must be a non-empty string label")
-        out.append((name, label))
+        out.append((name, ctx.localize(label)))
     return tuple(out)
 
 
@@ -747,7 +838,7 @@ def _parse_int_str_map(
             raise ctx.fail(f"'{name}' keys must be non-negative integers, got {k!r}")
         if max_key is not None and k > max_key:
             raise ctx.fail(f"'{name}' key {k} out of range (bit numbers are 0-indexed)")
-        out[k] = str(v)
+        out[k] = ctx.localize(str(v))
     return out
 
 
@@ -783,6 +874,9 @@ def _parse_ha(ctx: _Ctx, platform: str, ha_raw: dict[str, Any]) -> dict[str, Any
         elif name in enum_fields and isinstance(value, str):
             value = _coerce_enum(ctx, f"ha.{raw_name}", value, enum_fields[name])
         out[name] = value
+    # ``name`` is the only free-text, human-facing EntityDescription field.
+    if isinstance(out.get("name"), str):
+        out["name"] = ctx.localize(out["name"])
     return out
 
 
@@ -1139,7 +1233,12 @@ def _parse_single_target(
     if value_map is not None:
         if not isinstance(value_map, dict) or not value_map:
             raise ctx.fail(f"'{name}.map' must be a non-empty mapping")
-        value_map = {str(k): v for k, v in value_map.items()}
+        # A string payload is an option label of the (possibly translated) target
+        # entity, so localize it in lockstep; numbers/bools are written as-is.
+        value_map = {
+            str(k): ctx.localize(v) if isinstance(v, str) else v
+            for k, v in value_map.items()
+        }
     return WriteTarget(entity=target, value=value, value_map=value_map)
 
 
