@@ -35,7 +35,6 @@ import io
 import re
 import sys
 from pathlib import Path
-from typing import Any
 
 import yaml
 
@@ -73,6 +72,8 @@ def _ordered_ha_items(ha: dict):
 
 # Self-documenting divider written above each section (ported from the MLG converter).
 SECTION_COMMENTS = {
+    "translations": "Translations: per-language text for the strings below (device model, "
+    "group labels, entity names, map/flag values), keyed by the source string.",
     "device": "Device metadata: manufacturer and model, plus optional read/poll tuning.",
     "holding": "Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).",
     "input": "Input registers: 16-bit words, read-only (Modbus FC04 read).",
@@ -119,6 +120,8 @@ def apply(ir: dict, spec: dict | None) -> dict:
         return ir
     if spec.get("device"):
         _deep_merge(ir.setdefault("device", {}), spec["device"])
+    if spec.get("translations"):
+        _deep_merge(ir.setdefault("translations", {}), spec["translations"])
     for op in spec.get("ops", []) or []:
         _apply_op(ir, op)
     return ir
@@ -444,11 +447,23 @@ def _emit_device(buf, device: dict) -> None:
             buf.write(f"    {name}: {yaml_str(label)}\n")
 
 
+def _emit_translations(buf, translations: dict) -> None:
+    """The optional top-level ``translations:`` catalog (source string -> {lang: text})."""
+    buf.write(f"# {SECTION_COMMENTS['translations']}\n")
+    buf.write("translations:\n")
+    for source, langs in translations.items():
+        if not _is_empty(langs):
+            _emit_value(buf, "  ", source, langs)
+
+
 def emit(ir: dict, header: str | None = None) -> str:
     """Serialize the intermediate to canonical YAML (strips ``_``-prefixed metadata)."""
     buf = io.StringIO()
     if header:
         buf.write(f"# {header}\n")
+    if ir.get("translations"):
+        _emit_translations(buf, ir["translations"])
+        buf.write("\n")
     _emit_device(buf, ir.get("device") or {})
     for table in TABLES:
         # Preserve each converter's natural entity order (upstream/source/curated);
@@ -474,7 +489,7 @@ def validate(text: str, filename: str) -> None:
     """Round-trip the emitted YAML through the integration's schema, so an emitter
     or augment bug fails the conversion loudly instead of the config entry later."""
     sys.path.insert(0, str(_DEST_DIR.parents[1]))  # .../custom_components
-    from modbus_connect.schema import parse_device  # noqa: PLC0415
+    from modbus_connect.schema import parse_device
 
     parse_device(yaml.safe_load(text), filename=filename)
 

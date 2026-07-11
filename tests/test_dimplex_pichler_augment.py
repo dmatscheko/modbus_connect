@@ -57,3 +57,20 @@ def test_config_is_regenerated_from_source(name):
     for section in _SECTIONS:
         assert list(regenerated.get(section) or {}) == list(committed.get(section) or {}), \
             f"{name}: {section} entity order drifted"
+
+
+def test_dimplex_committed_translations_resolve():
+    """The shipped Dimplex catalog localizes the model, a group label, and the
+    operating-mode enum. Loads the committed file directly, so it needs no upstream."""
+    doc = yaml.safe_load((_CONFIGS / "Dimplex-SI-11TU.yaml").read_text(encoding="utf-8"))
+    de = parse_device(doc, "Dimplex-SI-11TU.yaml", language="de")
+    en = parse_device(doc, "Dimplex-SI-11TU.yaml", language="en")
+
+    assert de.model == "Sole/Wasser-Wärmepumpe SI 11TU"       # German source
+    assert en.model == "Brine/water heat pump SI 11TU"        # English translation
+    assert (de.group_label("clock"), en.group_label("clock")) == ("Uhr", "Clock")
+
+    mode_de = next(e for e in de.entities if e.key == "operating_mode").value_map
+    mode_en = next(e for e in en.entities if e.key == "operating_mode").value_map
+    assert mode_de[0] == "Sommer" and mode_en[0] == "Summer"
+    assert mode_de[1] == "Auto" and mode_en[1] == "Automatic"

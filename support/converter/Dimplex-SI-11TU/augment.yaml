@@ -27,6 +27,41 @@ device:
     heat_source: Heat source (brine)
     status: Component status
 
+# Multi-language text, keyed by the source string as it appears elsewhere in the
+# generated file. The integration picks Home Assistant's configured language and
+# falls back to English, then to the source string — so untranslated strings (most
+# of this German-sourced device, for now) simply stay as written. This is a starter
+# catalog: the German model, the English group labels, and the writable operating-mode
+# enum. Extending it to the remaining entity names and status enums is incremental and
+# safe — templates already compare the stable map key via key(), not the label.
+translations:
+  # Device model (German source -> English).
+  Sole/Wasser-Wärmepumpe SI 11TU:
+    de: Sole/Wasser-Wärmepumpe SI 11TU
+    en: Brine/water heat pump SI 11TU
+  # Group-switch labels (English source -> German).
+  Schedule / time program: {en: Schedule / time program, de: Zeitplan / Zeitprogramm}
+  Clock: {en: Clock, de: Uhr}
+  Heating circuit 2: {en: Heating circuit 2, de: Heizkreis 2}
+  Heating circuit 3: {en: Heating circuit 3, de: Heizkreis 3}
+  Cooling: {en: Cooling, de: Kühlung}
+  Solar: {en: Solar, de: Solar}
+  Ventilation: {en: Ventilation, de: Lüftung}
+  Room climate sensors: {en: Room climate sensors, de: Raumklimasensoren}
+  Smart Grid: {en: Smart Grid, de: Smart Grid}
+  Hot water (extra): {en: Hot water (extra), de: Warmwasser (extra)}
+  Energy & runtime: {en: Energy & runtime, de: Energie & Laufzeit}
+  Heat source (brine): {en: Heat source (brine), de: Wärmequelle (Sole)}
+  Component status: {en: Component status, de: Komponentenstatus}
+  # operating_mode enum (German source -> English). The heizung template compares its
+  # key(), and set_hvac_mode's map values are translated in lockstep with this map.
+  Sommer: {de: Sommer, en: Summer}
+  Auto: {de: Auto, en: Automatic}
+  Urlaub: {de: Urlaub, en: Holiday}
+  Party: {de: Party, en: Party}
+  "2.Wärmeerzeuger": {de: "2.Wärmeerzeuger", en: 2nd heat generator}
+  Kühlen: {de: Kühlen, en: Cooling}
+
 ops:
   # --- base-sensor preset fixes -------------------------------------------- #
   # The upstream base leaves °C sensors with a raw display precision; the shipped
@@ -94,7 +129,9 @@ ops:
       current_temperature: "{{ hot_water_temp }}"
       target_temperature: "{{ hot_water_fixed_target }}"
       hvac_mode: "{{ 'heat' }}"
-      hvac_action: "{{ 'heating' if operation_status == 'Warmwasser' else 'idle' }}"
+      # key('operation_status') is the stable map key (4 = Warmwasser), so the test
+      # survives translating the status label; comparing the label would not.
+      hvac_action: "{{ 'heating' if key('operation_status') == 4 else 'idle' }}"
       min_temp: 18
       max_temp: 60
       temp_step: 1
@@ -106,8 +143,11 @@ ops:
       ha: {platform: climate, name: Heizung}
       current_temperature: "{{ flow_temp }}"
       target_temperature: "{{ heating_fixed_target }}"
-      hvac_mode: "{{ 'off' if operating_mode == 'Sommer' else 'heat' }}"
-      hvac_action: "{{ 'heating' if operation_status == 'Heizen' else 'idle' }}"
+      # Compare stable map keys, not labels: operating_mode 0 = Sommer, operation_status
+      # 2 = Heizen. set_hvac_mode's values are still labels, but they translate in
+      # lockstep with operating_mode's map, so the write keeps landing.
+      hvac_mode: "{{ 'off' if key('operating_mode') == 0 else 'heat' }}"
+      hvac_action: "{{ 'heating' if key('operation_status') == 2 else 'idle' }}"
       min_temp: 18
       max_temp: 60
       temp_step: 1

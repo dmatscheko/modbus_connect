@@ -1,4 +1,67 @@
 # Dimplex Sole/Wasser-Wärmepumpe SI 11TU — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Dimplex-SI-11TU/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Sole/Wasser-Wärmepumpe SI 11TU:
+    de: Sole/Wasser-Wärmepumpe SI 11TU
+    en: Brine/water heat pump SI 11TU
+  Schedule / time program:
+    en: Schedule / time program
+    de: Zeitplan / Zeitprogramm
+  Clock:
+    en: Clock
+    de: Uhr
+  Heating circuit 2:
+    en: Heating circuit 2
+    de: Heizkreis 2
+  Heating circuit 3:
+    en: Heating circuit 3
+    de: Heizkreis 3
+  Cooling:
+    en: Cooling
+    de: Kühlung
+  Solar:
+    en: Solar
+    de: Solar
+  Ventilation:
+    en: Ventilation
+    de: Lüftung
+  Room climate sensors:
+    en: Room climate sensors
+    de: Raumklimasensoren
+  Smart Grid:
+    en: Smart Grid
+    de: Smart Grid
+  Hot water (extra):
+    en: Hot water (extra)
+    de: Warmwasser (extra)
+  "Energy & runtime":
+    en: "Energy & runtime"
+    de: "Energie & Laufzeit"
+  Heat source (brine):
+    en: Heat source (brine)
+    de: Wärmequelle (Sole)
+  Component status:
+    en: Component status
+    de: Komponentenstatus
+  Sommer:
+    de: Sommer
+    en: Summer
+  Auto:
+    de: Auto
+    en: Automatic
+  Urlaub:
+    de: Urlaub
+    en: Holiday
+  Party:
+    de: Party
+    en: Party
+  "2.Wärmeerzeuger":
+    de: "2.Wärmeerzeuger"
+    en: "2nd heat generator"
+  Kühlen:
+    de: Kühlen
+    en: Cooling
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Dimplex
@@ -1403,7 +1466,7 @@ template:
     current_temperature: "{{ hot_water_temp }}"
     target_temperature: "{{ hot_water_fixed_target }}"
     hvac_mode: "{{ 'heat' }}"
-    hvac_action: "{{ 'heating' if operation_status == 'Warmwasser' else 'idle' }}"
+    hvac_action: "{{ 'heating' if key('operation_status') == 4 else 'idle' }}"
     min_temp: 18
     max_temp: 60
     temp_step: 1
@@ -1416,8 +1479,8 @@ template:
     groups: [basic]
     current_temperature: "{{ flow_temp }}"
     target_temperature: "{{ heating_fixed_target }}"
-    hvac_mode: "{{ 'off' if operating_mode == 'Sommer' else 'heat' }}"
-    hvac_action: "{{ 'heating' if operation_status == 'Heizen' else 'idle' }}"
+    hvac_mode: "{{ 'off' if key('operating_mode') == 0 else 'heat' }}"
+    hvac_action: "{{ 'heating' if key('operation_status') == 2 else 'idle' }}"
     min_temp: 18
     max_temp: 60
     temp_step: 1

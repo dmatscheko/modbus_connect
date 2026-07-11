@@ -56,6 +56,15 @@ selector (all clauses AND together):
 `missing_group`. A `device:` block merges into device metadata (`default_groups`,
 `group_labels`, …). See `tests/test_augment.py` for worked examples.
 
+A top-level **`translations:`** block (sibling of `device:`/`ops:`) is emitted verbatim
+as the file's multi-language catalog — `{source string: {lang: text}}`. The integration
+resolves it at load against Home Assistant's language (falling back to English, then the
+source string), so it localizes the device model, group labels, entity names, and
+`map:`/`flags:` values without the converter touching any of those strings. Because a
+translated `map:` value changes what templates see, templates must compare the stable
+map key via `key('entity')`, not the label — see `Dimplex-SI-11TU/augment.yaml` for a
+worked catalog and the migrated climate templates.
+
 The emitter writes one canonical style regardless of how a converter built its dicts:
 register fields follow `ENTITY_FIELD_ORDER` and the keys inside every `ha:` block follow
 `HA_FIELD_ORDER`, so the output never depends on dict-insertion order.
