@@ -1,12 +1,12 @@
-# Pichler Lüftungsgerät LG 350 - LG 450 — modbus_local_gateway-derived; entity groups from support/converter/Pichler-LG350-LG450/augment.yaml
+# Pichler Lüftungsgerät LG 350 - LG 450 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Pichler-LG350-LG450/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 350 - LG 450
   max_register_read: 100
-  max_read_gap: 64
-  modbus_id: 20
   prefix: Pichler LG
+  modbus_id: 20
+  max_read_gap: 64
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -54,10 +54,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: EWT Sommer Umschaltpunkt
       min: -100
       max: 100
       step: 0.1
-      name: EWT Sommer Umschaltpunkt
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -70,10 +70,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: EWT Winter Umschaltpunkt
       min: -100
       max: 100
       step: 0.1
-      name: EWT Winter Umschaltpunkt
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -96,11 +96,11 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 1
       min: 0
       max: 500
       step: 5
       mode: slider
-      name: Luftstrom Lüftungsstufe 1
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-1"
@@ -110,11 +110,11 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 2
       min: 0
       max: 500
       step: 5
       mode: slider
-      name: Luftstrom Lüftungsstufe 2
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-2"
@@ -124,11 +124,11 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 3
       min: 0
       max: 500
       step: 5
       mode: slider
-      name: Luftstrom Lüftungsstufe 3
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-3"
@@ -138,11 +138,11 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Grundlüftung
       min: 0
       max: 500
       step: 5
       mode: slider
-      name: Luftstrom Grundlüftung
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan"
@@ -154,10 +154,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Vorheizregister Relais Schwellwert
       min: -100
       max: 100
       step: 0.1
-      name: Vorheizregister Relais Schwellwert
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -169,10 +169,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Zulufttemperatur
       min: -100
       max: 100
       step: 0.1
-      name: Soll Zulufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -184,10 +184,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Raumlufttemperatur
       min: -100
       max: 100
       step: 0.1
-      name: Soll Raumlufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -199,10 +199,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Ablufttemperatur
       min: -100
       max: 100
       step: 0.1
-      name: Soll Ablufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -212,9 +212,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Lüftungsstufe 3 Nachlaufzeit (External Din2)
       min: 0
       max: 1000
-      name: Lüftungsstufe 3 Nachlaufzeit (External Din2)
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
@@ -224,9 +224,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Tauschintervall Filter
       min: 0
       max: 65000
-      name: Tauschintervall Filter
       unit_of_measurement: h
       icon: "mdi:air-filter"
       entity_category: config
@@ -302,9 +302,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: CO2 Sollwert
       min: 0
       max: 2000
-      name: CO2 Sollwert
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       icon: "mdi:molecule-co2"
@@ -327,9 +327,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftfeuchte Sollwert
       min: 0
       max: 100
-      name: Luftfeuchte Sollwert
       unit_of_measurement: "%"
       device_class: humidity
       icon: "mdi:water-percent"
@@ -340,9 +340,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Feuchte Regelung LS3 maximale Zeit
       min: 0
       max: 10000
-      name: Feuchte Regelung LS3 maximale Zeit
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
@@ -378,10 +378,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Zulufttemperatur (Abgesenkt)
       min: -100
       max: 100
       step: 0.1
-      name: Soll Zulufttemperatur (Abgesenkt)
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -394,10 +394,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Raumlufttemperatur (Abgesenkt)
       min: -100
       max: 100
       step: 0.1
-      name: Soll Raumlufttemperatur (Abgesenkt)
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -410,10 +410,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Ablufttemperatur (Abgesenkt)
       min: -100
       max: 100
       step: 0.1
-      name: Soll Ablufttemperatur (Abgesenkt)
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -440,10 +440,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Vorheizregister Zieltemperatur
       min: -100
       max: 100
       step: 0.1
-      name: Vorheizregister Zieltemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -465,9 +465,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Lüftungsstufe 3 Maximale Zeit
       min: 0
       max: 65000
-      name: Lüftungsstufe 3 Maximale Zeit
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
@@ -477,9 +477,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Zuluft Stufe 1
       min: 0
       max: 1000
-      name: Kanaldruck Zuluft Stufe 1
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -490,9 +490,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Zuluft Stufe 2
       min: 0
       max: 1000
-      name: Kanaldruck Zuluft Stufe 2
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -503,9 +503,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Zuluft Stufe 3
       min: 0
       max: 1000
-      name: Kanaldruck Zuluft Stufe 3
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -516,9 +516,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Zuluft Grundlüftung
       min: 0
       max: 1000
-      name: Kanaldruck Zuluft Grundlüftung
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -529,9 +529,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Abluft Stufe 1
       min: 0
       max: 1000
-      name: Kanaldruck Abluft Stufe 1
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -542,9 +542,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Abluft Stufe 2
       min: 0
       max: 1000
-      name: Kanaldruck Abluft Stufe 2
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -555,9 +555,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Abluft Stufe 3
       min: 0
       max: 1000
-      name: Kanaldruck Abluft Stufe 3
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -568,9 +568,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Kanaldruck Abluft Grundlüftung
       min: 0
       max: 1000
-      name: Kanaldruck Abluft Grundlüftung
       unit_of_measurement: Pa
       device_class: pressure
       icon: "mdi:waveform"
@@ -582,9 +582,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Abluft-Balance Lüftungsstufe 1
       min: -500
       max: 500
-      name: Abluft-Balance Lüftungsstufe 1
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-1"
@@ -596,9 +596,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Abluft-Balance Lüftungsstufe 2
       min: -500
       max: 500
-      name: Abluft-Balance Lüftungsstufe 2
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-2"
@@ -610,9 +610,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Abluft-Balance Lüftungsstufe 3
       min: -500
       max: 500
-      name: Abluft-Balance Lüftungsstufe 3
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-3"
@@ -624,9 +624,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Abluft-Balance Grundlüftung
       min: -500
       max: 500
-      name: Abluft-Balance Grundlüftung
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       icon: "mdi:fan"
@@ -692,8 +692,8 @@ holding:
     ha:
       platform: number
       name: Modbus address
-      min: 1
-      max: 247
+      min: 1.0
+      max: 247.0
       entity_category: config
   modbusbaudrate:
     address: 209
@@ -720,8 +720,8 @@ holding:
     ha:
       platform: number
       name: Activate modbus sensors
-      min: 0
-      max: 63
+      min: 0.0
+      max: 63.0
       entity_category: config
   fagregtype:
     address: 80
@@ -771,13 +771,13 @@ holding:
   preheatermaxtemperature:
     address: 147
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [preheater]
     ha:
       platform: number
       name: PreHeaterMaxTemperature
-      min: 0
-      max: 50
+      min: 0.0
+      max: 50.0
       step: 0.1
       entity_category: config
   enableairfilteralarm:
@@ -786,8 +786,8 @@ holding:
     ha:
       platform: number
       name: EnableAirfilterAlarm
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   enableextractsmoke:
     address: 158
@@ -805,8 +805,8 @@ holding:
     ha:
       platform: number
       name: Relative humidity setpoint Winter
-      min: 20
-      max: 80
+      min: 20.0
+      max: 80.0
       unit_of_measurement: "%"
       entity_category: config
   userenablepresence:
@@ -815,8 +815,8 @@ holding:
     ha:
       platform: number
       name: Enable Presence mode
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   summernightcool_enable:
     address: 2204
@@ -824,8 +824,8 @@ holding:
     ha:
       platform: number
       name: Enable Summernight cooling
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   summernightcool_temp_on:
     address: 2205
@@ -833,8 +833,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling enable T
-      min: 100
-      max: 350
+      min: 100.0
+      max: 350.0
       entity_category: config
   summernightcool_temp_off:
     address: 2206
@@ -843,8 +843,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling disable T
-      min: 10
-      max: 35
+      min: 10.0
+      max: 35.0
       step: 0.1
       entity_category: config
   summernightcool_activation:
@@ -854,8 +854,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling release T
-      min: 10
-      max: 35
+      min: 10.0
+      max: 35.0
       step: 0.1
       entity_category: config
   summernightcool_starttime_hour:
@@ -865,7 +865,7 @@ holding:
     ha:
       platform: number
       name: Summernight cooling start hour
-      min: 0
+      min: 0.0
       max: 2.3
       step: 0.1
       unit_of_measurement: h
@@ -877,8 +877,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling start minute
-      min: 0
-      max: 59
+      min: 0.0
+      max: 59.0
       entity_category: config
   summernightcool_stoptime_hour:
     address: 2210
@@ -886,8 +886,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling stopp hour
-      min: 0
-      max: 23
+      min: 0.0
+      max: 23.0
       unit_of_measurement: h
       device_class: duration
       entity_category: config
@@ -897,8 +897,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling stopp minute
-      min: 0
-      max: 59
+      min: 0.0
+      max: 59.0
       entity_category: config
   summernightcool_fanlevel:
     address: 2212
@@ -906,8 +906,8 @@ holding:
     ha:
       platform: number
       name: Summernight cooling ventilation level
-      min: 0
-      max: 3
+      min: 0.0
+      max: 3.0
       entity_category: config
   summernightcool_enable_level:
     address: 2213
@@ -2010,6 +2010,7 @@ template:
     ha:
       platform: fan
       name: Lüftung
+    groups: [basic]
     state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
     preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
     preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
@@ -2026,11 +2027,11 @@ template:
         Stufe 1: 1
         Stufe 2: 2
         Stufe 3: 3
-    groups: [basic]
   klima:
     ha:
       platform: climate
       name: Klima
+    groups: [basic]
     current_temperature: |-
       {{ {'Zuluft': temperatur_zuluft,
           'Raum': temperatur_abluft,
@@ -2062,4 +2063,3 @@ template:
       map:
         heat: Winter
         cool: Sommer
-    groups: [basic]

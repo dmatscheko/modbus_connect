@@ -56,6 +56,21 @@ ENTITY_FIELD_ORDER = (
 )
 _KNOWN_ENTITY_KEYS = {*ENTITY_FIELD_ORDER, "map", "flags", "read_register", "internal", "ha", "key"}
 
+# Canonical order for the keys inside an ``ha:`` block, so the emitted file does not
+# depend on the (converter-specific) order the dict happened to be built in. Unknown
+# keys keep their original relative order after these.
+HA_FIELD_ORDER = (
+    "platform", "name", "min", "max", "step", "mode", "unit_of_measurement",
+    "device_class", "state_class", "precision", "suggested_display_precision",
+    "icon", "entity_category", "enabled_by_default",
+)
+_HA_INDEX = {name: i for i, name in enumerate(HA_FIELD_ORDER)}
+
+
+def _ordered_ha_items(ha: dict):
+    """``ha`` items in canonical field order (stable for unknown keys)."""
+    return sorted(ha.items(), key=lambda kv: _HA_INDEX.get(kv[0], len(HA_FIELD_ORDER)))
+
 # Self-documenting divider written above each section (ported from the MLG converter).
 SECTION_COMMENTS = {
     "device": "Device metadata: manufacturer and model, plus optional read/poll tuning.",
@@ -113,12 +128,24 @@ def _apply_op(ir: dict, op: dict) -> None:
     if "add" in op:
         new = dict(op["add"])
         table = new.pop("table", None)
+        after = new.pop("after", None)
+        before = new.pop("before", None)
         if table not in SECTIONS:
             raise ValueError(f"add: missing/invalid table {table!r} (one of {SECTIONS})")
         if "key" not in new:
             raise ValueError(f"add: entity needs a key ({new!r})")
         new["_tags"] = set(new.get("_tags", ()))
-        ir.setdefault(table, []).append(new)
+        section = ir.setdefault(table, [])
+        # Optional positioning: `after`/`before` name an existing key in the same
+        # table so a curated entity lands where it belongs (not just at the end).
+        anchor = after if after is not None else before
+        index = len(section)
+        if anchor is not None:
+            pos = next((i for i, e in enumerate(section) if e.get("key") == anchor), None)
+            if pos is None:
+                raise ValueError(f"add: anchor {anchor!r} not found in {table!r} (adding {new['key']!r})")
+            index = pos + 1 if after is not None else pos
+        section.insert(index, new)
         return
 
     where = op.get("where")
@@ -372,7 +399,7 @@ def _emit_register_entity(buf, entity: dict) -> None:
         return
     if entity.get("ha"):
         buf.write("    ha:\n")
-        for k, v in entity["ha"].items():
+        for k, v in _ordered_ha_items(entity["ha"]):
             if not _is_empty(v):
                 _emit_value(buf, "      ", k, v)
 
@@ -381,7 +408,7 @@ def _emit_template_entity(buf, entity: dict) -> None:
     buf.write(f"  {entity['key']}:\n")
     if entity.get("ha"):
         buf.write("    ha:\n")
-        for k, v in entity["ha"].items():
+        for k, v in _ordered_ha_items(entity["ha"]):
             if not _is_empty(v):
                 _emit_value(buf, "      ", k, v)
     for name, value in entity.items():

@@ -16,10 +16,10 @@ holding:
     scan_interval: 2
     ha:
       platform: number
+      name: Degree minutes t
       min: -3000.0
       max: 3000.0
       step: 0.1
-      name: Degree minutes t
       unit_of_measurement: DM
   on_off:
     address: 0

@@ -1,80 +1,108 @@
 #!/usr/bin/env python3
-"""Re-augment the Dimplex and Pichler device configs through the common library.
+"""Regenerate the Dimplex and Pichler device configs from source.
 
-These three files are modbus_local_gateway-derived and then hand-curated (composite
-climate templates, tuned setpoints, the documented extra registers, the Dimplex
-*Sync clock* button). All of that is *content* and lives in the bundled config. The
-only *policy* — which entity belongs to which group — lives in
-``support/converter/<device>/augment.yaml``.
+Two mechanical sources are merged in memory:
 
-This "per-device part" simply reads each config as its content source, tags every
-entity with the facts a grouping rule needs (its raw name, its table, whether it is a
-raw internal reading), drops the existing group assignments, and hands the result to
-:func:`augment.write_augmented`, which re-derives the groups from the augment.yaml and
-rewrites the file in the one canonical style. Running it is an idempotent fixpoint.
+  1. the ``modbus_local_gateway`` upstream config for the device (the curated base
+     entity set), converted with the MLG converter — this gives the nicely-named
+     "basic" registers with their icons and HA metadata; and
+  2. the manufacturer's own Modbus document (Pichler LS-Control ``.xlsx`` / Dimplex
+     NWPM ``.html`` under ``support/devicedocs/``), which fills in every documented
+     register the base does not already cover (see :mod:`dimplex_pichler_gen`).
 
-    python support/converter/dimplex_pichler/dimplex_pichler-convert.py
+Every entity is stamped with the *facts* a rule might need (its raw source name, its
+unit, whether it is a raw internal reading, which source it came from). Everything
+else — grouping, the composite climate/fan templates, the Dimplex *Sync clock*
+button, per-entity overrides — is *policy* and lives in
+``support/converter/<device>/augment.yaml``, applied by :func:`augment.write_augmented`.
+
+The MLG upstream checkout is found via ``$MLG_GATEWAY_REPO`` (default: a
+``modbus_local_gateway`` checkout beside this repo), the same source the MLG
+converter uses.
+
+    MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+        python support/converter/dimplex_pichler/dimplex_pichler-convert.py
 """
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
 import yaml
 
 _HERE = Path(__file__).resolve()
-_COMMON = _HERE.parents[1] / "_common"
-_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment.py")
-augment = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(augment)
+_CONVERTER = _HERE.parents[1]
+_REPO = _HERE.parents[3]
 
-_DEVICE_CONFIGS = _HERE.parents[3] / "custom_components/modbus_connect/device_configs"
 
-# (config basename, family). The family only decides raw-internal detection.
+def _load(modname: str, path: Path):
+    spec = importlib.util.spec_from_file_location(modname, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+augment = _load("augment", _CONVERTER / "_common" / "augment.py")
+_mlg = _load("mlg_convert", _CONVERTER / "modbus_local_gateway" / "modbus_local_gateway-convert.py")
+sys.path.insert(0, str(_CONVERTER / "_common"))
+import dimplex_pichler_gen as gen  # noqa: E402
+
 DEVICES = ["Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"]
 
-# device-level keys that are grouping *policy* (re-applied from augment.yaml), not content.
-_POLICY_DEVICE_KEYS = ("default_groups", "group_labels")
+
+def _upstream_dir() -> Path:
+    """Locate the modbus_local_gateway device_configs directory (the base source)."""
+    root = os.environ.get("MLG_GATEWAY_REPO") or str(_REPO.parent / "modbus_local_gateway")
+    path = Path(root)
+    if path.name != "device_configs":
+        path = path / "custom_components" / "modbus_local_gateway" / "device_configs"
+    if not path.is_dir():
+        raise SystemExit(
+            f"modbus_local_gateway device_configs not found at {path}\n"
+            "Set MLG_GATEWAY_REPO to a modbus_local_gateway checkout."
+        )
+    return path
 
 
-def config_to_intermediate(doc: dict) -> dict:
-    """A committed device config -> a tagged intermediate (grouping stripped).
+def build_intermediate(device_name: str, upstream_dir: Path) -> dict:
+    """MLG upstream base + manufacturer-doc expansion -> one tagged intermediate."""
+    old = yaml.safe_load((upstream_dir / f"{device_name}.yaml").read_text(encoding="utf-8"))
+    base = _mlg.convert_device(old, f"{device_name}.yaml")
 
-    Only *facts* are stamped: the raw name a rule matches on, the table, the platform.
-    All policy — including which entities are raw internals (expert tier) — is decided
-    by the augment.yaml, so this stays device-agnostic."""
-    device = {k: v for k, v in (doc.get("device") or {}).items() if k not in _POLICY_DEVICE_KEYS}
-    ir = augment.intermediate(device)
-    for table in augment.TABLES:
-        for key, fields in (doc.get(table) or {}).items():
-            fields = dict(fields)
-            fields.pop("groups", None)
-            name = (fields.get("ha") or {}).get("name") or key
-            tags = {f"raw-name:{name}", f"table:{table}"}
-            if fields.get("ha", {}).get("platform"):
-                tags.add(f"platform:{fields['ha']['platform']}")
+    ir = augment.intermediate(base.get("device") or {})
+    base_addr = {t: set() for t in gen.TABLES}
+    for table in gen.TABLES:
+        for key, fields in (base.get(table) or {}).items():
+            fields = {k: v for k, v in fields.items() if k != "groups"}
+            base_addr[table].add(fields["address"])
+            ha = fields.get("ha") or {}
+            raw_name = ha.get("name") or key
+            tags = {f"raw-name:{raw_name}", "source:mlg"}
+            if ha.get("unit_of_measurement"):
+                tags.add(f"unit:{ha['unit_of_measurement']}")
             augment.add_entity(ir, table, key, tags=tags, **fields)
-    for key, fields in (doc.get("template") or {}).items():
-        fields = dict(fields)
-        fields.pop("groups", None)
-        name = (fields.get("ha") or {}).get("name") or key
-        augment.add_entity(ir, "template", key, tags={f"raw-name:{name}"}, **fields)
-    return ir
+
+    expansion, skipped = gen.expansion(device_name, base_addr)
+    for e in expansion:
+        augment.add_entity(ir, e["table"], e["key"], tags=e["tags"], **e["fields"])
+    return ir, skipped
 
 
 def run() -> None:
+    upstream_dir = _upstream_dir()
     for name in DEVICES:
-        doc = yaml.safe_load((_DEVICE_CONFIGS / f"{name}.yaml").read_text(encoding="utf-8"))
-        dev = doc.get("device") or {}
-        ir = config_to_intermediate(doc)
+        ir, skipped = build_intermediate(name, upstream_dir)
+        dev = ir.get("device") or {}
         header = (
-            f"{dev.get('manufacturer', '')} {dev.get('model', '')} — "
-            f"modbus_local_gateway-derived; entity groups from "
-            f"support/converter/{name}/augment.yaml"
+            f"{dev.get('manufacturer', '')} {dev.get('model', '')} — regenerated from source "
+            f"(modbus_local_gateway base + manufacturer Modbus doc); "
+            f"policy in support/converter/{name}/augment.yaml"
         ).strip()
         summary = augment.write_augmented(ir, name, header=header)
-        print(f"  {name}: {summary}")
+        note = f"  (skipped {len(skipped)} write-only source rows)" if skipped else ""
+        print(f"  {name}: {summary}{note}")
 
 
 if __name__ == "__main__":

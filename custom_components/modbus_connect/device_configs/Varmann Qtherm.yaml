@@ -10,9 +10,9 @@ holding:
     address: 0
     ha:
       platform: number
+      name: Slave Address
       min: 1
       max: 240
-      name: Slave Address
       icon: "mdi:serial-port"
       entity_category: config
   tmp_ntc:
@@ -29,10 +29,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: Required Temperature
       min: 0
       max: 100
       step: 0.1
-      name: Required Temperature
       unit_of_measurement: "°C"
       icon: "mdi:thermometer"
   heat_chill:
@@ -48,26 +48,26 @@ holding:
     address: 4
     ha:
       platform: number
+      name: Integration time
       min: 1
       max: 240
-      name: Integration time
       unit_of_measurement: s
       entity_category: config
   kreg:
     address: 5
     ha:
       platform: number
+      name: Regulation profile
       min: 1
       max: 3
-      name: Regulation profile
       entity_category: config
   ust_fan:
     address: 6
     ha:
       platform: number
+      name: Required Fan speed
       min: 0
       max: 100
-      name: Required Fan speed
       unit_of_measurement: "%"
       icon: "mdi:fan"
   valve_heat:
@@ -91,19 +91,19 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: Incoming temperature
       min: 10
       max: 500
       step: 0.1
-      name: Incoming temperature
       unit_of_measurement: "°C"
       icon: "mdi:thermometer"
   time_lan:
     address: 10
     ha:
       platform: number
+      name: LAN communication timeout
       min: 2
       max: 250
-      name: LAN communication timeout
       unit_of_measurement: s
       icon: "mdi:lan-pending"
       entity_category: config
@@ -203,7 +203,7 @@ holding:
     address: 23
     ha:
       platform: number
+      name: Motor nominal current
       min: 1
       max: 65535
-      name: Motor nominal current
       unit_of_measurement: A

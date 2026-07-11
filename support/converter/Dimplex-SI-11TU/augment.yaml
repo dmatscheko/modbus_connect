@@ -1,8 +1,16 @@
 # Augmentation policy for Dimplex Sole/Wasser-Wärmepumpe SI 11TU.
-# Grouping only — the entities/templates themselves live in the device config.
+#
+# The device is regenerated from source: the modbus_local_gateway upstream config
+# supplies the curated base registers, and the Dimplex NWPM datapoint list supplies
+# every other documented register. This file carries all the *policy* on top of
+# those facts — device tuning, the composite climate templates, the Sync-clock
+# button, the handful of base-sensor preset fixes, and the entity grouping.
 # Regenerate:  python support/converter/dimplex_pichler/dimplex_pichler-convert.py
 
 device:
+  prefix: Dimplex SI
+  max_register_read: 100
+  max_read_gap: 64
   default_groups: [basic]
   group_labels:
     schedule: Schedule / time program
@@ -20,6 +28,93 @@ device:
     status: Component status
 
 ops:
+  # --- base-sensor preset fixes -------------------------------------------- #
+  # The upstream base leaves °C sensors with a raw display precision; the shipped
+  # config gives them the standard temperature preset instead.
+  - set: {ha: {device_class: temperature, state_class: measurement}}
+    where: {tag_all: ['unit:°C', 'source:mlg'], platform: sensor}
+  - unset: [ha.precision]
+    where: {tag_all: ['unit:°C', 'source:mlg'], platform: sensor}
+  # Runtime counters (hours) accumulate — total_increasing, not measurement.
+  - set: {ha: {state_class: total_increasing}}
+    where: {key_matches: '_hours$', tag: 'source:mlg'}
+
+  # --- curated registers the source can't produce mechanically ------------- #
+  # The heating-circuit loop temperatures are documented as float16 but the WPM
+  # reports them as uint16 ×0.1; re-add them cleanly (dropping the raw doc rows).
+  - remove: true
+    where: {raw_name_matches: '[23]\.\s*Heizkreis', table: input, tag: 'source:doc'}
+  - add: {table: input, key: test_temp_what_is_this, before: outside_temp, address: 8, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: TEST What is this, unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_1st_loop_temp, after: heating_return_temp, address: 27, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "1. Heizkreis Temperatur (R5)", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_1st_loop_return_target, after: heating_return_target, address: 29, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "1. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_2nd_loop_temp, after: heating_1st_loop_temp, address: 9, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "2. Heizkreis Temperatur (R?)", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
+               enabled_by_default: false}}
+  - add: {table: input, key: heating_2nd_loop_return_target, after: heating_1st_loop_return_target, address: 54, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "2. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
+               enabled_by_default: false}}
+  - add: {table: input, key: heating_3rd_loop_temp, after: heating_2nd_loop_temp, address: 10, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "3. Heizkreis Temperatur (R13)", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
+               enabled_by_default: false}}
+  - add: {table: input, key: heating_3rd_loop_return_target, after: heating_2nd_loop_return_target, address: 55, multiplier: 0.1, groups: [basic],
+          ha: {platform: sensor, name: "3. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
+               enabled_by_default: false}}
+
+  # One-click clock sync: writes the 6 value registers 5006-5011 (hour..year) in
+  # one FC16, alongside the individual editable clock fields the source produced.
+  - add: {table: holding, key: sync_clock, after: smart_grid, address: 5006, groups: [clock],
+          write_value: ['{{ now().hour }}', '{{ now().minute }}', '{{ now().month }}',
+                        '{{ now().isoweekday() }}', '{{ now().day }}', '{{ now().year % 100 }}'],
+          ha: {platform: button, name: Sync clock, icon: "mdi:clock-check", entity_category: config}}
+
+  # --- template-source registers ------------------------------------------- #
+  # The fixed-target setpoints are written through the climate templates below, so
+  # they are internal (no standalone entity of their own).
+  - set: {internal: true}
+    where: {key: [heating_fixed_target, hot_water_fixed_target]}
+  - unset: [ha]
+    where: {key: [heating_fixed_target, hot_water_fixed_target]}
+
+  # --- composite Home Assistant entities ----------------------------------- #
+  - add:
+      table: template
+      key: warmwasser
+      groups: [basic]
+      ha: {platform: climate, name: Warmwasser}
+      current_temperature: "{{ hot_water_temp }}"
+      target_temperature: "{{ hot_water_fixed_target }}"
+      hvac_mode: "{{ 'heat' }}"
+      hvac_action: "{{ 'heating' if operation_status == 'Warmwasser' else 'idle' }}"
+      min_temp: 18
+      max_temp: 60
+      temp_step: 1
+      set_temperature: {entity: hot_water_fixed_target}
+  - add:
+      table: template
+      key: heizung
+      groups: [basic]
+      ha: {platform: climate, name: Heizung}
+      current_temperature: "{{ flow_temp }}"
+      target_temperature: "{{ heating_fixed_target }}"
+      hvac_mode: "{{ 'off' if operating_mode == 'Sommer' else 'heat' }}"
+      hvac_action: "{{ 'heating' if operation_status == 'Heizen' else 'idle' }}"
+      min_temp: 18
+      max_temp: 60
+      temp_step: 1
+      set_temperature: {entity: heating_fixed_target}
+      set_hvac_mode: {entity: operating_mode, map: {heat: Auto, "off": Sommer}}
+
+  # --- grouping ------------------------------------------------------------ #
   # Everyday view — the curated base entities and the composite templates.
   - group: [basic]
     where:

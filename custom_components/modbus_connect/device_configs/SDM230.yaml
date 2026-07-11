@@ -19,9 +19,9 @@ holding:
     type: float32
     ha:
       platform: number
+      name: Communicate address
       min: 1
       max: 247
-      name: Communicate address
       icon: "mdi:serial-port"
   baud_rate:
     address: 28

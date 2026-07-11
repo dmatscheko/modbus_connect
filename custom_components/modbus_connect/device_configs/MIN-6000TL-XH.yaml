@@ -40,9 +40,9 @@ holding:
     address: 3
     ha:
       platform: number
+      name: Max output active power
       min: 0
       max: 100
-      name: Max output active power
       unit_of_measurement: "%"
       icon: "mdi:flash"
   language:
@@ -64,42 +64,42 @@ holding:
     address: 3085
     ha:
       platform: number
+      name: Communicate address
       min: 1
       max: 254
-      name: Communicate address
       icon: "mdi:serial-port"
   GridFirstDischargePowerRate:
     address: 3036
     ha:
       platform: number
+      name: Discharge Power Rate (Grid First)
       min: 1
       max: 255
-      name: Discharge Power Rate (Grid First)
       icon: "mdi:transmission-tower-export"
   GridFirstStopSOC:
     address: 3037
     ha:
       platform: number
+      name: Stop Discharge SOC (Grid First)
       min: 1
       max: 100
-      name: Stop Discharge SOC (Grid First)
       unit_of_measurement: "%"
       icon: "mdi:battery-negative"
   BatFirstDischargePowerRate:
     address: 3047
     ha:
       platform: number
+      name: Discharge Power Rate (Bat First)
       min: 1
       max: 100
-      name: Discharge Power Rate (Bat First)
       icon: "mdi:transmission-tower-import"
   BatFirstStopSOC:
     address: 3048
     ha:
       platform: number
+      name: Stop Charge SOC (Bat First)
       min: 1
       max: 100
-      name: Stop Charge SOC (Bat First)
       unit_of_measurement: "%"
       icon: "mdi:battery-charging"
   AcChargeEnable:

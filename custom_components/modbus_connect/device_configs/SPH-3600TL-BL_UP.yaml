@@ -89,27 +89,27 @@ holding:
     address: 1070
     ha:
       platform: number
+      name: Discharge Power Rate (Grid First)
       min: 10
       max: 100
-      name: Discharge Power Rate (Grid First)
       unit_of_measurement: "%"
       icon: "mdi:flash"
   discharge_stop_soc:
     address: 1071
     ha:
       platform: number
+      name: Discharge Stop SoC (Grid First)
       min: 10
       max: 100
-      name: Discharge Stop SoC (Grid First)
       unit_of_measurement: "%"
       icon: "mdi:flash"
   charge_stop_soc:
     address: 1090
     ha:
       platform: number
+      name: Charge Stop SoC (Battery First)
       min: 10
       max: 100
-      name: Charge Stop SoC (Battery First)
       unit_of_measurement: "%"
       icon: "mdi:flash"
   ac_charge:

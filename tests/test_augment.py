@@ -67,6 +67,40 @@ def test_add_and_remove():
     assert keys["sync_clock"]["groups"] == ["clock"]
 
 
+def test_add_after_and_before_position():
+    ir = _ir()  # holding order: cool_setpoint, solar_pump
+    aug.apply(ir, {"ops": [
+        {"add": {"table": "holding", "key": "after_cool", "after": "cool_setpoint",
+                 "address": 1, "ha": {"platform": "sensor", "name": "A"}}},
+        {"add": {"table": "holding", "key": "at_front", "before": "cool_setpoint",
+                 "address": 2, "ha": {"platform": "sensor", "name": "B"}}},
+        {"add": {"table": "holding", "key": "at_end",
+                 "address": 3, "ha": {"platform": "sensor", "name": "C"}}},
+    ]})
+    order = [e["key"] for _s, e in aug._iter(ir) if _s == "holding"]
+    assert order == ["at_front", "cool_setpoint", "after_cool", "solar_pump", "at_end"]
+
+
+def test_add_with_unknown_anchor_raises():
+    ir = _ir()
+    with pytest.raises(ValueError, match="anchor"):
+        aug.apply(ir, {"ops": [{"add": {"table": "holding", "key": "x", "after": "nope",
+                                         "address": 1, "ha": {"platform": "sensor", "name": "X"}}}]})
+
+
+def test_emit_orders_ha_keys_canonically():
+    ir = aug.intermediate({"manufacturer": "A", "model": "B"})
+    # built in a deliberately non-canonical order (icon/enabled_by_default early, name late)
+    aug.add_entity(ir, "input", "t", address=1, ha={
+        "platform": "sensor", "enabled_by_default": False, "icon": "mdi:x",
+        "state_class": "measurement", "device_class": "temperature",
+        "unit_of_measurement": "°C", "name": "T"})
+    lines = [ln.strip() for ln in aug.emit(ir).splitlines() if ln.startswith("      ")]
+    keys = [ln.split(":", 1)[0] for ln in lines]
+    assert keys == ["platform", "name", "unit_of_measurement", "device_class",
+                    "state_class", "icon", "enabled_by_default"]
+
+
 def test_set_deep_merges():
     ir = _ir()
     aug.apply(ir, {"ops": [{"set": {"ha": {"entity_category": "config"}},

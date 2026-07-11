@@ -1,8 +1,18 @@
 # Augmentation policy for Pichler Lüftungsgerät LG 150 - LG 250.
-# Grouping only — the entities/templates themselves live in the device config.
+#
+# Regenerated from source: the modbus_local_gateway upstream config supplies the
+# curated base registers, and the LS-Control ES1015 Modbus xlsx supplies every other
+# documented register. This file carries the policy on top of those facts — device
+# tuning, the composite fan/climate templates, the split filter buttons, a couple of
+# base-sensor state_class fixes, and the entity grouping. Raw board readings
+# (PIC_AD_* / ADC / rail voltages) are tagged `internal` by the converter and stay
+# in the expert tier.
 # Regenerate:  python support/converter/dimplex_pichler/dimplex_pichler-convert.py
 
 device:
+  prefix: Pichler LG
+  modbus_id: 20
+  max_read_gap: 64
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -17,10 +27,78 @@ device:
     firmware: Firmware / model
 
 ops:
-  # Raw board readings (PIC_AD_* temperatures, rail voltages) stay in the expert tier.
-  - tag: [internal]
-    where: {key_matches: '^pic_'}
+  # --- base-sensor state_class fixes --------------------------------------- #
+  # Runtime counters accumulate; fan speeds / air-flows / remaining time measure.
+  - set: {ha: {state_class: total_increasing}}
+    where: {key_matches: '_stunden$', tag: 'source:mlg'}
+  - set: {ha: {state_class: measurement}}
+    where:
+      key: [zuluftventilator_drehzahl, abluftventilator_drehzahl, zuluftventilator,
+            abluftventilator, zuluftvolumenstrom, abluftvolumenstrom, filter_reststandzeit]
 
+  # --- curated registers --------------------------------------------------- #
+  # A raw copy of the ventilation-stage register, written through the fan template.
+  - add: {table: holding, key: luftungsstufe_raw, after: luftungsstufe_select,
+          address: 2, groups: [basic], internal: true}
+  # The single "filter timer" select is presented as two explicit buttons instead.
+  - remove: true
+    where: {key: filter_timer_control}
+  - add: {table: holding, key: filter_reset_button, after: co2_regelung_select,
+          address: 33, write_value: 1, groups: [basic],
+          ha: {platform: button, name: Filter zurücksetzen, icon: "mdi:timer-refresh-outline",
+               entity_category: config}}
+  - add: {table: holding, key: filter_snooze_button, after: filter_reset_button,
+          address: 33, write_value: 2, groups: [basic],
+          ha: {platform: button, name: Filter später erinnern, icon: "mdi:alarm-snooze",
+               entity_category: config}}
+
+  # --- composite Home Assistant entities ----------------------------------- #
+  - add:
+      table: template
+      key: luftung
+      groups: [basic]
+      ha: {platform: fan, name: Lüftung}
+      state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
+      preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
+      preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
+      turn_on: {entity: luftungsstufe_raw, value: 2}
+      turn_off: {entity: luftungsstufe_raw, value: 0}
+      set_preset_mode:
+        entity: luftungsstufe_raw
+        map: {Grundlüftung: 4, Stufe 1: 1, Stufe 2: 2, Stufe 3: 3}
+  - add:
+      table: template
+      key: klima
+      groups: [basic]
+      ha: {platform: climate, name: Klima}
+      current_temperature: |-
+        {{ {'Zuluft': temperatur_zuluft,
+            'Raum': temperatur_raum_display,
+            'Abluft': temperatur_abluft}.get(temperaturregelungsart_select) }}
+      target_temperature: |-
+        {{ {'Zuluft': soll_zulufttemperatur_number,
+            'Raum': soll_raumlufttemperatur_number,
+            'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
+      hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
+      hvac_action: |-
+        {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
+           else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
+                if position_bypassklappe == 'Bypass'
+           else 'fan' }}
+      min_temp: 15
+      max_temp: 30
+      temp_step: 0.5
+      set_temperature:
+        by: "{{ temperaturregelungsart_select }}"
+        cases:
+          Zuluft: {entity: soll_zulufttemperatur_number}
+          Raum: {entity: soll_raumlufttemperatur_number}
+          Abluft: {entity: soll_ablufttemperatur_number}
+      set_hvac_mode:
+        entity: betriebsmodus_sommer_winter_select
+        map: {heat: Winter, cool: Sommer}
+
+  # --- grouping ------------------------------------------------------------ #
   # Everyday view — the curated base entities and the composite templates.
   - group: [basic]
     where:

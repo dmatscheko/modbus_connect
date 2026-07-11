@@ -13,11 +13,11 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: LFr Frequency Reference via Bus
       min: 18.0
       max: 60.0
       step: 0.1
       mode: slider
-      name: LFr Frequency Reference via Bus
       unit_of_measurement: Hz
       device_class: frequency
   cmd_control_word:
@@ -32,10 +32,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: PISP PI Reference via Bus
       min: 0.0
       max: 100.0
       step: 0.1
-      name: PISP PI Reference via Bus
       unit_of_measurement: "%"
       entity_category: config
       enabled_by_default: false
@@ -44,10 +44,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: ACC Acceleration Ramp Time
       min: 0.1
       max: 3276.0
       step: 0.1
-      name: ACC Acceleration Ramp Time
       unit_of_measurement: s
       device_class: duration
       entity_category: config
@@ -57,10 +57,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: dEC Deceleration Ramp Time
       min: 0.1
       max: 3276.0
       step: 0.1
-      name: dEC Deceleration Ramp Time
       unit_of_measurement: s
       device_class: duration
       entity_category: config
@@ -70,10 +70,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: LSP Low Speed
       min: 18.0
       max: 60.0
       step: 0.1
-      name: LSP Low Speed
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -83,10 +83,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: HSP High Speed
       min: 18.0
       max: 60.0
       step: 0.1
-      name: HSP High Speed
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -96,10 +96,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: tFr Maximum Output Frequency
       min: 18.0
       max: 60.0
       step: 0.1
-      name: tFr Maximum Output Frequency
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -133,10 +133,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: Ftd Motor Frequency Threshold
       min: 0.0
       max: 60.0
       step: 0.1
-      name: Ftd Motor Frequency Threshold
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -193,10 +193,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: JPF Skip Frequency
       min: 0.0
       max: 60.0
       step: 0.1
-      name: JPF Skip Frequency
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -206,10 +206,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: JF2 Second Skip Frequency
       min: 0.0
       max: 60.0
       step: 0.1
-      name: JF2 Second Skip Frequency
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -219,10 +219,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: tLS Low Speed Operating Time
       min: 0.0
       max: 999.9
       step: 0.1
-      name: tLS Low Speed Operating Time
       unit_of_measurement: s
       device_class: duration
       entity_category: config
@@ -255,10 +255,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: AC2 Second Acceleration Ramp Time
       min: 0.1
       max: 3276.0
       step: 0.1
-      name: AC2 Second Acceleration Ramp Time
       unit_of_measurement: s
       device_class: duration
       entity_category: config
@@ -268,10 +268,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: dE2 Second Deceleration Ramp Time
       min: 0.1
       max: 3276.0
       step: 0.1
-      name: dE2 Second Deceleration Ramp Time
       unit_of_measurement: s
       device_class: duration
       entity_category: config
@@ -281,10 +281,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: Frt Ramp Switching Threshold
       min: 0.0
       max: 60.0
       step: 0.1
-      name: Frt Ramp Switching Threshold
       unit_of_measurement: Hz
       device_class: frequency
       entity_category: config
@@ -304,10 +304,10 @@ holding:
     multiplier: 0.1
     ha:
       platform: number
+      name: SFr Switching Frequency
       min: 2.0
       max: 16.0
       step: 0.1
-      name: SFr Switching Frequency
       unit_of_measurement: kHz
       entity_category: config
       enabled_by_default: false

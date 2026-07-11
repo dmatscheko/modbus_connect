@@ -11,9 +11,9 @@ holding:
     address: 4
     ha:
       platform: number
+      name: "Temperatur: T Soll"
       min: 5
       max: 62
-      name: "Temperatur: T Soll"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:target"
@@ -23,9 +23,9 @@ holding:
     address: 5
     ha:
       platform: number
+      name: "Temperatur: T min"
       min: 5
       max: 62
-      name: "Temperatur: T min"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer-low"
@@ -35,9 +35,9 @@ holding:
     address: 6
     ha:
       platform: number
+      name: "Temperatur: T2 min"
       min: 5
       max: 62
-      name: "Temperatur: T2 min"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer-low"
@@ -57,9 +57,9 @@ holding:
     address: 8
     ha:
       platform: number
+      name: "Zeitplanung: Start Heizpatrone (Stunde)"
       min: 0
       max: 23
-      name: "Zeitplanung: Start Heizpatrone (Stunde)"
       icon: "mdi:clock-start"
       entity_category: config
       enabled_by_default: false
@@ -67,9 +67,9 @@ holding:
     address: 9
     ha:
       platform: number
+      name: "Zeitplanung: Start Heizpatrone (Minute)"
       min: 0
       max: 59
-      name: "Zeitplanung: Start Heizpatrone (Minute)"
       icon: "mdi:clock-start"
       entity_category: config
       enabled_by_default: false
@@ -77,9 +77,9 @@ holding:
     address: 10
     ha:
       platform: number
+      name: "Zeitplanung: Stop Heizpatrone (Stunde)"
       min: 0
       max: 23
-      name: "Zeitplanung: Stop Heizpatrone (Stunde)"
       icon: "mdi:clock-end"
       entity_category: config
       enabled_by_default: false
@@ -87,9 +87,9 @@ holding:
     address: 11
     ha:
       platform: number
+      name: "Zeitplanung: Stop Heizpatrone (Minute)"
       min: 0
       max: 59
-      name: "Zeitplanung: Stop Heizpatrone (Minute)"
       icon: "mdi:clock-end"
       entity_category: config
       enabled_by_default: false
@@ -124,9 +124,9 @@ holding:
     address: 14
     ha:
       platform: number
+      name: Tmin RL
       min: 5
       max: 20
-      name: Tmin RL
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer-alert"
@@ -175,9 +175,9 @@ holding:
     address: 18
     ha:
       platform: number
+      name: "Temperatur: T.PV_WP"
       min: 5
       max: 62
-      name: "Temperatur: T.PV_WP"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:solar-power"
@@ -187,9 +187,9 @@ holding:
     address: 19
     ha:
       platform: number
+      name: "Temperatur: T.PV_EL"
       min: 5
       max: 62
-      name: "Temperatur: T.PV_EL"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:solar-power"
@@ -214,9 +214,9 @@ holding:
     address: 21
     ha:
       platform: number
+      name: "Abwesenheit: Manuell"
       min: 1
       max: 99
-      name: "Abwesenheit: Manuell"
       unit_of_measurement: d
       icon: "mdi:calendar"
       entity_category: config
@@ -294,9 +294,9 @@ holding:
     address: 28
     ha:
       platform: number
+      name: "Temperatur: T max"
       min: 5
       max: 62
-      name: "Temperatur: T max"
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer-high"
@@ -317,9 +317,9 @@ holding:
     address: 30
     ha:
       platform: number
+      name: EC LS1
       min: 0
       max: 100
-      name: EC LS1
       unit_of_measurement: "%"
       icon: "mdi:numeric-1-circle-outline"
       entity_category: config
@@ -328,9 +328,9 @@ holding:
     address: 31
     ha:
       platform: number
+      name: EC LS2
       min: 0
       max: 100
-      name: EC LS2
       unit_of_measurement: "%"
       icon: "mdi:numeric-2-circle-outline"
       entity_category: config
@@ -339,9 +339,9 @@ holding:
     address: 32
     ha:
       platform: number
+      name: EC LS3
       min: 0
       max: 100
-      name: EC LS3
       unit_of_measurement: "%"
       icon: "mdi:numeric-3-circle-outline"
       entity_category: config
@@ -350,9 +350,9 @@ holding:
     address: 33
     ha:
       platform: number
+      name: "Legionellenfunktion: Intervall"
       min: 3
       max: 14
-      name: "Legionellenfunktion: Intervall"
       unit_of_measurement: d
       icon: "mdi:calendar-sync"
       entity_category: config

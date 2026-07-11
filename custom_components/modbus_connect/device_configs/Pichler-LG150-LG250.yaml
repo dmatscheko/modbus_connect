@@ -1,12 +1,12 @@
-# Pichler Lüftungsgerät LG 150 - LG 250 — modbus_local_gateway-derived; entity groups from support/converter/Pichler-LG150-LG250/augment.yaml
+# Pichler Lüftungsgerät LG 150 - LG 250 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/converter/Pichler-LG150-LG250/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 150 - LG 250
   max_register_read: 100
-  max_read_gap: 64
-  modbus_id: 20
   prefix: Pichler LG
+  modbus_id: 20
+  max_read_gap: 64
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -109,10 +109,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 1
       min: 30
       max: 400
       step: 10
-      name: Luftstrom Lüftungsstufe 1
       unit_of_measurement: m³/h
       icon: "mdi:fan-speed-1"
       entity_category: config
@@ -122,10 +122,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 2
       min: 30
       max: 400
       step: 10
-      name: Luftstrom Lüftungsstufe 2
       unit_of_measurement: m³/h
       icon: "mdi:fan-speed-2"
       entity_category: config
@@ -135,10 +135,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Lüftungsstufe 3
       min: 30
       max: 400
       step: 10
-      name: Luftstrom Lüftungsstufe 3
       unit_of_measurement: m³/h
       icon: "mdi:fan-speed-3"
       entity_category: config
@@ -148,10 +148,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftstrom Grundlüftung
       min: 30
       max: 400
       step: 10
-      name: Luftstrom Grundlüftung
       unit_of_measurement: m³/h
       icon: "mdi:fan"
       entity_category: config
@@ -160,9 +160,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Lüftungsstufe 3 Timer
       min: 0
       max: 65000
-      name: Lüftungsstufe 3 Timer
       unit_of_measurement: minutes
       icon: "mdi:fan-clock"
       entity_category: config
@@ -173,10 +173,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Zulufttemperatur
       min: -20
       max: 50
       step: 0.1
-      name: Soll Zulufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -188,10 +188,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Raumlufttemperatur
       min: -20
       max: 50
       step: 0.1
-      name: Soll Raumlufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -203,10 +203,10 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Soll Ablufttemperatur
       min: -20
       max: 50
       step: 0.1
-      name: Soll Ablufttemperatur
       unit_of_measurement: "°C"
       device_class: temperature
       icon: "mdi:thermometer"
@@ -216,9 +216,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: Luftfeuchtigkeit Maximum
       min: 0
       max: 100
-      name: Luftfeuchtigkeit Maximum
       unit_of_measurement: "%"
       device_class: humidity
       icon: "mdi:thermometer"
@@ -229,9 +229,9 @@ holding:
     groups: [basic]
     ha:
       platform: number
+      name: CO2 Maximum
       min: 800
       max: 2000
-      name: CO2 Maximum
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       icon: "mdi:thermometer"
@@ -240,37 +240,37 @@ holding:
   ewt_sommer:
     address: 3
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [heat_exchanger]
     ha:
       platform: number
       name: Geothermal heat exchanger switching point summer
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   ewt_winter:
     address: 4
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [heat_exchanger]
     ha:
       platform: number
       name: Geothermal heat exchanger switching point winter
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   bypass_schaltpunkt:
     address: 5
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [heat_exchanger]
     ha:
       platform: number
       name: Bypass switching point
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   konfiguration:
@@ -296,24 +296,24 @@ holding:
       name: Post-heater
   luftdifferenz:
     address: 13
-    offset: -50
+    offset: -50.0
     groups: [advanced]
     ha:
       platform: number
       name: "Air volume flow difference, ETA-Balance"
-      min: -50
-      max: 50
+      min: -50.0
+      max: 50.0
       entity_category: config
   abtau_ein:
     address: 14
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [defrost]
     ha:
       platform: number
       name: Defrost_On
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   abluft_abtau_zeit:
@@ -322,8 +322,8 @@ holding:
     ha:
       platform: number
       name: Defrost time
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   abtau_pause:
     address: 16
@@ -331,8 +331,8 @@ holding:
     ha:
       platform: number
       name: Defrost pause
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   abtau_differenz:
     address: 17
@@ -341,8 +341,8 @@ holding:
     ha:
       platform: number
       name: Defrost difference
-      min: 0
-      max: 100
+      min: 0.0
+      max: 100.0
       step: 0.1
       entity_category: config
   zuluftstop_timer:
@@ -351,8 +351,8 @@ holding:
     ha:
       platform: number
       name: Supply fan stopping time
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   drehzahl_grenze:
     address: 19
@@ -360,31 +360,31 @@ holding:
     ha:
       platform: number
       name: Defrost_Speed limit exhaust fan
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   zuluft_max_temperatur:
     address: 20
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Maximum supply air temperature
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   zuluft_min_temperatur:
     address: 21
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Minimum supply air temperature
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   kp_heizen:
@@ -393,8 +393,8 @@ holding:
     ha:
       platform: number
       name: KP_Heating
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   ti_heizen:
     address: 26
@@ -402,8 +402,8 @@ holding:
     ha:
       platform: number
       name: TI_Heating
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   mischertakt:
     address: 27
@@ -411,8 +411,8 @@ holding:
     ha:
       platform: number
       name: Mixing valve cycle time
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   mischerzeit:
     address: 28
@@ -421,8 +421,8 @@ holding:
     ha:
       platform: number
       name: Mixing valve running time
-      min: 0
-      max: 600
+      min: 0.0
+      max: 600.0
       step: 0.1
       entity_category: config
   filter_ladewert:
@@ -431,8 +431,8 @@ holding:
     ha:
       platform: number
       name: Filter time
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   ext_e2_frost_stufe3:
     address: 30
@@ -449,8 +449,8 @@ holding:
     ha:
       platform: number
       name: External digital input E2 - Ventilation level 3 stopping time
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   kondensatwanne:
     address: 32
@@ -458,8 +458,8 @@ holding:
     ha:
       platform: number
       name: Condensate threshold
-      min: 0
-      max: 4095
+      min: 0.0
+      max: 4095.0
       entity_category: config
   grundluftung_ein:
     address: 34
@@ -476,8 +476,8 @@ holding:
     ha:
       platform: number
       name: Powersave at Standby
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   zuluft_sollwert_takt:
     address: 36
@@ -485,8 +485,8 @@ holding:
     ha:
       platform: number
       name: Supply air setpoint cycle
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   internes_nhr:
     address: 37
@@ -494,19 +494,19 @@ holding:
     ha:
       platform: number
       name: Internal post heater
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   internes_nhr_frischluft_temp:
     address: 38
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Fresh air temperature
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   co2_reg_kp:
@@ -515,8 +515,8 @@ holding:
     ha:
       platform: number
       name: CO2 KP
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   co2_reg_ti:
     address: 42
@@ -524,8 +524,8 @@ holding:
     ha:
       platform: number
       name: CO2 TI
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   co2_reg_takt:
     address: 43
@@ -533,8 +533,8 @@ holding:
     ha:
       platform: number
       name: CO2 cycle
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   hum_reg_max_zeit:
     address: 46
@@ -542,8 +542,8 @@ holding:
     ha:
       platform: number
       name: Relative humidity maximum time in level 3
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   sensor_konfig:
     address: 47
@@ -562,8 +562,8 @@ holding:
     ha:
       platform: number
       name: Summer/Winter Time change
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   test_var1:
     address: 49
@@ -612,8 +612,8 @@ holding:
     ha:
       platform: number
       name: Reset to factory settings
-      min: 0
-      max: 65530
+      min: 0.0
+      max: 65530.0
       entity_category: config
   reset_hour_counter:
     address: 54
@@ -621,8 +621,8 @@ holding:
     ha:
       platform: number
       name: Reset operating hours counter
-      min: 0
-      max: 65530
+      min: 0.0
+      max: 65530.0
       unit_of_measurement: h
       device_class: duration
       entity_category: config
@@ -632,43 +632,43 @@ holding:
     ha:
       platform: number
       name: Test SD-Card
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   zuluftsollwert_abgesenkt:
     address: 56
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Low supply air temperature setpoint
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   raumsollwert_abgesenkt:
     address: 57
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Low room air temperature setpoint
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   abluftsollwert_abgesenkt:
     address: 58
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: Low extract air temperature setpoint
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   ventilator_model:
@@ -687,8 +687,8 @@ holding:
     ha:
       platform: number
       name: Maximum fanspeed difference ventilation level 1
-      min: 0
-      max: 5000
+      min: 0.0
+      max: 5000.0
       entity_category: config
   max_fanspeed_ls2:
     address: 61
@@ -696,8 +696,8 @@ holding:
     ha:
       platform: number
       name: Maximum fanspeed difference ventilation level 2
-      min: 0
-      max: 5000
+      min: 0.0
+      max: 5000.0
       entity_category: config
   max_fanspeed_ls3:
     address: 62
@@ -705,8 +705,8 @@ holding:
     ha:
       platform: number
       name: Maximum fanspeed difference ventilation level 3
-      min: 0
-      max: 5000
+      min: 0.0
+      max: 5000.0
       entity_category: config
   reset_eventlog:
     address: 63
@@ -730,13 +730,13 @@ holding:
   vhr_ssr_temp:
     address: 65
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [preheater]
     ha:
       platform: number
       name: Preheater control temperature
-      min: -100
-      max: 100
+      min: -100.0
+      max: 100.0
       step: 0.1
       entity_category: config
   vhr_ssr_pid_p:
@@ -745,8 +745,8 @@ holding:
     ha:
       platform: number
       name: Pre heater SSR Reg KP
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   vhr_ssr_pid_i:
     address: 67
@@ -754,8 +754,8 @@ holding:
     ha:
       platform: number
       name: Pre heater SSR Reg TI
-      min: 0
-      max: 10000
+      min: 0.0
+      max: 10000.0
       entity_category: config
   vhr_ssr_pid_reg_takt:
     address: 68
@@ -763,8 +763,8 @@ holding:
     ha:
       platform: number
       name: Pre heater SSR PWM Time
-      min: 10
-      max: 240
+      min: 10.0
+      max: 240.0
       entity_category: config
   bypass_model:
     address: 69
@@ -781,8 +781,8 @@ holding:
     ha:
       platform: number
       name: Counter bypass position
-      min: 0
-      max: 65000
+      min: 0.0
+      max: 65000.0
       entity_category: config
   bypass_counter_wrg:
     address: 72
@@ -790,8 +790,8 @@ holding:
     ha:
       platform: number
       name: Counter heat recovery position
-      min: 0
-      max: 65000
+      min: 0.0
+      max: 65000.0
       entity_category: config
   bypass_counter_vhr:
     address: 73
@@ -799,8 +799,8 @@ holding:
     ha:
       platform: number
       name: Damper counter preheater
-      min: 0
-      max: 65000
+      min: 0.0
+      max: 65000.0
       entity_category: config
   bypass_m1_time:
     address: 74
@@ -808,8 +808,8 @@ holding:
     ha:
       platform: number
       name: Damper M1 time
-      min: 0
-      max: 65000
+      min: 0.0
+      max: 65000.0
       entity_category: config
   bypass_m2_time:
     address: 75
@@ -817,8 +817,8 @@ holding:
     ha:
       platform: number
       name: Damper M2 time
-      min: 0
-      max: 65000
+      min: 0.0
+      max: 65000.0
       entity_category: config
   modbusadresse:
     address: 79
@@ -826,8 +826,8 @@ holding:
     ha:
       platform: number
       name: Modbus address
-      min: 1
-      max: 247
+      min: 1.0
+      max: 247.0
       entity_category: config
   modbusbaudrate:
     address: 80
@@ -863,8 +863,8 @@ holding:
     ha:
       platform: number
       name: Bypass current limit
-      min: 0
-      max: 1000
+      min: 0.0
+      max: 1000.0
       entity_category: config
   zeitprogrammluftenable:
     address: 103
@@ -890,8 +890,8 @@ holding:
     ha:
       platform: number
       name: Firmware Version Touch Display
-      min: 0
-      max: 65535
+      min: 0.0
+      max: 65535.0
       entity_category: config
   adcntcsbt:
     address: 106
@@ -899,8 +899,8 @@ holding:
     ha:
       platform: number
       name: AdcNtcsBT
-      min: 0
-      max: 65535
+      min: 0.0
+      max: 65535.0
       entity_category: config
   adcntcpcbntcintbt:
     address: 107
@@ -908,8 +908,8 @@ holding:
     ha:
       platform: number
       name: AdcNtcPCBNtcIntBT
-      min: 0
-      max: 65535
+      min: 0.0
+      max: 65535.0
       entity_category: config
   adcntcpcbntcextbt:
     address: 108
@@ -917,8 +917,8 @@ holding:
     ha:
       platform: number
       name: AdcNtcPCBNtcExtBT
-      min: 0
-      max: 65535
+      min: 0.0
+      max: 65535.0
       entity_category: config
   currentmodebt:
     address: 109
@@ -926,43 +926,43 @@ holding:
     ha:
       platform: number
       name: CurrentModeBt
-      min: 0
-      max: 65535
+      min: 0.0
+      max: 65535.0
       entity_category: config
   t2addatlowpower:
     address: 110
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: T2addAtLowPower
-      min: 0
-      max: 30
+      min: 0.0
+      max: 30.0
       step: 0.1
       entity_category: config
   t2addathipower:
     address: 111
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: T2addAtHiPower
-      min: 0
-      max: 30
+      min: 0.0
+      max: 30.0
       step: 0.1
       entity_category: config
   t2offset:
     address: 112
     multiplier: 0.1
-    offset: -100
+    offset: -100.0
     groups: [advanced]
     ha:
       platform: number
       name: T2-Offset
-      min: -10
-      max: 10
+      min: -10.0
+      max: 10.0
       step: 0.1
       entity_category: config
   t2intextcomp:
@@ -972,8 +972,8 @@ holding:
     ha:
       platform: number
       name: T2 internal to external compensation
-      min: 0
-      max: 10
+      min: 0.0
+      max: 10.0
       step: 0.1
       entity_category: config
   language:
@@ -999,8 +999,8 @@ holding:
     ha:
       platform: number
       name: Screensaver time
-      min: 1
-      max: 600
+      min: 1.0
+      max: 600.0
       entity_category: config
   lockmainscreen:
     address: 116
@@ -1008,8 +1008,8 @@ holding:
     ha:
       platform: number
       name: Lock main screen
-      min: 0
-      max: 1
+      min: 0.0
+      max: 1.0
       entity_category: config
   tohomescreentimeout:
     address: 117
@@ -1017,8 +1017,8 @@ holding:
     ha:
       platform: number
       name: Back to home screen timeout
-      min: 10
-      max: 600
+      min: 10.0
+      max: 600.0
       entity_category: config
   password:
     address: 118
@@ -1026,8 +1026,8 @@ holding:
     ha:
       platform: number
       name: Password
-      min: 0
-      max: 9999
+      min: 0.0
+      max: 9999.0
       entity_category: config
   userpassword:
     address: 119
@@ -1035,8 +1035,8 @@ holding:
     ha:
       platform: number
       name: User password
-      min: 0
-      max: 9999
+      min: 0.0
+      max: 9999.0
       entity_category: config
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
@@ -1705,6 +1705,7 @@ template:
     ha:
       platform: fan
       name: Lüftung
+    groups: [basic]
     state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
     preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
     preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
@@ -1721,11 +1722,11 @@ template:
         Stufe 1: 1
         Stufe 2: 2
         Stufe 3: 3
-    groups: [basic]
   klima:
     ha:
       platform: climate
       name: Klima
+    groups: [basic]
     current_temperature: |-
       {{ {'Zuluft': temperatur_zuluft,
           'Raum': temperatur_raum_display,
@@ -1757,4 +1758,3 @@ template:
       map:
         heat: Winter
         cool: Sommer
-    groups: [basic]

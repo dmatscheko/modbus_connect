@@ -44,10 +44,10 @@ selector (all clauses AND together):
 
 | verb | effect |
 |---|---|
-| `add` | append a new entity (`table:` + full definition; also `table: template`) |
+| `add` | insert a new entity (`table:` + full definition; also `table: template`). Optional `after:` / `before:` an existing key positions it; otherwise it appends |
 | `remove` | delete matched entities |
 | `set` | deep-merge fields into matched entities |
-| `unset` | delete dotted paths (e.g. `ha.enabled_by_default`) from matched |
+| `unset` | delete dotted paths (e.g. `ha.enabled_by_default`, or `ha` for the whole block) from matched |
 | `group` | union groups onto matched entities |
 | `tag` / `untag` | mutate matched entities' tags (for multi-pass rules) |
 
@@ -56,6 +56,10 @@ selector (all clauses AND together):
 `missing_group`. A `device:` block merges into device metadata (`default_groups`,
 `group_labels`, …). See `tests/test_augment.py` for worked examples.
 
+The emitter writes one canonical style regardless of how a converter built its dicts:
+register fields follow `ENTITY_FIELD_ORDER` and the keys inside every `ha:` block follow
+`HA_FIELD_ORDER`, so the output never depends on dict-insertion order.
+
 ## Layout
 
 ```
@@ -63,21 +67,22 @@ support/converter/
 ├── convert_all.py                 # orchestrator: runs all converters in the right order
 ├── <device>/augment.yaml          # one per generated config — its grouping/patch policy
 ├── modbus_local_gateway/…-convert.py   # MLG device_configs      -> ~19 bundled configs
-├── dimplex_pichler/…-convert.py        # re-augments the 3 curated Dimplex/Pichler configs
+├── dimplex_pichler/…-convert.py        # MLG base + manufacturer docs -> the 3 Dimplex/Pichler configs
 ├── solax/…-convert.py                  # SolaX plugin            -> the 2 Solax_* configs
 └── _common/
-    ├── augment.py           # THE shared library + emitter + DSL (single writer)
-    ├── build_registers_md.py# every config (+ sources.json) -> devicedocs/*/registers.md
-    ├── build_groups_md.py   # every grouped config          -> devicedocs/*/groups.md
-    ├── sources.json         # per-device primary-source metadata (for registers.md)
-    ├── sources.py           # standalone parser for the downloaded manufacturer docs
-    └── pichler_entities.py  # standalone: one Pichler xlsx row -> one entity dict
+    ├── augment.py             # THE shared library + emitter + DSL (single writer)
+    ├── dimplex_pichler_gen.py # manufacturer doc (xlsx/html) -> the Dimplex/Pichler expansion entities
+    ├── build_registers_md.py  # every config (+ sources.json) -> devicedocs/*/registers.md
+    ├── build_groups_md.py     # every grouped config          -> devicedocs/*/groups.md
+    ├── sources.json           # per-device primary-source metadata (for registers.md)
+    ├── sources.py             # parsers for the downloaded manufacturer docs (xlsx / html)
+    └── pichler_entities.py    # one Pichler LS-Control xlsx row -> one entity dict
 ```
 
-`sources.py` and `pichler_entities.py` are **standalone doc-parsing utilities** kept for
-re-deriving registers from the manufacturer PDFs/spreadsheets; they are not part of the
-regeneration pipeline (the Dimplex/Pichler extras they once produced are now curated
-content in the bundled configs).
+`sources.py` and `pichler_entities.py` parse the manufacturer documents under
+`support/devicedocs/`; `dimplex_pichler_gen.py` drives them to build the Dimplex/Pichler
+register expansion (see below). Run `pichler_entities.py` directly for its scaling
+self-test (it must report 0 mismatches against the committed configs).
 
 ## Regenerate everything
 
@@ -90,8 +95,9 @@ SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
 
 Order matters and the orchestrator enforces it: `modbus_local_gateway` runs first and
 **skips** Dimplex/Pichler (their base files exist upstream but are owned by the
-specialized importer); `dimplex_pichler` then writes their enriched configs; `solax` runs
-last. Every converter validates its output against the integration schema before writing.
+specialized importer); `dimplex_pichler` then regenerates them from source (that same
+upstream base + the manufacturer Modbus docs); `solax` runs last. Every converter
+validates its output against the integration schema before writing.
 
 ### Run a single converter
 
@@ -101,7 +107,7 @@ last. Every converter validates its output against the integration schema before
     /path/to/modbus_local_gateway/custom_components/modbus_local_gateway/device_configs \
     -o custom_components/modbus_connect/device_configs
 
-# dimplex_pichler  (reads the 3 committed configs, re-applies their augment.yaml grouping)
+# dimplex_pichler  (MLG upstream base + manufacturer docs -> the 3 configs; needs MLG_GATEWAY_REPO)
 .venv/bin/python support/converter/dimplex_pichler/dimplex_pichler-convert.py
 
 # solax  (needs a homeassistant-solax-modbus checkout; SOLAX_MODBUS_REPO or default path)
