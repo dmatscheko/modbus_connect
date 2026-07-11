@@ -1,4 +1,5 @@
 # Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: SolaX Power
   model: X3-HAC (11 kW)
@@ -10,6 +11,7 @@ device:
   hw_version: Gen2
   default_groups: [basic]
 
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   meter_setting:
     address: 1548
@@ -337,6 +339,7 @@ holding:
       icon: "mdi:dip-switch"
       entity_category: config
 
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   charge_voltage_l1:
     address: 0
@@ -950,7 +953,7 @@ input:
       icon: "mdi:ev-station"
       enabled_by_default: false
 
-# Computed sensors (values SolaX derives in code, rebuilt as templates).
+# Templates: composite Home Assistant entities derived from the registers above.
 template:
   rtc:
     ha:

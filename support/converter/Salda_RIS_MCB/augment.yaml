@@ -1,0 +1,47 @@
+# Augmentation policy for Salda_RIS_MCB: hand-curation ported from the pre-library config
+# (edits that are not in the upstream modbus_local_gateway source).
+
+ops:
+- add:
+    table: holding
+    key: fan_speed_raw
+    address: 0
+    internal: true
+- add:
+    table: template
+    key: thermostat
+    ha:
+      platform: climate
+      name: Climate
+    current_temperature: '{{ inside_temperature }}'
+    target_temperature: '{{ temperature_setpoint_number }}'
+    hvac_mode: '{{ ''heat'' }}'
+    min_temp: 15
+    max_temp: 30
+    temp_step: 1
+    set_temperature:
+      entity: temperature_setpoint_number
+- add:
+    table: template
+    key: ventilation
+    ha:
+      platform: fan
+      name: Ventilation
+    state: '{{ fan_speed_raw is not none and fan_speed_raw > 0 }}'
+    preset_mode: '{{ {1: ''Building protection'', 2: ''Economy'', 3: ''Comfort''}.get(fan_speed_raw) }}'
+    preset_modes:
+    - Building protection
+    - Economy
+    - Comfort
+    turn_on:
+      entity: fan_speed_raw
+      value: 2
+    turn_off:
+      entity: fan_speed_raw
+      value: 0
+    set_preset_mode:
+      entity: fan_speed_raw
+      map:
+        Building protection: 1
+        Economy: 2
+        Comfort: 3

@@ -1,0 +1,2 @@
+# Augmentation policy for MIC-2500TL-X. Pure modbus_local_gateway conversion — no grouping/patches.
+# Add an `ops:` list (and optional `device:` block) here to group or tune entities.

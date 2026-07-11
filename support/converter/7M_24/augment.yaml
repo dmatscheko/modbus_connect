@@ -1,0 +1,20 @@
+# Augmentation policy for 7M_24: hand-curation ported from the pre-library config
+# (edits that are not in the upstream modbus_local_gateway source).
+
+ops:
+- set:
+    multiplier: 0.1
+  where:
+    key:
+    - Counter C1
+    - Counter C2
+    - Counter C3
+    - Counter C4
+    - Counter C5
+    - Counter C6
+    - Counter C7
+    - Counter C8
+    - Counter N1
+    - Counter N2
+    - Counter N3
+    - Counter N4

@@ -10,7 +10,9 @@ this file directly to re-check — it should report 0 scaling mismatches):
   * Datapoints 'Number of Decimal': decimal places in both files.
   * Offset (raw) is scaled by the multiplier, matching the config offsets.
 
-Used by ``expand_configs.py``.
+Standalone doc-parsing utility for re-deriving Pichler registers from the manufacturer
+spreadsheet; not part of the regeneration pipeline (the extras it once produced are now
+curated content in the bundled configs). Run directly for the scaling self-test.
 """
 from __future__ import annotations
 

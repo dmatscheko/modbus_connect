@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'MOD-10KTL3-XH.yaml' by convert.py
+# Converted from modbus_local_gateway 'MOD-10KTL3-XH.yaml'; entity groups from support/converter/MOD-10KTL3-XH/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Growatt
@@ -35,7 +35,7 @@ holding:
     ha:
       platform: switch
       name: Remote On/Off
-      icon: mdi:power
+      icon: "mdi:power"
   max_output_active:
     address: 3
     ha:
@@ -43,8 +43,8 @@ holding:
       min: 0
       max: 100
       name: Max output active power
-      unit_of_measurement: '%'
-      icon: mdi:flash
+      unit_of_measurement: "%"
+      icon: "mdi:flash"
   language:
     address: 15
     map:
@@ -67,7 +67,7 @@ holding:
       min: 1
       max: 254
       name: Communicate address
-      icon: mdi:serial-port
+      icon: "mdi:serial-port"
   GridFirstDischargePowerRate:
     address: 3036
     ha:
@@ -75,7 +75,7 @@ holding:
       min: 1
       max: 255
       name: Discharge Power Rate (Grid First)
-      icon: mdi:transmission-tower-export
+      icon: "mdi:transmission-tower-export"
   GridFirstStopSOC:
     address: 3037
     ha:
@@ -83,8 +83,8 @@ holding:
       min: 1
       max: 100
       name: Stop Discharge SOC (Grid First)
-      unit_of_measurement: '%'
-      icon: mdi:battery-negative
+      unit_of_measurement: "%"
+      icon: "mdi:battery-negative"
   BatFirstDischargePowerRate:
     address: 3047
     ha:
@@ -92,7 +92,7 @@ holding:
       min: 1
       max: 100
       name: Discharge Power Rate (Bat First)
-      icon: mdi:transmission-tower-import
+      icon: "mdi:transmission-tower-import"
   BatFirstStopSOC:
     address: 3048
     ha:
@@ -100,8 +100,8 @@ holding:
       min: 1
       max: 100
       name: Stop Charge SOC (Bat First)
-      unit_of_measurement: '%'
-      icon: mdi:battery-charging
+      unit_of_measurement: "%"
+      icon: "mdi:battery-charging"
   AcChargeEnable:
     address: 3049
     on_value: 1
@@ -109,7 +109,7 @@ holding:
     ha:
       platform: switch
       name: AC Charge Enable
-      icon: mdi:transmission-tower
+      icon: "mdi:transmission-tower"
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
@@ -493,7 +493,7 @@ input:
       device_class: energy
       state_class: total
       precision: 2
-      icon: mdi:transmission-tower-import
+      icon: "mdi:transmission-tower-import"
   Etouser_total:
     address: 3069
     type: uint32
@@ -506,7 +506,7 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 2
-      icon: mdi:transmission-tower-import
+      icon: "mdi:transmission-tower-import"
   Etogrid_today:
     address: 3071
     type: uint32
@@ -518,7 +518,7 @@ input:
       device_class: energy
       state_class: total
       precision: 2
-      icon: mdi:transmission-tower-export
+      icon: "mdi:transmission-tower-export"
   Etogrid_total:
     address: 3073
     type: uint32
@@ -531,7 +531,7 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 2
-      icon: mdi:transmission-tower-export
+      icon: "mdi:transmission-tower-export"
   Eload_today:
     address: 3075
     type: uint32
@@ -543,7 +543,7 @@ input:
       device_class: energy
       state_class: total
       precision: 2
-      icon: mdi:solar-power-variant
+      icon: "mdi:solar-power-variant"
   Eload_total:
     address: 3077
     type: uint32
@@ -556,7 +556,7 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 2
-      icon: mdi:solar-power-variant
+      icon: "mdi:solar-power-variant"
   DeratingMode:
     address: 3086
     map:
@@ -586,7 +586,7 @@ input:
     ha:
       platform: sensor
       name: Inverter temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 2
@@ -596,7 +596,7 @@ input:
     ha:
       platform: sensor
       name: IPM Inverter temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 2
@@ -606,7 +606,7 @@ input:
     ha:
       platform: sensor
       name: Boost temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 2
@@ -616,7 +616,7 @@ input:
     ha:
       platform: sensor
       name: Communications board temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 2
@@ -651,7 +651,7 @@ input:
     ha:
       platform: sensor
       name: Real output power percent
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   OPFullWatt:
     address: 3102
@@ -690,7 +690,7 @@ input:
       device_class: energy
       state_class: total
       precision: 2
-      icon: mdi:battery-negative
+      icon: "mdi:battery-negative"
   Edischr_total:
     address: 3127
     type: uint32
@@ -703,7 +703,7 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 2
-      icon: mdi:battery-negative
+      icon: "mdi:battery-negative"
   Echr_today:
     address: 3129
     type: uint32
@@ -715,7 +715,7 @@ input:
       device_class: energy
       state_class: total
       precision: 2
-      icon: mdi:battery-positive
+      icon: "mdi:battery-positive"
   Echr_total:
     address: 3131
     type: uint32
@@ -728,7 +728,7 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 2
-      icon: mdi:battery-positive
+      icon: "mdi:battery-positive"
   priority:
     address: 3144
     map:
@@ -773,7 +773,7 @@ input:
     ha:
       platform: sensor
       name: SoC
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: battery
       state_class: measurement
       precision: 2

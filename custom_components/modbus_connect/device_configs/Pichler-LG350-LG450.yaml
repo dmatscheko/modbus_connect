@@ -1,8 +1,12 @@
-# Converted from modbus_local_gateway 'Pichler-LG350-LG450.yaml' by convert.py
+# Pichler Lüftungsgerät LG 350 - LG 450 — modbus_local_gateway-derived; entity groups from support/converter/Pichler-LG350-LG450/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Pichler
   model: Lüftungsgerät LG 350 - LG 450
+  max_register_read: 100
+  max_read_gap: 64
+  modbus_id: 20
+  prefix: Pichler LG
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -11,28 +15,24 @@ device:
     summer_night_cooling: Summer-night cooling
     preheater: Pre/post-heater
     filter: Filter
-    fan_control: Fan & flow
+    fan_control: "Fan & flow"
     firmware: Firmware / model
-  max_register_read: 100
-  max_read_gap: 64
-  modbus_id: 20
-  prefix: Pichler LG
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   betriebsmodus_sommer_winter_select:
-    groups: [basic]
     address: 1
+    groups: [basic]
     map:
       1: Sommer
       2: Winter
     ha:
       platform: select
       name: Betriebsmodus Sommer/Winter
-      icon: mdi:weather-sunny
+      icon: "mdi:weather-sunny"
   luftungsstufe_select:
-    groups: [basic]
     address: 2
+    groups: [basic]
     map:
       0: Standby
       1: Stufe 1
@@ -42,46 +42,46 @@ holding:
     ha:
       platform: select
       name: Lüftungsstufe
-      icon: mdi:stairs
-  luftungsstufe_raw:         # raw numeric handle on the stage register (addr 2);
+      icon: "mdi:stairs"
+  luftungsstufe_raw:
+    address: 2
     groups: [basic]
-    address: 2               # the Lüftung fan writes on/off/preset through this,
-    internal: true           # since fixed turn_on/off actions need numeric values
+    internal: true
   ewt_sommer_number:
-    groups: [basic]
     address: 3
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: EWT Sommer Umschaltpunkt
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
   ewt_winter_number:
-    groups: [basic]
     address: 4
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: EWT Winter Umschaltpunkt
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
   temperaturregelungsart_select:
-    groups: [basic]
     address: 7
+    groups: [basic]
     map:
       1: Abluft
       2: Zuluft
@@ -89,11 +89,11 @@ holding:
     ha:
       platform: select
       name: Temperaturregelungsart
-      icon: mdi:thermometer-lines
+      icon: "mdi:thermometer-lines"
       entity_category: config
   volumenstrom_luftungsstufe_1_number:
-    groups: [basic]
     address: 9
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -103,11 +103,11 @@ holding:
       name: Luftstrom Lüftungsstufe 1
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-1
+      icon: "mdi:fan-speed-1"
       entity_category: config
   volumenstrom_luftungsstufe_2_number:
-    groups: [basic]
     address: 10
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -117,11 +117,11 @@ holding:
       name: Luftstrom Lüftungsstufe 2
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-2
+      icon: "mdi:fan-speed-2"
       entity_category: config
   volumenstrom_luftungsstufe_3_number:
-    groups: [basic]
     address: 11
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -131,11 +131,11 @@ holding:
       name: Luftstrom Lüftungsstufe 3
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-3
+      icon: "mdi:fan-speed-3"
       entity_category: config
   volumenstrom_grundluftung_number:
-    groups: [basic]
     address: 12
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -145,161 +145,161 @@ holding:
       name: Luftstrom Grundlüftung
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: config
   h2_temperatureinstellung_vhr_number:
-    groups: [basic]
     address: 13
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Vorheizregister Relais Schwellwert
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
   soll_zulufttemperatur_number:
-    groups: [basic]
     address: 22
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Zulufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
   soll_raumlufttemperatur_number:
-    groups: [basic]
     address: 23
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Raumlufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
   soll_ablufttemperatur_number:
-    groups: [basic]
     address: 24
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Ablufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
   ext_e2_luftstufe3_nachlaufzeit_number:
-    groups: [basic]
     address: 31
+    groups: [basic]
     ha:
       platform: number
       min: 0
       max: 1000
       name: Lüftungsstufe 3 Nachlaufzeit (External Din2)
       unit_of_measurement: min
-      icon: mdi:fan-clock
+      icon: "mdi:fan-clock"
       entity_category: config
       enabled_by_default: false
   filter_tauschintervall_stunden_number:
-    groups: [basic]
     address: 29
+    groups: [basic]
     ha:
       platform: number
       min: 0
       max: 65000
       name: Tauschintervall Filter
       unit_of_measurement: h
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
       entity_category: config
       enabled_by_default: false
   raumtemperaturfuhler_select:
-    groups: [basic]
     address: 32
+    groups: [basic]
     map:
       1: T8 extern
       2: TouchDisplay
     ha:
       platform: select
       name: Raumtemperaturfühler Quelle
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
-  filter_reset_button:       # both write to the filter-timer register (addr 33)
-    groups: [basic]
+  filter_reset_button:
     address: 33
     write_value: 1
+    groups: [basic]
     ha:
       platform: button
       name: Filter zurücksetzen
-      icon: mdi:timer-refresh-outline
+      icon: "mdi:timer-refresh-outline"
       entity_category: config
   filter_snooze_button:
-    groups: [basic]
     address: 33
     write_value: 2
+    groups: [basic]
     ha:
       platform: button
       name: Filter später erinnern
-      icon: mdi:alarm-snooze
+      icon: "mdi:alarm-snooze"
       entity_category: config
   konfiguration_luftungsstufe_select:
-    groups: [basic]
     address: 34
+    groups: [basic]
     map:
       0: Standby
       1: Grundlüftung
     ha:
       platform: select
       name: Konfiguration Lüftungsstufe
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: config
       enabled_by_default: false
   bedieneinheit_fehlerausgabe_select:
-    groups: [basic]
     address: 35
+    groups: [basic]
     map:
       0: Nein
       1: Ja
     ha:
       platform: select
       name: Bedieneinheit Fehlerausgabe
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: config
       enabled_by_default: false
   co2_regelung_select:
-    groups: [basic]
     address: 39
+    groups: [basic]
     map:
       0: Aus
       1: Ein
     ha:
       platform: select
       name: CO2 Regelung
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       entity_category: config
       enabled_by_default: false
   co2_sollwert_number:
-    groups: [basic]
     address: 40
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -307,61 +307,61 @@ holding:
       name: CO2 Sollwert
       unit_of_measurement: ppm
       device_class: carbon_dioxide
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       entity_category: config
       enabled_by_default: false
   luftfeuchtigkeit_regelung_select:
-    groups: [basic]
     address: 44
+    groups: [basic]
     map:
       0: Aus
       1: Ein
     ha:
       platform: select
       name: Feuchte Regelung
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       entity_category: config
       enabled_by_default: false
   luftfeuchtigkeit_sollwert_number:
-    groups: [basic]
     address: 45
+    groups: [basic]
     ha:
       platform: number
       min: 0
       max: 100
       name: Luftfeuchte Sollwert
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       entity_category: config
       enabled_by_default: false
   feuchte_regelung_ls3_max_zeit_number:
-    groups: [basic]
     address: 46
+    groups: [basic]
     ha:
       platform: number
       min: 0
       max: 10000
       name: Feuchte Regelung LS3 maximale Zeit
       unit_of_measurement: min
-      icon: mdi:fan-clock
+      icon: "mdi:fan-clock"
       entity_category: config
       enabled_by_default: false
   sommer_winter_zeitumstellung_select:
-    groups: [basic]
     address: 48
+    groups: [basic]
     map:
       0: Aus
       1: Automatisch
     ha:
       platform: select
       name: Sommer/Winter Zeitumstellung
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       entity_category: config
       enabled_by_default: false
   bypassklappe_select:
-    groups: [basic]
     address: 49
+    groups: [basic]
     map:
       0: Regelung arbeiten lassen
       1: Bypass geschlossen
@@ -369,59 +369,59 @@ holding:
     ha:
       platform: select
       name: Bypassklappe Stellung
-      icon: mdi:valve
+      icon: "mdi:valve"
       entity_category: config
   soll_zulufttemperatur_abgesenkt_number:
-    groups: [basic]
     address: 56
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Zulufttemperatur (Abgesenkt)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
   soll_raumlufttemperatur_abgesenkt_number:
-    groups: [basic]
     address: 57
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Raumlufttemperatur (Abgesenkt)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
   soll_ablufttemperatur_abgesenkt_number:
-    groups: [basic]
     address: 58
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Soll Ablufttemperatur (Abgesenkt)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
       enabled_by_default: false
   system_reset_select:
-    groups: [basic]
     address: 63
+    groups: [basic]
     map:
       0: Keine Aktion
       1: Fehlerprotokoll löschen
@@ -430,51 +430,51 @@ holding:
     ha:
       platform: select
       name: System Zurücksetzen
-      icon: mdi:restart
+      icon: "mdi:restart"
       entity_category: config
       enabled_by_default: false
   vorheizregister_target_number:
-    groups: [basic]
     address: 65
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: number
       min: -100
       max: 100
       step: 0.1
       name: Vorheizregister Zieltemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       entity_category: config
   automatische_umschaltung_sommer_winter:
-    groups: [basic]
     address: 69
+    groups: [basic]
     map:
       0: Aus
       1: Ein
     ha:
       platform: select
       name: Automatische Umschaltung Sommer/Winter
-      icon: mdi:auto-mode
+      icon: "mdi:auto-mode"
       entity_category: config
       enabled_by_default: false
   para_max_zeit_luftungsstufe_3_number:
-    groups: [basic]
     address: 70
+    groups: [basic]
     ha:
       platform: number
       min: 0
       max: 65000
       name: Lüftungsstufe 3 Maximale Zeit
       unit_of_measurement: min
-      icon: mdi:fan-clock
+      icon: "mdi:fan-clock"
       entity_category: config
       enabled_by_default: false
   zul_kanaldruck_stufe_1_number:
-    groups: [basic]
     address: 95
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -482,12 +482,12 @@ holding:
       name: Kanaldruck Zuluft Stufe 1
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   zul_kanaldruck_stufe_2_number:
-    groups: [basic]
     address: 96
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -495,12 +495,12 @@ holding:
       name: Kanaldruck Zuluft Stufe 2
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   zul_kanaldruck_stufe_3_number:
-    groups: [basic]
     address: 97
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -508,12 +508,12 @@ holding:
       name: Kanaldruck Zuluft Stufe 3
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   zul_kanaldruck_grundluftung_number:
-    groups: [basic]
     address: 98
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -521,12 +521,12 @@ holding:
       name: Kanaldruck Zuluft Grundlüftung
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   abl_kanaldruck_stufe_1_number:
-    groups: [basic]
     address: 99
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -534,12 +534,12 @@ holding:
       name: Kanaldruck Abluft Stufe 1
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   abl_kanaldruck_stufe_2_number:
-    groups: [basic]
     address: 100
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -547,12 +547,12 @@ holding:
       name: Kanaldruck Abluft Stufe 2
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   abl_kanaldruck_stufe_3_number:
-    groups: [basic]
     address: 101
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -560,12 +560,12 @@ holding:
       name: Kanaldruck Abluft Stufe 3
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   abl_kanaldruck_grundluftung_number:
-    groups: [basic]
     address: 102
+    groups: [basic]
     ha:
       platform: number
       min: 0
@@ -573,13 +573,13 @@ holding:
       name: Kanaldruck Abluft Grundlüftung
       unit_of_measurement: Pa
       device_class: pressure
-      icon: mdi:waveform
+      icon: "mdi:waveform"
       entity_category: config
       enabled_by_default: false
   abluftbalance_stufe1_number:
-    groups: [basic]
     address: 83
     offset: -500
+    groups: [basic]
     ha:
       platform: number
       min: -500
@@ -587,13 +587,13 @@ holding:
       name: Abluft-Balance Lüftungsstufe 1
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-1
+      icon: "mdi:fan-speed-1"
       entity_category: config
       enabled_by_default: false
   abluftbalance_stufe2_number:
-    groups: [basic]
     address: 84
     offset: -500
+    groups: [basic]
     ha:
       platform: number
       min: -500
@@ -601,13 +601,13 @@ holding:
       name: Abluft-Balance Lüftungsstufe 2
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-2
+      icon: "mdi:fan-speed-2"
       entity_category: config
       enabled_by_default: false
   abluftbalance_stufe3_number:
-    groups: [basic]
     address: 85
     offset: -500
+    groups: [basic]
     ha:
       platform: number
       min: -500
@@ -615,13 +615,13 @@ holding:
       name: Abluft-Balance Lüftungsstufe 3
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan-speed-3
+      icon: "mdi:fan-speed-3"
       entity_category: config
       enabled_by_default: false
   abluftbalance_grundluftung_number:
-    groups: [basic]
     address: 86
     offset: -500
+    groups: [basic]
     ha:
       platform: number
       min: -500
@@ -629,59 +629,57 @@ holding:
       name: Abluft-Balance Grundlüftung
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: config
       enabled_by_default: false
   freigabe_heizen_select:
-    groups: [basic]
     address: 89
+    groups: [basic]
     map:
       0: Deaktivieren
       1: Aktivieren
     ha:
       platform: select
       name: Freigabe Heizen
-      icon: mdi:fire
+      icon: "mdi:fire"
       entity_category: config
       enabled_by_default: false
   freigabe_kuhlen_select:
-    groups: [basic]
     address: 90
+    groups: [basic]
     map:
       0: Deaktivieren
       1: Aktivieren
     ha:
       platform: select
       name: Freigabe Kühlen
-      icon: mdi:snowflake
+      icon: "mdi:snowflake"
       entity_category: config
       enabled_by_default: false
   zeitprogramm_luftungsstufen_select:
-    groups: [basic]
     address: 103
+    groups: [basic]
     map:
       0: Inaktiv
       1: Aktiv
     ha:
       platform: select
       name: Zeitprogramm Lüftungsstufen
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       entity_category: config
       enabled_by_default: false
   zeitprogramm_temperaturregelung_select:
-    groups: [basic]
     address: 104
+    groups: [basic]
     map:
       0: Inaktiv
       1: Aktiv
     ha:
       platform: select
       name: Zeitprogramm Temperaturregelung
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       entity_category: config
       enabled_by_default: false
-
-# Input registers: 16-bit words, read-only (Modbus FC04 read).
   firmwareversion_touchdisplay:
     address: 105
     groups: [firmware]
@@ -699,20 +697,20 @@ holding:
       entity_category: config
   modbusbaudrate:
     address: 209
+    groups: [modbus_config]
     map:
       0: "9600"
       1: "19200"
-    groups: [modbus_config]
     ha:
       platform: select
       name: Modbus baudrate
   modbusparitaet:
     address: 210
+    groups: [modbus_config]
     map:
-      0: "None"
+      0: None
       1: Even
       2: Odd
-    groups: [modbus_config]
     ha:
       platform: select
       name: Modbus parity
@@ -727,46 +725,46 @@ holding:
       entity_category: config
   fagregtype:
     address: 80
+    groups: [fan_control]
     map:
       0: Constant air volume flow
       1: Constant pressure
-    groups: [fan_control]
     ha:
       platform: select
       name: Fan regulation
   epb_activate:
     address: 82
+    groups: [co2_control]
     map:
       0: Inactive
       1: Active
-    groups: [co2_control]
     ha:
       platform: select
       name: EPB CO2
   epb_co2control:
     address: 108
+    groups: [co2_control]
     map:
       0: Inactive
       1: Active
-    groups: [co2_control]
     ha:
       platform: select
       name: EPB CO2 Regulation
   displayshowairqulity:
     address: 135
+    groups: [advanced]
     map:
       0: Inactive
       1: Active
-    groups: [advanced]
     ha:
       platform: select
       name: Touch Display Show Air Quality
   baudratesensorbus:
     address: 136
+    groups: [modbus_config]
     map:
       0: "9600"
       1: "19200"
-    groups: [modbus_config]
     ha:
       platform: select
       name: Baudrate Modbus sensors
@@ -793,11 +791,11 @@ holding:
       entity_category: config
   enableextractsmoke:
     address: 158
+    groups: [advanced]
     map:
       0: aus
       1: "NO"
       2: NC
-    groups: [advanced]
     ha:
       platform: select
       name: EnableExtractSmoke 0=off 1=NO 2=NC
@@ -913,19 +911,20 @@ holding:
       entity_category: config
   summernightcool_enable_level:
     address: 2213
+    groups: [advanced]
     map:
       0: Only in Standby
       1: All levels
-    groups: [advanced]
     ha:
       platform: select
       name: Summernight cooling release ventilation level
 
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   l5_ai1_co2_sensor:
-    groups: [basic]
     address: 2
     multiplier: 0.4884
+    groups: [basic]
     ha:
       platform: sensor
       name: L5/Ai1 CO2 Sensor
@@ -933,402 +932,402 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       precision: 0
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   l7_ai2_rf_sensor:
-    groups: [basic]
     address: 3
     multiplier: 0.02442
+    groups: [basic]
     ha:
       platform: sensor
       name: L7/Ai2 rF Sensor
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
       state_class: measurement
       precision: 1
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       enabled_by_default: false
   aussentemperatur_gedaempft:
-    groups: [basic]
     address: 13
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Außentemperatur gedämpft
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   l7_ai4_abluft_extern:
-    groups: [basic]
     address: 103
     multiplier: 0.01221
+    groups: [basic]
     ha:
       platform: sensor
       name: L7/Ai4 Abluft externer Sensor
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   t6_zuluft_extern:
-    groups: [basic]
     address: 4
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Zuluft Temperatur (extern)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   t7_aussen_extern:
-    groups: [basic]
     address: 5
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Außenluft Temperatur (extern)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   t8_raum_extern:
-    groups: [basic]
     address: 9
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Raum Temperatur (extern)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   t9_touch_display:
-    groups: [basic]
     address: 10
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Raumtemperatur TouchDisplay
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   mischer_heizen_0_10v:
-    groups: [basic]
     address: 11
     multiplier: 0.01
+    groups: [basic]
     ha:
       platform: sensor
       name: Heizmischer Steuersignal
       unit_of_measurement: V
       precision: 2
-      icon: mdi:fire
+      icon: "mdi:fire"
       enabled_by_default: false
   mischer_kuhlen_0_10v:
-    groups: [basic]
     address: 12
     multiplier: 0.01
+    groups: [basic]
     ha:
       platform: sensor
       name: Kühlmischer Steuersignal
       unit_of_measurement: V
       precision: 2
-      icon: mdi:snowflake
+      icon: "mdi:snowflake"
       enabled_by_default: false
   mischer_kombi_0_10v:
-    groups: [basic]
     address: 26
     multiplier: 0.01
+    groups: [basic]
     ha:
       platform: sensor
       name: Kombiregister Mischer Steuersignal
       unit_of_measurement: V
       precision: 2
-      icon: mdi:water-opacity
+      icon: "mdi:water-opacity"
       enabled_by_default: false
   relais_h2_vorheizregister:
-    groups: [basic]
     address: 16
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Vorheizregister Relais
       device_class: running
-      icon: mdi:radiator
+      icon: "mdi:radiator"
   relais_h3_heizanforderung:
-    groups: [basic]
     address: 17
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Heizanforderung
       device_class: heat
-      icon: mdi:fire
+      icon: "mdi:fire"
       enabled_by_default: false
   relais_h5_kuhlanforderung:
-    groups: [basic]
     address: 18
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Kühlanforderung
       device_class: running
-      icon: mdi:snowflake
+      icon: "mdi:snowflake"
       enabled_by_default: false
   relais_h67_ventilatoren:
-    groups: [basic]
     address: 19
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Ventilatoren
       device_class: running
-      icon: mdi:fan
+      icon: "mdi:fan"
       enabled_by_default: false
   bypassklappe_status:
-    groups: [basic]
     address: 20
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Bypassklappe Status
       device_class: opening
-      icon: mdi:valve
+      icon: "mdi:valve"
   relais_h9_luftklappen:
-    groups: [basic]
     address: 21
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
-      name: Außenluft- & Fortluftklappen
+      name: "Außenluft- & Fortluftklappen"
       device_class: opening
-      icon: mdi:valve
+      icon: "mdi:valve"
       enabled_by_default: false
   relais_h10_heizpumpe:
-    groups: [basic]
     address: 27
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Pumpe Nachheizregister
       device_class: running
-      icon: mdi:pump
+      icon: "mdi:pump"
       enabled_by_default: false
   relais_h11_kuhlpumpe:
-    groups: [basic]
     address: 28
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Pumpe Kühl-/Kombiregister
       device_class: running
-      icon: mdi:pump
+      icon: "mdi:pump"
       enabled_by_default: false
   summenstoermeldung:
-    groups: [basic]
     address: 29
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Summenstörmeldung
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   relais_h12b_filtermeldung:
-    groups: [basic]
     address: 41
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Filtermeldung
       device_class: problem
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
       entity_category: diagnostic
       enabled_by_default: false
   temperatur_aussenluft:
-    groups: [basic]
     address: 30
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Temperatur Außenluft
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   temperatur_fortluft:
-    groups: [basic]
     address: 31
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Temperatur Fortluft
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   temperatur_abluft:
-    groups: [basic]
     address: 32
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Temperatur Abluft
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   temperatur_zuluft:
-    groups: [basic]
     address: 33
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Temperatur Zuluft
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   temperatur_vorheizregister:
-    groups: [basic]
     address: 34
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Temperatur Vorheizregister
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   e1_din_extern_aus_bmz:
-    groups: [basic]
     address: 37
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Extern Aus / BMZ
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       enabled_by_default: false
   e2_din_extern_luftstufe3:
-    groups: [basic]
     address: 38
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Extern Lüftungsstufe 3
       device_class: running
-      icon: mdi:fan
+      icon: "mdi:fan"
       enabled_by_default: false
   drehzahl_zuluft:
-    groups: [basic]
     address: 39
+    groups: [basic]
     ha:
       platform: sensor
       name: Drehzahl Zuluft
       unit_of_measurement: rpm
-      icon: mdi:fan
+      icon: "mdi:fan"
   drehzahl_abluft:
-    groups: [basic]
     address: 40
+    groups: [basic]
     ha:
       platform: sensor
       name: Drehzahl Abluft
       unit_of_measurement: rpm
-      icon: mdi:fan
+      icon: "mdi:fan"
   zuluft_volumenstrom_sollwert:
-    groups: [basic]
     address: 42
+    groups: [basic]
     ha:
       platform: sensor
       name: Sollwert Zuluftvolumenstrom
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       state_class: measurement
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
   abluft_volumenstrom_sollwert:
-    groups: [basic]
     address: 43
+    groups: [basic]
     ha:
       platform: sensor
       name: Sollwert Abluftvolumenstrom
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       state_class: measurement
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
   msensor1_co2:
-    groups: [basic]
     address: 44
+    groups: [basic]
     ha:
       platform: sensor
       name: CO2 Modbus Sensor 1
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       state_class: measurement
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   msensor1_rf:
-    groups: [basic]
     address: 45
+    groups: [basic]
     ha:
       platform: sensor
       name: Luftfeuchte Modbus Sensor 1
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
       state_class: measurement
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       enabled_by_default: false
   zuluft_volumenstrom_istwert:
-    groups: [basic]
     address: 46
+    groups: [basic]
     ha:
       platform: sensor
       name: Istwert Zuluftvolumenstrom
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       state_class: measurement
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
   abluft_volumenstrom_istwert:
-    groups: [basic]
     address: 47
+    groups: [basic]
     ha:
       platform: sensor
       name: Istwert Abluftvolumenstrom
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       state_class: measurement
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
   betriebsstatus:
-    groups: [basic]
     address: 48
+    groups: [basic]
     map:
       0: CPU Startup
       1: Standby
@@ -1340,53 +1339,53 @@ input:
     ha:
       platform: sensor
       name: Betriebsstatus
-      icon: mdi:state-machine
+      icon: "mdi:state-machine"
   filter_reststandzeit:
-    groups: [basic]
     address: 50
+    groups: [basic]
     ha:
       platform: sensor
       name: Filter Reststandzeit
       unit_of_measurement: h
-      icon: mdi:timer-sand
+      icon: "mdi:timer-sand"
   zuluft_temperatursollwert_berechnet:
-    groups: [basic]
     address: 55
     multiplier: 0.1
     offset: -100
+    groups: [basic]
     ha:
       platform: sensor
       name: Berechnete Zuluftsolltemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   co2_regelsignal:
-    groups: [basic]
     address: 56
+    groups: [basic]
     ha:
       platform: sensor
       name: CO2 Regelsignal Sollwert
       unit_of_measurement: m³/h
       device_class: volume_flow_rate
       state_class: measurement
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   vorheizregister_pwm:
-    groups: [basic]
     address: 58
     multiplier: 0.01
+    groups: [basic]
     ha:
       platform: sensor
       name: Vorheizregister PWM
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
-      icon: mdi:fire-alert
+      icon: "mdi:fire-alert"
   aktuelle_luftungsstufe:
-    groups: [basic]
     address: 59
+    groups: [basic]
     map:
       0: Standby
       1: Stufe 1
@@ -1398,289 +1397,289 @@ input:
     ha:
       platform: sensor
       name: Aktuelle Lüftungsstufe
-      icon: mdi:stairs
+      icon: "mdi:stairs"
   fehler_ewt:
-    groups: [basic]
     address: 60
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Erdwärmetauscher
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_bedieneinheit:
-    groups: [basic]
     address: 61
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Bedieneinheit
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_frostschutz_nhr:
-    groups: [basic]
     address: 62
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Frostschutz NHR (Din3)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_fortluftventilator:
-    groups: [basic]
     address: 63
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Fortluftventilator
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   fehler_zuluftventilator:
-    groups: [basic]
     address: 64
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Zuluftventilator
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   fehler_t1_aussenluft:
-    groups: [basic]
     address: 65
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T1 (Außenluft)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t2_fortluft:
-    groups: [basic]
     address: 66
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T2 (Fortluft)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t3_abluft:
-    groups: [basic]
     address: 67
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T3 (Abluft)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t4_zuluft:
-    groups: [basic]
     address: 68
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T4 (Zuluft)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t5_vorheizregister:
-    groups: [basic]
     address: 69
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T5 (Vorheizregister)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t6_zuluft_extern:
-    groups: [basic]
     address: 70
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T6 (Zuluft extern)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t7_aussenluft_extern:
-    groups: [basic]
     address: 71
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T7 (Außenluft extern)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_t8_raum_extern:
-    groups: [basic]
     address: 72
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T8 (Raum extern)
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_ventilatoren_kommunikation:
-    groups: [basic]
     address: 73
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Ventilatoren Kommunikation
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_niedrige_zuluft_temperatur:
-    groups: [basic]
     address: 74
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Zulufttemperatur
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   fehler_filtermeldung:
-    groups: [basic]
     address: 75
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Filtermeldung
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   fehler_niedrige_vhr_temperatur:
-    groups: [basic]
     address: 76
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Vorheizregister Temperatur
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
   fehler_nhr_frostschutz:
-    groups: [basic]
     address: 80
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler NHR Frostschutz
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   fehler_modbus_sensoren:
-    groups: [basic]
     address: 88
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Fehler Modbus Sensoren
       device_class: problem
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   co2_sensor_1:
-    groups: [basic]
     address: 89
+    groups: [basic]
     ha:
       platform: sensor
       name: CO2 Sensor 1
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       state_class: measurement
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   co2_sensor_2:
-    groups: [basic]
     address: 90
+    groups: [basic]
     ha:
       platform: sensor
       name: CO2 Sensor 2
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       state_class: measurement
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   feuchtesensor_1:
-    groups: [basic]
     address: 91
+    groups: [basic]
     ha:
       platform: sensor
       name: Feuchtesensor 1
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
       state_class: measurement
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       enabled_by_default: false
   feuchtesensor_2:
-    groups: [basic]
     address: 92
+    groups: [basic]
     ha:
       platform: sensor
       name: Feuchtesensor 2
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
       state_class: measurement
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       enabled_by_default: false
   msensor2_co2:
-    groups: [basic]
     address: 97
+    groups: [basic]
     ha:
       platform: sensor
       name: CO2 Modbus Sensor 2
       unit_of_measurement: ppm
       device_class: carbon_dioxide
       state_class: measurement
-      icon: mdi:molecule-co2
+      icon: "mdi:molecule-co2"
       enabled_by_default: false
   msensor2_rf:
-    groups: [basic]
     address: 98
+    groups: [basic]
     ha:
       platform: sensor
       name: Luftfeuchte Modbus Sensor 2
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
       state_class: measurement
-      icon: mdi:water-percent
+      icon: "mdi:water-percent"
       enabled_by_default: false
   firmware_version:
-    groups: [basic]
     address: 23
+    groups: [basic]
     ha:
       platform: sensor
       name: Firmware Version
-      unit_of_measurement: ''
-      icon: mdi:information
+      unit_of_measurement: ""
+      icon: "mdi:information"
       entity_category: diagnostic
   lg_modell:
-    groups: [basic]
     address: 25
+    groups: [basic]
     map:
       0: LG350
       1: LG450
@@ -1688,40 +1687,40 @@ input:
     ha:
       platform: sensor
       name: Lüftungsgerät Modell
-      icon: mdi:information
+      icon: "mdi:information"
       entity_category: diagnostic
   firmware_version_touch_display:
-    groups: [basic]
     address: 105
+    groups: [basic]
     ha:
       platform: sensor
       name: Firmware Version TouchDisplay
-      unit_of_measurement: ''
-      icon: mdi:information
+      unit_of_measurement: ""
+      icon: "mdi:information"
       entity_category: diagnostic
   e3_din_frostschutz:
-    groups: [basic]
     address: 108
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Extern Frostschutz
       device_class: running
-      icon: mdi:snowflake
+      icon: "mdi:snowflake"
       enabled_by_default: false
   raumsoll_zeitprogramm_status:
-    groups: [basic]
     address: 118
     on_value: 1
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Zeitprogramm Raumtemperatur Status
       device_class: running
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       enabled_by_default: false
   luftungsstufe_zeitprogramm:
-    groups: [basic]
     address: 119
+    groups: [basic]
     map:
       0: Inaktiv
       1: Stufe 1
@@ -1732,79 +1731,71 @@ input:
     ha:
       platform: sensor
       name: Zeitprogramm Lüftungsstufe
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       enabled_by_default: false
   betriebsstunden_luftungsstufe_2:
-    groups: [basic]
     address: 81
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 2
       unit_of_measurement: h
-      icon: mdi:fan-speed-2
+      icon: "mdi:fan-speed-2"
       entity_category: diagnostic
   betriebsstunden_luftungsstufe_3:
-    groups: [basic]
     address: 82
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 3
       unit_of_measurement: h
-      icon: mdi:fan-speed-3
+      icon: "mdi:fan-speed-3"
       entity_category: diagnostic
   betriebsstunden_grundluftung:
-    groups: [basic]
     address: 83
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Grundlüftung
       unit_of_measurement: h
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: diagnostic
   betriebsstunden_luftungsbetrieb_gesamt:
-    groups: [basic]
     address: 84
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Gesamt
       unit_of_measurement: h
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: diagnostic
   betriebsstunden_heizregister:
-    groups: [basic]
     address: 85
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Heizregister
       unit_of_measurement: h
-      icon: mdi:fire
+      icon: "mdi:fire"
       entity_category: diagnostic
   betriebsstunden_bypass:
-    groups: [basic]
     address: 86
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Bypass
       unit_of_measurement: h
-      icon: mdi:valve
+      icon: "mdi:valve"
       entity_category: diagnostic
   betriebsstunden_luftungsstufe_1:
-    groups: [basic]
     address: 87
+    groups: [basic]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 1
       unit_of_measurement: h
-      icon: mdi:fan-speed-1
+      icon: "mdi:fan-speed-1"
       entity_category: diagnostic
-
-# Template entities:
-#  - luftung: the ventilation unit as a fan (on/off + stage presets). The
-#    Lüftungsstufe select above stays for manual control; both drive register 2,
-#    so a change on one shows on the other within one poll.
-#  - klima: a thermostat following Temperaturregelungsart (reads/writes whichever
-#    supply/room/exhaust setpoint is active), with heat = Winter, cool = Sommer.
-#    This unit exposes no room sensor, so Raum regulation shows extract-air temp.
   msensor3_co2_id_104:
     address: 5200
     groups: [modbus_config]
@@ -2013,42 +2004,43 @@ input:
       platform: sensor
       name: Din1 Extern Sommernacht Kühlung aktiviert
 
+# Templates: composite Home Assistant entities derived from the registers above.
 template:
   luftung:
-    groups: [basic]
     ha:
       platform: fan
       name: Lüftung
     state: "{{ luftungsstufe_raw is not none and luftungsstufe_raw > 0 }}"
     preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(luftungsstufe_raw) }}"
     preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
-    turn_on: {entity: luftungsstufe_raw, value: 2}     # nominal ventilation (Stufe 2)
-    turn_off: {entity: luftungsstufe_raw, value: 0}    # Standby
+    turn_on:
+      entity: luftungsstufe_raw
+      value: 2
+    turn_off:
+      entity: luftungsstufe_raw
+      value: 0
     set_preset_mode:
       entity: luftungsstufe_raw
-      map: {Grundlüftung: 4, Stufe 1: 1, Stufe 2: 2, Stufe 3: 3}   # preset -> stage register value
-
-  klima:
+      map:
+        Grundlüftung: 4
+        Stufe 1: 1
+        Stufe 2: 2
+        Stufe 3: 3
     groups: [basic]
+  klima:
     ha:
       platform: climate
       name: Klima
-    # current + target follow Temperaturregelungsart (Abluft/Zuluft/Raum); no room
-    # sensor on this unit, so Raum uses extract-air (Abluft) temperature.
-    current_temperature: >-
+    current_temperature: |-
       {{ {'Zuluft': temperatur_zuluft,
           'Raum': temperatur_abluft,
           'Abluft': temperatur_abluft}.get(temperaturregelungsart_select) }}
-    target_temperature: >-
+    target_temperature: |-
       {{ {'Zuluft': soll_zulufttemperatur_number,
           'Raum': soll_raumlufttemperatur_number,
           'Abluft': soll_ablufttemperatur_number}.get(temperaturregelungsart_select) }}
-    # No active heater: the unit conditions air with the bypass. Winter = heat,
-    # Sommer = cool; an open bypass is the active heating/cooling.
     hvac_mode: "{{ 'cool' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heat' }}"
-    # bypass open -> actively heating/cooling; fans running otherwise -> just
-    # ventilating; only a stopped fan (Standby / off / error) counts as idle.
-    hvac_action: >-
+    hvac_action: |-
       {{ 'idle' if aktuelle_luftungsstufe not in ['Stufe 1', 'Stufe 2', 'Stufe 3', 'Grundlüftung']
          else ('cooling' if betriebsmodus_sommer_winter_select == 'Sommer' else 'heating')
               if bypassklappe_status
@@ -2056,12 +2048,18 @@ template:
     min_temp: 15
     max_temp: 30
     temp_step: 0.5
-    set_temperature:                       # writes whichever setpoint is active right now
+    set_temperature:
       by: "{{ temperaturregelungsart_select }}"
       cases:
-        Zuluft: {entity: soll_zulufttemperatur_number}
-        Raum: {entity: soll_raumlufttemperatur_number}
-        Abluft: {entity: soll_ablufttemperatur_number}
-    set_hvac_mode:                         # heat/cool -> Winter/Sommer season mode
+        Zuluft:
+          entity: soll_zulufttemperatur_number
+        Raum:
+          entity: soll_raumlufttemperatur_number
+        Abluft:
+          entity: soll_ablufttemperatur_number
+    set_hvac_mode:
       entity: betriebsmodus_sommer_winter_select
-      map: {heat: Winter, cool: Sommer}
+      map:
+        heat: Winter
+        cool: Sommer
+    groups: [basic]

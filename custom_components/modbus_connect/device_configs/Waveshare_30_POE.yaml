@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Waveshare_30_POE.yaml' by convert.py
+# Converted from modbus_local_gateway 'Waveshare_30_POE.yaml'; entity groups from support/converter/Waveshare_30_POE/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Waveshare

@@ -1,0 +1,34 @@
+# Augmentation policy for Test: hand-curation ported from the pre-library config
+# (edits that are not in the upstream modbus_local_gateway source).
+
+device:
+  modbus_id: 1
+  prefix: test_device
+ops:
+- add:
+    table: holding
+    key: low_byte_of_reg_8
+    address: 8
+    type: uint8
+    ha:
+      platform: sensor
+      name: Low byte (8)
+      entity_category: diagnostic
+- add:
+    table: holding
+    key: packed_bcd_counter
+    address: 9
+    type: uint8
+    sum_scale:
+    - 1
+    - 100
+    - 10000
+    ha:
+      platform: sensor
+      name: Packed counter (9-10)
+      precision: 0
+      entity_category: diagnostic
+- set:
+    off_value: true
+  where:
+    key: coil4

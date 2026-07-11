@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'SDM630.yaml' by convert.py
+# Converted from modbus_local_gateway 'SDM630.yaml'; entity groups from support/converter/SDM630/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Eastron
@@ -22,16 +22,16 @@ holding:
       min: 1
       max: 247
       name: Communicate address
-      icon: mdi:serial-port
+      icon: "mdi:serial-port"
   baud_rate:
     address: 28
     type: float32
     map:
-      0: 2400 bps
-      1: 4800 bps
-      2: 9600 bps
-      3: 19200 bps
-      4: 38400 bps
+      0: "2400 bps"
+      1: "4800 bps"
+      2: "9600 bps"
+      3: "19200 bps"
+      4: "38400 bps"
     ha:
       platform: select
       name: Baud Rate
@@ -224,7 +224,7 @@ input:
     ha:
       platform: sensor
       name: Phase 1 Phase Angle
-      unit_of_measurement: °
+      unit_of_measurement: "°"
       precision: 2
   Phase 2 Phase Angle:
     address: 38
@@ -232,7 +232,7 @@ input:
     ha:
       platform: sensor
       name: Phase 2 Phase Angle
-      unit_of_measurement: °
+      unit_of_measurement: "°"
       precision: 2
   Phase 3 Phase Angle:
     address: 40
@@ -240,7 +240,7 @@ input:
     ha:
       platform: sensor
       name: Phase 3 Phase Angle
-      unit_of_measurement: °
+      unit_of_measurement: "°"
       precision: 2
   Average Line to neutral Volts:
     address: 42
@@ -313,7 +313,7 @@ input:
     ha:
       platform: sensor
       name: Total System Phase Angle
-      unit_of_measurement: °
+      unit_of_measurement: "°"
       precision: 2
   Frequency:
     address: 70
@@ -497,7 +497,7 @@ input:
     ha:
       platform: sensor
       name: Phase 1 L/N Volts THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 2 L/N Volts THD:
     address: 236
@@ -505,7 +505,7 @@ input:
     ha:
       platform: sensor
       name: Phase 2 L/N Volts THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 3 L/N Volts THD:
     address: 238
@@ -513,7 +513,7 @@ input:
     ha:
       platform: sensor
       name: Phase 3 L/N Volts THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 1 Current THD:
     address: 240
@@ -521,7 +521,7 @@ input:
     ha:
       platform: sensor
       name: Phase 1 Current THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 2 Current THD:
     address: 242
@@ -529,7 +529,7 @@ input:
     ha:
       platform: sensor
       name: Phase 2 Current THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 3 Current THD:
     address: 244
@@ -537,7 +537,7 @@ input:
     ha:
       platform: sensor
       name: Phase 3 Current THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Average Line to neutral Volts THD:
     address: 248
@@ -545,7 +545,7 @@ input:
     ha:
       platform: sensor
       name: Average Line to neutral Volts THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Average Line Current THD:
     address: 250
@@ -553,7 +553,7 @@ input:
     ha:
       platform: sensor
       name: Average Line Current THD
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 2
   Phase 1 Current demand:
     address: 258

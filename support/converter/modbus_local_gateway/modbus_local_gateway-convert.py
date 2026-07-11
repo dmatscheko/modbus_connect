@@ -19,11 +19,21 @@ NOT be overwritten blindly (diff against fresh output and re-apply):
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+_COMMON = Path(__file__).resolve().parents[1] / "_common"
+_aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment.py")
+augment = importlib.util.module_from_spec(_aug_spec)
+_aug_spec.loader.exec_module(augment)
+
+# Owned by the specialized dimplex_pichler importer (base + documented extras +
+# composite templates); this converter leaves them to that later pass.
+SPECIALIZED = {"Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"}
 
 SECTION_TO_TABLE = {
     "read_write_word": "holding",
@@ -73,46 +83,6 @@ KNOWN_OLD_KEYS = {
     "entity_registry_enabled_default", "never_resets", "max_change", "scan_interval",
     "control", "number", "switch", "options", "on", "off",
 }
-
-
-class HexInt(int):
-    """Integer dumped as hex (for masks)."""
-
-
-def _hexint_representer(dumper: yaml.Dumper, value: HexInt) -> yaml.ScalarNode:
-    return dumper.represent_scalar("tag:yaml.org,2002:int", f"0x{value:X}")
-
-
-yaml.SafeDumper.add_representer(HexInt, _hexint_representer)
-
-
-# One-line explanation written above each top-level section in the output YAML,
-# so the generated files are self-documenting (size + read/write access).
-SECTION_COMMENTS = {
-    "device": "Device metadata: manufacturer and model, plus optional read/poll tuning.",
-    "holding": "Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).",
-    "input": "Input registers: 16-bit words, read-only (Modbus FC04 read).",
-    "coil": "Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).",
-    "discrete": "Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).",
-    "template": "Templates: composite Home Assistant entities derived from the registers above.",
-}
-
-
-def dump_device_yaml(fh: Any, doc: dict[str, Any]) -> None:
-    """Write a device document, prefixing each top-level section with a comment.
-
-    PyYAML's ``safe_dump`` cannot attach comments to nodes, so each section is
-    dumped on its own and its :data:`SECTION_COMMENTS` line is written first.
-    """
-    for index, (section, body) in enumerate(doc.items()):
-        if index:
-            fh.write("\n")  # blank line between sections
-        comment = SECTION_COMMENTS.get(section)
-        if comment:
-            fh.write(f"# {comment}\n")
-        yaml.safe_dump(
-            {section: body}, fh, sort_keys=False, allow_unicode=True, width=100
-        )
 
 
 def warn(filename: str, message: str) -> None:
@@ -221,7 +191,7 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
             new["swap"] = old["swap"]
         mask = _convert_mask(old, old.get("size", 1))
         if mask is not None:
-            new["mask"] = HexInt(mask)
+            new["mask"] = mask  # emitted as hex by the augment library
         if old.get("multiplier") is not None:
             new["multiplier"] = old["multiplier"]
         if old.get("offset") is not None:
@@ -390,6 +360,26 @@ def convert_device(doc: dict, filename: str) -> dict[str, Any]:
     return {"device": device, **sections}
 
 
+_TABLE_RW = {"holding": "rw", "coil": "rw", "input": "ro", "discrete": "ro"}
+
+
+def to_intermediate(doc: dict) -> dict:
+    """A converted (new-format) doc -> a tagged intermediate for the augment library.
+
+    Stamps the facts a grouping rule matches on: source, table, read/write-ness,
+    platform, and the raw name."""
+    ir = augment.intermediate(doc.get("device") or {})
+    for table in augment.TABLES:
+        for key, fields in (doc.get(table) or {}).items():
+            name = (fields.get("ha") or {}).get("name") or key
+            tags = {"source:mlg", f"table:{table}", f"rw:{_TABLE_RW[table]}", f"raw-name:{name}"}
+            platform = (fields.get("ha") or {}).get("platform")
+            if platform:
+                tags.add(f"platform:{platform}")
+            augment.add_entity(ir, table, key, tags=tags, **fields)
+    return ir
+
+
 def convert_file(path: Path, out_dir: Path) -> int:
     with path.open(encoding="utf-8") as fh:
         doc = yaml.safe_load(fh)
@@ -399,14 +389,18 @@ def convert_file(path: Path, out_dir: Path) -> int:
     if not (set(doc) & set(SECTION_TO_TABLE)):
         warn(path.name, "no old-format sections found (already converted?), skipped")
         return 0
-    new_doc = convert_device(doc, path.name)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / path.name
-    with out_path.open("w", encoding="utf-8") as fh:
-        fh.write(f"# Converted from modbus_local_gateway '{path.name}' by convert.py\n")
-        dump_device_yaml(fh, new_doc)
-    count = sum(len(new_doc.get(s, {})) for s in SECTION_TO_TABLE.values())
-    print(f"  {path.name}: {count} entities -> {out_path}")
+    name = path.stem
+    if name in SPECIALIZED:
+        print(f"  {path.name}: owned by the dimplex_pichler importer — skipped")
+        return 0
+    ir = to_intermediate(convert_device(doc, path.name))
+    header = (
+        f"Converted from modbus_local_gateway '{path.name}'; "
+        f"entity groups from support/converter/{name}/augment.yaml"
+    )
+    augment.write_augmented(ir, name, header=header, dest_dir=out_dir)
+    count = sum(len(ir.get(s, ())) for s in augment.TABLES)
+    print(f"  {path.name}: {count} entities -> {out_dir / f'{name}.yaml'}")
     return count
 
 

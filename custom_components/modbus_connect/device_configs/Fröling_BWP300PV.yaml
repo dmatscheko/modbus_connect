@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml' by convert.py
+# Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml'; entity groups from support/converter/Fröling_BWP300PV/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Fröling GmbH
@@ -13,10 +13,10 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T Soll'
-      unit_of_measurement: °C
+      name: "Temperatur: T Soll"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:target
+      icon: "mdi:target"
       entity_category: config
       enabled_by_default: true
   t_min_set:
@@ -25,10 +25,10 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T min'
-      unit_of_measurement: °C
+      name: "Temperatur: T min"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer-low
+      icon: "mdi:thermometer-low"
       entity_category: config
       enabled_by_default: true
   t2_min_set:
@@ -37,10 +37,10 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T2 min'
-      unit_of_measurement: °C
+      name: "Temperatur: T2 min"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer-low
+      icon: "mdi:thermometer-low"
       entity_category: config
       enabled_by_default: true
   timer_enable:
@@ -49,8 +49,8 @@ holding:
     off_value: 0
     ha:
       platform: switch
-      name: 'Zeitplanung: Zustand'
-      icon: mdi:calendar-clock
+      name: "Zeitplanung: Zustand"
+      icon: "mdi:calendar-clock"
       entity_category: config
       enabled_by_default: false
   start_hp_hour:
@@ -59,8 +59,8 @@ holding:
       platform: number
       min: 0
       max: 23
-      name: 'Zeitplanung: Start Heizpatrone (Stunde)'
-      icon: mdi:clock-start
+      name: "Zeitplanung: Start Heizpatrone (Stunde)"
+      icon: "mdi:clock-start"
       entity_category: config
       enabled_by_default: false
   start_hp_min:
@@ -69,8 +69,8 @@ holding:
       platform: number
       min: 0
       max: 59
-      name: 'Zeitplanung: Start Heizpatrone (Minute)'
-      icon: mdi:clock-start
+      name: "Zeitplanung: Start Heizpatrone (Minute)"
+      icon: "mdi:clock-start"
       entity_category: config
       enabled_by_default: false
   stop_hp_hour:
@@ -79,8 +79,8 @@ holding:
       platform: number
       min: 0
       max: 23
-      name: 'Zeitplanung: Stop Heizpatrone (Stunde)'
-      icon: mdi:clock-end
+      name: "Zeitplanung: Stop Heizpatrone (Stunde)"
+      icon: "mdi:clock-end"
       entity_category: config
       enabled_by_default: false
   stop_hp_min:
@@ -89,8 +89,8 @@ holding:
       platform: number
       min: 0
       max: 59
-      name: 'Zeitplanung: Stop Heizpatrone (Minute)'
-      icon: mdi:clock-end
+      name: "Zeitplanung: Stop Heizpatrone (Minute)"
+      icon: "mdi:clock-end"
       entity_category: config
       enabled_by_default: false
   betriebsart:
@@ -104,20 +104,20 @@ holding:
       5: WP+Kessel
     ha:
       platform: select
-      name: 'Betriebsmodus: Standart'
-      icon: mdi:hvac
+      name: "Betriebsmodus: Standart"
+      icon: "mdi:hvac"
       entity_category: config
       enabled_by_default: true
   legionel_auto_funktion:
     address: 13
     map:
       0: Aus
-      1: 60°C
-      2: 65°C
+      1: "60°C"
+      2: "65°C"
     ha:
       platform: select
-      name: 'Temperatur: T Legio'
-      icon: mdi:bacteria-outline
+      name: "Temperatur: T Legio"
+      icon: "mdi:bacteria-outline"
       entity_category: config
       enabled_by_default: true
   wwprotec_tmin_rl:
@@ -127,9 +127,9 @@ holding:
       min: 5
       max: 20
       name: Tmin RL
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer-alert
+      icon: "mdi:thermometer-alert"
       entity_category: config
       enabled_by_default: true
   wp_ls:
@@ -142,7 +142,7 @@ holding:
     ha:
       platform: select
       name: WP_LS
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: config
       enabled_by_default: true
   kwl:
@@ -155,7 +155,7 @@ holding:
     ha:
       platform: select
       name: KWL (Raumlüftung)
-      icon: mdi:air-filter
+      icon: "mdi:air-filter"
       entity_category: config
       enabled_by_default: true
   pv_modus:
@@ -167,8 +167,8 @@ holding:
       3: WP+EL
     ha:
       platform: select
-      name: 'Betriebsmodus: PV/SG'
-      icon: mdi:solar-power
+      name: "Betriebsmodus: PV/SG"
+      icon: "mdi:solar-power"
       entity_category: config
       enabled_by_default: true
   t_pv_wp:
@@ -177,10 +177,10 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T.PV_WP'
-      unit_of_measurement: °C
+      name: "Temperatur: T.PV_WP"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:solar-power
+      icon: "mdi:solar-power"
       entity_category: config
       enabled_by_default: true
   t_pv_el:
@@ -189,25 +189,25 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T.PV_EL'
-      unit_of_measurement: °C
+      name: "Temperatur: T.PV_EL"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:solar-power
+      icon: "mdi:solar-power"
       entity_category: config
       enabled_by_default: true
   feriendauer:
     address: 20
     map:
       0: Aus
-      1: 1 Woche
-      2: 2 Woche
-      3: 3 Woche
-      4: 3 Tage
+      1: "1 Woche"
+      2: "2 Woche"
+      3: "3 Woche"
+      4: "3 Tage"
       5: Manuell
     ha:
       platform: select
-      name: 'Abwesenheit: Zustand'
-      icon: mdi:beach
+      name: "Abwesenheit: Zustand"
+      icon: "mdi:beach"
       entity_category: config
       enabled_by_default: false
   abw_tage:
@@ -216,9 +216,9 @@ holding:
       platform: number
       min: 1
       max: 99
-      name: 'Abwesenheit: Manuell'
+      name: "Abwesenheit: Manuell"
       unit_of_measurement: d
-      icon: mdi:calendar
+      icon: "mdi:calendar"
       entity_category: config
       enabled_by_default: false
   boost_enable:
@@ -228,23 +228,23 @@ holding:
     ha:
       platform: switch
       name: Boost
-      icon: mdi:rocket-launch
+      icon: "mdi:rocket-launch"
       entity_category: config
       enabled_by_default: true
   fanpause:
     address: 23
     map:
-      0: 'Off'
-      1: 30m / 15s
-      2: 30m / 30s
-      3: 60m / 15s
-      4: 60m / 30s
-      5: 90m / 15s
-      6: 90m / 30s
+      0: "Off"
+      1: "30m / 15s"
+      2: "30m / 30s"
+      3: "60m / 15s"
+      4: "60m / 30s"
+      5: "90m / 15s"
+      6: "90m / 30s"
     ha:
       platform: select
       name: Lüfterpause
-      icon: mdi:fan-off
+      icon: "mdi:fan-off"
       entity_category: config
       enabled_by_default: false
   language:
@@ -265,7 +265,7 @@ holding:
     ha:
       platform: select
       name: Sprache
-      icon: mdi:translate
+      icon: "mdi:translate"
       entity_category: config
       enabled_by_default: false
   defrost_mode:
@@ -277,7 +277,7 @@ holding:
     ha:
       platform: select
       name: Abtauart
-      icon: mdi:snowflake-melt
+      icon: "mdi:snowflake-melt"
       entity_category: config
       enabled_by_default: false
   anode:
@@ -287,7 +287,7 @@ holding:
     ha:
       platform: switch
       name: Anode
-      icon: mdi:shield-outline
+      icon: "mdi:shield-outline"
       entity_category: config
       enabled_by_default: false
   t_max:
@@ -296,10 +296,10 @@ holding:
       platform: number
       min: 5
       max: 62
-      name: 'Temperatur: T max'
-      unit_of_measurement: °C
+      name: "Temperatur: T max"
+      unit_of_measurement: "°C"
       device_class: temperature
-      icon: mdi:thermometer-high
+      icon: "mdi:thermometer-high"
       entity_category: config
       enabled_by_default: true
   fantype:
@@ -310,7 +310,7 @@ holding:
     ha:
       platform: select
       name: Lüftertyp
-      icon: mdi:fan
+      icon: "mdi:fan"
       entity_category: config
       enabled_by_default: false
   ec_ls1:
@@ -320,8 +320,8 @@ holding:
       min: 0
       max: 100
       name: EC LS1
-      unit_of_measurement: '%'
-      icon: mdi:numeric-1-circle-outline
+      unit_of_measurement: "%"
+      icon: "mdi:numeric-1-circle-outline"
       entity_category: config
       enabled_by_default: false
   ec_ls2:
@@ -331,8 +331,8 @@ holding:
       min: 0
       max: 100
       name: EC LS2
-      unit_of_measurement: '%'
-      icon: mdi:numeric-2-circle-outline
+      unit_of_measurement: "%"
+      icon: "mdi:numeric-2-circle-outline"
       entity_category: config
       enabled_by_default: false
   ec_ls3:
@@ -342,8 +342,8 @@ holding:
       min: 0
       max: 100
       name: EC LS3
-      unit_of_measurement: '%'
-      icon: mdi:numeric-3-circle-outline
+      unit_of_measurement: "%"
+      icon: "mdi:numeric-3-circle-outline"
       entity_category: config
       enabled_by_default: false
   legi_tage:
@@ -352,9 +352,9 @@ holding:
       platform: number
       min: 3
       max: 14
-      name: 'Legionellenfunktion: Intervall'
+      name: "Legionellenfunktion: Intervall"
       unit_of_measurement: d
-      icon: mdi:calendar-sync
+      icon: "mdi:calendar-sync"
       entity_category: config
       enabled_by_default: true
 
@@ -362,22 +362,22 @@ holding:
 input:
   di1_pressostat:
     address: 0
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Kontakt 1: Pressostat'
-      icon: mdi:gauge
+      name: "Kontakt 1: Pressostat"
+      icon: "mdi:gauge"
       entity_category: diagnostic
       enabled_by_default: true
   di2_pv:
     address: 1
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Kontakt 2: SG-Ready'
-      icon: mdi:solar-power
+      name: "Kontakt 2: SG-Ready"
+      icon: "mdi:solar-power"
       entity_category: diagnostic
       enabled_by_default: true
   t1:
@@ -386,12 +386,12 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: 'Temperatur: T1 (Verdampfer)'
-      unit_of_measurement: °C
+      name: "Temperatur: T1 (Verdampfer)"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 0
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: true
   t2:
     address: 8
@@ -399,86 +399,83 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: 'Temperatur: T2 (Speicher)'
-      unit_of_measurement: °C
+      name: "Temperatur: T2 (Speicher)"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
       precision: 1
-      icon: mdi:water-boiler
+      icon: "mdi:water-boiler"
       enabled_by_default: true
   relay1_kompressor:
     address: 9
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 1: Kompressor'
-      icon: mdi:engine
+      name: "Relais 1: Kompressor"
+      icon: "mdi:engine"
       entity_category: diagnostic
       enabled_by_default: true
   relay2_elpatron:
     address: 10
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 2: Heizstab (EL)'
-      icon: mdi:radiator
+      name: "Relais 2: Heizstab (EL)"
+      icon: "mdi:radiator"
       entity_category: diagnostic
       enabled_by_default: true
   relay3_kessel:
     address: 11
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 3: Kessel'
-      icon: mdi:water-boiler
+      name: "Relais 3: Kessel"
+      icon: "mdi:water-boiler"
       entity_category: diagnostic
       enabled_by_default: true
   relay4_magnetventil:
     address: 12
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 4: Magnetventil'
-      icon: mdi:valve
+      name: "Relais 4: Magnetventil"
+      icon: "mdi:valve"
       entity_category: diagnostic
       enabled_by_default: true
   relay6_kondensator:
     address: 13
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 6: Kondensator'
-      icon: mdi:hvac
+      name: "Relais 6: Kondensator"
+      icon: "mdi:hvac"
       entity_category: diagnostic
       enabled_by_default: true
   relay7_ventilator:
     address: 14
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
-      name: 'Relais 7: Ventilator'
-      icon: mdi:fan
+      name: "Relais 7: Ventilator"
+      icon: "mdi:fan"
       entity_category: diagnostic
       enabled_by_default: true
   status:
     address: 16
-    # Hand-repaired after conversion: the old file used bit MASKS as flag
-    # keys (1, 2, 4, ..., 32768), which the old 1-indexed format silently
-    # misread. These are the intended bit numbers (0-indexed).
     flags:
       0: Aus
       1: Betriebsbereit
-      2: In Betrieb
       3: Legionellenmodus
+      7: Abtau-Ende
+      2: In Betrieb
       5: Legionellenmodus-Ende
       6: Abtau
-      7: Abtau-Ende
       8: Störung
       9: Boost
       10: WP Gesperrt
@@ -490,38 +487,36 @@ input:
     ha:
       platform: sensor
       name: Status
-      icon: mdi:information-outline
+      icon: "mdi:information-outline"
       entity_category: diagnostic
       enabled_by_default: true
   holyday_remaining_days:
     address: 17
     ha:
       platform: sensor
-      name: 'Abwesenheit: Verbleibend'
+      name: "Abwesenheit: Verbleibend"
       unit_of_measurement: Tag/e
       device_class: duration
       state_class: measurement
-      icon: mdi:calendar-clock
+      icon: "mdi:calendar-clock"
       entity_category: diagnostic
       enabled_by_default: false
   alarm:
     address: 18
-    # Hand-repaired after conversion: the old file already used 0-indexed
-    # bit numbers (which the old 1-indexed format misread by one bit).
     flags:
-      0: 'Speicherfühler: Kurzschluss'
-      1: 'Speicherfühler: Unterbrechung'
-      2: 'Verdampferfühler: Kurzschluss'
-      3: 'Verdampferfühler: Unterbrechung'
-      4: 1ste Pressostat Meldung
+      0: "Speicherfühler: Kurzschluss"
+      1: "Speicherfühler: Unterbrechung"
+      2: "Verdampferfühler: Kurzschluss"
+      3: "Verdampferfühler: Unterbrechung"
+      4: "1ste Pressostat Meldung"
       5: Pressostat Störung
       6: Anode kontrollieren
       7: Legio Temperatur nicht erreicht
-      8: Uhrzeit einstellen!
+      8: "Uhrzeit einstellen!"
     ha:
       platform: sensor
       name: Unit Alarm
-      icon: mdi:alert-circle
+      icon: "mdi:alert-circle"
       entity_category: diagnostic
       enabled_by_default: false
   alarm_raw:
@@ -529,7 +524,7 @@ input:
     ha:
       platform: sensor
       name: Unit Alarm (raw)
-      icon: mdi:alert-circle-outline
+      icon: "mdi:alert-circle-outline"
       entity_category: diagnostic
       enabled_by_default: false
   fw_version:
@@ -539,6 +534,6 @@ input:
       platform: sensor
       name: FW Version
       precision: 0
-      icon: mdi:chip
+      icon: "mdi:chip"
       entity_category: diagnostic
       enabled_by_default: true

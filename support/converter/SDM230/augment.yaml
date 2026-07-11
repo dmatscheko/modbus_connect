@@ -1,0 +1,2 @@
+# Augmentation policy for SDM230. Pure modbus_local_gateway conversion — no grouping/patches.
+# Add an `ops:` list (and optional `device:` block) here to group or tune entities.

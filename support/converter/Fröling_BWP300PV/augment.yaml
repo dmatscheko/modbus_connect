@@ -1,0 +1,36 @@
+# Augmentation policy for Fröling_BWP300PV: hand-curation ported from the pre-library config
+# (edits that are not in the upstream modbus_local_gateway source).
+
+ops:
+- set:
+    flags:
+      0: 'Speicherfühler: Kurzschluss'
+      1: 'Speicherfühler: Unterbrechung'
+      2: 'Verdampferfühler: Kurzschluss'
+      3: 'Verdampferfühler: Unterbrechung'
+      4: 1ste Pressostat Meldung
+      5: Pressostat Störung
+      6: Anode kontrollieren
+      7: Legio Temperatur nicht erreicht
+      8: Uhrzeit einstellen!
+  where:
+    key: alarm
+- set:
+    flags:
+      0: Aus
+      1: Betriebsbereit
+      2: In Betrieb
+      3: Legionellenmodus
+      5: Legionellenmodus-Ende
+      6: Abtau
+      7: Abtau-Ende
+      8: Störung
+      9: Boost
+      10: WP Gesperrt
+      11: Ferien
+      12: SG-ENABLED
+      13: PV-WP
+      14: PV-EL
+      15: PV-WP+EL
+  where:
+    key: status

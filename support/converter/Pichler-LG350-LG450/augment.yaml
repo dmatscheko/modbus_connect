@@ -1,0 +1,187 @@
+# Augmentation policy for Pichler Lüftungsgerät LG 350 - LG 450.
+# Grouping only — the entities/templates themselves live in the device config.
+# Regenerate:  python support/converter/dimplex_pichler/dimplex_pichler-convert.py
+
+device:
+  default_groups: [basic]
+  group_labels:
+    modbus_config: Modbus configuration
+    co2_control: CO2 control
+    humidity_control: Humidity control
+    summer_night_cooling: Summer-night cooling
+    preheater: Pre/post-heater
+    filter: Filter
+    fan_control: "Fan & flow"
+    firmware: Firmware / model
+
+ops:
+  # Raw board readings (PIC_AD_* temperatures, rail voltages) stay in the expert tier.
+  - tag: [internal]
+    where: {key_matches: '^pic_'}
+
+  # Everyday view — the curated base entities and the composite templates.
+  - group: [basic]
+    where:
+      key:
+        - betriebsmodus_sommer_winter_select
+        - luftungsstufe_select
+        - luftungsstufe_raw
+        - ewt_sommer_number
+        - ewt_winter_number
+        - temperaturregelungsart_select
+        - volumenstrom_luftungsstufe_1_number
+        - volumenstrom_luftungsstufe_2_number
+        - volumenstrom_luftungsstufe_3_number
+        - volumenstrom_grundluftung_number
+        - h2_temperatureinstellung_vhr_number
+        - soll_zulufttemperatur_number
+        - soll_raumlufttemperatur_number
+        - soll_ablufttemperatur_number
+        - filter_tauschintervall_stunden_number
+        - ext_e2_luftstufe3_nachlaufzeit_number
+        - raumtemperaturfuhler_select
+        - filter_reset_button
+        - filter_snooze_button
+        - konfiguration_luftungsstufe_select
+        - bedieneinheit_fehlerausgabe_select
+        - co2_regelung_select
+        - co2_sollwert_number
+        - luftfeuchtigkeit_regelung_select
+        - luftfeuchtigkeit_sollwert_number
+        - feuchte_regelung_ls3_max_zeit_number
+        - sommer_winter_zeitumstellung_select
+        - bypassklappe_select
+        - soll_zulufttemperatur_abgesenkt_number
+        - soll_raumlufttemperatur_abgesenkt_number
+        - soll_ablufttemperatur_abgesenkt_number
+        - system_reset_select
+        - vorheizregister_target_number
+        - automatische_umschaltung_sommer_winter
+        - para_max_zeit_luftungsstufe_3_number
+        - abluftbalance_stufe1_number
+        - abluftbalance_stufe2_number
+        - abluftbalance_stufe3_number
+        - abluftbalance_grundluftung_number
+        - freigabe_heizen_select
+        - freigabe_kuhlen_select
+        - zul_kanaldruck_stufe_1_number
+        - zul_kanaldruck_stufe_2_number
+        - zul_kanaldruck_stufe_3_number
+        - zul_kanaldruck_grundluftung_number
+        - abl_kanaldruck_stufe_1_number
+        - abl_kanaldruck_stufe_2_number
+        - abl_kanaldruck_stufe_3_number
+        - abl_kanaldruck_grundluftung_number
+        - zeitprogramm_luftungsstufen_select
+        - zeitprogramm_temperaturregelung_select
+        - l5_ai1_co2_sensor
+        - l7_ai2_rf_sensor
+        - t6_zuluft_extern
+        - t7_aussen_extern
+        - t8_raum_extern
+        - t9_touch_display
+        - mischer_heizen_0_10v
+        - mischer_kuhlen_0_10v
+        - aussentemperatur_gedaempft
+        - relais_h2_vorheizregister
+        - relais_h3_heizanforderung
+        - relais_h5_kuhlanforderung
+        - relais_h67_ventilatoren
+        - bypassklappe_status
+        - relais_h9_luftklappen
+        - firmware_version
+        - lg_modell
+        - mischer_kombi_0_10v
+        - relais_h10_heizpumpe
+        - relais_h11_kuhlpumpe
+        - summenstoermeldung
+        - temperatur_aussenluft
+        - temperatur_fortluft
+        - temperatur_abluft
+        - temperatur_zuluft
+        - temperatur_vorheizregister
+        - e1_din_extern_aus_bmz
+        - e2_din_extern_luftstufe3
+        - drehzahl_zuluft
+        - drehzahl_abluft
+        - relais_h12b_filtermeldung
+        - zuluft_volumenstrom_sollwert
+        - abluft_volumenstrom_sollwert
+        - msensor1_co2
+        - msensor1_rf
+        - zuluft_volumenstrom_istwert
+        - abluft_volumenstrom_istwert
+        - betriebsstatus
+        - filter_reststandzeit
+        - zuluft_temperatursollwert_berechnet
+        - co2_regelsignal
+        - vorheizregister_pwm
+        - aktuelle_luftungsstufe
+        - fehler_ewt
+        - fehler_bedieneinheit
+        - fehler_frostschutz_nhr
+        - fehler_fortluftventilator
+        - fehler_zuluftventilator
+        - fehler_t1_aussenluft
+        - fehler_t2_fortluft
+        - fehler_t3_abluft
+        - fehler_t4_zuluft
+        - fehler_t5_vorheizregister
+        - fehler_t6_zuluft_extern
+        - fehler_t7_aussenluft_extern
+        - fehler_t8_raum_extern
+        - fehler_ventilatoren_kommunikation
+        - fehler_niedrige_zuluft_temperatur
+        - fehler_filtermeldung
+        - fehler_niedrige_vhr_temperatur
+        - fehler_nhr_frostschutz
+        - betriebsstunden_luftungsstufe_2
+        - betriebsstunden_luftungsstufe_3
+        - betriebsstunden_grundluftung
+        - betriebsstunden_luftungsbetrieb_gesamt
+        - betriebsstunden_heizregister
+        - betriebsstunden_bypass
+        - betriebsstunden_luftungsstufe_1
+        - fehler_modbus_sensoren
+        - co2_sensor_1
+        - co2_sensor_2
+        - feuchtesensor_1
+        - feuchtesensor_2
+        - msensor2_co2
+        - msensor2_rf
+        - l7_ai4_abluft_extern
+        - firmware_version_touch_display
+        - e3_din_frostschutz
+        - raumsoll_zeitprogramm_status
+        - luftungsstufe_zeitprogramm
+        - luftung
+        - klima
+
+  # Feature groups: first matching rule wins (each gated so base entities and raw
+  # internals are never re-classified). Match is a regex over the entity's raw name.
+  - group: [modbus_config]
+    where: {raw_name_matches: 'Modbus', missing_group: true, not_tag: internal}
+  - group: [co2_control]
+    where: {raw_name_matches: 'CO2|EPB|Luftqualit(ä|ae)t', missing_group: true, not_tag: internal}
+  - group: [humidity_control]
+    where: {raw_name_matches: 'Feuchte|humidity|\brF\b|Hum_|Luftfeucht', missing_group: true, not_tag: internal}
+  - group: [summer_night_cooling]
+    where: {raw_name_matches: 'Sommernacht|SummerNightCool|Nachtk(ü|ue)hl', missing_group: true, not_tag: internal}
+  - group: [heat_exchanger]
+    where: {raw_name_matches: 'EWT|Erdw(ä|ae)rme|Geothermal|Bypass', missing_group: true, not_tag: internal}
+  - group: [preheater]
+    where: {raw_name_matches: 'Nachheiz|Vorheiz|Heizregister|heater|\bSSR\b', missing_group: true, not_tag: internal}
+  - group: [defrost]
+    where: {raw_name_matches: 'Abtau|defrost|Frost|Enteis', missing_group: true, not_tag: internal}
+  - group: [external_sensors]
+    where: {raw_name_matches: 'MSensor|extern|Modbussensor|Modbus sensor|\bT[6-9]_', missing_group: true, not_tag: internal}
+  - group: [filter]
+    where: {raw_name_matches: 'Filter', missing_group: true, not_tag: internal}
+  - group: [fan_control]
+    where: {raw_name_matches: 'Luftstufe|L(ü|ue)ftungsstufe|Grundl(ü|ue)ftung|Ventilator|\bFan\b|Volumenstrom|Druck|0[_-]10V|Mischer|Mixing valve|Damper|Klappe|Relais', missing_group: true, not_tag: internal}
+  - group: [firmware]
+    where: {raw_name_matches: 'Firmware|FW_Version|LG_Modell|Version', missing_group: true, not_tag: internal}
+
+  # Everything else documented -> advanced; raw internals stay ungrouped (expert tier).
+  - group: [advanced]
+    where: {missing_group: true, not_tag: internal}

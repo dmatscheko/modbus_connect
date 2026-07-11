@@ -1,5 +1,6 @@
 # Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
 # Registers follow SolaX Modbus protocol document V1.02+; the device reports its version in the Modbus Protocol Version diagnostic sensor (holding 130).
+# Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: SolaX Power
   model: X3-Hybrid G4
@@ -16,6 +17,7 @@ device:
     pm_i2: Parallel mode Inverter 2
     pm_i3: Parallel mode Inverter 3
 
+# Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   lock_state:
     address: 0
@@ -745,33 +747,33 @@ holding:
     internal: true
   selfuse_night_charge_enable_readback:
     address: 147
-    mask: 255
+    mask: 0xFF
     map:
       0: Disabled
       1: Enabled
     internal: true
   selfuse_discharge_min_soc_readback:
     address: 147
-    mask: 65280
+    mask: 0xFF00
     internal: true
   selfuse_nightcharge_upper_soc_readback:
     address: 148
     internal: true
   feedin_discharge_min_soc_readback:
     address: 149
-    mask: 255
+    mask: 0xFF
     internal: true
   feedin_nightcharge_upper_soc_readback:
     address: 149
-    mask: 65280
+    mask: 0xFF00
     internal: true
   backup_discharge_min_soc_readback:
     address: 150
-    mask: 255
+    mask: 0xFF
     internal: true
   backup_nightcharge_upper_soc_readback:
     address: 150
-    mask: 65280
+    mask: 0xFF00
     internal: true
   charge_start_1_readback:
     address: 151
@@ -2382,6 +2384,7 @@ holding:
       entity_category: diagnostic
       enabled_by_default: false
 
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   inverter_voltage:
     address: 0
@@ -4490,7 +4493,7 @@ input:
       name: PM I3 Battery Capacity
       unit_of_measurement: "%"
 
-# Computed sensors (values SolaX derives in code, rebuilt as templates).
+# Templates: composite Home Assistant entities derived from the registers above.
 template:
   grid_import:
     ha:

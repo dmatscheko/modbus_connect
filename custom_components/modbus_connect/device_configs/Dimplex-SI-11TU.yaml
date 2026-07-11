@@ -1,8 +1,11 @@
-# Converted from modbus_local_gateway 'Dimplex-SI-11TU.yaml' by convert.py
+# Dimplex Sole/Wasser-Wärmepumpe SI 11TU — modbus_local_gateway-derived; entity groups from support/converter/Dimplex-SI-11TU/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Dimplex
   model: Sole/Wasser-Wärmepumpe SI 11TU
+  max_register_read: 100
+  max_read_gap: 64
+  prefix: Dimplex SI
   default_groups: [basic]
   group_labels:
     schedule: Schedule / time program
@@ -15,110 +18,107 @@ device:
     room_climate: Room climate sensors
     smart_grid: Smart Grid
     hot_water: Hot water (extra)
-    energy: Energy & runtime
+    energy: "Energy & runtime"
     heat_source: Heat source (brine)
     status: Component status
-  max_register_read: 100
-  max_read_gap: 64
-  prefix: Dimplex SI
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   operating_mode:
-    groups: [basic]
     address: 5015
+    groups: [basic]
     map:
       0: Sommer
       1: Auto
       2: Urlaub
       3: Party
-      4: 2.Wärmeerzeuger
+      4: "2.Wärmeerzeuger"
       5: Kühlen
     ha:
       platform: select
       name: Betriebsmodus
-      icon: mdi:cog
+      icon: "mdi:cog"
   heating_parallel_shift:
-    groups: [basic]
     address: 5036
+    groups: [basic]
     map:
-      0: -19 °C
-      1: -18 °C
-      2: -17 °C
-      3: -16 °C
-      4: -15 °C
-      5: -14 °C
-      6: -13 °C
-      7: -12 °C
-      8: -11 °C
-      9: -10 °C
-      10: -9 °C
-      11: -8 °C
-      12: -7 °C
-      13: -6 °C
-      14: -5 °C
-      15: -4 °C
-      16: -3 °C
-      17: -2 °C
-      18: -1 °C
-      19: 0 °C
-      20: 1 °C
-      21: 2 °C
-      22: 3 °C
-      23: 4 °C
-      24: 5 °C
-      25: 6 °C
-      26: 7 °C
-      27: 8 °C
-      28: 9 °C
-      29: 10 °C
-      30: 11 °C
-      31: 12 °C
-      32: 13 °C
-      33: 14 °C
-      34: 15 °C
-      35: 16 °C
-      36: 17 °C
-      37: 18 °C
-      38: 19 °C
+      0: "-19 °C"
+      1: "-18 °C"
+      2: "-17 °C"
+      3: "-16 °C"
+      4: "-15 °C"
+      5: "-14 °C"
+      6: "-13 °C"
+      7: "-12 °C"
+      8: "-11 °C"
+      9: "-10 °C"
+      10: "-9 °C"
+      11: "-8 °C"
+      12: "-7 °C"
+      13: "-6 °C"
+      14: "-5 °C"
+      15: "-4 °C"
+      16: "-3 °C"
+      17: "-2 °C"
+      18: "-1 °C"
+      19: "0 °C"
+      20: "1 °C"
+      21: "2 °C"
+      22: "3 °C"
+      23: "4 °C"
+      24: "5 °C"
+      25: "6 °C"
+      26: "7 °C"
+      27: "8 °C"
+      28: "9 °C"
+      29: "10 °C"
+      30: "11 °C"
+      31: "12 °C"
+      32: "13 °C"
+      33: "14 °C"
+      34: "15 °C"
+      35: "16 °C"
+      36: "17 °C"
+      37: "18 °C"
+      38: "19 °C"
     ha:
       platform: select
       name: Heizung Parallelverschiebung
-      icon: mdi:home-thermometer-outline
+      icon: "mdi:home-thermometer-outline"
       entity_category: config
       enabled_by_default: false
   heating_room_temperature:
-    groups: [basic]
     address: 46
+    groups: [basic]
     ha:
       platform: number
       min: 15
       max: 30
       name: Heizung Raumtemperatur
-      unit_of_measurement: °C
-      icon: mdi:home-thermometer-outline
+      unit_of_measurement: "°C"
+      icon: "mdi:home-thermometer-outline"
       entity_category: config
       enabled_by_default: false
-  heating_fixed_target:      # setpoint owned by the Heizung climate entity (see template:)
-    groups: [basic]
+  heating_fixed_target:
     address: 5037
+    groups: [basic]
     internal: true
   heating_curve_end_point:
-    groups: [basic]
     address: 5038
+    groups: [basic]
     ha:
       platform: number
       min: 20
       max: 70
       name: Heizung Heizkurvenendpunkt
-      unit_of_measurement: °C
-      icon: mdi:home-thermometer-outline
+      unit_of_measurement: "°C"
+      icon: "mdi:home-thermometer-outline"
       entity_category: config
       enabled_by_default: false
   heating_hysteresis:
-    groups: [basic]
     address: 47
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: number
       min: 0.5
@@ -126,12 +126,12 @@ holding:
       step: 0.1
       name: Heizung Hysterese
       unit_of_measurement: K
-      icon: mdi:home-thermometer-outline
+      icon: "mdi:home-thermometer-outline"
       entity_category: config
       enabled_by_default: false
   external_block_software:
-    groups: [basic]
     address: 5130
+    groups: [basic]
     map:
       0: Hardwareeingang
       10: Sperre nicht aktiv
@@ -139,50 +139,48 @@ holding:
     ha:
       platform: select
       name: Softwaresperre Extern
-      icon: mdi:lock
+      icon: "mdi:lock"
       entity_category: config
   hot_water_hysteresis:
-    groups: [basic]
     address: 5045
+    groups: [basic]
     ha:
       platform: number
       min: 2
       max: 15
       name: Warmwasser Hysterese
       unit_of_measurement: K
-      icon: mdi:water-thermometer-outline
+      icon: "mdi:water-thermometer-outline"
       entity_category: config
       enabled_by_default: false
-  hot_water_fixed_target:      # setpoint owned by the Warmwasser climate entity (see template:)
-    groups: [basic]
+  hot_water_fixed_target:
     address: 5047
+    groups: [basic]
     internal: true
   hot_water_min_fixed_target:
-    groups: [basic]
     address: 5145
+    groups: [basic]
     ha:
       platform: number
       min: 10
       max: 60
       name: Warmwasser Solltemperatur Minimal
-      unit_of_measurement: °C
-      icon: mdi:water-thermometer-outline
+      unit_of_measurement: "°C"
+      icon: "mdi:water-thermometer-outline"
       entity_category: config
       enabled_by_default: false
   hot_water_max_fixed_target:
-    groups: [basic]
     address: 5048
+    groups: [basic]
     ha:
       platform: number
       min: 10
       max: 60
       name: Warmwasser Solltemperatur Maximal
-      unit_of_measurement: °C
-      icon: mdi:water-thermometer-outline
+      unit_of_measurement: "°C"
+      icon: "mdi:water-thermometer-outline"
       entity_category: config
       enabled_by_default: false
-
-# Input registers: 16-bit words, read-only (Modbus FC04 read).
   solltemp_dyn_kuehlung:
     address: 5043
     groups: [cooling]
@@ -191,7 +189,7 @@ holding:
       name: Solltemp. dyn. Kühlung
       min: 10
       max: 35
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   auswahl_heizkreis_2:
@@ -208,7 +206,7 @@ holding:
       name: Heizkurvenendpunkt
       min: 20
       max: 70
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   festwertemperatur:
@@ -219,7 +217,7 @@ holding:
       name: Festwertemperatur
       min: 20
       max: 60
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   parallelverschiebung:
@@ -254,7 +252,7 @@ holding:
       name: Maximale Temperatur
       min: 30
       max: 70
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   kuehlung_raumsolltemperatur:
@@ -319,7 +317,7 @@ holding:
       name: Solltemperatur
       min: 5
       max: 60
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   mischer_hysterese:
@@ -336,7 +334,7 @@ holding:
       name: Grenztemperatur parallel
       min: -25
       max: 35
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
   mischerlaufzeit_2:
@@ -577,246 +575,244 @@ holding:
       icon: "mdi:clock-check"
       entity_category: config
 
+# Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
   test_temp_what_is_this:
-    groups: [basic]
     address: 8
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: TEST What is this
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   outside_temp:
-    groups: [basic]
     address: 1
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Außentemperatur (R1)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   heating_return_temp:
-    groups: [basic]
     address: 2
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Heizung Rücklauftemperatur (R2)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   heating_1st_loop_temp:
-    groups: [basic]
     address: 27
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 1. Heizkreis Temperatur (R5)
-      unit_of_measurement: °C
+      name: "1. Heizkreis Temperatur (R5)"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   heating_2nd_loop_temp:
-    groups: [basic]
     address: 9
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 2. Heizkreis Temperatur (R?)
-      unit_of_measurement: °C
+      name: "2. Heizkreis Temperatur (R?)"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   heating_3rd_loop_temp:
-    groups: [basic]
     address: 10
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 3. Heizkreis Temperatur (R13)
-      unit_of_measurement: °C
+      name: "3. Heizkreis Temperatur (R13)"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   heating_return_target:
-    groups: [basic]
     address: 53
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Heizung Rücklaufsolltemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   heating_1st_loop_return_target:
-    groups: [basic]
     address: 29
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 1. Heizkreis Rücklaufsolltemperatur
-      unit_of_measurement: °C
+      name: "1. Heizkreis Rücklaufsolltemperatur"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   heating_2nd_loop_return_target:
-    groups: [basic]
     address: 54
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 2. Heizkreis Rücklaufsolltemperatur
-      unit_of_measurement: °C
+      name: "2. Heizkreis Rücklaufsolltemperatur"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   heating_3rd_loop_return_target:
-    groups: [basic]
     address: 55
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
-      name: 3. Heizkreis Rücklaufsolltemperatur
-      unit_of_measurement: °C
+      name: "3. Heizkreis Rücklaufsolltemperatur"
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   hot_water_temp:
-    groups: [basic]
     address: 3
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Warmwasser Temperatur (R3)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   hot_water_target:
-    groups: [basic]
     address: 58
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Warmwasser Solltemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
       enabled_by_default: false
   flow_temp:
-    groups: [basic]
     address: 5
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Vorlauftemperatur (R9)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   source_input_temp:
-    groups: [basic]
     address: 6
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Wärmequelleneintrittstemperatur (R24)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   source_output_temp:
-    groups: [basic]
     address: 7
     multiplier: 0.1
+    groups: [basic]
     ha:
       platform: sensor
       name: Wärmequellenaustrittstemperatur (R6)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-      icon: mdi:thermometer
+      icon: "mdi:thermometer"
   compressor1_hours:
-    groups: [basic]
     address: 72
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Verdichter 1 Laufzeit
       unit_of_measurement: h
       state_class: total_increasing
       precision: 0
-      icon: mdi:history
+      icon: "mdi:history"
       entity_category: diagnostic
   primary_pump_hours:
-    groups: [basic]
     address: 74
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Primärpumpe / Ventilator (M11) Laufzeit
       unit_of_measurement: h
       state_class: total_increasing
       precision: 0
-      icon: mdi:history
+      icon: "mdi:history"
       entity_category: diagnostic
   heating_pump_hours:
-    groups: [basic]
     address: 76
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Heizungspumpe (M13) Laufzeit
       unit_of_measurement: h
       state_class: total_increasing
       precision: 0
-      icon: mdi:history
+      icon: "mdi:history"
       entity_category: diagnostic
   hot_water_pump_hours:
-    groups: [basic]
     address: 77
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Warmwasserpumpe (M18) Laufzeit
       unit_of_measurement: h
       state_class: total_increasing
       precision: 0
-      icon: mdi:history
+      icon: "mdi:history"
       entity_category: diagnostic
   additional_pump_hours:
-    groups: [basic]
     address: 71
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Zusatzumwälzpumpe (M16) Laufzeit
       unit_of_measurement: h
       state_class: total_increasing
       precision: 0
-      icon: mdi:history
+      icon: "mdi:history"
       entity_category: diagnostic
   heating_energy:
-    groups: [basic]
     address: 5096
-    sum_scale:
-    - 1
-    - 10000
-    - 100000000
+    sum_scale: [1, 10000, 100000000]
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Wärmemenge Heizung
@@ -824,16 +820,13 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 0
-      icon: mdi:meter-electric
+      icon: "mdi:meter-electric"
       entity_category: diagnostic
   hot_water_energy:
-    groups: [basic]
     address: 5099
-    sum_scale:
-    - 1
-    - 10000
-    - 100000000
+    sum_scale: [1, 10000, 100000000]
     never_resets: true
+    groups: [basic]
     ha:
       platform: sensor
       name: Wärmemenge Warmwasser
@@ -841,11 +834,11 @@ input:
       device_class: energy
       state_class: total_increasing
       precision: 0
-      icon: mdi:meter-electric
+      icon: "mdi:meter-electric"
       entity_category: diagnostic
   operation_status:
-    groups: [basic]
     address: 103
+    groups: [basic]
     map:
       0: Aus
       1: Aus
@@ -860,11 +853,11 @@ input:
     ha:
       platform: sensor
       name: Statusmeldung
-      icon: mdi:message-processing
+      icon: "mdi:message-processing"
       entity_category: diagnostic
   blocking_status:
-    groups: [basic]
     address: 104
+    groups: [basic]
     map:
       0: keine Meldung
       2: Volumenstrom
@@ -891,16 +884,16 @@ input:
       29: Inverter
       31: Aufwärmen
       33: EvD Initialisierung
-      34: 2.Wärmeerzeuger freigegeben
+      34: "2.Wärmeerzeuger freigegeben"
       35: Störung
     ha:
       platform: sensor
       name: Sperrmeldung
-      icon: mdi:message-alert
+      icon: "mdi:message-alert"
       entity_category: diagnostic
   fault_status:
-    groups: [basic]
     address: 105
+    groups: [basic]
     map:
       0: kein Fehler
       1: Fehler N17.1
@@ -913,27 +906,27 @@ input:
       13: WQIF
       15: Sensorik
       16: Niederdruck Sole
-      19: '!Primärkreis'
-      20: '!Abtauen'
-      21: '!Niederdruck Sole'
-      22: '!Warmwasser'
-      23: '!Last Verdichter'
-      24: '!Codierung'
-      25: '!Niederdruck'
-      26: '!Frostschutz'
-      28: '!Hochdruck'
-      29: '!Temperatur Differenz'
-      30: '!Heisgasthermostat'
-      31: '!Durchfluss'
-      32: '!Aufwärmen'
+      19: "!Primärkreis"
+      20: "!Abtauen"
+      21: "!Niederdruck Sole"
+      22: "!Warmwasser"
+      23: "!Last Verdichter"
+      24: "!Codierung"
+      25: "!Niederdruck"
+      26: "!Frostschutz"
+      28: "!Hochdruck"
+      29: "!Temperatur Differenz"
+      30: "!Heisgasthermostat"
+      31: "!Durchfluss"
+      32: "!Aufwärmen"
     ha:
       platform: sensor
       name: Störmeldung
-      icon: mdi:message-alert
+      icon: "mdi:message-alert"
       entity_category: diagnostic
   sensor_status:
-    groups: [basic]
     address: 106
+    groups: [basic]
     map:
       0: keine Meldung
       1: Außenfühler (R1)
@@ -941,13 +934,13 @@ input:
       3: Warmwasserfühler (R3)
       4: Codierung (R7)
       5: Vorlauffühler (R9)
-      6: 2.Heizkreisfühler (R5)
-      7: 3.Heizkreisfühler (R13)
+      6: "2.Heizkreisfühler (R5)"
+      7: "3.Heizkreisfühler (R13)"
       8: Regenerativfühler (R13)
       9: Raumfühler 1
       10: Raumfühler 2
       11: Fühler Wärmequellenaustritt (R6)
-      12: Fühler Wärmequelleneintritt (R24)*
+      12: "Fühler Wärmequelleneintritt (R24)*"
       14: Kollektorfühler (R23)
       15: Niederdrucksensor (R25)
       16: Hochdrucksensor (R26)
@@ -966,10 +959,8 @@ input:
     ha:
       platform: sensor
       name: Sensorfehler
-      icon: mdi:message-alert
+      icon: "mdi:message-alert"
       entity_category: diagnostic
-
-# Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
   raumtemperatur_1_rt_rth_econ:
     address: 11
     type: float16
@@ -977,7 +968,7 @@ input:
     ha:
       platform: sensor
       name: Raumtemperatur 1 / RT-RTH Econ
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   raumtemperatur_2:
@@ -987,7 +978,7 @@ input:
     ha:
       platform: sensor
       name: Raumtemperatur 2
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   raumfeuchte_1_rt_rth_econ:
@@ -997,7 +988,7 @@ input:
     ha:
       platform: sensor
       name: Raumfeuchte 1 / RT-RTH Econ
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   raumfeuchte_2:
@@ -1007,7 +998,7 @@ input:
     ha:
       platform: sensor
       name: Raumfeuchte 2
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   vorlauftemperatur:
@@ -1017,7 +1008,7 @@ input:
     ha:
       platform: sensor
       name: Vorlauftemperatur (R11)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   ruecklauftemperatur:
@@ -1027,7 +1018,7 @@ input:
     ha:
       platform: sensor
       name: Rücklauftemperatur (R4)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   ruecklauftemp_gem_primaerkreis:
@@ -1037,7 +1028,7 @@ input:
     ha:
       platform: sensor
       name: Rücklauftemp. gem. Primärkreis (R24)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   solarspeicher:
@@ -1047,7 +1038,7 @@ input:
     ha:
       platform: sensor
       name: Solarspeicher (R22)
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   aussenlufttemperatur:
@@ -1057,7 +1048,7 @@ input:
     ha:
       platform: sensor
       name: Außenlufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   zulufttemperatur:
@@ -1067,7 +1058,7 @@ input:
     ha:
       platform: sensor
       name: Zulufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   ablufttemperatur:
@@ -1077,7 +1068,7 @@ input:
     ha:
       platform: sensor
       name: Ablufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   fortlufttemperatur:
@@ -1087,7 +1078,7 @@ input:
     ha:
       platform: sensor
       name: Fortlufttemperatur
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
   drehzahl_zuluftventilator:
@@ -1115,7 +1106,7 @@ input:
     groups: [status]
     ha:
       platform: sensor
-      name: 2.Wärmeerzeuger (E10)
+      name: "2.Wärmeerzeuger (E10)"
   flanschheizung:
     address: 78
     groups: [status]
@@ -1133,107 +1124,123 @@ input:
     groups: [energy]
     ha:
       platform: sensor
-      name: Wärmemenge * Heizen 5-8
+      name: "Wärmemenge * Heizen 5-8"
   waermemenge_heizen_9_12:
     address: 5098
     groups: [energy]
     ha:
       platform: sensor
-      name: Wärmemenge * Heizen 9-12
+      name: "Wärmemenge * Heizen 9-12"
   waermemenge_warmwasser_5_8:
     address: 5100
     groups: [hot_water]
     ha:
       platform: sensor
-      name: Wärmemenge * Warmwasser 5-8
+      name: "Wärmemenge * Warmwasser 5-8"
   waermemenge_warmwasser_9_12:
     address: 5101
     groups: [hot_water]
     ha:
       platform: sensor
-      name: Wärmemenge * Warmwasser 9-12
+      name: "Wärmemenge * Warmwasser 9-12"
   waermemenge_schwimmbad_1_4:
     address: 5102
     groups: [energy]
     ha:
       platform: sensor
-      name: Wärmemenge * Schwimmbad 1-4
+      name: "Wärmemenge * Schwimmbad 1-4"
   waermemenge_schwimmbad_5_8:
     address: 5103
     groups: [energy]
     ha:
       platform: sensor
-      name: Wärmemenge * Schwimmbad 5-8
+      name: "Wärmemenge * Schwimmbad 5-8"
   waermemenge_schwimmbad_9_12:
     address: 5104
     groups: [energy]
     ha:
       platform: sensor
-      name: Wärmemenge * Schwimmbad 9-12
+      name: "Wärmemenge * Schwimmbad 9-12"
 
+# Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
+coil:
+  smart_grid_1:
+    address: 3
+    groups: [smart_grid]
+    ha:
+      platform: switch
+      name: Smart Grid 1
+  smart_grid_2:
+    address: 4
+    groups: [smart_grid]
+    ha:
+      platform: switch
+      name: Smart Grid 2
+
+# Discrete inputs: single-bit booleans, read-only (Modbus FC02 read).
 discrete:
   hot_water_thermostat:
-    groups: [basic]
     address: 3
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Warmwasserthermostat
-      icon: mdi:thermostat
+      icon: "mdi:thermostat"
       entity_category: diagnostic
       enabled_by_default: false
   utility_block:
-    groups: [basic]
     address: 5
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: EVU-Sperre
-      icon: mdi:eye-lock
+      icon: "mdi:eye-lock"
       entity_category: diagnostic
       enabled_by_default: false
   external_block:
-    groups: [basic]
     address: 6
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Sperre Extern
-      icon: mdi:eye-lock
+      icon: "mdi:eye-lock"
       entity_category: diagnostic
       enabled_by_default: false
   compressor1:
-    groups: [basic]
     address: 41
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Verdichter 1 Modus
       device_class: running
       entity_category: diagnostic
   primary_pump:
-    groups: [basic]
     address: 43
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Sole Primärpumpe (M11) / Ventilator (M2) Modus
       device_class: running
       entity_category: diagnostic
   heating_pump:
-    groups: [basic]
     address: 45
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M13) Modus
       device_class: running
       entity_category: diagnostic
   hot_water_pump:
-    groups: [basic]
     address: 46
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Warmwasserpumpe (M18) Modus
       device_class: running
       entity_category: diagnostic
   mixer_open:
-    groups: [basic]
     address: 47
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Mischer (M21) Modus
@@ -1241,16 +1248,16 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   additional_pump:
-    groups: [basic]
     address: 49
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Zusatzumwälzpumpe (M16) Modus
       device_class: running
       entity_category: diagnostic
   heating_pump_m15:
-    groups: [basic]
     address: 51
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M15) Modus
@@ -1258,8 +1265,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   mixer_m22_open:
-    groups: [basic]
     address: 52
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Mischer (M22) Modus
@@ -1267,8 +1274,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   pool_pump:
-    groups: [basic]
     address: 56
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Schwimmbadpumpe (M19) Modus
@@ -1276,8 +1283,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   error_indicator:
-    groups: [basic]
     address: 57
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Sammelstörmeldung (H5) Modus
@@ -1285,8 +1292,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   heating_pump_m14:
-    groups: [basic]
     address: 59
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M14) Modus
@@ -1294,8 +1301,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   cooling_pump:
-    groups: [basic]
     address: 60
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Kühlpumpe (M17) Modus
@@ -1303,8 +1310,8 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   heating_pump_m20:
-    groups: [basic]
     address: 61
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M20) Modus
@@ -1312,16 +1319,16 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   room_thermostat_mode:
-    groups: [basic]
     address: 66
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
       entity_category: diagnostic
       enabled_by_default: false
   cooling_primary_pump:
-    groups: [basic]
     address: 68
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Primärpumpe Kühlen (M12) Modus
@@ -1329,16 +1336,14 @@ discrete:
       entity_category: diagnostic
       enabled_by_default: false
   solar_pump:
-    groups: [basic]
     address: 71
+    groups: [basic]
     ha:
       platform: binary_sensor
       name: Solarpumpe (M23) Modus
       device_class: running
       entity_category: diagnostic
       enabled_by_default: false
-
-# Template entities: thermostats composed from the device's decoded values.
   aktiv_zeit_1:
     address: 125
     groups: [schedule]
@@ -1368,7 +1373,7 @@ discrete:
     groups: [status]
     ha:
       platform: binary_sensor
-      name: 2.Wärmeerzeuger (E10)
+      name: "2.Wärmeerzeuger (E10)"
   mischer:
     address: 48
     groups: [heating_circuit_2]
@@ -1388,38 +1393,23 @@ discrete:
       platform: binary_sensor
       name: Mischer (M22) Zu
 
-coil:
-
-  smart_grid_1:
-    address: 3
-    groups: [smart_grid]
-    ha:
-      platform: switch
-      name: Smart Grid 1
-  smart_grid_2:
-    address: 4
-    groups: [smart_grid]
-    ha:
-      platform: switch
-      name: Smart Grid 2
-
+# Templates: composite Home Assistant entities derived from the registers above.
 template:
-  warmwasser:                              # hot-water thermostat (R3 temp + fixed setpoint)
-    groups: [basic]
+  warmwasser:
     ha:
       platform: climate
       name: Warmwasser
     current_temperature: "{{ hot_water_temp }}"
     target_temperature: "{{ hot_water_fixed_target }}"
-    hvac_mode: "{{ 'heat' }}"              # no DHW on/off register — always heating
+    hvac_mode: "{{ 'heat' }}"
     hvac_action: "{{ 'heating' if operation_status == 'Warmwasser' else 'idle' }}"
     min_temp: 18
     max_temp: 60
     temp_step: 1
-    set_temperature: {entity: hot_water_fixed_target}
-
-  heizung:                                 # heating thermostat (flow temp + fixed setpoint)
+    set_temperature:
+      entity: hot_water_fixed_target
     groups: [basic]
+  heizung:
     ha:
       platform: climate
       name: Heizung
@@ -1430,7 +1420,11 @@ template:
     min_temp: 18
     max_temp: 60
     temp_step: 1
-    set_temperature: {entity: heating_fixed_target}
+    set_temperature:
+      entity: heating_fixed_target
     set_hvac_mode:
       entity: operating_mode
-      map: {heat: Auto, "off": Sommer}     # hvac mode -> operating_mode value written
+      map:
+        heat: Auto
+        "off": Sommer
+    groups: [basic]

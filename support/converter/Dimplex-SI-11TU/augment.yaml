@@ -1,0 +1,117 @@
+# Augmentation policy for Dimplex Sole/Wasser-Wärmepumpe SI 11TU.
+# Grouping only — the entities/templates themselves live in the device config.
+# Regenerate:  python support/converter/dimplex_pichler/dimplex_pichler-convert.py
+
+device:
+  default_groups: [basic]
+  group_labels:
+    schedule: Schedule / time program
+    clock: Clock
+    heating_circuit_2: Heating circuit 2
+    heating_circuit_3: Heating circuit 3
+    cooling: Cooling
+    solar: Solar
+    ventilation: Ventilation
+    room_climate: Room climate sensors
+    smart_grid: Smart Grid
+    hot_water: Hot water (extra)
+    energy: "Energy & runtime"
+    heat_source: Heat source (brine)
+    status: Component status
+
+ops:
+  # Everyday view — the curated base entities and the composite templates.
+  - group: [basic]
+    where:
+      key:
+        - heating_room_temperature
+        - heating_hysteresis
+        - operating_mode
+        - heating_parallel_shift
+        - heating_fixed_target
+        - heating_curve_end_point
+        - hot_water_hysteresis
+        - hot_water_fixed_target
+        - hot_water_max_fixed_target
+        - external_block_software
+        - hot_water_min_fixed_target
+        - outside_temp
+        - heating_return_temp
+        - hot_water_temp
+        - flow_temp
+        - source_input_temp
+        - source_output_temp
+        - test_temp_what_is_this
+        - heating_2nd_loop_temp
+        - heating_3rd_loop_temp
+        - heating_1st_loop_temp
+        - heating_1st_loop_return_target
+        - heating_return_target
+        - heating_2nd_loop_return_target
+        - heating_3rd_loop_return_target
+        - hot_water_target
+        - additional_pump_hours
+        - compressor1_hours
+        - primary_pump_hours
+        - heating_pump_hours
+        - hot_water_pump_hours
+        - operation_status
+        - blocking_status
+        - fault_status
+        - sensor_status
+        - heating_energy
+        - hot_water_energy
+        - hot_water_thermostat
+        - utility_block
+        - external_block
+        - compressor1
+        - primary_pump
+        - heating_pump
+        - hot_water_pump
+        - mixer_open
+        - additional_pump
+        - heating_pump_m15
+        - mixer_m22_open
+        - pool_pump
+        - error_indicator
+        - heating_pump_m14
+        - cooling_pump
+        - heating_pump_m20
+        - room_thermostat_mode
+        - cooling_primary_pump
+        - solar_pump
+        - warmwasser
+        - heizung
+
+  # Feature groups: first matching rule wins (each gated so base entities and raw
+  # internals are never re-classified). Match is a regex over the entity's raw name.
+  - group: [schedule]
+    where: {raw_name_matches: 'Start\s+(Stunde|Minute)|Ende\s+(Stunde|Minute)|Aktiv\s*Zeit|Zeitprogramm|Schaltzeit|^(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)$', missing_group: true, not_tag: internal}
+  - group: [clock]
+    where: {raw_name_matches: '^(Stunde|Minute|Monat|Wochentag|Tag|Jahr)$|Uhrzeit|Sync clock', missing_group: true, not_tag: internal}
+  - group: [heating_circuit_2]
+    where: {raw_name_matches: 'Heizkreis\s*2|\(M21\)|2\.\s*Heizkreis', missing_group: true, not_tag: internal}
+  - group: [heating_circuit_3]
+    where: {raw_name_matches: 'Heizkreis\s*3|\(M22\)|3\.\s*Heizkreis', missing_group: true, not_tag: internal}
+  - group: [cooling]
+    where: {raw_name_matches: 'K(ü|ue)hl', missing_group: true, not_tag: internal}
+  - group: [solar]
+    where: {raw_name_matches: 'Solar', missing_group: true, not_tag: internal}
+  - group: [ventilation]
+    where: {raw_name_matches: 'L(ü|ue)ftung|Zuluft|Abluft|Fortluft|Außenluft', missing_group: true, not_tag: internal}
+  - group: [room_climate]
+    where: {raw_name_matches: 'Raumtemperatur|Raumfeuchte|RT-RTH', missing_group: true, not_tag: internal}
+  - group: [smart_grid]
+    where: {raw_name_matches: 'Smart\s*Grid|SG[- ]?Ready', missing_group: true, not_tag: internal}
+  - group: [hot_water]
+    where: {raw_name_matches: 'Warmwasser|Zirkulation|Legionell', missing_group: true, not_tag: internal}
+  - group: [energy]
+    where: {raw_name_matches: 'W(ä|ae)rmemenge|Energie|Verbrauch|Betriebsstunden|Laufzeit', missing_group: true, not_tag: internal}
+  - group: [heat_source]
+    where: {raw_name_matches: 'W(ä|ae)rmequelle|Prim(ä|ae)r|\bSole\b|Verdampfer', missing_group: true, not_tag: internal}
+  - group: [status]
+    where: {raw_name_matches: '\(M\d|\(E\d|\(N\d|\(H\d|Verdichter|Pumpe|Ventil|St(ö|oe)rung|Flanschheizung|Thermostat|W(ä|ae)rmeerzeuger', missing_group: true, not_tag: internal}
+
+  # Everything else documented -> advanced; raw internals stay ungrouped (expert tier).
+  - group: [advanced]
+    where: {missing_group: true, not_tag: internal}

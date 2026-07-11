@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Schneider_ATV312.yaml' by convert.py
+# Converted from modbus_local_gateway 'Schneider_ATV312.yaml'; entity groups from support/converter/Schneider_ATV312/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Schneider Electric
@@ -36,7 +36,7 @@ holding:
       max: 100.0
       step: 0.1
       name: PISP PI Reference via Bus
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       entity_category: config
       enabled_by_default: false
   acc_acceleration_ramp_time:
@@ -152,7 +152,7 @@ holding:
       6: CtA Current threshold reached
       7: SrA Frequency reference reached
       8: tSA Motor thermal threshold reached
-      12: APL Loss of 4-20 mA signal, even if LFL = nO
+      12: "APL Loss of 4-20 mA signal, even if LFL = nO"
       129: LI1 Returns the value of LI1
       130: LI2 Returns the value of LI2
       131: LI3 Returns the value of LI3
@@ -175,9 +175,8 @@ holding:
       6: CtA Current threshold reached
       7: SrA Frequency reference reached
       8: tSA Motor thermal threshold reached
-      9: bLC Brake sequence (for information, as this assignment can be only be activated or deactivated
-        via the bLC
-      12: APL Loss of 4-20 mA signal, even if LFL = nO
+      9: "bLC Brake sequence (for information, as this assignment can be only be activated or deactivated via the bLC"
+      12: "APL Loss of 4-20 mA signal, even if LFL = nO"
       129: LI1 Returns the value of LI1
       130: LI2 Returns the value of LI2
       131: LI3 Returns the value of LI3
@@ -243,9 +242,9 @@ holding:
   inr_ramp_increment:
     address: 9020
     map:
-      0: '0.01'
-      1: '0.1'
-      2: '1'
+      0: "0.01"
+      1: "0.1"
+      2: "1"
     ha:
       platform: select
       name: Inr Ramp Increment
@@ -293,8 +292,8 @@ holding:
   bra_deceleration_ramp_adaptation:
     address: 9003
     map:
-      0: nO
-      1: 'YES'
+      0: "nO"
+      1: "YES"
     ha:
       platform: select
       name: brA Deceleration Ramp Adaptation
@@ -315,8 +314,8 @@ holding:
   nrd_noise_reduction:
     address: 3107
     map:
-      0: nO
-      1: 'YES'
+      0: "nO"
+      1: "YES"
     ha:
       platform: select
       name: nrd Noise Reduction
@@ -325,8 +324,8 @@ holding:
   srf_speed_loop_filter_suppression:
     address: 9101
     map:
-      0: nO
-      1: 'YES'
+      0: "nO"
+      1: "YES"
     ha:
       platform: select
       name: SrF Speed Loop Filter Suppression
@@ -341,9 +340,9 @@ holding:
       16: AIV1 Analog input AIV1
       160: UPdt (1) + speed/- speed via LI
       161: UpdH (1) + speed/- speed using the jog dial
-      163: LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu
-      164: Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu
-      167: nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu
+      163: "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu"
+      164: "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu"
+      167: "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu"
     ha:
       platform: select
       name: Fr1 Reference Channel 1
@@ -359,9 +358,9 @@ holding:
       16: AIV1 Analog input AIV1
       160: UPdt (1) + speed/- speed via LI
       161: UpdH (1) + speed/- speed using the jog dial
-      163: LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu
-      164: Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu
-      167: nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu
+      163: "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu"
+      164: "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu"
+      167: "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu"
     ha:
       platform: select
       name: Fr2 Reference Channel 2
@@ -485,14 +484,14 @@ holding:
     ha:
       platform: sensor
       name: Otr Motor Torque
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 0
   opr_motor_power:
     address: 3211
     ha:
       platform: sensor
       name: OPr Motor Power
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 0
   uln_line_voltage:
     address: 3207
@@ -509,7 +508,7 @@ holding:
     ha:
       platform: sensor
       name: tHr Motor Thermal State
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 0
       entity_category: diagnostic
   thd_drive_thermal_state:
@@ -517,7 +516,7 @@ holding:
     ha:
       platform: sensor
       name: tHd Drive Thermal State
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 0
       entity_category: diagnostic
   tdm_max_drive_thermal_state:
@@ -525,7 +524,7 @@ holding:
     ha:
       platform: sensor
       name: TDM Max Drive Thermal State
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       precision: 0
       entity_category: diagnostic
       enabled_by_default: false
@@ -553,10 +552,10 @@ holding:
     address: 3011
     map:
       0: unknown
-      1: 018 0.18 kW
-      2: 037 0.37 kW
-      3: 055 0.55 kW
-      4: 075 0.75 kW
+      1: "018 0.18 kW"
+      2: "037 0.37 kW"
+      3: "055 0.55 kW"
+      4: "075 0.75 kW"
       5: U11 1.1 kW
       6: U15 1.5 kW
       7: U22 2.2 kW
@@ -604,7 +603,7 @@ holding:
   o1ct_option_board_1_type:
     address: 3601
     map:
-      0: nO
+      0: "nO"
       15: PbS
       18: dnt
     ha:
@@ -770,27 +769,27 @@ holding:
   errd_active_fault_code:
     address: 8606
     map:
-      0: 0x0000 nOF
-      4096: 0x1000 CrF/OLF/SOF
-      8976: 0x2310 OCF overcurrent
-      8992: 0x2320 OCF impeding short-circuit/power module
-      9008: 0x2330 SCF short-circuit to ground
-      9024: 0x2340 OCF phase-to-phase short-circuit
-      12560: 0x3110 OSF line overvoltage
-      12576: 0x3120 USF line undervoltage
-      12592: 0x3130 PHF line phase loss
-      13072: 0x3310 ObF/OPF DC bus overvoltage or motor phase loss
-      16912: 0x4210 OHF drive overheating
-      21792: 0x5520 EEF EEPROM
-      24832: 0x6100 InF internal
-      25344: 0x6300 CFF/CFI invalid parameter configuration
-      29440: 0x7300 LFF 4-20 mA loss
-      29968: 0x7510 SLF/CNF communication interruption
-      29984: 0x7520 ILF optional internal link
-      33024: 0x8100 COF CANopen communication interruption
-      36864: 0x9000 EPF external fault
-      65280: 0xFF00 tnF auto-tuning unsuccessful
-      65281: 0xFF01 bLF brake control
+      0: "0x0000 nOF"
+      4096: "0x1000 CrF/OLF/SOF"
+      8976: "0x2310 OCF overcurrent"
+      8992: "0x2320 OCF impeding short-circuit/power module"
+      9008: "0x2330 SCF short-circuit to ground"
+      9024: "0x2340 OCF phase-to-phase short-circuit"
+      12560: "0x3110 OSF line overvoltage"
+      12576: "0x3120 USF line undervoltage"
+      12592: "0x3130 PHF line phase loss"
+      13072: "0x3310 ObF/OPF DC bus overvoltage or motor phase loss"
+      16912: "0x4210 OHF drive overheating"
+      21792: "0x5520 EEF EEPROM"
+      24832: "0x6100 InF internal"
+      25344: "0x6300 CFF/CFI invalid parameter configuration"
+      29440: "0x7300 LFF 4-20 mA loss"
+      29968: "0x7510 SLF/CNF communication interruption"
+      29984: "0x7520 ILF optional internal link"
+      33024: "0x8100 COF CANopen communication interruption"
+      36864: "0x9000 EPF external fault"
+      65280: "0xFF00 tnF auto-tuning unsuccessful"
+      65281: "0xFF01 bLF brake control"
     ha:
       platform: sensor
       name: ERRD Active Fault Code
@@ -826,10 +825,10 @@ holding:
       31: OCF impeding short-circuit
       32: SCF Motor short-circuit (to ground)
       33: OPF Motor phase loss - 3 phases
-      34: COF Communication interuption, fault line 2 (CANopen)
+      34: "COF Communication interuption, fault line 2 (CANopen)"
       35: bLF Brake control fault
-      36: OCF Power module, specific to ATV312pD15p
-      55: SCF Power module or motor short-circuit, detected at power up
+      36: "OCF Power module, specific to ATV312pD15p"
+      55: "SCF Power module or motor short-circuit, detected at power up"
     ha:
       platform: sensor
       name: LFt Last Detected Fault
@@ -864,10 +863,10 @@ holding:
       31: OCF impeding short-circuit
       32: SCF Motor short-circuit (to ground)
       33: OPF Motor phase loss - 3 phases
-      34: COF Communication interuption, fault line 2 (CANopen)
+      34: "COF Communication interuption, fault line 2 (CANopen)"
       35: bLF Brake control fault
-      36: OCF Power module, specific to ATV312pD15p
-      55: SCF Power module or motor short-circuit, detected at power up
+      36: "OCF Power module, specific to ATV312pD15p"
+      55: "SCF Power module or motor short-circuit, detected at power up"
     ha:
       platform: sensor
       name: DP1 Past Detected Fault 1
@@ -904,10 +903,10 @@ holding:
       31: OCF impeding short-circuit
       32: SCF Motor short-circuit (to ground)
       33: OPF Motor phase loss - 3 phases
-      34: COF Communication interuption, fault line 2 (CANopen)
+      34: "COF Communication interuption, fault line 2 (CANopen)"
       35: bLF Brake control fault
-      36: OCF Power module, specific to ATV312pD15p
-      55: SCF Power module or motor short-circuit, detected at power up
+      36: "OCF Power module, specific to ATV312pD15p"
+      55: "SCF Power module or motor short-circuit, detected at power up"
     ha:
       platform: sensor
       name: DP2 Past Detected Fault 2
@@ -944,10 +943,10 @@ holding:
       31: OCF impeding short-circuit
       32: SCF Motor short-circuit (to ground)
       33: OPF Motor phase loss - 3 phases
-      34: COF Communication interuption, fault line 2 (CANopen)
+      34: "COF Communication interuption, fault line 2 (CANopen)"
       35: bLF Brake control fault
-      36: OCF Power module, specific to ATV312pD15p
-      55: SCF Power module or motor short-circuit, detected at power up
+      36: "OCF Power module, specific to ATV312pD15p"
+      55: "SCF Power module or motor short-circuit, detected at power up"
     ha:
       platform: sensor
       name: DP3 Past Detected Fault 3
@@ -984,10 +983,10 @@ holding:
       31: OCF impeding short-circuit
       32: SCF Motor short-circuit (to ground)
       33: OPF Motor phase loss - 3 phases
-      34: COF Communication interuption, fault line 2 (CANopen)
+      34: "COF Communication interuption, fault line 2 (CANopen)"
       35: bLF Brake control fault
-      36: OCF Power module, specific to ATV312pD15p
-      55: SCF Power module or motor short-circuit, detected at power up
+      36: "OCF Power module, specific to ATV312pD15p"
+      55: "SCF Power module or motor short-circuit, detected at power up"
     ha:
       platform: sensor
       name: DP4 Past Detected Fault 4

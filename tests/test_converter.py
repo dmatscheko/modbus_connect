@@ -1,7 +1,6 @@
 """Golden tests: old-format YAML through the converter and the new schema."""
 
 import importlib.util
-import io
 from pathlib import Path
 
 import pytest
@@ -18,9 +17,10 @@ _convert_path = (
 _spec = importlib.util.spec_from_file_location("mlg_convert", _convert_path)
 _mlg = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mlg)
-SECTION_COMMENTS = _mlg.SECTION_COMMENTS
 convert_device = _mlg.convert_device
-dump_device_yaml = _mlg.dump_device_yaml
+to_intermediate = _mlg.to_intermediate
+augment = _mlg.augment
+SECTION_COMMENTS = augment.SECTION_COMMENTS
 
 OLD = {
     "device": {"manufacturer": "Acme", "model": "X1", "max_register_read": 32},
@@ -159,10 +159,9 @@ def test_bit_tables():
 
 
 def dump_old():
+    """The converted OLD device, emitted through the augment library (the single writer)."""
     doc = convert_device(OLD, "old.yaml")
-    buf = io.StringIO()
-    dump_device_yaml(buf, doc)
-    return doc, buf.getvalue()
+    return doc, augment.emit(to_intermediate(doc))
 
 
 def test_each_section_is_prefixed_with_its_comment():
@@ -177,8 +176,10 @@ def test_each_section_is_prefixed_with_its_comment():
 
 def test_dump_round_trips_and_keeps_hex_mask():
     doc, text = dump_old()
-    # comments are ignored on load: the data round-trips unchanged
-    assert yaml.safe_load(text) == doc
+    # comments and tags are stripped on emit; the register data round-trips unchanged
+    reloaded = yaml.safe_load(text)
+    for section in ("device", "holding", "input", "coil", "discrete"):
+        assert reloaded.get(section) == doc.get(section)
     # masks stay hex-formatted for humans (0x00F0 from bits/shift_bits)
     assert "mask: 0xF0" in text
 

@@ -1,0 +1,3 @@
+# Augmentation policy for Solax_X3_HAC. Grouping is computed by the SolaX converter itself
+# (from the plugin's allowedtypes bitmask + register metadata), so there is no
+# declarative policy to apply here. Add `ops:` only for post-conversion tweaks.

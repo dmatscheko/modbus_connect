@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml' by convert.py
+# Converted from modbus_local_gateway 'Waveshare_RTU_Relay_D.yaml'; entity groups from support/converter/Waveshare_RTU_Relay_D/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Waveshare

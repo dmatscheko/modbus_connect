@@ -20,11 +20,18 @@ Usage (point SOLAX_MODBUS_REPO at your checkout, else the default path is used):
         python3 converter/homeassistant_solax_modbus-convert.py
 """
 import importlib
+import importlib.util
 import os
 import sys
 import types
 from collections import Counter
 from pathlib import Path
+
+# The shared augment library — the single writer of every bundled device config.
+_COMMON = Path(__file__).resolve().parents[1] / "_common"
+_aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment.py")
+augment = importlib.util.module_from_spec(_aug_spec)
+_aug_spec.loader.exec_module(augment)
 
 # Checkout of the upstream homeassistant-solax-modbus repo to read entity descriptions from.
 ROOT = os.environ.get(
@@ -588,158 +595,29 @@ def annotate_groups(entities, templates, basic, extra=None):
             t["groups"] = groups
 
 
-# Entity fields emitted (in order) before the map / read_register / ha blocks.
-EMIT_FIELDS = (
-    "address", "type", "count", "swap", "mask", "sum_scale", "multiplier",
-    "write_value", "static_value", "optimistic_default", "write_multiple",
-    "rectify_time", "scan_interval", "groups",
-)
+def _to_intermediate(meta, ents, templates):
+    """SolaX's converted entities + computed templates -> a tagged intermediate.
 
-
-def _emit_mapping(buf, indent, mapping):
-    """Write a flat ``key: value`` block at the given indent."""
-    for k, v in mapping.items():
-        buf.write(f"{indent}{k}: {yaml_str(v)}\n")
-
-
-def _emit_field(buf, name, value):
-    """One entity field. A list write_value becomes a YAML sequence (multi-register
-    button); groups become an inline flow list."""
-    if name == "write_value" and isinstance(value, list):
-        buf.write("    write_value:\n")
-        for item in value:
-            buf.write(f"      - {yaml_str(item)}\n")
-    elif name == "groups":
-        buf.write(f"    groups: [{', '.join(value)}]\n")
-    else:
-        buf.write(f"    {name}: {yaml_str(value)}\n")
-
-
-def _emit_entity(buf, key, b):
-    """Emit one register entity: scalar fields, optional map/read_register, then either
-    the internal marker or its ha block."""
-    buf.write(f"  {key}:\n")
-    for f in EMIT_FIELDS:
-        if f in b:
-            _emit_field(buf, f, b[f])
-    if "map" in b:
-        buf.write("    map:\n")
-        _emit_mapping(buf, "      ", b["map"])
-    if "read_register" in b:
-        buf.write(f"    read_register: {yaml_str(b['read_register'])}\n")
-    if b.get("internal"):
-        buf.write("    internal: true\n")
-        return
-    buf.write("    ha:\n")
-    _emit_mapping(buf, "      ", b["ha"])
-
-
-def _emit_table(buf, table, entities):
-    """Emit every entity of one table, sorted by address."""
-    rows = sorted(
-        [(k, b) for t, k, b in entities if t == table],
-        key=lambda kb: kb[1]["address"],
-    )
-    if not rows:
-        return
-    buf.write(f"\n{table}:\n")
-    for key, b in rows:
-        _emit_entity(buf, key, b)
-
-
-def _emit_templates(buf, templates):
-    """Emit the computed-sensor ``template:`` section (energy-flow splits)."""
-    if not templates:
-        return
-    buf.write("\n# Computed sensors (values SolaX derives in code, rebuilt as templates).\n")
-    buf.write("template:\n")
-    for t in templates:
-        buf.write(f"  {t['key']}:\n")
-        buf.write("    ha:\n")
-        _emit_mapping(buf, "      ", t["ha"])
-        buf.write(f"    state: {yaml_str(t['state'])}\n")
-        if t.get("integrate"):
-            buf.write(f"    integrate: {yaml_str(t['integrate'])}\n")
-        if t.get("groups"):
-            buf.write(f"    groups: [{', '.join(t['groups'])}]\n")
-
-
-def emit_yaml(meta, entities, templates=()):
-    import io
-    buf = io.StringIO()
-    buf.write("# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.\n")
-    meta = dict(meta)
-    note = meta.pop("note", None)
-    if note:
-        buf.write(f"# {note}\n")
-    buf.write("device:\n")
-    default_groups = meta.pop("default_groups", None)
-    group_labels = meta.pop("group_labels", None)
-    split_before = meta.pop("split_before", None)
-    _emit_mapping(buf, "  ", meta)
-    if split_before:
-        inner = ", ".join(
-            f"{table}: [{', '.join(str(a) for a in addrs)}]"
-            for table, addrs in split_before.items()
-        )
-        buf.write(f"  split_before: {{ {inner} }}\n")
-    if default_groups:
-        buf.write(f"  default_groups: [{', '.join(default_groups)}]\n")
-    if group_labels:
-        buf.write("  group_labels:\n")
-        for name, label in group_labels.items():
-            buf.write(f"    {name}: {yaml_str(label)}\n")
-    for table in ("holding", "input"):
-        _emit_table(buf, table, entities)
-    _emit_templates(buf, templates)
-    return buf.getvalue()
-
-
-def yaml_str(v):
-    if isinstance(v, bool):
-        return "true" if v else "false"
-    if isinstance(v, float):
-        s = repr(v)
-        # YAML's float syntax needs a dot in the mantissa and a signed exponent;
-        # repr(1e-05) = '1e-05' would load back as a *string*.
-        if "e" in s:
-            mantissa, _, exponent = s.partition("e")
-            if "." not in mantissa:
-                mantissa += ".0"
-            if exponent[0] not in "+-":
-                exponent = "+" + exponent
-            s = f"{mantissa}e{exponent}"
-        return s
-    if isinstance(v, int):
-        return str(v)
-    s = str(v)
-    if (
-        s == ""
-        or any(c in s for c in ":#%°'\"\\{}[],&*!|>@")
-        or s[0] in "-+. "
-        or s[-1] == " "
-        or s[0].isdigit()
-        or s.lower() in ("null", "true", "false", "yes", "no", "on", "off")
-    ):
-        return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
-    return s
-
-
-DEST = str(
-    Path(__file__).resolve().parents[3]
-    / "custom_components/modbus_connect/device_configs"
-)
-
-
-def validate_output(text, filename):
-    """Round-trip the emitted YAML through the integration's schema, so an emitter
-    bug fails the conversion loudly instead of the config entry later."""
-    import yaml
-
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "custom_components"))
-    from modbus_connect.schema import parse_device
-
-    parse_device(yaml.safe_load(text), filename=filename)
+    The tier/basic/extra-group *policy* is applied from the SolaX augment.yaml; here
+    the converter stamps only facts: ``internal`` and the upstream enabled-by-default
+    state (so the augment.yaml's advanced fallback can tell advanced from expert). The
+    structural feature groups (parallel-mode / EPS / generator) are already on the
+    body from :func:`annotate_groups`."""
+    ir = augment.intermediate(dict(meta))
+    # SolaX emits each table sorted by address; the shared emitter preserves order.
+    for table, key, body in sorted(ents, key=lambda e: e[2].get("address", 0)):
+        body = dict(body)
+        tags = set()
+        if body.get("internal"):
+            tags.add("internal")
+        else:
+            enabled = body.get("ha", {}).get("enabled_by_default", True) is not False
+            tags.add(f"enabled-default:{'true' if enabled else 'false'}")
+        augment.add_entity(ir, table, key, tags=tags, **body)
+    for template in templates:
+        template = dict(template)
+        augment.add_entity(ir, "template", template.pop("key"), **template)
+    return ir
 
 
 def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozenset(), protocol=None,
@@ -753,16 +631,19 @@ def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozense
     if dupes:  # extras bypass the converter's dedupe; a repeat would silently last-win
         raise SystemExit(f"{filename}: duplicate entity keys {sorted(dupes)}")
     annotate_groups(ents, templates, basic, extra_groups)
+    meta = dict(meta)
+    note = meta.pop("note", None)
     if boundaries:
-        meta = dict(meta)
         split = {}
         for table, addr in sorted(boundaries):
             split.setdefault(table, []).append(addr)
         meta["split_before"] = split
-    text = emit_yaml(meta, ents, templates)
-    validate_output(text, filename)
-    with open(f"{DEST}/{filename}", "w", encoding="utf-8") as f:
-        f.write(text)
+    ir = _to_intermediate(meta, ents, templates)
+    header = "Generated from homeassistant-solax-modbus by solax_convert.py — review before use."
+    if note:
+        header += "\n# " + note
+    name = filename[:-5] if filename.endswith(".yaml") else filename
+    augment.write_augmented(ir, name, header=header)
     plat = Counter(b.get("ha", {}).get("platform", "internal") for _, _, b in ents)
     print(f"\nWROTE {filename}: {dict(plat)} +{len(templates)} template total {len(ents) + len(templates)}")
     print("  skipped:", {k: v for k, v in skipped.items() if v})

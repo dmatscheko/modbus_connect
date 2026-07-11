@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'SDM230.yaml' by convert.py
+# Converted from modbus_local_gateway 'SDM230.yaml'; entity groups from support/converter/SDM230/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Eastron
@@ -22,15 +22,15 @@ holding:
       min: 1
       max: 247
       name: Communicate address
-      icon: mdi:serial-port
+      icon: "mdi:serial-port"
   baud_rate:
     address: 28
     type: float32
     map:
-      0: 2400 bps
-      1: 4800 bps
-      2: 9600 bps
-      5: 1200 bps
+      0: "2400 bps"
+      1: "4800 bps"
+      2: "9600 bps"
+      5: "1200 bps"
     ha:
       platform: select
       name: Baud Rate
@@ -163,7 +163,7 @@ input:
     ha:
       platform: sensor
       name: Phase Angle
-      unit_of_measurement: °
+      unit_of_measurement: "°"
       precision: 2
   Frequency:
     address: 70

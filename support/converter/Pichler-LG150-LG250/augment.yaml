@@ -1,0 +1,101 @@
+# Augmentation policy for Pichler Lüftungsgerät LG 150 - LG 250.
+# Grouping only — the entities/templates themselves live in the device config.
+# Regenerate:  python support/converter/dimplex_pichler/dimplex_pichler-convert.py
+
+device:
+  default_groups: [basic]
+  group_labels:
+    modbus_config: Modbus configuration
+    co2_control: CO2 control
+    humidity_control: Humidity control
+    heat_exchanger: Heat exchanger / bypass
+    preheater: Pre/post-heater
+    defrost: Defrost / frost
+    external_sensors: External sensors
+    filter: Filter
+    fan_control: "Fan & flow"
+    firmware: Firmware / model
+
+ops:
+  # Raw board readings (PIC_AD_* temperatures, rail voltages) stay in the expert tier.
+  - tag: [internal]
+    where: {key_matches: '^pic_'}
+
+  # Everyday view — the curated base entities and the composite templates.
+  - group: [basic]
+    where:
+      key:
+        - betriebsmodus_sommer_winter_select
+        - luftungsstufe_select
+        - luftungsstufe_raw
+        - temperaturregelungsart_select
+        - volumenstrom_luftungsstufe_1_number
+        - volumenstrom_luftungsstufe_2_number
+        - volumenstrom_luftungsstufe_3_number
+        - volumenstrom_grundluftung_number
+        - soll_zulufttemperatur_number
+        - soll_raumlufttemperatur_number
+        - soll_ablufttemperatur_number
+        - filter_reset_button
+        - filter_snooze_button
+        - co2_regelung_select
+        - co2_maximum_number
+        - luftfeuchtigkeit_regelung_select
+        - luftfeuchtigkeit_maximum_number
+        - timer_luftungsstufe_3_number
+        - temperatur_raum_display
+        - temperatur_aussenluft
+        - temperatur_fortluft
+        - temperatur_abluft
+        - temperatur_zuluft
+        - temperatur_nachheizregister_zuluft
+        - zuluftventilator_drehzahl
+        - abluftventilator_drehzahl
+        - zuluftventilator
+        - abluftventilator
+        - zuluftvolumenstrom
+        - abluftvolumenstrom
+        - betriebsstatus
+        - filter_reststandzeit
+        - position_bypassklappe
+        - aktuelle_luftungsstufe
+        - lufter_2_stunden
+        - lufter_3_stunden
+        - lufter_grund_stunden
+        - heizelement_stunden
+        - lufter_1_stunden
+        - co2_sensor_1
+        - co2_sensor_2
+        - feuchtesensor_1
+        - feuchtesensor_2
+        - luftung
+        - klima
+
+  # Feature groups: first matching rule wins (each gated so base entities and raw
+  # internals are never re-classified). Match is a regex over the entity's raw name.
+  - group: [modbus_config]
+    where: {raw_name_matches: 'Modbus', missing_group: true, not_tag: internal}
+  - group: [co2_control]
+    where: {raw_name_matches: 'CO2|EPB|Luftqualit(ä|ae)t', missing_group: true, not_tag: internal}
+  - group: [humidity_control]
+    where: {raw_name_matches: 'Feuchte|humidity|\brF\b|Hum_|Luftfeucht', missing_group: true, not_tag: internal}
+  - group: [summer_night_cooling]
+    where: {raw_name_matches: 'Sommernacht|SummerNightCool|Nachtk(ü|ue)hl', missing_group: true, not_tag: internal}
+  - group: [heat_exchanger]
+    where: {raw_name_matches: 'EWT|Erdw(ä|ae)rme|Geothermal|Bypass', missing_group: true, not_tag: internal}
+  - group: [preheater]
+    where: {raw_name_matches: 'Nachheiz|Vorheiz|Heizregister|heater|\bSSR\b', missing_group: true, not_tag: internal}
+  - group: [defrost]
+    where: {raw_name_matches: 'Abtau|defrost|Frost|Enteis', missing_group: true, not_tag: internal}
+  - group: [external_sensors]
+    where: {raw_name_matches: 'MSensor|extern|Modbussensor|Modbus sensor|\bT[6-9]_', missing_group: true, not_tag: internal}
+  - group: [filter]
+    where: {raw_name_matches: 'Filter', missing_group: true, not_tag: internal}
+  - group: [fan_control]
+    where: {raw_name_matches: 'Luftstufe|L(ü|ue)ftungsstufe|Grundl(ü|ue)ftung|Ventilator|\bFan\b|Volumenstrom|Druck|0[_-]10V|Mischer|Mixing valve|Damper|Klappe|Relais', missing_group: true, not_tag: internal}
+  - group: [firmware]
+    where: {raw_name_matches: 'Firmware|FW_Version|LG_Modell|Version', missing_group: true, not_tag: internal}
+
+  # Everything else documented -> advanced; raw internals stay ungrouped (expert tier).
+  - group: [advanced]
+    where: {missing_group: true, not_tag: internal}

@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Schneider_ATV312_expert.yaml' by convert.py
+# Converted from modbus_local_gateway 'Schneider_ATV312_expert.yaml'; entity groups from support/converter/Schneider_ATV312_expert/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Schneider Electric
@@ -20,9 +20,9 @@ holding:
   tbr_modbus_transmission_speed:
     address: 6003
     map:
-      24: 4.8 kbps
-      28: 9.6 kbps
-      32: 19.2 kbps
+      24: "4.8 kbps"
+      28: "9.6 kbps"
+      32: "19.2 kbps"
     ha:
       platform: select
       name: Modbus Transmission Speed
@@ -31,10 +31,10 @@ holding:
   tfo_modbus_communication_format:
     address: 6004
     map:
-      2: 8O1
-      3: 8E1
-      4: 8n1
-      5: 8n2
+      2: "8O1"
+      3: "8E1"
+      4: "8n1"
+      5: "8n2"
     ha:
       platform: select
       name: Modbus Communication Format

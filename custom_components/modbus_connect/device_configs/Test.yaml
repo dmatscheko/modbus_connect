@@ -1,29 +1,13 @@
-# Converted from modbus_local_gateway 'Test.yaml' by convert.py
+# Converted from modbus_local_gateway 'Test.yaml'; entity groups from support/converter/Test/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Test
   model: Test Model (DO NOT USE)
-  modbus_id: 1          # prefills the "Modbus device ID" field of the config flow
-  prefix: test_device   # prefills the "Entity ID prefix" field of the config flow
+  modbus_id: 1
+  prefix: test_device
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
-  low_byte_of_reg_8:
-    address: 8
-    type: uint8         # low byte of the register; bit / int8 / float16 work too
-    ha:
-      platform: sensor
-      name: Low byte (8)
-      entity_category: diagnostic
-  packed_bcd_counter:
-    address: 9
-    type: uint8
-    sum_scale: [1, 100, 10000]   # three bytes over 1.5 registers (2 are read)
-    ha:
-      platform: sensor
-      name: Packed counter (9-10)
-      precision: 0
-      entity_category: diagnostic
   nibe_degree_minutes_h_11_t:
     address: 11
     type: int32
@@ -44,7 +28,7 @@ holding:
     ha:
       platform: switch
       name: Remote On/Off
-      icon: mdi:power
+      icon: "mdi:power"
   nibe_energy_lo:
     address: 2180
     ha:
@@ -74,45 +58,61 @@ holding:
       entity_category: diagnostic
   hotwater_demand:
     address: 3
-    on_value: 1
     mask: 0x1
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Heißwasser Nachfrage
       device_class: heat
-      icon: mdi:water-boiler
+      icon: "mdi:water-boiler"
       entity_category: diagnostic
       enabled_by_default: true
   heating_demand:
     address: 3
-    on_value: 1
     mask: 0x2
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Heizung Nachfrage
       device_class: heat
-      icon: mdi:heating-coil
+      icon: "mdi:heating-coil"
       entity_category: diagnostic
       enabled_by_default: true
   antilegionella_on:
     address: 3
-    on_value: 1
     mask: 0x10
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Antilegionellen Aktiv
       device_class: running
-      icon: mdi:virus-off
+      icon: "mdi:virus-off"
       entity_category: diagnostic
       enabled_by_default: true
   register_1:
     address: 4
-    on_value: 1
     mask: 0x10
+    on_value: 1
     ha:
       platform: binary_sensor
       name: Boolean Register
       device_class: running
+  low_byte_of_reg_8:
+    address: 8
+    type: uint8
+    ha:
+      platform: sensor
+      name: Low byte (8)
+      entity_category: diagnostic
+  packed_bcd_counter:
+    address: 9
+    type: uint8
+    sum_scale: [1, 100, 10000]
+    ha:
+      platform: sensor
+      name: Packed counter (9-10)
+      precision: 0
+      entity_category: diagnostic
 
 # Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:

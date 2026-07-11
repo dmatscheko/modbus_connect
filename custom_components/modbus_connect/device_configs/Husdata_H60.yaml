@@ -1,4 +1,4 @@
-# Converted from modbus_local_gateway 'Husdata_H60.yaml' by convert.py
+# Converted from modbus_local_gateway 'Husdata_H60.yaml'; entity groups from support/converter/Husdata_H60/augment.yaml
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Husdata
@@ -12,7 +12,7 @@ input:
     ha:
       platform: sensor
       name: Water feed out to underfloor
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   HeatCarrierReturn:
     address: 1
@@ -20,7 +20,7 @@ input:
     ha:
       platform: sensor
       name: HP Internal heat carrier return
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   HeatCarrierForward:
     address: 2
@@ -28,7 +28,7 @@ input:
     ha:
       platform: sensor
       name: HP internal heat supply forward
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   BrineIn:
     address: 3
@@ -36,7 +36,7 @@ input:
     ha:
       platform: sensor
       name: From ground loops
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   BrineOut:
     address: 4
@@ -44,7 +44,7 @@ input:
     ha:
       platform: sensor
       name: To ground loops
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   Outdoor:
     address: 5
@@ -52,7 +52,7 @@ input:
     ha:
       platform: sensor
       name: Outdoor Temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   Indoor:
     address: 6
@@ -60,7 +60,7 @@ input:
     ha:
       platform: sensor
       name: Indoor Temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   HotWaterActual:
     address: 9
@@ -68,7 +68,7 @@ input:
     ha:
       platform: sensor
       name: DHW Actual Temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
   HotWaterTarget:
     address: 27
@@ -76,5 +76,5 @@ input:
     ha:
       platform: sensor
       name: DHW Target Temperature
-      unit_of_measurement: °C
+      unit_of_measurement: "°C"
       precision: 2
