@@ -1,4 +1,34 @@
 # Converted from modbus_local_gateway 'Husdata_H60.yaml'; entity groups from support/converter/Husdata_H60/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Water feed out to underfloor:
+    de: Vorlauf zur Fußbodenheizung
+    en: Water feed out to underfloor
+  HP Internal heat carrier return:
+    de: WP interner Wärmeträger-Rücklauf
+    en: HP Internal heat carrier return
+  HP internal heat supply forward:
+    de: WP interner Wärmeträger-Vorlauf
+    en: HP internal heat supply forward
+  From ground loops:
+    de: Von den Erdsonden
+    en: From ground loops
+  To ground loops:
+    de: Zu den Erdsonden
+    en: To ground loops
+  Outdoor Temperature:
+    de: Außentemperatur
+    en: Outdoor Temperature
+  Indoor Temperature:
+    de: Innentemperatur
+    en: Indoor Temperature
+  DHW Actual Temperature:
+    de: Warmwasser Ist-Temperatur
+    en: DHW Actual Temperature
+  DHW Target Temperature:
+    de: Warmwasser Soll-Temperatur
+    en: DHW Target Temperature
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Husdata

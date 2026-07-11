@@ -8,7 +8,9 @@
 - Source: [https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20350_LG%20450_LG%20740_LG%201000%20SK/LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx](https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20350_LG%20450_LG%20740_LG%201000%20SK/LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx)
 - Source type: official-manufacturer (pichlerluft.at)
 - Register addresses vs device file: verified — Setpoints = holding (FC03/FC06, base 1), Datapoints = input (FC04); device-file addresses & enums match (e.g. addr 7 Regelung 1=Abluft)
-- Local copy: [`LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx`](./LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx) — 32 KB
+- Local copy: [`LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx`](./LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx) — 32 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 1 KB
+- Local copy: [`groups.md`](./groups.md) — 2 KB
 
 > Same LS-Control workbook family (controller ES2020; also covers LG740 / LG1000). Holding = FC03 read / FC06 write; XLS address column is 1-based.
 
@@ -96,8 +98,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x089F` (2207) — Summernight cooling release T<br>`summernightcool_activation` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x08A0` (2208) — Summernight cooling start hour<br>`summernightcool_starttime_hour` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x08A1` (2209) — Summernight cooling start minute<br>`summernightcool_starttime_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x08A2` (2210) — Summernight cooling stopp hour<br>`summernightcool_stoptime_hour` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x08A3` (2211) — Summernight cooling stopp minute<br>`summernightcool_stoptime_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A2` (2210) — Summernight cooling stop hour<br>`summernightcool_stoptime_hour` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x08A3` (2211) — Summernight cooling stop minute<br>`summernightcool_stoptime_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x08A4` (2212) — Summernight cooling ventilation level<br>`summernightcool_fanlevel` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x08A5` (2213) — Summernight cooling release ventilation level<br>`summernightcool_enable_level` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0002` (2) — L5/Ai1 CO2 Sensor<br>`l5_ai1_co2_sensor` | Input (3x) | FC04 read | uint16 · ×0.4884 |
@@ -180,13 +182,13 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0055` (85) — Betriebsstunden Heizregister<br>`betriebsstunden_heizregister` | Input (3x) | FC04 read | uint16 |
 | `0x0056` (86) — Betriebsstunden Bypass<br>`betriebsstunden_bypass` | Input (3x) | FC04 read | uint16 |
 | `0x0057` (87) — Betriebsstunden Stufe 1<br>`betriebsstunden_luftungsstufe_1` | Input (3x) | FC04 read | uint16 |
-| `0x1450` (5200) — CO2 air qualitity modbus sensor 3<br>`msensor3_co2_id_104` | Input (3x) | FC04 read | uint16 |
+| `0x1450` (5200) — CO2 air quality modbus sensor 3<br>`msensor3_co2_id_104` | Input (3x) | FC04 read | uint16 |
 | `0x1451` (5201) — Relative humidity modbus sensor 3<br>`msensor3_rf_id_104` | Input (3x) | FC04 read | uint16 |
-| `0x1452` (5202) — CO2 air qualitity modbus sensor 4<br>`msensor4_co2_id_105` | Input (3x) | FC04 read | uint16 |
+| `0x1452` (5202) — CO2 air quality modbus sensor 4<br>`msensor4_co2_id_105` | Input (3x) | FC04 read | uint16 |
 | `0x1453` (5203) — Relative humidity modbus sensor 4<br>`msensor4_rf_id_105` | Input (3x) | FC04 read | uint16 |
-| `0x1454` (5204) — CO2 air qualitity modbus sensor 5<br>`msensor5_co2_id_106` | Input (3x) | FC04 read | uint16 |
+| `0x1454` (5204) — CO2 air quality modbus sensor 5<br>`msensor5_co2_id_106` | Input (3x) | FC04 read | uint16 |
 | `0x1455` (5205) — Relative humidity modbus sensor 5<br>`msensor5_rf_id_106` | Input (3x) | FC04 read | uint16 |
-| `0x1456` (5206) — CO2 air qualitity modbus sensor 6<br>`msensor6_co2_id_4` | Input (3x) | FC04 read | uint16 |
+| `0x1456` (5206) — CO2 air quality modbus sensor 6<br>`msensor6_co2_id_4` | Input (3x) | FC04 read | uint16 |
 | `0x1457` (5207) — Relative humidity modbus sensor 6<br>`msensor6_rf_id_4` | Input (3x) | FC04 read | uint16 |
 | `0x1458` (5208) — Extract air duct pressure<br>`abl_kanaldruck_pa` | Input (3x) | FC04 read | uint16 |
 | `0x145A` (5210) — Supply air duct pressure<br>`zul_kanaldruck_pa` | Input (3x) | FC04 read | uint16 |

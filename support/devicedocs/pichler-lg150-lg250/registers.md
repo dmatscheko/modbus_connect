@@ -8,7 +8,9 @@
 - Source: [https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20150AB-LG250A/LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx](https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20150AB-LG250A/LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx)
 - Source type: official-manufacturer (pichlerluft.at)
 - Register addresses vs device file: verified — Setpoints sheet = holding (FC03 read / FC06 write, address base 1), Datapoints = input (FC04, base 0); device-file holding addresses & enums map 1:1
-- Local copy: [`LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx`](./LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx) — 33 KB
+- Local copy: [`LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx`](./LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx) — 33 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 1 KB
+- Local copy: [`groups.md`](./groups.md) — 3 KB
 
 > Pichler / LS-Control workbook (sheets: Modbus Settings / Setpoints / Datapoints); controller ES1015. The XLS ‘Address’ column is 1-based; the device file uses the same 1-based holding addresses.
 
@@ -107,7 +109,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0052` (82) — Modbus write<br>`modbusschreibenerlaubt` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0063` (99) — Bypass current limit<br>`bypass_curent_lim` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0067` (103) — Time program air volume flow<br>`zeitprogrammluftenable` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
-| `0x0068` (104) — Time programm temperature control<br>`zeitprogrammraumenable` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
+| `0x0068` (104) — Time program temperature control<br>`zeitprogrammraumenable` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0069` (105) — Firmware Version Touch Display<br>`firmwareverbt` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x006A` (106) — AdcNtcsBT<br>`adcntcsbt` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x006B` (107) — AdcNtcPCBNtcIntBT<br>`adcntcpcbntcintbt` | Holding (4x) | FC03 read · FC06 write | uint16 |

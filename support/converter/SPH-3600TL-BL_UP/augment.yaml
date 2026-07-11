@@ -1,2 +1,24 @@
 # Augmentation policy for SPH-3600TL-BL_UP. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Batterie, en: Battery}
+  - {de: Last, en: Load}
+  - {de: AC-Laden, en: AC Charge}
+  - {de: AC-Leistung zum Verbraucher, en: AC power to user}
+  - {de: Batterietemperatur, en: Battery temperature}
+  - {de: AC-Ladeleistung, en: Charge Power}
+  - {de: Lade-Stopp SoC (Batterie zuerst), en: Charge Stop SoC (Battery First)}
+  - {de: Entlade-Stopp SoC (Netz zuerst), en: Discharge Stop SoC (Grid First)}
+  - {de: Wechselrichterleistung zur lokalen Last, en: Inverter power to local load}
+  - {de: Wechselrichterleistung zur lokalen Last gesamt, en: Inverter power to local load total}
+  - {de: Wechselrichterstatus, en: Inverter Status}
+  - {de: Prioritätsmodus, en: Priority Mode}
+  - {de: System-Betriebsmodus, en: System Work Mode}
+  - {de: USV Ein/Aus, en: UPS On/Off}
+  - {de: USV-Ausgangsspannung, en: UPS Output Voltage}

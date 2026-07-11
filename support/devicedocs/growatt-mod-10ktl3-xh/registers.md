@@ -8,7 +8,8 @@
 - Source: [https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf](https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)
 - Register addresses vs device file: verified — explicitly named ‘MOD TL3-XH’ in the doc (03: 0–124, 3000–3124; 04: 3000–3124, 3125–3249); three-phase hybrid + storage 3125–3249
-- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB
+- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 616 bytes
 
 > Growatt does not host the protocol PDF publicly; verbatim grott mirror. Best explicit model-name match in the document. Big-endian; FC03/FC04 read, FC06/FC16 write.
 
@@ -66,9 +67,9 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0BE9` (3049) — Today generate energy<br>`EacToday` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BEB` (3051) — Total generate energy<br>`EacTotal` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BED` (3053) — PV Energy total<br>`Epv_total` | Input (3x) | FC04 read | uint32 · ×0.1 |
-| `0x0BEF` (3055) — PV1Energy today<br>`Epv1_today` | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x0BEF` (3055) — PV1 Energy today<br>`Epv1_today` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BF1` (3057) — PV1 Energy total<br>`Epv1_total` | Input (3x) | FC04 read | uint32 · ×0.1 |
-| `0x0BF3` (3059) — PV2Energy today<br>`Epv2_today` | Input (3x) | FC04 read | uint32 · ×0.1 |
+| `0x0BF3` (3059) — PV2 Energy today<br>`Epv2_today` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BF5` (3061) — PV2 Energy total<br>`Epv2_total` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BFB` (3067) — Today energy to user<br>`Etouser_today` | Input (3x) | FC04 read | uint32 · ×0.1 |
 | `0x0BFD` (3069) — Total energy to user<br>`Etouser_total` | Input (3x) | FC04 read | uint32 · ×0.1 |

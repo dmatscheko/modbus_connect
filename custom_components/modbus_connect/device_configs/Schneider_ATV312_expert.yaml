@@ -1,4 +1,61 @@
 # Converted from modbus_local_gateway 'Schneider_ATV312_expert.yaml'; entity groups from support/converter/Schneider_ATV312_expert/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Factory settings recall request:
+    de: Anforderung Werkseinstellungen laden
+    en: Factory settings recall request
+  EEPROM save request:
+    de: Anforderung EEPROM speichern
+    en: EEPROM save request
+  External fault request:
+    de: Anforderung externer Fehler
+    en: External fault request
+  Ramp switching request:
+    de: Anforderung Rampenumschaltung
+    en: Ramp switching request
+  High resolution enabled:
+    de: Hohe Auflösung aktiviert
+    en: High resolution enabled
+  Drive locked on standstill:
+    de: Antrieb im Stillstand gesperrt
+    en: Drive locked on standstill
+  Modbus communication monitoring inhibited:
+    de: Modbus-Kommunikationsüberwachung deaktiviert
+    en: Modbus communication monitoring inhibited
+  No parameter consistency check:
+    de: Keine Parameter-Konsistenzprüfung
+    en: No parameter consistency check
+  Modbus Drive Address:
+    de: Modbus-Antriebsadresse
+    en: Modbus Drive Address
+  Modbus Transmission Speed:
+    de: Modbus-Übertragungsgeschwindigkeit
+    en: Modbus Transmission Speed
+  Modbus Communication Format:
+    de: Modbus-Kommunikationsformat
+    en: Modbus Communication Format
+  Modbus Time-out:
+    de: Modbus-Zeitüberschreitung
+    en: Modbus Time-out
+  CMI1 Modbus Extended Control Image:
+    de: CMI1 Modbus erweitertes Steuerabbild
+    en: CMI1 Modbus Extended Control Image
+  CMI2 CANopen Extended Control Image:
+    de: CMI2 CANopen erweitertes Steuerabbild
+    en: CMI2 CANopen Extended Control Image
+  AI1C Analog Input AI1:
+    de: AI1C Analogeingang AI1
+    en: AI1C Analog Input AI1
+  AI2C Analog Input AI2:
+    de: AI2C Analogeingang AI2
+    en: AI2C Analog Input AI2
+  AI3C Analog Input AI3:
+    de: AI3C Analogeingang AI3
+    en: AI3C Analog Input AI3
+  AO1R Analog Output Value:
+    de: AO1R Analogausgangswert
+    en: AO1R Analog Output Value
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Schneider Electric

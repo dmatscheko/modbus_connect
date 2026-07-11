@@ -1,2 +1,37 @@
 # Augmentation policy for Varmann Qtherm. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Geschlossen, en: Closed}
+  - {de: Ventilator hoch, en: Fan High}
+  - {de: Ventilator niedrig, en: Fan Low}
+  - {de: Ventilator mittel, en: Fan Medium}
+  - {de: Offen, en: Open}
+  - {de: ADC-Wert, en: ADC value}
+  - {de: Alarmstatus, en: Alarm status}
+  - {de: Kühlventil, en: Cooling valve}
+  - {de: Kühlventilstatus, en: Cooling valve state}
+  - {de: DIP-Schalter 1, en: DIP Switch 1}
+  - {de: DIP-Schalter 2, en: DIP Switch 2}
+  - {de: Ventilatorstufe, en: Fan speed}
+  - {de: Heiz-/Kühlmodus, en: Heat/Chill Mode}
+  - {de: Heizventil, en: Heating valve}
+  - {de: Heizventilstatus, en: Heating valve state}
+  - {de: Eingangstemperatur, en: Incoming temperature}
+  - {de: Integrationszeit, en: Integration time}
+  - {de: LAN-Kommunikations-Timeout, en: LAN communication timeout}
+  - {de: Manuelle Steuerung, en: Manual control}
+  - {de: Motorstrom, en: Motor current}
+  - {de: Motor-Antriebsamplitude, en: Motor drive amplitude}
+  - {de: Motor-Antriebsfrequenz, en: Motor drive frequency}
+  - {de: Motornennstrom, en: Motor nominal current}
+  - {de: Betriebsmodus, en: Operating mode}
+  - {de: Regelungsprofil, en: Regulation profile}
+  - {de: Soll-Ventilatorstufe, en: Required Fan speed}
+  - {de: Slave-Adresse, en: Slave Address}
+  - {de: NTC-Temperatur, en: Temperature NTC}

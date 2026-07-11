@@ -8,7 +8,8 @@
 - Source: [https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf](https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)
 - Register addresses vs device file: verified — SPH storage family: base 0–124 input (37 Fac, 38 Vac1, 40 Pac1 uint32, 93 Temp) + storage 1000–1124 (input 1009–1041 battery/SOC; holding 1044/1070/1090)
-- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB
+- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 682 bytes
 
 > Growatt does not host the protocol PDF publicly; verbatim grott mirror. SPH storage config lives in the 1000-range holding (unlike the TL-XH 3000-range). Big-endian; FC03/FC04 read, FC06/FC16 write.
 

@@ -1,4 +1,37 @@
 # Converted from modbus_local_gateway 'Salda_RIS_MCB.yaml'; entity groups from support/converter/Salda_RIS_MCB/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Fan Speed:
+    de: Ventilatorstufe
+    en: Fan Speed
+  Temperature Set Point:
+    de: Temperatur-Sollwert
+    en: Temperature Set Point
+  Current Mode:
+    de: Aktueller Modus
+    en: Current Mode
+  Current Air Flow Mode:
+    de: Aktueller Luftmengenmodus
+    en: Current Air Flow Mode
+  Outside Temperature:
+    de: Außentemperatur
+    en: Outside Temperature
+  Inside Temperature:
+    de: Innentemperatur
+    en: Inside Temperature
+  Supply Air Temperature:
+    de: Zulufttemperatur
+    en: Supply Air Temperature
+  Exhaust Air Temperature:
+    de: Ablufttemperatur
+    en: Exhaust Air Temperature
+  Climate:
+    de: Klima
+    en: Climate
+  Ventilation:
+    en: Ventilation
+    de: Lüftung
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Salda

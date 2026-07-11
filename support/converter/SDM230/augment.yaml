@@ -1,2 +1,24 @@
 # Augmentation policy for SDM230. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Strombedarf, en: Current demand}
+  - {de: Aktueller Einspeiseleistungsbedarf des Systems, en: Current system export power demand}
+  - {de: Aktueller Bezugsleistungsbedarf des Systems, en: Current system import power demand}
+  - {de: Eingespeiste Wirkenergie, en: Export Active Energy}
+  - {de: Eingespeiste Blindenergie, en: Export Reactive Energy}
+  - {de: Bezogene Wirkenergie, en: Import Active Energy}
+  - {de: Bezogene Blindenergie, en: Import Reactive Energy}
+  - {de: Maximaler Strombedarf, en: Maximum current Demand}
+  - {de: Maximaler Einspeiseleistungsbedarf des Systems, en: Maximum system export power demand}
+  - {de: Maximaler Bezugsleistungsbedarf des Systems, en: Maximum system import power demand}
+  - {de: Maximaler Leistungsbedarf des Gesamtsystems, en: Maximum total system power demand}
+  - {de: Phasenwinkel, en: Phase Angle}
+  - {de: Gesamte Wirkenergie, en: Total Active Energy}
+  - {de: Gesamte Blindenergie, en: Total Reactive Energy}
+  - {de: Leistungsbedarf des Gesamtsystems, en: Total system power demand}

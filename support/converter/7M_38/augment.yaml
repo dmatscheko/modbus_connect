@@ -1,2 +1,31 @@
 # Augmentation policy for 7M_38. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: L1 Wirkleistung, en: L1 active Power}
+  - {de: L1 Scheinleistung, en: L1 apparent Power}
+  - {de: L1 Strom, en: L1 Current}
+  - {de: L1 Leistungsfaktor, en: L1 Power Factor}
+  - {de: L1 Blindleistung, en: L1 reactive Power}
+  - {de: L1 Spannung, en: L1 Voltage}
+  - {de: L2 Wirkleistung, en: L2 active Power}
+  - {de: L2 Scheinleistung, en: L2 apparent Power}
+  - {de: L2 Strom, en: L2 Current}
+  - {de: L2 Leistungsfaktor, en: L2 Power Factor}
+  - {de: L2 Blindleistung, en: L2 reactive Power}
+  - {de: L2 Spannung, en: L2 Voltage}
+  - {de: L3 Wirkleistung, en: L3 active Power}
+  - {de: L3 Scheinleistung, en: L3 apparent Power}
+  - {de: L3 Strom, en: L3 Current}
+  - {de: L3 Leistungsfaktor, en: L3 Power Factor}
+  - {de: L3 Blindleistung, en: L3 reactive Power}
+  - {de: L3 Spannung, en: L3 Voltage}
+  - {de: Wirkleistung gesamt, en: Total active Power}
+  - {de: Scheinleistung gesamt, en: Total apparent Power}
+  - {de: Leistungsfaktor gesamt, en: Total Power Factor}
+  - {de: Blindleistung gesamt, en: Total reactive Power}

@@ -9,6 +9,7 @@
 - Source type: official-manufacturer (salda.lt MCB config server)
 - Register addresses vs device file: partial — holding regs match (fan-mode addr 1, setpoint addr 2) and the ‘Modbus PDU = XLS − 1’ (1-based XLS) note is confirmed; but the 4 temperature input addresses (0/3/6/9) do not match the table’s T1–T4 (18–21)
 - Local copy: [`MCB 1.29 Modbus table 2026-04-22.xlsx`](./MCB%201.29%20Modbus%20table%202026-04-22.xlsx) — 89 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 810 bytes
 - Local copy: [`MCB_miniMCB [EN][SL] v2019.1.pdf`](./MCB_miniMCB%20[EN][SL]%20v2019.1.pdf) — 29.7 MB
 
 > The .xlsx is the register table the device-file comment refers to (sheets: Holding / Coils / Discrete inputs / Input register / System state / Alarm list). The device file already notes its live temperatures use a custom layout, not the documented T1–T4. A ~30 MB MCB / mini-MCB installation manual PDF is also included in this folder.
@@ -26,8 +27,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | Register | Table | Modbus command | Data type / conversion |
 | --- | --- | --- | --- |
 | `0x0000` (0) — Fan Speed<br>`fan_speed_select` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 4 opts |
-| `0x0000` (0) — fan_speed_raw _(internal)_ | Holding (4x) | FC03 read | uint16 |
 | `0x0001` (1) — Temperature Set Point<br>`temperature_setpoint_number` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x0000` (0) — fan_speed_raw _(internal)_ | Holding (4x) | FC03 read | uint16 |
 | `0x000E` (14) — Current Mode<br>`current_system_mode` | Input (3x) | FC04 read | uint16 · enum · 5 opts |
 | `0x000F` (15) — Current Air Flow Mode<br>`current_air_flow` | Input (3x) | FC04 read | uint16 |
 | `0x0009` (9) — Outside Temperature<br>`outside_temperature` | Input (3x) | FC04 read | int16 · ×0.1 |

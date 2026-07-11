@@ -1,2 +1,24 @@
 # Augmentation policy for MIN-6000TL-XH. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# ops: correct a few malformed source labels (typos / stray characters) before
+# translation, via `set` on the affected register.
+ops:
+# fix: 'cLocalAnti BackflowDerate' -> 'cLocalAntiBackflowDerate' (Stray space inside the derating-code token; sibling tokens have no space)
+- set:
+    map:
+      14: cLocalAntiBackflowDerate
+  where:
+    key: DeratingMode
+# fix: 'PV1Energy today' -> 'PV1 Energy today'
+- set:
+    ha:
+      name: PV1 Energy today
+  where:
+    key: Epv1_today
+# fix: 'PV2Energy today' -> 'PV2 Energy today'
+- set:
+    ha:
+      name: PV2 Energy today
+  where:
+    key: Epv2_today

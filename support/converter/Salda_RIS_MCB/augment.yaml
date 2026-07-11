@@ -1,6 +1,17 @@
 # Augmentation policy for Salda_RIS_MCB: hand-curation ported from the pre-library config
 # (edits that are not in the upstream modbus_local_gateway source).
 
+# Translations (en/de): shared cross-device vocabulary in _common/translations.yaml is
+# applied automatically; the block below adds this device's own strings (each matched by
+# any of a unit's language values), plus any per-device override of a shared unit.
+translations:
+  - {de: Aktueller Luftmengenmodus, en: Current Air Flow Mode}
+  - {de: Aktueller Modus, en: Current Mode}
+  - {de: Ventilatorstufe, en: Fan Speed}
+  - {de: Innentemperatur, en: Inside Temperature}
+  - {de: Außentemperatur, en: Outside Temperature}
+  - {de: Temperatur-Sollwert, en: Temperature Set Point}
+
 ops:
 - add:
     table: holding

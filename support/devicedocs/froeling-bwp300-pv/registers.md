@@ -8,6 +8,8 @@ No public primary-source register document from the manufacturer could be confir
 
 - Best available reference: [https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/](https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/)
 
+- Local copy: [`caveats.md`](./caveats.md) — 899 bytes
+
 > Fröling publishes no Modbus register document for the BWP 300 PV (an OEM domestic-hot-water heat pump). Its official technical documents are storage-tank installation manuals with no Modbus content. The upstream modbus_local_gateway config — from which this device file derives — cites no source, and its register map (holding 4–33, input 0–119) points to a third-party controller and appears vendor-supplied/reverse-engineered. Any Fröling Modbus spec, if one exists, is behind the login-gated connect.froeling.com partner portal. The table below therefore reflects the device file only; treat its addresses as community-provided, not manufacturer-confirmed.
 
 ## Scope & conventions
@@ -30,7 +32,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0009` (9) — Zeitplanung: Start Heizpatrone (Minute)<br>`start_hp_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x000A` (10) — Zeitplanung: Stop Heizpatrone (Stunde)<br>`stop_hp_hour` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x000B` (11) — Zeitplanung: Stop Heizpatrone (Minute)<br>`stop_hp_min` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x000C` (12) — Betriebsmodus: Standart<br>`betriebsart` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 6 opts |
+| `0x000C` (12) — Betriebsmodus: Standard<br>`betriebsart` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 6 opts |
 | `0x000D` (13) — Temperatur: T Legio<br>`legionel_auto_funktion` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 3 opts |
 | `0x000E` (14) — Tmin RL<br>`wwprotec_tmin_rl` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x000F` (15) — WP_LS<br>`wp_ls` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 4 opts |

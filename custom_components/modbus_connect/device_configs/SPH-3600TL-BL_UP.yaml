@@ -1,4 +1,166 @@
 # Converted from modbus_local_gateway 'SPH-3600TL-BL_UP.yaml'; entity groups from support/converter/SPH-3600TL-BL_UP/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Italian:
+    de: Italienisch
+    en: Italian
+  English:
+    de: Englisch
+    en: English
+  German:
+    de: Deutsch
+    en: German
+  Spanish:
+    de: Spanisch
+    en: Spanish
+  French:
+    de: Französisch
+    en: French
+  Chinese:
+    de: Chinesisch
+    en: Chinese
+  Polish:
+    de: Polnisch
+    en: Polish
+  Portuguese:
+    de: Portugiesisch
+    en: Portuguese
+  Hungarian:
+    de: Ungarisch
+    en: Hungarian
+  Load:
+    de: Last
+    en: Load
+  Battery:
+    de: Batterie
+    en: Battery
+  Grid:
+    de: Netz
+    en: Grid
+  Waiting:
+    de: Wartet
+    en: Waiting
+  Fault:
+    de: Fehler
+    en: Fault
+  Waiting module:
+    de: Modul wartet
+    en: Waiting module
+  Self-test:
+    de: Selbsttest
+    en: Self-test
+  SysFault module:
+    de: Systemfehler-Modul
+    en: SysFault module
+  Flash module:
+    de: Flash-Modul
+    en: Flash module
+  PVBATOnline module:
+    de: PV/Batterie online (Modul)
+    en: PVBATOnline module
+  BatOnline module:
+    de: Batterie online (Modul)
+    en: BatOnline module
+  PVOffline mode:
+    de: PV offline (Modus)
+    en: PVOffline mode
+  BatOffline mode:
+    de: Batterie offline (Modus)
+    en: BatOffline mode
+  Charge:
+    de: Laden
+    en: Charge
+  Discharge:
+    de: Entladen
+    en: Discharge
+  Firmware version:
+    de: Firmware-Version
+    en: Firmware version
+  Control firmware version:
+    de: Steuerungs-Firmware-Version
+    en: Control firmware version
+  Serial Number:
+    de: Seriennummer
+    en: Serial Number
+  Remote On/Off:
+    de: Fernsteuerung Ein/Aus
+    en: Remote On/Off
+  LCD language:
+    de: LCD-Sprache
+    en: LCD language
+  Baud Rate:
+    de: Baudrate
+    en: Baud Rate
+  UPS On/Off:
+    de: USV Ein/Aus
+    en: UPS On/Off
+  Priority Mode:
+    de: Prioritätsmodus
+    en: Priority Mode
+  UPS Output Voltage:
+    de: USV-Ausgangsspannung
+    en: UPS Output Voltage
+  Discharge Power Rate (Grid First):
+    de: Entladeleistungsrate (Netz zuerst)
+    en: Discharge Power Rate (Grid First)
+  Discharge Stop SoC (Grid First):
+    de: Entlade-Stopp SoC (Netz zuerst)
+    en: Discharge Stop SoC (Grid First)
+  Charge Stop SoC (Battery First):
+    de: Lade-Stopp SoC (Batterie zuerst)
+    en: Charge Stop SoC (Battery First)
+  AC Charge:
+    de: AC-Laden
+    en: AC Charge
+  Inverter Status:
+    de: Wechselrichterstatus
+    en: Inverter Status
+  Grid frequency:
+    de: Netzfrequenz
+    en: Grid frequency
+  Grid voltage:
+    de: Netzspannung
+    en: Grid voltage
+  Grid output current:
+    de: Netz-Ausgangsstrom
+    en: Grid output current
+  Grid output watt VA:
+    de: Netz-Ausgangsscheinleistung
+    en: Grid output watt VA
+  Inverter temperature:
+    de: Wechselrichtertemperatur
+    en: Inverter temperature
+  IPM Inverter temperature:
+    de: IPM-Wechselrichtertemperatur
+    en: IPM Inverter temperature
+  Boost temperature:
+    de: Boost-Temperatur
+    en: Boost temperature
+  Charge Power:
+    de: AC-Ladeleistung
+    en: Charge Power
+  System Work Mode:
+    de: System-Betriebsmodus
+    en: System Work Mode
+  Discharge power:
+    de: Entladeleistung
+    en: Discharge power
+  Battery voltage:
+    de: Batteriespannung
+    en: Battery voltage
+  AC power to user:
+    de: AC-Leistung zum Verbraucher
+    en: AC power to user
+  Inverter power to local load:
+    de: Wechselrichterleistung zur lokalen Last
+    en: Inverter power to local load
+  Inverter power to local load total:
+    de: Wechselrichterleistung zur lokalen Last gesamt
+    en: Inverter power to local load total
+  Battery temperature:
+    de: Batterietemperatur
+    en: Battery temperature
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Growatt

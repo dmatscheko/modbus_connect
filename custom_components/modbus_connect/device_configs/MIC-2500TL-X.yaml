@@ -1,4 +1,292 @@
 # Converted from modbus_local_gateway 'MIC-2500TL-X.yaml'; entity groups from support/converter/MIC-2500TL-X/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Italian:
+    de: Italienisch
+    en: Italian
+  English:
+    de: Englisch
+    en: English
+  German:
+    de: Deutsch
+    en: German
+  Spanish:
+    de: Spanisch
+    en: Spanish
+  French:
+    de: Französisch
+    en: French
+  Chinese:
+    de: Chinesisch
+    en: Chinese
+  Polish:
+    de: Polnisch
+    en: Polish
+  Portuguese:
+    de: Portugiesisch
+    en: Portuguese
+  Hungarian:
+    de: Ungarisch
+    en: Hungarian
+  Fault:
+    de: Fehler
+    en: Fault
+  Waiting module:
+    de: Modul wartet
+    en: Waiting module
+  Self-test:
+    de: Selbsttest
+    en: Self-test
+  SysFault module:
+    de: Systemfehler-Modul
+    en: SysFault module
+  Flash module:
+    de: Flash-Modul
+    en: Flash module
+  PVBATOnline module:
+    de: PV/Batterie online (Modul)
+    en: PVBATOnline module
+  BatOnline module:
+    de: Batterie online (Modul)
+    en: BatOnline module
+  PVOffline mode:
+    de: PV offline (Modus)
+    en: PVOffline mode
+  BatOffline mode:
+    de: Batterie offline (Modus)
+    en: BatOffline mode
+  cNOTDerate:
+    de: Keine Abregelung
+    en: cNOTDerate
+  cPVHighDerate:
+    de: PV-Spannung hoch
+    en: cPVHighDerate
+  cPowerConstantDerate:
+    de: Konstante Leistung
+    en: cPowerConstantDerate
+  cGridVHighDerate:
+    de: Netzspannung hoch
+    en: cGridVHighDerate
+  cFreqHighDerate:
+    de: Netzfrequenz hoch
+    en: cFreqHighDerate
+  cDcSoureModeDerate:
+    de: DC-Quellenmodus
+    en: cDcSoureModeDerate
+  cInvTemprDerate:
+    de: WR-Temperatur hoch
+    en: cInvTemprDerate
+  cActivePowerOrder:
+    de: Wirkleistungsvorgabe
+    en: cActivePowerOrder
+  cLoadSpeedProcess:
+    de: Lastanstiegsrate
+    en: cLoadSpeedProcess
+  cOverBackbyTime:
+    de: Wiederzuschalt-Verzögerung
+    en: cOverBackbyTime
+  cInternalTemprDerate:
+    de: Innentemperatur hoch
+    en: cInternalTemprDerate
+  cOutTemprDerate:
+    de: Umgebungstemperatur hoch
+    en: cOutTemprDerate
+  cLineImpeCalcDerate:
+    de: Leitungsimpedanz-Berechnung
+    en: cLineImpeCalcDerate
+  cParallelAntiBackflowDerate:
+    de: Paralleler Rückspeiseschutz
+    en: cParallelAntiBackflowDerate
+  cLocalAntiBackflowDerate:
+    de: Lokaler Rückspeiseschutz
+    en: cLocalAntiBackflowDerate
+  cBdcLoadPriDerate:
+    de: BDC-Lastpriorität
+    en: cBdcLoadPriDerate
+  cChkCTErrDerate:
+    de: CT-Prüffehler
+    en: cChkCTErrDerate
+  Firmware version:
+    de: Firmware-Version
+    en: Firmware version
+  Control firmware version:
+    de: Steuerungs-Firmware-Version
+    en: Control firmware version
+  Serial Number:
+    de: Seriennummer
+    en: Serial Number
+  Remote On/Off:
+    de: Fernsteuerung Ein/Aus
+    en: Remote On/Off
+  Max output active power:
+    de: Max. Wirkleistungsabgabe
+    en: Max output active power
+  LCD language:
+    de: LCD-Sprache
+    en: LCD language
+  Communicate address:
+    de: Kommunikationsadresse
+    en: Communicate address
+  Inverter Machine Status:
+    de: Wechselrichter-Maschinenstatus
+    en: Inverter Machine Status
+  Inverter Run Status:
+    de: Wechselrichter-Betriebsstatus
+    en: Inverter Run Status
+  PV total power:
+    de: PV-Gesamtleistung
+    en: PV total power
+  PV1 voltage:
+    de: PV1-Spannung
+    en: PV1 voltage
+  PV1 input current:
+    de: PV1-Eingangsstrom
+    en: PV1 input current
+  PV1 power:
+    de: PV1-Leistung
+    en: PV1 power
+  PV2 voltage:
+    de: PV2-Spannung
+    en: PV2 voltage
+  PV2 input current:
+    de: PV2-Eingangsstrom
+    en: PV2 input current
+  PV2 power:
+    de: PV2-Leistung
+    en: PV2 power
+  Output power:
+    de: Ausgangsleistung
+    en: Output power
+  Grid frequency:
+    de: Netzfrequenz
+    en: Grid frequency
+  Grid voltage:
+    de: Netzspannung
+    en: Grid voltage
+  Grid output current:
+    de: Netz-Ausgangsstrom
+    en: Grid output current
+  Grid output watt VA:
+    de: Netz-Ausgangsscheinleistung
+    en: Grid output watt VA
+  Three phase grid voltage (2):
+    de: Dreiphasen-Netzspannung (2)
+    en: Three phase grid voltage (2)
+  Three phase grid output current (2):
+    de: Dreiphasen-Netz-Ausgangsstrom (2)
+    en: Three phase grid output current (2)
+  Three phase grid output power (2):
+    de: Dreiphasen-Netz-Ausgangsleistung (2)
+    en: Three phase grid output power (2)
+  Three phase grid voltage (3):
+    de: Dreiphasen-Netzspannung (3)
+    en: Three phase grid voltage (3)
+  Three phase grid output current (3):
+    de: Dreiphasen-Netz-Ausgangsstrom (3)
+    en: Three phase grid output current (3)
+  Three phase grid output power (3):
+    de: Dreiphasen-Netz-Ausgangsleistung (3)
+    en: Three phase grid output power (3)
+  Three phase grid voltage (RS):
+    de: Dreiphasen-Netzspannung (RS)
+    en: Three phase grid voltage (RS)
+  Three phase grid voltage (ST):
+    de: Dreiphasen-Netzspannung (ST)
+    en: Three phase grid voltage (ST)
+  Three phase grid voltage (TR):
+    de: Dreiphasen-Netzspannung (TR)
+    en: Three phase grid voltage (TR)
+  Total forward power:
+    de: Vorwärtsleistung gesamt
+    en: Total forward power
+  Total reverse power:
+    de: Rückwärtsleistung gesamt
+    en: Total reverse power
+  Total load power:
+    de: Lastleistung gesamt
+    en: Total load power
+  Work time total:
+    de: Gesamtbetriebszeit
+    en: Work time total
+  Today generate energy:
+    de: Erzeugte Energie heute
+    en: Today generate energy
+  Total generate energy:
+    de: Erzeugte Energie gesamt
+    en: Total generate energy
+  PV Energy total:
+    de: PV-Energie gesamt
+    en: PV Energy total
+  PV1 Energy today:
+    de: PV1-Energie heute
+    en: PV1 Energy today
+  PV1 Energy total:
+    de: PV1-Energie gesamt
+    en: PV1 Energy total
+  PV2 Energy today:
+    de: PV2-Energie heute
+    en: PV2 Energy today
+  PV2 Energy total:
+    de: PV2-Energie gesamt
+    en: PV2 Energy total
+  Today energy to user:
+    de: Energie zum Verbraucher heute
+    en: Today energy to user
+  Total energy to user:
+    de: Energie zum Verbraucher gesamt
+    en: Total energy to user
+  Today energy to grid:
+    de: Energie ins Netz heute
+    en: Today energy to grid
+  Total energy to grid:
+    de: Energie ins Netz gesamt
+    en: Total energy to grid
+  Today energy of user load:
+    de: Energie der Verbraucherlast heute
+    en: Today energy of user load
+  Total energy of user load:
+    de: Energie der Verbraucherlast gesamt
+    en: Total energy of user load
+  Derating Mode:
+    de: Abregelungsmodus
+    en: Derating Mode
+  Inverter temperature:
+    de: Wechselrichtertemperatur
+    en: Inverter temperature
+  IPM Inverter temperature:
+    de: IPM-Wechselrichtertemperatur
+    en: IPM Inverter temperature
+  Boost temperature:
+    de: Boost-Temperatur
+    en: Boost temperature
+  Communications board temperature:
+    de: Kommunikationsplatinen-Temperatur
+    en: Communications board temperature
+  P Bus inside voltage:
+    de: P-Bus-Innenspannung
+    en: P Bus inside voltage
+  N Bus inside voltage:
+    de: N-Bus-Innenspannung
+    en: N Bus inside voltage
+  Inverter output Power Factor:
+    de: Leistungsfaktor (WR-Ausgang)
+    en: Inverter output Power Factor
+  Real output power percent:
+    de: Reale Ausgangsleistung (Prozent)
+    en: Real output power percent
+  Output Maxpower Limited:
+    de: Max. begrenzte Ausgangsleistung
+    en: Output Maxpower Limited
+  Inverter standby flag:
+    de: Wechselrichter-Standby-Kennung
+    en: Inverter standby flag
+  Fault code:
+    de: Fehlercode
+    en: Fault code
+  Warning code:
+    de: Warncode
+    en: Warning code
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Growatt
@@ -400,7 +688,7 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: PV1Energy today
+      name: PV1 Energy today
       unit_of_measurement: kWh
       device_class: energy
       state_class: total
@@ -423,7 +711,7 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: PV2Energy today
+      name: PV2 Energy today
       unit_of_measurement: kWh
       device_class: energy
       state_class: total
@@ -532,7 +820,7 @@ input:
       11: cOutTemprDerate
       12: cLineImpeCalcDerate
       13: cParallelAntiBackflowDerate
-      14: cLocalAnti BackflowDerate
+      14: cLocalAntiBackflowDerate
       15: cBdcLoadPriDerate
       16: cChkCTErrDerate
     ha:

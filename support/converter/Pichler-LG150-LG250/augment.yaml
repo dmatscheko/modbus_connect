@@ -30,6 +30,137 @@ device:
 # values — comes from support/converter/_common/translations.yaml automatically.
 translations:
   - {de: Lüftungsgerät LG 150 - LG 250, en: Ventilation unit LG 150 - LG 250}
+  - {de: 2x Klappe für LG150, en: 2xdamper for LG150}
+  - {de: Elektrisch, en: Electrical}
+  - {de: Abluftabtauung, en: Extract defrosting}
+  - {de: Frostschutz, en: Frost protection}
+  - {de: Erdwärmetauscher, en: Geothermal heat exchanger}
+  - {de: Kein Sensor, en: No Sensor}
+  - {de: An, en: 'On'}
+  - {de: Vorheizen, en: Preheat}
+  - {de: Vorheizung, en: Preheater}
+  - {de: Vorheizregister 0-100%, en: Preheater 0-100%}
+  - {de: Relais K6 für LG250A, en: Relay K6 for LG250A}
+  - {de: Filterfehler zurücksetzen, en: Reset Filter Error}
+  - {de: Wasser, en: Water}
+  - {de: Lüftungsgerätetyp, en: AHU Type}
+  - {de: 'Luftvolumenstrom-Differenz, ETA-Balance', en: 'Air volume flow difference, ETA-Balance'}
+  - {de: Zeitüberschreitung Rückkehr zum Startbildschirm, en: Back to home screen timeout}
+  - {de: Bypass-Stromgrenze, en: Bypass current limit}
+  - {de: Position Bypassklappe, en: Bypass damper position}
+  - {de: Bypass-Klappentyp, en: Bypass damper type}
+  - {de: Bypass-Umschaltpunkt, en: Bypass switching point}
+  - {de: CO2 Regelung, en: CO2 control}
+  - {de: CO2-Regelsignal, en: CO2 control signal}
+  - {de: CO2-Takt, en: CO2 cycle}
+  - {de: Kondensat-Schwellwert, en: Condensate threshold}
+  - {de: Kondensat-Überwachung, en: Condensate watchdog}
+  - {de: Konfiguration, en: Configuration}
+  - {de: Zähler Bypass-Stellung, en: Counter bypass position}
+  - {de: Zähler Wärmerückgewinnungs-Stellung, en: Counter heat recovery position}
+  - {de: Klappenzähler Vorheizregister, en: Damper counter preheater}
+  - {de: Klappe M1 Zeit, en: Damper M1 time}
+  - {de: Klappe M2 Zeit, en: Damper M2 time}
+  - {de: Abtau-Differenz, en: Defrost difference}
+  - {de: Abtau-Pause, en: Defrost pause}
+  - {de: Abtauzeit, en: Defrost time}
+  - {de: Abtauung Ein, en: Defrost_On}
+  - {de: Abtauung Drehzahlgrenze Fortluftventilator, en: Defrost_Speed limit exhaust fan}
+  - {de: Externer digitaler Eingang E2, en: External digital input E2}
+  - {de: Externer digitaler Eingang E2 - Nachlaufzeit Lüftungsstufe 3, en: External digital input E2 - Ventilation level 3 stopping time}
+  - {de: Abluft Ventilatorleistung, en: Extract air fan power}
+  - {de: Abluft Ventilatordrehzahl, en: Extract air fan speed}
+  - {de: Abluft Luftstrom, en: Extract air flow}
+  - {de: Abluft Temperatur, en: Extract air temperature}
+  - {de: Lüfter 1 Stunden, en: Fan 1 hours}
+  - {de: Lüfter 2 Stunden, en: Fan 2 hours}
+  - {de: Lüfter 3 Stunden, en: Fan 3 hours}
+  - {de: Lüfter Grund Stunden, en: Fan basic hours}
+  - {de: Filterzeit, en: Filter time}
+  - {de: Frischlufttemperatur, en: Fresh air temperature}
+  - {de: Frost Abluft Abtau-Fehlerzähler, en: Frost ExtractAir defrost error counter}
+  - {de: Frost Abluft Abtaustatus, en: Frost ExtractAir defrost status}
+  - {de: FW-Version Steuerung, en: FW Version controller}
+  - {de: FW-Version Bedieneinheit, en: FW version operating panel}
+  - {de: Erdwärmetauscher Umschaltpunkt Sommer, en: Geothermal heat exchanger switching point summer}
+  - {de: Erdwärmetauscher Umschaltpunkt Winter, en: Geothermal heat exchanger switching point winter}
+  - {de: Heizelement Stunden, en: Heating element hours}
+  - {de: Luftfeuchtigkeit Regelung, en: Humidity control}
+  - {de: Luftfeuchtigkeit Maximum, en: Humidity maximum}
+  - {de: Internes Nachheizregister, en: Internal post heater}
+  - {de: LG-Modell, en: LG model}
+  - {de: Hauptbildschirm sperren, en: Lock main screen}
+  - {de: Niedriger Ablufttemperatur-Sollwert, en: Low extract air temperature setpoint}
+  - {de: Niedriger Raumlufttemperatur-Sollwert, en: Low room air temperature setpoint}
+  - {de: Niedriger Zulufttemperatur-Sollwert, en: Low supply air temperature setpoint}
+  - {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 1, en: Maximum fanspeed difference ventilation level 1}
+  - {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 2, en: Maximum fanspeed difference ventilation level 2}
+  - {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 3, en: Maximum fanspeed difference ventilation level 3}
+  - {de: Maximale Zulufttemperatur, en: Maximum supply air temperature}
+  - {de: Minimale Zulufttemperatur, en: Minimum supply air temperature}
+  - {de: Mischventil-Taktzeit, en: Mixing valve cycle time}
+  - {de: Mischventil-Stellung, en: Mixing valve position}
+  - {de: Mischventil-Laufzeit, en: Mixing valve running time}
+  - {de: Modbus-Baudrate, en: Modbus baud rate}
+  - {de: Modbus-Schreiben, en: Modbus write}
+  - {de: Betriebsstunden Lüftungsstufe 1, en: Operating hours ventilation level 1}
+  - {de: Passwort, en: Password}
+  - {de: Nachheizregister, en: Post-heater}
+  - {de: Temperatur Nachheizregister Zuluft, en: Post-heater supply air temperature}
+  - {de: Energiesparen im Standby, en: Powersave at Standby}
+  - {de: Vorheizregister Regelsignal, en: Preheater control signal}
+  - {de: Vorheizregister Regeltemperatur, en: Preheater control temperature}
+  - {de: Relative Luftfeuchtigkeit maximale Zeit in Stufe 3, en: Relative humidity maximum time in level 3}
+  - {de: 'Relais K1 Vorheizregister, EWT, Außenluftklappe', en: 'Relay K1 Preheater, GHX, ODA damper'}
+  - {de: Relais K2 Ventilatoren, en: Relay K2 Fans}
+  - {de: Relais K3 Wasser-Nachheizregisterpumpe, en: Relay K3 Water post-heater pump}
+  - {de: Relais K4 Mischventil schließen/Nachheizregister Stufe 2, en: Relay K4 Mixing valve closing/Post-heater level 2}
+  - {de: Relais K4 Mischventil öffnen/Nachheizregister Stufe 1, en: Relay K4 Mixing valve opening/Post-heater level 1}
+  - {de: Relais K6 Störmeldung (LG150)/Bypassklappe, en: Relay K6 Error indication (LG150)/Bypass damper}
+  - {de: Zurücksetzen, en: Reset}
+  - {de: Betriebsstundenzähler zurücksetzen, en: Reset operating hours counter}
+  - {de: Auf Werkseinstellungen zurücksetzen, en: Reset to factory settings}
+  - {de: Temperatur Raum Display, en: Room temperature display}
+  - {de: Bildschirmschoner-Zeit, en: Screensaver time}
+  - {de: SD-Karte vorhanden, en: SD card present}
+  - {de: Sensorkonfiguration, en: Sensor configuration}
+  - {de: Sommer-/Winterzeit, en: Summer/winter time}
+  - {de: Berechneter Zulufttemperatur-Sollwert, en: SUP-T setpoint calculated}
+  - {de: Zuluft Ventilatorleistung, en: Supply air fan power}
+  - {de: Zuluft Ventilatordrehzahl, en: Supply air fan speed}
+  - {de: Zuluft Luftstrom, en: Supply air flow}
+  - {de: Zuluft-Sollwerttakt, en: Supply air setpoint cycle}
+  - {de: Zuluft Temperatur, en: Supply air temperature}
+  - {de: Nachlaufzeit Zuluftventilator, en: Supply fan stopping time}
+  - {de: T2 interne zu externe Kompensation, en: T2 internal to external compensation}
+  - {de: Test Bypassklappe, en: Test Bypass damper}
+  - {de: Test Fortluftventilator, en: Test exhaust air fan}
+  - {de: Test SD-Karte, en: Test SD-Card}
+  - {de: Test Zuluftventilator, en: Test supply air fan}
+  - {de: Zeitprogramm Luftvolumenstrom, en: Time program air volume flow}
+  - {de: Benutzerpasswort, en: User password}
+  - {de: Lüftungsstufe 3 Timer, en: Ventilation level 3 timer}
+  - {de: Z01 T-Differenz EWT, en: Z01 T difference GHX}
+  - {de: Z02 Bedieneinheit, en: Z02 Operating panel}
+  - {de: Z03 Frostschutz Din2, en: Z03 Frost protection Din2}
+  - {de: Z04 Fortluftventilator Kurzschluss, en: Z04 Exhaust fan shorted}
+  - {de: Z05 Zuluftventilator Kurzschluss, en: Z05 Supply fan shorted}
+  - {de: Z06 T1 Außenluft Kurzschluss, en: Z06 T1 Outdoor air shorted}
+  - {de: Z07 T2 Fortluft Kurzschluss, en: Z07 T2 Exhaust air shorted}
+  - {de: Z08 T3 Abluft Kurzschluss, en: Z08 T3 Extract air shorted}
+  - {de: Z09 T4 Zuluft Kurzschluss, en: Z09 T4 Supply air shorted}
+  - {de: Z10 T5 Außenluft extern Kurzschluss, en: Z10 T5 ODA external shorted}
+  - {de: Z11 T1 Außenluft Unterbrechung, en: Z11 T1 Outdoor air open circuit}
+  - {de: Z12 T2 Fortluft Unterbrechung, en: Z12 T2 Exhaust air open circuit}
+  - {de: Z13 T3 Abluft Unterbrechung, en: Z13 T3 Extract air open circuit}
+  - {de: Z14 T4 Zuluft Unterbrechung, en: Z14 T4 Supply air open circuit}
+  - {de: Z15 T5 Außenluft(LG250A)_Zuluft(Nachheizregister) extern Unterbrechung, en: Z15 T5 ODA(LG250A)_SUP(Post-heater) external open circuit}
+  - {de: Z16 Filter wechseln, en: Z16 Change filters}
+  - {de: Z17 Kondensatwanne, en: Z17 Condensate drip tray}
+  - {de: Z18 Klappen, en: Z18 Dampers}
+  - {de: Z19 Ventilatordrehzahl-Differenz - Grundlüftung, en: Z19 Fan speed difference - basic ventilation}
+  - {de: Z20 Ventilatordrehzahl-Differenz zu hoch, en: Z20 Fan speed difference too high}
+  - {de: Z21 Nachheizregister Frostschutz, en: Z21 Post-heater frost protection}
 
 ops:
   # --- base-sensor state_class fixes --------------------------------------- #
@@ -186,3 +317,17 @@ ops:
   # Everything else documented -> advanced; raw internals stay ungrouped (expert tier).
   - group: [advanced]
     where: {missing_group: true, not_tag: internal}
+
+  # --- source-string fixes (typos / stray chars) ------------------------- #
+  # fix: 'Time programm temperature control' -> 'Time program temperature control'
+  - set:
+      ha:
+        name: Time program temperature control
+    where:
+      key: zeitprogrammraumenable
+  # fix: 'CPU startup' -> 'CPU Startup' (Case-inconsistent with LG350-450 which uses 'CPU Startup' for the same betriebsstatus value; normalize so one unit covers both.)
+  - set:
+      map:
+        0: CPU Startup
+    where:
+      key: betriebsstatus

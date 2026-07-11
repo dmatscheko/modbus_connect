@@ -1,2 +1,90 @@
 # Augmentation policy for SDM630. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Mittlerer Leiterstrom, en: Average Line Current}
+  - {de: Mittlere Leiter-Leiter-Spannung, en: Average Line to Line Volts}
+  - {de: Mittlere Leiter-Neutralleiter-Spannung, en: Average Line to neutral Volts}
+  - {de: Energieeinheiten-Präfix, en: Energy Units Prefix}
+  - {de: L1 Einspeisung kVArh, en: L1 Export kVArh}
+  - {de: L1 Einspeisung kWh, en: L1 Export kWh}
+  - {de: L1 Gesamt kVArh, en: L1 Total kVArh}
+  - {de: L1 Gesamt kWh, en: L1 Total kWh}
+  - {de: L2 Einspeisung kVArh, en: L2 Export kVArh}
+  - {de: L2 Einspeisung kWh, en: L2 Export kWh}
+  - {de: L2 Bezug kVArh, en: L2 Import kVArh}
+  - {de: L2 Bezug kWh, en: L2 Import kWh}
+  - {de: L2 Gesamt kVArh, en: L2 Total kVArh}
+  - {de: L2 Gesamt kWh, en: L2 Total kWh}
+  - {de: L3 Einspeisung kVArh, en: L3 Export kVArh}
+  - {de: L3 Einspeisung kWh, en: L3 Export kWh}
+  - {de: L3 Bezug kVArh, en: L3 Import kVArh}
+  - {de: L3 Bezug kWh, en: L3 Import kWh}
+  - {de: L3 Gesamt kVArh, en: L3 Total kVArh}
+  - {de: L3 Gesamt kWh, en: L3 Total kWh}
+  - {de: Spannung Leiter 1 zu Leiter 2, en: Line 1 to Line 2 Volts}
+  - {de: Spannung Leiter 2 zu Leiter 3, en: Line 2 to Line 3 Volts}
+  - {de: Spannung Leiter 3 zu Leiter 1, en: Line 3 to Line 1 Volts}
+  - {de: Maximaler Neutralleiter-Strombedarf, en: Maximum neutral Current demand}
+  - {de: Maximaler Gesamtsystem-Leistungsbedarf, en: Maximum Total System Power demand}
+  - {de: Maximaler Gesamtsystem-Scheinleistungsbedarf, en: Maximum Total System VA demand}
+  - {de: Neutralleiterstrom, en: Neutral Current}
+  - {de: Neutralleiter-Strombedarf, en: Neutral Current demand}
+  - {de: Phase 1 Wirkleistung, en: Phase 1 Active Power}
+  - {de: Phase 1 Scheinleistung, en: Phase 1 Apparent Power}
+  - {de: Phase 1 Strom, en: Phase 1 Current}
+  - {de: Phase 1 Strombedarf, en: Phase 1 Current demand}
+  - {de: Phase 1 maximaler Strombedarf, en: Phase 1 Maximum Current Demand}
+  - {de: Phase 1 Phasenwinkel, en: Phase 1 Phase Angle}
+  - {de: Phase 1 Leistungsfaktor, en: Phase 1 Power Factor}
+  - {de: Phase 1 Blindleistung, en: Phase 1 Reactive Power}
+  - {de: Phase 1 Spannung, en: Phase 1 Voltage}
+  - {de: Phase 2 Wirkleistung, en: Phase 2 Active Power}
+  - {de: Phase 2 Scheinleistung, en: Phase 2 Apparent Power}
+  - {de: Phase 2 Strom, en: Phase 2 Current}
+  - {de: Phase 2 Strombedarf, en: Phase 2 Current demand}
+  - {de: Phase 2 Strom-THD, en: Phase 2 Current THD}
+  - {de: Phase 2 L/N Spannung-THD, en: Phase 2 L/N Volts THD}
+  - {de: Phase 2 maximaler Strombedarf, en: Phase 2 Maximum Current Demand}
+  - {de: Phase 2 Phasenwinkel, en: Phase 2 Phase Angle}
+  - {de: Phase 2 Leistungsfaktor, en: Phase 2 Power Factor}
+  - {de: Phase 2 Blindleistung, en: Phase 2 Reactive Power}
+  - {de: Phase 2 Spannung, en: Phase 2 Voltage}
+  - {de: Phase 3 Wirkleistung, en: Phase 3 Active Power}
+  - {de: Phase 3 Scheinleistung, en: Phase 3 Apparent Power}
+  - {de: Phase 3 Strom, en: Phase 3 Current}
+  - {de: Phase 3 Strombedarf, en: Phase 3 Current demand}
+  - {de: Phase 3 Strom-THD, en: Phase 3 Current THD}
+  - {de: Phase 3 L/N Spannung-THD, en: Phase 3 L/N Volts THD}
+  - {de: Phase 3 maximaler Strombedarf, en: Phase 3 Maximum Current Demand}
+  - {de: Phase 3 Phasenwinkel, en: Phase 3 Phase Angle}
+  - {de: Phase 3 Leistungsfaktor, en: Phase 3 Power Factor}
+  - {de: Phase 3 Blindleistung, en: Phase 3 Reactive Power}
+  - {de: Phase 3 Spannung, en: Phase 3 Voltage}
+  - {de: Summe der Leiterströme, en: Sum of Line currents}
+  - {de: Gesamte eingespeiste Wirkenergie, en: Total Export Active Energy}
+  - {de: Gesamte eingespeiste Blindenergie, en: Total Export Reactive Energy}
+  - {de: Gesamte bezogene Wirkenergie, en: Total Import Active Energy}
+  - {de: Gesamte bezogene Blindenergie, en: Total Import Reactive Energy}
+  - {de: Gesamtsystem-Phasenwinkel, en: Total System Phase Angle}
+  - {de: Gesamtsystemleistung, en: Total System Power}
+  - {de: Gesamtsystem-Leistungsbedarf, en: Total System Power demand}
+  - {de: Gesamtsystem-Leistungsfaktor, en: Total System Power factor}
+  - {de: Gesamtsystem-Scheinleistung, en: Total System VA}
+  - {de: Gesamtsystem-Scheinleistungsbedarf, en: Total System VA demand}
+  - {de: Gesamtsystem-Blindleistung, en: Total System VAr}
+
+# ops: correct a few malformed source labels (typos / stray characters) before
+# translation, via `set` on the affected register.
+ops:
+# fix: 'Mwh / kAh' -> 'MWh / kAh' (Unit-symbol typo: megawatt-hour is 'MWh', not 'Mwh' (lowercase 'w' is wrong). kAh part is already correct.)
+- set:
+    map:
+      1: MWh / kAh
+  where:
+    key: unit_prefix

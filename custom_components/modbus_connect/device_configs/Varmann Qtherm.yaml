@@ -1,4 +1,112 @@
 # Converted from modbus_local_gateway 'Varmann Qtherm.yaml'; entity groups from support/converter/Varmann Qtherm/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Heating:
+    de: Heizen
+    en: Heating
+  Cooling:
+    en: Cooling
+    de: Kühlung
+  Auto:
+    de: Auto
+    en: Automatic
+  Closed:
+    de: Geschlossen
+    en: Closed
+  Open:
+    de: Offen
+    en: Open
+  OK:
+    de: OK
+    en: Okay
+  Fault:
+    de: Fehler
+    en: Fault
+  Manual:
+    de: Manuell
+    en: Manual
+  Fan High:
+    de: Ventilator hoch
+    en: Fan High
+  Fan Medium:
+    de: Ventilator mittel
+    en: Fan Medium
+  Fan Low:
+    de: Ventilator niedrig
+    en: Fan Low
+  Slave Address:
+    de: Slave-Adresse
+    en: Slave Address
+  Temperature NTC:
+    de: NTC-Temperatur
+    en: Temperature NTC
+  Required Temperature:
+    de: Solltemperatur
+    en: Required Temperature
+  Heat/Chill Mode:
+    de: Heiz-/Kühlmodus
+    en: Heat/Chill Mode
+  Integration time:
+    de: Integrationszeit
+    en: Integration time
+  Regulation profile:
+    de: Regelungsprofil
+    en: Regulation profile
+  Required Fan speed:
+    de: Soll-Ventilatorstufe
+    en: Required Fan speed
+  Heating valve:
+    de: Heizventil
+    en: Heating valve
+  Cooling valve:
+    de: Kühlventil
+    en: Cooling valve
+  Incoming temperature:
+    de: Eingangstemperatur
+    en: Incoming temperature
+  LAN communication timeout:
+    de: LAN-Kommunikations-Timeout
+    en: LAN communication timeout
+  ADC value:
+    de: ADC-Wert
+    en: ADC value
+  Fan speed:
+    de: Ventilatorstufe
+    en: Fan speed
+  Heating valve state:
+    de: Heizventilstatus
+    en: Heating valve state
+  Cooling valve state:
+    de: Kühlventilstatus
+    en: Cooling valve state
+  Alarm status:
+    de: Alarmstatus
+    en: Alarm status
+  DIP Switch 1:
+    de: DIP-Schalter 1
+    en: DIP Switch 1
+  DIP Switch 2:
+    de: DIP-Schalter 2
+    en: DIP Switch 2
+  Operating mode:
+    de: Betriebsmodus
+    en: Operating mode
+  Manual control:
+    de: Manuelle Steuerung
+    en: Manual control
+  Motor drive frequency:
+    de: Motor-Antriebsfrequenz
+    en: Motor drive frequency
+  Motor drive amplitude:
+    de: Motor-Antriebsamplitude
+    en: Motor drive amplitude
+  Motor current:
+    de: Motorstrom
+    en: Motor current
+  Motor nominal current:
+    de: Motornennstrom
+    en: Motor nominal current
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Varmann

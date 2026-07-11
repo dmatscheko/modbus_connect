@@ -8,7 +8,8 @@
 - Source: [https://www.cdebyte.com/products/ME31-AXAX4040/4](https://www.cdebyte.com/products/ME31-AXAX4040/4)
 - Source type: official-manufacturer (cdebyte.com)
 - Register addresses vs device file: verified — 4 relay outputs = coils 0x0000–0x0003 (FC01 read / FC05 write); 4 digital inputs documented as discrete inputs 0x0000–0x0003 (FC02)
-- Local copy: [`ME31-AXAX4040_User_Manual_EN_V1.6.pdf`](./ME31-AXAX4040_User_Manual_EN_V1.6.pdf) — 1.8 MB
+- Local copy: [`ME31-AXAX4040_User_Manual_EN_V1.6.pdf`](./ME31-AXAX4040_User_Manual_EN_V1.6.pdf) — 1.8 MB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 755 bytes
 
 > The product code is ME31-AXAX4040 (4 relay out / 4 dry-contact in); the device-file name ‘ME31-AXAX404’ is a truncation. Note: the device file models the 4 digital inputs as coils (FC01) at addr 0–3, whereas the manual documents them as discrete inputs (FC02) at the same addresses.
 

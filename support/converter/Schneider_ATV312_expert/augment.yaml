@@ -1,2 +1,27 @@
 # Augmentation policy for Schneider_ATV312_expert. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Antrieb im Stillstand gesperrt, en: Drive locked on standstill}
+  - {de: Anforderung EEPROM speichern, en: EEPROM save request}
+  - {de: Anforderung externer Fehler, en: External fault request}
+  - {de: Anforderung Werkseinstellungen laden, en: Factory settings recall request}
+  - {de: Hohe Auflösung aktiviert, en: High resolution enabled}
+  - {de: Modbus-Kommunikationsüberwachung deaktiviert, en: Modbus communication monitoring inhibited}
+  - {de: Keine Parameter-Konsistenzprüfung, en: No parameter consistency check}
+  - {de: Anforderung Rampenumschaltung, en: Ramp switching request}
+  - {de: AI1C Analogeingang AI1, en: AI1C Analog Input AI1}
+  - {de: AI2C Analogeingang AI2, en: AI2C Analog Input AI2}
+  - {de: AI3C Analogeingang AI3, en: AI3C Analog Input AI3}
+  - {de: AO1R Analogausgangswert, en: AO1R Analog Output Value}
+  - {de: CMI1 Modbus erweitertes Steuerabbild, en: CMI1 Modbus Extended Control Image}
+  - {de: CMI2 CANopen erweitertes Steuerabbild, en: CMI2 CANopen Extended Control Image}
+  - {de: Modbus-Kommunikationsformat, en: Modbus Communication Format}
+  - {de: Modbus-Antriebsadresse, en: Modbus Drive Address}
+  - {de: Modbus-Zeitüberschreitung, en: Modbus Time-out}
+  - {de: Modbus-Übertragungsgeschwindigkeit, en: Modbus Transmission Speed}

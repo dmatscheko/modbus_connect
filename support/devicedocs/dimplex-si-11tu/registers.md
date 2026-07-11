@@ -8,7 +8,9 @@
 - Source: [https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP](https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP)
 - Source type: official-manufacturer (Dimplex wiki)
 - Register addresses vs device file: verified — settings/holding 5015 Betriebsmodus, 5036 Parallelverschiebung, 5045/5145 Warmwasser, 5096 Wärmemenge; operating-data input 1 Außentemperatur, 103 Statusmeldung
-- Local copy: [`NWPM-Modbus-TCP-Datenpunktliste.html`](./NWPM-Modbus-TCP-Datenpunktliste.html) — 245 KB
+- Local copy: [`NWPM-Modbus-TCP-Datenpunktliste.html`](./NWPM-Modbus-TCP-Datenpunktliste.html) — 245 KB — primary source
+- Local copy: [`caveats.md`](./caveats.md) — 1 KB
+- Local copy: [`groups.md`](./groups.md) — 3 KB
 
 > Requires the optional NWPM / NWPM-Touch Modbus-TCP extension. The datapoint list carries two address columns — ‘WPM-Software J/L/M’ (the newer 5xxx map this device file uses) and legacy ‘WPM-Software H’. Saved as HTML via the Confluence REST API because the wiki is a JavaScript app. The doc lists function codes FC01/03/05/06/15/16.
 
@@ -50,7 +52,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x007F` (127) — Zeitwert Stoßlüften<br>`zeitwert_stosslueften` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13B9` (5049) — Hysterese<br>`hysterese` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13BB` (5051) — Solltemperatur<br>`solltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x0030` (48) — Mischer Hysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read | uint16 |
+| `0x0030` (48) — Mischerhysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read | uint16 |
 | `0x139C` (5020) — Grenztemperatur parallel<br>`grenztemperatur_parallel` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x139D` (5021) — Mischerlaufzeit<br>`mischerlaufzeit_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13C9` (5065) — Absenkung<br>`absenkung` | Holding (4x) | FC03 read | uint16 |

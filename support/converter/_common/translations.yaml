@@ -64,3 +64,228 @@
 - {en: "Fan & flow", de: "Ventilator & Luftmenge"}
 - {en: "Firmware / model", de: "Firmware / Modell"}
 - {en: "Summer-night cooling", de: Sommernachtkühlung}
+
+# =============================================================================
+# Cross-device vocabulary shared by >=2 device configs (auto-consolidated, en/de).
+# Each unit is matched against a source string by ANY of its values; keep values unique.
+# --- shared enum / status / mode / group-label vocabulary --------------------
+- {de: Batterie offline (Modus), en: BatOffline mode}
+- {de: Batterie online (Modul), en: BatOnline module}
+- {de: Batterie zuerst, en: BatteryFirst}
+- {de: Wirkleistungsvorgabe, en: cActivePowerOrder}
+- {de: BDC-Lastpriorität, en: cBdcLoadPriDerate}
+- {de: CT-Prüffehler, en: cChkCTErrDerate}
+- {de: DC-Quellenmodus, en: cDcSoureModeDerate}
+- {de: Netzfrequenz hoch, en: cFreqHighDerate}
+- {de: Netzspannung hoch, en: cGridVHighDerate}
+- {de: Laden, en: Charge}
+- {de: Chinesisch, en: Chinese}
+- {de: Innentemperatur hoch, en: cInternalTemprDerate}
+- {de: WR-Temperatur hoch, en: cInvTemprDerate}
+- {de: Fehlerprotokoll löschen, en: Clear error log}
+- {de: Leitungsimpedanz-Berechnung, en: cLineImpeCalcDerate}
+- {de: Lastanstiegsrate, en: cLoadSpeedProcess}
+- {de: Lokaler Rückspeiseschutz, en: cLocalAntiBackflowDerate}
+- {de: Keine Abregelung, en: cNOTDerate}
+- {de: Umgebungstemperatur hoch, en: cOutTemprDerate}
+- {de: Wiederzuschalt-Verzögerung, en: cOverBackbyTime}
+- {de: Paralleler Rückspeiseschutz, en: cParallelAntiBackflowDerate}
+- {de: Konstante Leistung, en: cPowerConstantDerate}
+- {de: PV-Spannung hoch, en: cPVHighDerate}
+- {de: Deaktivieren, en: Disable}
+- {de: Deaktiviert, en: Disabled}
+- {de: Entladen, en: Discharge}
+- {de: Aktivieren, en: Enable}
+- {de: Aktiviert, en: Enabled}
+- {de: Englisch, en: English}
+- {de: Störung, en: Error}
+- {de: Flash-Modul, en: Flash module}
+- {de: Französisch, en: French}
+- {de: Deutsch, en: German}
+- {de: Netz, en: Grid}
+- {de: Netz zuerst, en: GridFirst}
+- {de: Hoch, en: High}
+- {de: Ungarisch, en: Hungarian}
+- {de: Wechselrichter, en: Inverter}
+- {de: Italienisch, en: Italian}
+- {de: Verbrauch zuerst, en: LoadFirst}
+- {de: Sperren, en: Lock}
+- {de: Gesperrt, en: Locked}
+- {de: Niedrig, en: Low}
+- {de: Manuell, en: Manual}
+- {de: Mittel, en: Middle}
+- {de: Nein, en: 'No'}
+- {de: Keine, en: None}
+- {de: AUS von extern, en: Off from external}
+- {de: OK, en: Okay}
+- {de: Ein, en: 'On'}
+- {de: Betrieb, en: Operation}
+- {de: Polnisch, en: Polish}
+- {de: Portugiesisch, en: Portuguese}
+- {de: PV/Batterie online (Modul), en: PVBATOnline module}
+- {de: PV offline (Modus), en: PVOffline mode}
+- {de: Nachlauf, en: Run-on}
+- {de: Selbsttest, en: Self-test}
+- {de: Spanisch, en: Spanish}
+- {de: Standby Powersafe, en: Standby power-save}
+- {de: Anlauf, en: Starting}
+- {de: Stopp, en: Stop}
+- {de: Systemfehler-Modul, en: SysFault module}
+- {de: Testmodus, en: Test mode}
+- {de: Entsperren, en: Unlock}
+- {de: Entsperrt, en: Unlocked}
+- {de: Aktualisierung, en: Update}
+- {de: Wartet, en: Waiting}
+- {de: Modul wartet, en: Waiting module}
+- {de: Ja, en: 'Yes'}
+# --- shared entity-name vocabulary (meters, inverters, ...) ------------------
+- {de: AC-Laden aktivieren, en: AC Charge Enable}
+- {de: Wirkleistung, en: Active Power}
+- {de: Luftstrom Grundlüftung, en: Air flow basic ventilation}
+- {de: Luftstrom Lüftungsstufe 1, en: Air flow ventilation level 1}
+- {de: Luftstrom Lüftungsstufe 2, en: Air flow ventilation level 2}
+- {de: Luftstrom Lüftungsstufe 3, en: Air flow ventilation level 3}
+- {de: Scheinleistung, en: Apparent Power}
+- {de: Batteriestrom, en: Battery current}
+- {de: Batteriespannung, en: Battery voltage}
+- {de: Baudrate, en: Baud Rate}
+- {de: Boost-Temperatur, en: Boost temperature}
+- {de: Ladeleistung, en: Charge power}
+- {de: Nutzungsmodus, en: Charger Use Mode}
+- {de: Klima, en: Climate}
+- {de: CO2-Luftqualität Modbus-Sensor 3, en: CO2 air quality modbus sensor 3}
+- {de: CO2-Luftqualität Modbus-Sensor 4, en: CO2 air quality modbus sensor 4}
+- {de: CO2-Luftqualität Modbus-Sensor 5, en: CO2 air quality modbus sensor 5}
+- {de: CO2-Luftqualität Modbus-Sensor 6, en: CO2 air quality modbus sensor 6}
+- {de: Kommunikationsadresse, en: Communicate address}
+- {de: Kommunikationsplatinen-Temperatur, en: Communications board temperature}
+- {de: Konfiguration Lüftungsstufe, en: Configuration ventilation level}
+- {de: Steuerungs-Firmware-Version, en: Control firmware version}
+- {de: Zähler C1, en: Counter C1}
+- {de: Zähler C2, en: Counter C2}
+- {de: Zähler C3, en: Counter C3}
+- {de: Zähler C4, en: Counter C4}
+- {de: Zähler C5, en: Counter C5}
+- {de: Zähler C6, en: Counter C6}
+- {de: Zähler C7, en: Counter C7}
+- {de: Zähler C8, en: Counter C8}
+- {de: Zähler N1, en: Counter N1}
+- {de: Zähler N2, en: Counter N2}
+- {de: Zähler N3, en: Counter N3}
+- {de: Zähler N4, en: Counter N4}
+- {de: Strom, en: Current}
+- {de: Aktuelle Lüftungsstufe, en: Current ventilation level}
+- {de: Abregelungsmodus, en: Derating Mode}
+- {de: Gerätesperre, en: Device Lock}
+- {de: Entladeleistung, en: Discharge power}
+- {de: Entladeleistungsrate (Batterie zuerst), en: Discharge Power Rate (Bat First)}
+- {de: Entladeleistungsrate (Netz zuerst), en: Discharge Power Rate (Grid First)}
+- {de: Ablufttemperatur, en: Exhaust Air Temperature}
+- {de: Temperatur Fortluft, en: Exhaust air temperature}
+- {de: Lüftertyp, en: Fan type}
+- {de: Fehlercode, en: Fault code}
+- {de: Filter Reststandzeit, en: Filter remaining time}
+- {de: Firmware-Version, en: Firmware version}
+- {de: Frequenz, en: Frequency}
+- {de: Netzstrom L1, en: Grid Current L1}
+- {de: Netzstrom L2, en: Grid Current L2}
+- {de: Netzstrom L3, en: Grid Current L3}
+- {de: Netzfrequenz, en: Grid frequency}
+- {de: Netz-Ausgangsstrom, en: Grid output current}
+- {de: Netz-Ausgangsscheinleistung, en: Grid output watt VA}
+- {de: Netzleistung L1, en: Grid Power L1}
+- {de: Netzleistung L2, en: Grid Power L2}
+- {de: Netzleistung L3, en: Grid Power L3}
+- {de: Netzspannung, en: Grid voltage}
+- {de: Feuchtesensor 1, en: Humidity sensor 1}
+- {de: Feuchtesensor 2, en: Humidity sensor 2}
+- {de: Wechselrichter-Maschinenstatus, en: Inverter Machine Status}
+- {de: Leistungsfaktor (WR-Ausgang), en: Inverter output Power Factor}
+- {de: Wechselrichter-Betriebsstatus, en: Inverter Run Status}
+- {de: Wechselrichter-Standby-Kennung, en: Inverter standby flag}
+- {de: Wechselrichtertemperatur, en: Inverter temperature}
+- {de: IPM-Wechselrichtertemperatur, en: IPM Inverter temperature}
+- {de: Sprache, en: Language}
+- {de: LCD-Sprache, en: LCD language}
+- {de: Sperrzustand, en: Lock State}
+- {de: Max. Wirkleistungsabgabe, en: Max output active power}
+- {de: Modbus-Adresse, en: Modbus address}
+- {de: Modbus-Parität, en: Modbus parity}
+- {de: N-Bus-Innenspannung, en: N Bus inside voltage}
+- {de: Betriebsstunden Bypass, en: Operating hours bypass}
+- {de: Betriebsmodus Sommer/Winter, en: Operating mode summer/winter}
+- {de: Betriebsstatus, en: Operating status}
+- {de: Temperatur Außenluft, en: Outdoor air temperature}
+- {de: Max. begrenzte Ausgangsleistung, en: Output Maxpower Limited}
+- {de: Ausgangsleistung, en: Output power}
+- {de: P-Bus-Innenspannung, en: P Bus inside voltage}
+- {de: Leistungsfaktor, en: Power Factor}
+- {de: PV-Energie gesamt, en: PV Energy total}
+- {de: PV-Gesamtleistung, en: PV total power}
+- {de: PV1-Energie heute, en: PV1 Energy today}
+- {de: PV1-Energie gesamt, en: PV1 Energy total}
+- {de: PV1-Eingangsstrom, en: PV1 input current}
+- {de: PV1-Leistung, en: PV1 power}
+- {de: PV1-Spannung, en: PV1 voltage}
+- {de: PV2-Energie heute, en: PV2 Energy today}
+- {de: PV2-Energie gesamt, en: PV2 Energy total}
+- {de: PV2-Eingangsstrom, en: PV2 input current}
+- {de: PV2-Leistung, en: PV2 power}
+- {de: PV2-Spannung, en: PV2 voltage}
+- {de: Blindleistung, en: Reactive Power}
+- {de: Reale Ausgangsleistung (Prozent), en: Real output power percent}
+- {de: Fernsteuerung Ein/Aus, en: Remote On/Off}
+- {de: Solltemperatur, en: Required Temperature}
+- {de: Filter zurücksetzen, en: Reset filter}
+- {de: Seriennummer, en: Serial Number}
+- {de: Filter später erinnern, en: Snooze filter reminder}
+- {de: Softwareversion, en: Software Version}
+- {de: Ladung stoppen bei SOC (Batterie zuerst), en: Stop Charge SOC (Bat First)}
+- {de: Entladung stoppen bei SOC (Netz zuerst), en: Stop Discharge SOC (Grid First)}
+- {de: Speicher-Fehlercode, en: Storage Fault code}
+- {de: Speicher-Warncode, en: Storage Warning code}
+- {de: Sommer/Winter Zeitumstellung, en: Summer/Winter Time change}
+- {de: Sommernachtkühlung Stoppstunde, en: Summernight cooling stop hour}
+- {de: Sommernachtkühlung Stoppminute, en: Summernight cooling stop minute}
+- {de: Zulufttemperatur, en: Supply Air Temperature}
+- {de: RTC synchronisieren, en: Sync RTC}
+- {de: Soll Ablufttemperatur, en: Target extract air temperature}
+- {de: Soll Raumlufttemperatur, en: Target room air temperature}
+- {de: Soll Zulufttemperatur, en: Target supply air temperature}
+- {de: Temperaturregelungsart, en: Temperature control type}
+- {de: Dreiphasen-Netz-Ausgangsstrom (2), en: Three phase grid output current (2)}
+- {de: Dreiphasen-Netz-Ausgangsstrom (3), en: Three phase grid output current (3)}
+- {de: Dreiphasen-Netz-Ausgangsleistung (2), en: Three phase grid output power (2)}
+- {de: Dreiphasen-Netz-Ausgangsleistung (3), en: Three phase grid output power (3)}
+- {de: Dreiphasen-Netzspannung (2), en: Three phase grid voltage (2)}
+- {de: Dreiphasen-Netzspannung (3), en: Three phase grid voltage (3)}
+- {de: Dreiphasen-Netzspannung (RS), en: Three phase grid voltage (RS)}
+- {de: Dreiphasen-Netzspannung (ST), en: Three phase grid voltage (ST)}
+- {de: Dreiphasen-Netzspannung (TR), en: Three phase grid voltage (TR)}
+- {de: Ladeenergie heute, en: Today charge energy}
+- {de: Entladeenergie heute, en: Today discharge energy}
+- {de: Energie der Verbraucherlast heute, en: Today energy of user load}
+- {de: Energie ins Netz heute, en: Today energy to grid}
+- {de: Energie zum Verbraucher heute, en: Today energy to user}
+- {de: Erzeugte Energie heute, en: Today generate energy}
+- {de: Ladeenergie gesamt, en: Total charge energy}
+- {de: Entladeenergie gesamt, en: Total discharge energy}
+- {de: Energie der Verbraucherlast gesamt, en: Total energy of user load}
+- {de: Energie ins Netz gesamt, en: Total energy to grid}
+- {de: Energie zum Verbraucher gesamt, en: Total energy to user}
+- {de: Vorwärtsleistung gesamt, en: Total forward power}
+- {de: Erzeugte Energie gesamt, en: Total generate energy}
+- {de: Lastleistung gesamt, en: Total load power}
+- {de: Betriebsstunden Gesamt, en: Total operating hours}
+- {de: Rückwärtsleistung gesamt, en: Total reverse power}
+- {de: Lüftungsstufe, en: Ventilation level}
+- {de: Spannung, en: Voltage}
+- {de: Warncode, en: Warning code}
+- {de: Betriebsmodus, en: Work mode}
+- {de: Gesamtbetriebszeit, en: Work time total}
+
+# --- post-fix shared units: values a source-string fix normalized to match a sibling
+# device (so both Pichler units now share them); attributed here since consolidation
+# reads pre-fix device values. ------------------------------------------------------
+- {de: CPU-Start, en: CPU Startup}
+- {de: Zeitprogramm Temperaturregelung, en: Time program temperature control}

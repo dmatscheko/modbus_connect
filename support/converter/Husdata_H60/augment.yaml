@@ -1,2 +1,18 @@
 # Augmentation policy for Husdata_H60. Pure modbus_local_gateway conversion — no grouping/patches.
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
+
+# Translations (en/de): shared cross-device vocabulary in
+# support/converter/_common/translations.yaml is applied automatically; the translations:
+# block below adds this device's own strings (each matched by any of a unit's language
+# values). The integration resolves against Home Assistant's language at load, falling back
+# to English then the source string.
+translations:
+  - {de: Warmwasser Ist-Temperatur, en: DHW Actual Temperature}
+  - {de: Warmwasser Soll-Temperatur, en: DHW Target Temperature}
+  - {de: Von den Erdsonden, en: From ground loops}
+  - {de: WP interner Wärmeträger-Rücklauf, en: HP Internal heat carrier return}
+  - {de: WP interner Wärmeträger-Vorlauf, en: HP internal heat supply forward}
+  - {de: Innentemperatur, en: Indoor Temperature}
+  - {de: Außentemperatur, en: Outdoor Temperature}
+  - {de: Zu den Erdsonden, en: To ground loops}
+  - {de: Vorlauf zur Fußbodenheizung, en: Water feed out to underfloor}

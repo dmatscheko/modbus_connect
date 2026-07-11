@@ -1,4 +1,82 @@
 # Converted from modbus_local_gateway 'SDM230.yaml'; entity groups from support/converter/SDM230/augment.yaml
+# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Serial Number:
+    de: Seriennummer
+    en: Serial Number
+  Communicate address:
+    de: Kommunikationsadresse
+    en: Communicate address
+  Baud Rate:
+    de: Baudrate
+    en: Baud Rate
+  Total system power demand:
+    de: Leistungsbedarf des Gesamtsystems
+    en: Total system power demand
+  Maximum total system power demand:
+    de: Maximaler Leistungsbedarf des Gesamtsystems
+    en: Maximum total system power demand
+  Current system import power demand:
+    de: Aktueller Bezugsleistungsbedarf des Systems
+    en: Current system import power demand
+  Maximum system import power demand:
+    de: Maximaler Bezugsleistungsbedarf des Systems
+    en: Maximum system import power demand
+  Current system export power demand:
+    de: Aktueller Einspeiseleistungsbedarf des Systems
+    en: Current system export power demand
+  Maximum system export power demand:
+    de: Maximaler Einspeiseleistungsbedarf des Systems
+    en: Maximum system export power demand
+  Voltage:
+    de: Spannung
+    en: Voltage
+  Current:
+    de: Strom
+    en: Current
+  Active Power:
+    de: Wirkleistung
+    en: Active Power
+  Apparent Power:
+    de: Scheinleistung
+    en: Apparent Power
+  Reactive Power:
+    de: Blindleistung
+    en: Reactive Power
+  Power Factor:
+    de: Leistungsfaktor
+    en: Power Factor
+  Phase Angle:
+    de: Phasenwinkel
+    en: Phase Angle
+  Frequency:
+    de: Frequenz
+    en: Frequency
+  Import Active Energy:
+    de: Bezogene Wirkenergie
+    en: Import Active Energy
+  Export Active Energy:
+    de: Eingespeiste Wirkenergie
+    en: Export Active Energy
+  Import Reactive Energy:
+    de: Bezogene Blindenergie
+    en: Import Reactive Energy
+  Export Reactive Energy:
+    de: Eingespeiste Blindenergie
+    en: Export Reactive Energy
+  Current demand:
+    de: Strombedarf
+    en: Current demand
+  Maximum current Demand:
+    de: Maximaler Strombedarf
+    en: Maximum current Demand
+  Total Active Energy:
+    de: Gesamte Wirkenergie
+    en: Total Active Energy
+  Total Reactive Energy:
+    de: Gesamte Blindenergie
+    en: Total Reactive Energy
+
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
   manufacturer: Eastron

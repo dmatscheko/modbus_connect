@@ -61,6 +61,15 @@ translations:
   Kühlen:
     de: Kühlen
     en: Cool
+  Hardwareeingang:
+    de: Hardwareeingang
+    en: Hardware input
+  Sperre nicht aktiv:
+    de: Sperre nicht aktiv
+    en: Block not active
+  Sperre aktiv:
+    de: Sperre aktiv
+    en: Block active
   Aus:
     de: Aus
     en: "Off"
@@ -76,9 +85,597 @@ translations:
   Abtauen:
     de: Abtauen
     en: Defrost
+  Durchflussüberwachung:
+    de: Durchflussüberwachung
+    en: Flow monitoring
+  Verzögerung Betriebsmodusumschaltung:
+    de: Verzögerung Betriebsmodusumschaltung
+    en: Operating mode switch-over delay
   Sperre:
     de: Sperre
     en: Blocked
+  keine Meldung:
+    de: keine Meldung
+    en: No message
+  Volumenstrom:
+    de: Volumenstrom
+    en: Volume flow
+  Funktionskontrolle:
+    de: Funktionskontrolle
+    en: Function check
+  Einsatzgrenze HT:
+    de: Einsatzgrenze HT
+    en: Operating limit HT
+  Systemkontrolle:
+    de: Systemkontrolle
+    en: System check
+  Verzögerung Umschaltung Kühlen:
+    de: Verzögerung Umschaltung Kühlen
+    en: Cooling switch-over delay
+  Pumpenvorlauf:
+    de: Pumpenvorlauf
+    en: Pump lead time
+  Mindeststandzeit:
+    de: Mindeststandzeit
+    en: Minimum standstill time
+  Netzbelastung:
+    de: Netzbelastung
+    en: Grid load
+  Schaltspielsperre:
+    de: Schaltspielsperre
+    en: Switching cycle lock
+  Warmwasser Nacherwärmung:
+    de: Warmwasser Nacherwärmung
+    en: Hot water reheating
+  Regenerativ:
+    de: Regenerativ
+    en: Regenerative
+  EVU-Sperre:
+    de: EVU-Sperre
+    en: Utility block
+  Sanftanlasser:
+    de: Sanftanlasser
+    en: Soft starter
+  Durchfluss:
+    de: Durchfluss
+    en: Flow
+  Einsatzgrenze Wärmepumpe:
+    de: Einsatzgrenze Wärmepumpe
+    en: Heat pump operating limit
+  Hochdruck:
+    de: Hochdruck
+    en: High pressure
+  Niederdruck:
+    de: Niederdruck
+    en: Low pressure
+  Einsatzgrenze Wärmequelle:
+    de: Einsatzgrenze Wärmequelle
+    en: Heat source operating limit
+  System Grenze:
+    de: System Grenze
+    en: System limit
+  Last Primärkreis:
+    de: Last Primärkreis
+    en: Primary circuit load
+  Sperre Extern:
+    de: Sperre Extern
+    en: External block
+  Inverter:
+    de: Wechselrichter
+    en: Inverter
+  Aufwärmen:
+    de: Aufwärmen
+    en: Warm-up
+  EvD Initialisierung:
+    de: EvD Initialisierung
+    en: EvD initialization
+  "2.Wärmeerzeuger freigegeben":
+    de: "2.Wärmeerzeuger freigegeben"
+    en: "2nd heat generator enabled"
+  Störung:
+    de: Störung
+    en: Error
+  kein Fehler:
+    de: kein Fehler
+    en: No fault
+  Fehler N17.1:
+    de: Fehler N17.1
+    en: Fault N17.1
+  Fehler N17.2:
+    de: Fehler N17.2
+    en: Fault N17.2
+  Fehler N17.3:
+    de: Fehler N17.3
+    en: Fault N17.3
+  Fehler N17.4:
+    de: Fehler N17.4
+    en: Fault N17.4
+  Elektronisches Ex.Ventil:
+    de: Elektronisches Ex.Ventil
+    en: Electronic exp. valve
+  Sensorik:
+    de: Sensorik
+    en: Sensors
+  Niederdruck Sole:
+    de: Niederdruck Sole
+    en: Low pressure brine
+  "!Primärkreis":
+    de: "!Primärkreis"
+    en: "!Primary circuit"
+  "!Abtauen":
+    de: "!Abtauen"
+    en: "!Defrost"
+  "!Niederdruck Sole":
+    de: "!Niederdruck Sole"
+    en: "!Low pressure brine"
+  "!Warmwasser":
+    de: "!Warmwasser"
+    en: "!Hot water"
+  "!Last Verdichter":
+    de: "!Last Verdichter"
+    en: "!Compressor load"
+  "!Codierung":
+    de: "!Codierung"
+    en: "!Coding"
+  "!Niederdruck":
+    de: "!Niederdruck"
+    en: "!Low pressure"
+  "!Frostschutz":
+    de: "!Frostschutz"
+    en: "!Frost protection"
+  "!Hochdruck":
+    de: "!Hochdruck"
+    en: "!High pressure"
+  "!Temperatur Differenz":
+    de: "!Temperatur Differenz"
+    en: "!Temperature difference"
+  "!Heißgasthermostat":
+    de: "!Heißgasthermostat"
+    en: "!Hot gas thermostat"
+  "!Durchfluss":
+    de: "!Durchfluss"
+    en: "!Flow"
+  "!Aufwärmen":
+    de: "!Aufwärmen"
+    en: "!Warm-up"
+  Außenfühler (R1):
+    de: Außenfühler (R1)
+    en: Outside sensor (R1)
+  Rücklauffühler (R2):
+    de: Rücklauffühler (R2)
+    en: Return sensor (R2)
+  Warmwasserfühler (R3):
+    de: Warmwasserfühler (R3)
+    en: Hot water sensor (R3)
+  Codierung (R7):
+    de: Codierung (R7)
+    en: Coding (R7)
+  Vorlauffühler (R9):
+    de: Vorlauffühler (R9)
+    en: Flow sensor (R9)
+  "2.Heizkreisfühler (R5)":
+    de: "2.Heizkreisfühler (R5)"
+    en: "2nd heating circuit sensor (R5)"
+  "3.Heizkreisfühler (R13)":
+    de: "3.Heizkreisfühler (R13)"
+    en: "3rd heating circuit sensor (R13)"
+  Regenerativfühler (R13):
+    de: Regenerativfühler (R13)
+    en: Regenerative sensor (R13)
+  Raumfühler 1:
+    de: Raumfühler 1
+    en: Room sensor 1
+  Raumfühler 2:
+    de: Raumfühler 2
+    en: Room sensor 2
+  Fühler Wärmequellenaustritt (R6):
+    de: Fühler Wärmequellenaustritt (R6)
+    en: Heat source outlet sensor (R6)
+  "Fühler Wärmequelleneintritt (R24)*":
+    de: "Fühler Wärmequelleneintritt (R24)*"
+    en: "Heat source inlet sensor (R24)*"
+  Kollektorfühler (R23):
+    de: Kollektorfühler (R23)
+    en: Collector sensor (R23)
+  Niederdrucksensor (R25):
+    de: Niederdrucksensor (R25)
+    en: Low pressure sensor (R25)
+  Hochdrucksensor (R26):
+    de: Hochdrucksensor (R26)
+    en: High pressure sensor (R26)
+  Raumfeuchte 1:
+    de: Raumfeuchte 1
+    en: Room humidity 1
+  Raumfeuchte 2:
+    de: Raumfeuchte 2
+    en: Room humidity 2
+  Fühler Frostschutz-Kälte:
+    de: Fühler Frostschutz-Kälte
+    en: Frost protection cooling sensor
+  Heißgas:
+    de: Heißgas
+    en: Hot gas
+  Rücklauffühler (R2.1):
+    de: Rücklauffühler (R2.1)
+    en: Return sensor (R2.1)
+  Schwimmbadfühler (R20):
+    de: Schwimmbadfühler (R20)
+    en: Pool sensor (R20)
+  Vorlauffühler Kühlen Passiv (R11):
+    de: Vorlauffühler Kühlen Passiv (R11)
+    en: Flow sensor passive cooling (R11)
+  Rücklauffühler Kühlen Passiv (R4):
+    de: Rücklauffühler Kühlen Passiv (R4)
+    en: Return sensor passive cooling (R4)
+  Fühler Solarspeicher (R22):
+    de: Fühler Solarspeicher (R22)
+    en: Solar storage sensor (R22)
+  Anforderungsfühler Heizen (R2.2):
+    de: Anforderungsfühler Heizen (R2.2)
+    en: Heating demand sensor (R2.2)
+  Anforderungsfühler Kühlen (R39):
+    de: Anforderungsfühler Kühlen (R39)
+    en: Cooling demand sensor (R39)
+  Betriebsmodus:
+    de: Betriebsmodus
+    en: Work mode
+  Heizung Parallelverschiebung:
+    de: Heizung Parallelverschiebung
+    en: Heating parallel shift
+  Heizung Raumtemperatur:
+    de: Heizung Raumtemperatur
+    en: Heating room temperature
+  Heizung Heizkurvenendpunkt:
+    de: Heizung Heizkurvenendpunkt
+    en: Heating curve end point
+  Heizung Hysterese:
+    de: Heizung Hysterese
+    en: Heating hysteresis
+  Softwaresperre Extern:
+    de: Softwaresperre Extern
+    en: External software block
+  Warmwasser Hysterese:
+    de: Warmwasser Hysterese
+    en: Hot water hysteresis
+  Warmwasser Solltemperatur Minimal:
+    de: Warmwasser Solltemperatur Minimal
+    en: Hot water setpoint minimum
+  Warmwasser Solltemperatur Maximal:
+    de: Warmwasser Solltemperatur Maximal
+    en: Hot water setpoint maximum
+  Solltemp. dyn. Kühlung:
+    de: Solltemp. dyn. Kühlung
+    en: Setpoint dyn. cooling
+  Auswahl Heizkreis 2:
+    de: Auswahl Heizkreis 2
+    en: Selection heating circuit 2
+  Heizkurvenendpunkt:
+    de: Heizkurvenendpunkt
+    en: Heating curve endpoint
+  Festwertemperatur:
+    de: Festwertemperatur
+    en: Fixed value temperature
+  Parallelverschiebung:
+    de: Parallelverschiebung
+    en: Parallel shift
+  Mischerlaufzeit:
+    de: Mischerlaufzeit
+    en: Mixer runtime
+  Mischerhysterese:
+    de: Mischerhysterese
+    en: Mixer hysteresis
+  Maximale Temperatur:
+    de: Maximale Temperatur
+    en: Maximum temperature
+  Kühlung Raumsolltemperatur:
+    de: Kühlung Raumsolltemperatur
+    en: Cooling room setpoint temperature
+  Anzahl Partystunden:
+    de: Anzahl Partystunden
+    en: Number of party hours
+  Anzahl Urlaubstage:
+    de: Anzahl Urlaubstage
+    en: Number of holiday days
+  Stufen:
+    de: Stufen
+    en: Stages
+  Zeitwert Stoßlüften:
+    de: Zeitwert Stoßlüften
+    en: Burst ventilation time value
+  Hysterese:
+    de: Hysterese
+    en: Hysteresis
+  Solltemperatur:
+    de: Solltemperatur
+    en: Setpoint temperature
+  Grenztemperatur parallel:
+    de: Grenztemperatur parallel
+    en: Parallel limit temperature
+  Absenkung:
+    de: Absenkung
+    en: Setback
+  Start Stunde 1:
+    de: Start Stunde 1
+    en: Start hour 1
+  Start Minute 1:
+    de: Start Minute 1
+    en: Start minute 1
+  Ende Stunde 1:
+    de: Ende Stunde 1
+    en: End hour 1
+  Ende Minute 1:
+    de: Ende Minute 1
+    en: End minute 1
+  Start Stunde 2:
+    de: Start Stunde 2
+    en: Start hour 2
+  Start Minute 2:
+    de: Start Minute 2
+    en: Start minute 2
+  Ende Stunde 2:
+    de: Ende Stunde 2
+    en: End hour 2
+  Ende Minute 2:
+    de: Ende Minute 2
+    en: End minute 2
+  Sonntag:
+    de: Sonntag
+    en: Sunday
+  Montag:
+    de: Montag
+    en: Monday
+  Dienstag:
+    de: Dienstag
+    en: Tuesday
+  Mittwoch:
+    de: Mittwoch
+    en: Wednesday
+  Donnerstag:
+    de: Donnerstag
+    en: Thursday
+  Freitag:
+    de: Freitag
+    en: Friday
+  Samstag:
+    de: Samstag
+    en: Saturday
+  Absenk- / Anhebwert:
+    de: Absenk- / Anhebwert
+    en: Setback / boost value
+  Stunde:
+    de: Stunde
+    en: Hour
+  Monat:
+    de: Monat
+    en: Month
+  Wochentag:
+    de: Wochentag
+    en: Weekday
+  Tag:
+    de: Tag
+    en: Day
+  Jahr:
+    de: Jahr
+    en: Year
+  Sync clock:
+    de: Uhr synchronisieren
+    en: Sync clock
+  Außentemperatur (R1):
+    de: Außentemperatur (R1)
+    en: Outside temperature (R1)
+  Heizung Rücklauftemperatur (R2):
+    de: Heizung Rücklauftemperatur (R2)
+    en: Heating return temperature (R2)
+  "1. Heizkreis Temperatur (R5)":
+    de: "1. Heizkreis Temperatur (R5)"
+    en: "1st heating circuit temperature (R5)"
+  "2. Heizkreis Temperatur (R?)":
+    de: "2. Heizkreis Temperatur (R?)"
+    en: "2nd heating circuit temperature (R?)"
+  "3. Heizkreis Temperatur (R13)":
+    de: "3. Heizkreis Temperatur (R13)"
+    en: "3rd heating circuit temperature (R13)"
+  Heizung Rücklaufsolltemperatur:
+    de: Heizung Rücklaufsolltemperatur
+    en: Heating return setpoint temperature
+  "1. Heizkreis Rücklaufsolltemperatur":
+    de: "1. Heizkreis Rücklaufsolltemperatur"
+    en: "1st heating circuit return setpoint temperature"
+  "2. Heizkreis Rücklaufsolltemperatur":
+    de: "2. Heizkreis Rücklaufsolltemperatur"
+    en: "2nd heating circuit return setpoint temperature"
+  "3. Heizkreis Rücklaufsolltemperatur":
+    de: "3. Heizkreis Rücklaufsolltemperatur"
+    en: "3rd heating circuit return setpoint temperature"
+  Warmwasser Temperatur (R3):
+    de: Warmwasser Temperatur (R3)
+    en: Hot water temperature (R3)
+  Warmwasser Solltemperatur:
+    de: Warmwasser Solltemperatur
+    en: Hot water setpoint temperature
+  Vorlauftemperatur (R9):
+    de: Vorlauftemperatur (R9)
+    en: Flow temperature (R9)
+  Wärmequelleneintrittstemperatur (R24):
+    de: Wärmequelleneintrittstemperatur (R24)
+    en: Heat source inlet temperature (R24)
+  Wärmequellenaustrittstemperatur (R6):
+    de: Wärmequellenaustrittstemperatur (R6)
+    en: Heat source outlet temperature (R6)
+  Verdichter 1 Laufzeit:
+    de: Verdichter 1 Laufzeit
+    en: Compressor 1 runtime
+  Primärpumpe / Ventilator (M11) Laufzeit:
+    de: Primärpumpe / Ventilator (M11) Laufzeit
+    en: Primary pump / fan (M11) runtime
+  Heizungspumpe (M13) Laufzeit:
+    de: Heizungspumpe (M13) Laufzeit
+    en: Heating pump (M13) runtime
+  Warmwasserpumpe (M18) Laufzeit:
+    de: Warmwasserpumpe (M18) Laufzeit
+    en: Hot water pump (M18) runtime
+  Zusatzumwälzpumpe (M16) Laufzeit:
+    de: Zusatzumwälzpumpe (M16) Laufzeit
+    en: Additional circulation pump (M16) runtime
+  Wärmemenge Heizung:
+    de: Wärmemenge Heizung
+    en: Heat quantity heating
+  Wärmemenge Warmwasser:
+    de: Wärmemenge Warmwasser
+    en: Heat quantity hot water
+  Statusmeldung:
+    de: Statusmeldung
+    en: Status message
+  Sperrmeldung:
+    de: Sperrmeldung
+    en: Block message
+  Störmeldung:
+    de: Störmeldung
+    en: Fault message
+  Sensorfehler:
+    de: Sensorfehler
+    en: Sensor fault
+  Raumtemperatur 1 / RT-RTH Econ:
+    de: Raumtemperatur 1 / RT-RTH Econ
+    en: Room temperature 1 / RT-RTH Econ
+  Raumtemperatur 2:
+    de: Raumtemperatur 2
+    en: Room temperature 2
+  Raumfeuchte 1 / RT-RTH Econ:
+    de: Raumfeuchte 1 / RT-RTH Econ
+    en: Room humidity 1 / RT-RTH Econ
+  Vorlauftemperatur (R11):
+    de: Vorlauftemperatur (R11)
+    en: Flow temperature (R11)
+  Rücklauftemperatur (R4):
+    de: Rücklauftemperatur (R4)
+    en: Return temperature (R4)
+  Rücklauftemp. gem. Primärkreis (R24):
+    de: Rücklauftemp. gem. Primärkreis (R24)
+    en: Return temp. common primary circuit (R24)
+  Solarspeicher (R22):
+    de: Solarspeicher (R22)
+    en: Solar storage (R22)
+  Außenlufttemperatur:
+    de: Außenlufttemperatur
+    en: Outside air temperature
+  Zulufttemperatur:
+    de: Zulufttemperatur
+    en: Supply air temperature
+  Ablufttemperatur:
+    de: Ablufttemperatur
+    en: Extract air temperature
+  Fortlufttemperatur:
+    de: Fortlufttemperatur
+    en: Exhaust air temperature
+  Drehzahl Zuluftventilator:
+    de: Drehzahl Zuluftventilator
+    en: Supply air fan speed
+  Drehzahl Abluftventilator:
+    de: Drehzahl Abluftventilator
+    en: Extract air fan speed
+  Verdichter 2:
+    de: Verdichter 2
+    en: Compressor 2
+  "2.Wärmeerzeuger (E10)":
+    de: "2.Wärmeerzeuger (E10)"
+    en: "2nd heat generator (E10)"
+  Flanschheizung (E9):
+    de: Flanschheizung (E9)
+    en: Flange heater (E9)
+  Schwimmbadpumpe (M19):
+    de: Schwimmbadpumpe (M19)
+    en: Pool pump (M19)
+  "Wärmemenge * Heizen 5-8":
+    de: "Wärmemenge * Heizen 5-8"
+    en: "Heat quantity * heating 5-8"
+  "Wärmemenge * Heizen 9-12":
+    de: "Wärmemenge * Heizen 9-12"
+    en: "Heat quantity * heating 9-12"
+  "Wärmemenge * Warmwasser 5-8":
+    de: "Wärmemenge * Warmwasser 5-8"
+    en: "Heat quantity * hot water 5-8"
+  "Wärmemenge * Warmwasser 9-12":
+    de: "Wärmemenge * Warmwasser 9-12"
+    en: "Heat quantity * hot water 9-12"
+  "Wärmemenge * Schwimmbad 1-4":
+    de: "Wärmemenge * Schwimmbad 1-4"
+    en: "Heat quantity * pool 1-4"
+  "Wärmemenge * Schwimmbad 5-8":
+    de: "Wärmemenge * Schwimmbad 5-8"
+    en: "Heat quantity * pool 5-8"
+  "Wärmemenge * Schwimmbad 9-12":
+    de: "Wärmemenge * Schwimmbad 9-12"
+    en: "Heat quantity * pool 9-12"
+  Warmwasserthermostat:
+    de: Warmwasserthermostat
+    en: Hot water thermostat
+  Verdichter 1 Modus:
+    de: Verdichter 1 Modus
+    en: Compressor 1 mode
+  Sole Primärpumpe (M11) / Ventilator (M2) Modus:
+    de: Sole Primärpumpe (M11) / Ventilator (M2) Modus
+    en: Brine primary pump (M11) / fan (M2) mode
+  Heizungspumpe (M13) Modus:
+    de: Heizungspumpe (M13) Modus
+    en: Heating pump (M13) mode
+  Warmwasserpumpe (M18) Modus:
+    de: Warmwasserpumpe (M18) Modus
+    en: Hot water pump (M18) mode
+  Mischer (M21) Modus:
+    de: Mischer (M21) Modus
+    en: Mixer (M21) mode
+  Zusatzumwälzpumpe (M16) Modus:
+    de: Zusatzumwälzpumpe (M16) Modus
+    en: Additional circulation pump (M16) mode
+  Heizungspumpe (M15) Modus:
+    de: Heizungspumpe (M15) Modus
+    en: Heating pump (M15) mode
+  Mischer (M22) Modus:
+    de: Mischer (M22) Modus
+    en: Mixer (M22) mode
+  Schwimmbadpumpe (M19) Modus:
+    de: Schwimmbadpumpe (M19) Modus
+    en: Pool pump (M19) mode
+  Sammelstörmeldung (H5) Modus:
+    de: Sammelstörmeldung (H5) Modus
+    en: Collective fault message (H5) mode
+  Heizungspumpe (M14) Modus:
+    de: Heizungspumpe (M14) Modus
+    en: Heating pump (M14) mode
+  Kühlpumpe (M17) Modus:
+    de: Kühlpumpe (M17) Modus
+    en: Cooling pump (M17) mode
+  Heizungspumpe (M20) Modus:
+    de: Heizungspumpe (M20) Modus
+    en: Heating pump (M20) mode
+  Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus:
+    de: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
+    en: Room thermostats heating/cooling switch-over (N9) mode
+  Primärpumpe Kühlen (M12) Modus:
+    de: Primärpumpe Kühlen (M12) Modus
+    en: Primary pump cooling (M12) mode
+  Solarpumpe (M23) Modus:
+    de: Solarpumpe (M23) Modus
+    en: Solar pump (M23) mode
+  Aktiv Zeit 1:
+    de: Aktiv Zeit 1
+    en: Active time 1
+  Aktiv Zeit 2:
+    de: Aktiv Zeit 2
+    en: Active time 2
+  Schwimmbadthermostat:
+    de: Schwimmbadthermostat
+    en: Pool thermostat
+  Mischer (M21) ZU:
+    de: Mischer (M21) ZU
+    en: Mixer (M21) closed
+  Mischer (M22) Zu:
+    de: Mischer (M22) Zu
+    en: Mixer (M22) closed
+  Heizung:
+    de: Heizung
+    en: Space heating
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -406,7 +1003,7 @@ holding:
     groups: [advanced]
     ha:
       platform: sensor
-      name: Mischer Hysterese
+      name: Mischerhysterese
   grenztemperatur_parallel:
     address: 5020
     groups: [advanced]
@@ -997,7 +1594,7 @@ input:
       26: "!Frostschutz"
       28: "!Hochdruck"
       29: "!Temperatur Differenz"
-      30: "!Heisgasthermostat"
+      30: "!Heißgasthermostat"
       31: "!Durchfluss"
       32: "!Aufwärmen"
     ha:
