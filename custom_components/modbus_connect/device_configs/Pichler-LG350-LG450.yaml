@@ -1,651 +1,8 @@
-# Pichler Lüftungsgerät LG 350 - LG 450 — regenerated from source (modbus_local_gateway base + manufacturer Modbus doc); policy in support/devicedocs/pichler-lg350-lg450/augment.yaml
-# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
-translations:
-  Lüftungsgerät LG 350 - LG 450:
-    de: Lüftungsgerät LG 350 - LG 450
-    en: Ventilation unit LG 350 - LG 450
-  Modbus configuration:
-    en: Modbus configuration
-    de: Modbus-Konfiguration
-  CO2 control:
-    en: CO2 control
-    de: CO2 Regelung
-  Humidity control:
-    en: Humidity control
-    de: Feuchte Regelung
-  Summer-night cooling:
-    en: Summer-night cooling
-    de: Sommernachtkühlung
-  Pre/post-heater:
-    en: Pre/post-heater
-    de: Vor-/Nachheizung
-  Filter:
-    en: Filter
-    de: Filter
-  "Fan & flow":
-    en: "Fan & flow"
-    de: "Ventilator & Luftmenge"
-  Firmware / model:
-    en: Firmware / model
-    de: Firmware / Modell
-  Sommer:
-    de: Sommer
-    en: Summer
-  Winter:
-    de: Winter
-    en: Winter
-  T8 extern:
-    de: T8 extern
-    en: T8 external
-  Nein:
-    de: Nein
-    en: "No"
-  Ja:
-    de: Ja
-    en: "Yes"
-  Aus:
-    de: Aus
-    en: "Off"
-  Ein:
-    de: Ein
-    en: "On"
-  Automatisch:
-    de: Automatisch
-    en: Automatically
-  Regelung arbeiten lassen:
-    de: Regelung arbeiten lassen
-    en: Let controller operate
-  Bypass geschlossen:
-    de: Bypass geschlossen
-    en: Bypass closed
-  Bypass offen:
-    de: Bypass offen
-    en: Bypass open
-  Keine Aktion:
-    de: Keine Aktion
-    en: No action
-  Fehlerprotokoll löschen:
-    de: Fehlerprotokoll löschen
-    en: Clear error log
-  Filterprotokoll löschen:
-    de: Filterprotokoll löschen
-    en: Clear filter log
-  Neustart:
-    de: Neustart
-    en: Restart
-  Deaktivieren:
-    de: Deaktivieren
-    en: Disable
-  Aktivieren:
-    de: Aktivieren
-    en: Enable
-  Inaktiv:
-    de: Inaktiv
-    en: Inactive
-  Aktiv:
-    de: Aktiv
-    en: Active
-  None:
-    de: Keine
-    en: None
-  Even:
-    de: Gerade
-    en: Even
-  Odd:
-    de: Ungerade
-    en: Odd
-  Constant air volume flow:
-    de: Konstanter Volumenstrom
-    en: Constant air volume flow
-  Constant pressure:
-    de: Konstanter Druck
-    en: Constant pressure
-  Inactive:
-    de: Inaktiv
-    en: Inactive
-  Active:
-    de: Aktiv
-    en: Active
-  Only in Standby:
-    de: Nur im Standby
-    en: Only in Standby
-  All levels:
-    de: Alle Stufen
-    en: All levels
-  CPU Startup:
-    de: CPU-Start
-    en: CPU Startup
-  Anlauf:
-    de: Anlauf
-    en: Starting
-  Betrieb:
-    de: Betrieb
-    en: Operation
-  Nachlauf:
-    de: Nachlauf
-    en: Run-on
-  Standby Powersafe:
-    de: Standby Powersafe
-    en: Standby power-save
-  Testmodus:
-    de: Testmodus
-    en: Test mode
-  AUS von extern:
-    de: AUS von extern
-    en: Off from external
-  Fehler:
-    de: Fehler
-    en: Fault
-  Betriebsmodus Sommer/Winter:
-    de: Betriebsmodus Sommer/Winter
-    en: Operating mode summer/winter
-  Lüftungsstufe:
-    de: Lüftungsstufe
-    en: Ventilation level
-  EWT Sommer Umschaltpunkt:
-    de: EWT Sommer Umschaltpunkt
-    en: Geothermal heat exchanger summer switching point
-  EWT Winter Umschaltpunkt:
-    de: EWT Winter Umschaltpunkt
-    en: Geothermal heat exchanger winter switching point
-  Temperaturregelungsart:
-    de: Temperaturregelungsart
-    en: Temperature control type
-  Luftstrom Lüftungsstufe 1:
-    de: Luftstrom Lüftungsstufe 1
-    en: Air flow ventilation level 1
-  Luftstrom Lüftungsstufe 2:
-    de: Luftstrom Lüftungsstufe 2
-    en: Air flow ventilation level 2
-  Luftstrom Lüftungsstufe 3:
-    de: Luftstrom Lüftungsstufe 3
-    en: Air flow ventilation level 3
-  Luftstrom Grundlüftung:
-    de: Luftstrom Grundlüftung
-    en: Air flow basic ventilation
-  Vorheizregister Relais Schwellwert:
-    de: Vorheizregister Relais Schwellwert
-    en: Preheater relay threshold
-  Soll Zulufttemperatur:
-    de: Soll Zulufttemperatur
-    en: Target supply air temperature
-  Soll Raumlufttemperatur:
-    de: Soll Raumlufttemperatur
-    en: Target room air temperature
-  Soll Ablufttemperatur:
-    de: Soll Ablufttemperatur
-    en: Target extract air temperature
-  Lüftungsstufe 3 Nachlaufzeit (External Din2):
-    de: Lüftungsstufe 3 Nachlaufzeit (External Din2)
-    en: Ventilation level 3 run-on time (External Din2)
-  Tauschintervall Filter:
-    de: Tauschintervall Filter
-    en: Filter replacement interval
-  Raumtemperaturfühler Quelle:
-    de: Raumtemperaturfühler Quelle
-    en: Room temperature sensor source
-  Filter zurücksetzen:
-    de: Filter zurücksetzen
-    en: Reset filter
-  Filter später erinnern:
-    de: Filter später erinnern
-    en: Snooze filter reminder
-  Konfiguration Lüftungsstufe:
-    de: Konfiguration Lüftungsstufe
-    en: Configuration ventilation level
-  Bedieneinheit Fehlerausgabe:
-    de: Bedieneinheit Fehlerausgabe
-    en: Control unit error output
-  CO2 Regelung:
-    de: CO2 Regelung
-    en: CO2 control
-  CO2 Sollwert:
-    de: CO2 Sollwert
-    en: CO2 setpoint
-  Feuchte Regelung:
-    de: Feuchte Regelung
-    en: Humidity control
-  Luftfeuchte Sollwert:
-    de: Luftfeuchte Sollwert
-    en: Humidity setpoint
-  Feuchte Regelung LS3 maximale Zeit:
-    de: Feuchte Regelung LS3 maximale Zeit
-    en: Humidity control level 3 maximum time
-  Sommer/Winter Zeitumstellung:
-    de: Sommer/Winter Zeitumstellung
-    en: Summer/winter time change
-  Bypassklappe Stellung:
-    de: Bypassklappe Stellung
-    en: Bypass damper position
-  Soll Zulufttemperatur (Abgesenkt):
-    de: Soll Zulufttemperatur (Abgesenkt)
-    en: Target supply air temperature (setback)
-  Soll Raumlufttemperatur (Abgesenkt):
-    de: Soll Raumlufttemperatur (Abgesenkt)
-    en: Target room air temperature (setback)
-  Soll Ablufttemperatur (Abgesenkt):
-    de: Soll Ablufttemperatur (Abgesenkt)
-    en: Target extract air temperature (setback)
-  System Zurücksetzen:
-    de: System Zurücksetzen
-    en: System reset
-  Vorheizregister Zieltemperatur:
-    de: Vorheizregister Zieltemperatur
-    en: Preheater target temperature
-  Automatische Umschaltung Sommer/Winter:
-    de: Automatische Umschaltung Sommer/Winter
-    en: Automatic summer/winter switching
-  Lüftungsstufe 3 Maximale Zeit:
-    de: Lüftungsstufe 3 Maximale Zeit
-    en: Ventilation level 3 maximum time
-  Kanaldruck Zuluft Stufe 1:
-    de: Kanaldruck Zuluft Stufe 1
-    en: Duct pressure supply air level 1
-  Kanaldruck Zuluft Stufe 2:
-    de: Kanaldruck Zuluft Stufe 2
-    en: Duct pressure supply air level 2
-  Kanaldruck Zuluft Stufe 3:
-    de: Kanaldruck Zuluft Stufe 3
-    en: Duct pressure supply air level 3
-  Kanaldruck Zuluft Grundlüftung:
-    de: Kanaldruck Zuluft Grundlüftung
-    en: Duct pressure supply air basic ventilation
-  Kanaldruck Abluft Stufe 1:
-    de: Kanaldruck Abluft Stufe 1
-    en: Duct pressure extract air level 1
-  Kanaldruck Abluft Stufe 2:
-    de: Kanaldruck Abluft Stufe 2
-    en: Duct pressure extract air level 2
-  Kanaldruck Abluft Stufe 3:
-    de: Kanaldruck Abluft Stufe 3
-    en: Duct pressure extract air level 3
-  Kanaldruck Abluft Grundlüftung:
-    de: Kanaldruck Abluft Grundlüftung
-    en: Duct pressure extract air basic ventilation
-  Abluft-Balance Lüftungsstufe 1:
-    de: Abluft-Balance Lüftungsstufe 1
-    en: Extract air balance ventilation level 1
-  Abluft-Balance Lüftungsstufe 2:
-    de: Abluft-Balance Lüftungsstufe 2
-    en: Extract air balance ventilation level 2
-  Abluft-Balance Lüftungsstufe 3:
-    de: Abluft-Balance Lüftungsstufe 3
-    en: Extract air balance ventilation level 3
-  Abluft-Balance Grundlüftung:
-    de: Abluft-Balance Grundlüftung
-    en: Extract air balance basic ventilation
-  Freigabe Heizen:
-    de: Freigabe Heizen
-    en: Heating enable
-  Freigabe Kühlen:
-    de: Freigabe Kühlen
-    en: Cooling enable
-  Zeitprogramm Lüftungsstufen:
-    de: Zeitprogramm Lüftungsstufen
-    en: Time program ventilation levels
-  Zeitprogramm Temperaturregelung:
-    de: Zeitprogramm Temperaturregelung
-    en: Time program temperature control
-  Modbus address:
-    de: Modbus-Adresse
-    en: Modbus address
-  Modbus parity:
-    de: Modbus-Parität
-    en: Modbus parity
-  Activate modbus sensors:
-    de: Modbus-Sensoren aktivieren
-    en: Activate modbus sensors
-  Fan regulation:
-    de: Ventilatorregelung
-    en: Fan regulation
-  Touch Display Show Air Quality:
-    de: Touchdisplay Luftqualität anzeigen
-    en: Touch Display Show Air Quality
-  Baudrate Modbus sensors:
-    de: Baudrate Modbus-Sensoren
-    en: Baudrate Modbus sensors
-  Relative humidity setpoint Winter:
-    de: Relative Luftfeuchtigkeit Sollwert Winter
-    en: Relative humidity setpoint Winter
-  Enable Presence mode:
-    de: Anwesenheitsmodus aktivieren
-    en: Enable Presence mode
-  Enable Summernight cooling:
-    de: Sommernachtkühlung aktivieren
-    en: Enable Summernight cooling
-  Summernight cooling enable T:
-    de: Sommernachtkühlung Einschalttemperatur T
-    en: Summernight cooling enable T
-  Summernight cooling disable T:
-    de: Sommernachtkühlung Abschalttemperatur T
-    en: Summernight cooling disable T
-  Summernight cooling release T:
-    de: Sommernachtkühlung Freigabetemperatur T
-    en: Summernight cooling release T
-  Summernight cooling start hour:
-    de: Sommernachtkühlung Startstunde
-    en: Summernight cooling start hour
-  Summernight cooling start minute:
-    de: Sommernachtkühlung Startminute
-    en: Summernight cooling start minute
-  Summernight cooling stop hour:
-    de: Sommernachtkühlung Stoppstunde
-    en: Summernight cooling stop hour
-  Summernight cooling stop minute:
-    de: Sommernachtkühlung Stoppminute
-    en: Summernight cooling stop minute
-  Summernight cooling ventilation level:
-    de: Sommernachtkühlung Lüftungsstufe
-    en: Summernight cooling ventilation level
-  Summernight cooling release ventilation level:
-    de: Sommernachtkühlung Freigabe Lüftungsstufe
-    en: Summernight cooling release ventilation level
-  Außentemperatur gedämpft:
-    de: Außentemperatur gedämpft
-    en: Damped outdoor temperature
-  L7/Ai4 Abluft externer Sensor:
-    de: L7/Ai4 Abluft externer Sensor
-    en: L7/Ai4 extract air external sensor
-  Zuluft Temperatur (extern):
-    de: Zuluft Temperatur (extern)
-    en: Supply air temperature (external)
-  Außenluft Temperatur (extern):
-    de: Außenluft Temperatur (extern)
-    en: Outdoor air temperature (external)
-  Raum Temperatur (extern):
-    de: Raum Temperatur (extern)
-    en: Room temperature (external)
-  Raumtemperatur TouchDisplay:
-    de: Raumtemperatur TouchDisplay
-    en: Room temperature touch display
-  Heizmischer Steuersignal:
-    de: Heizmischer Steuersignal
-    en: Heating mixer control signal
-  Kühlmischer Steuersignal:
-    de: Kühlmischer Steuersignal
-    en: Cooling mixer control signal
-  Kombiregister Mischer Steuersignal:
-    de: Kombiregister Mischer Steuersignal
-    en: Combi coil mixer control signal
-  Vorheizregister Relais:
-    de: Vorheizregister Relais
-    en: Preheater relay
-  Heizanforderung:
-    de: Heizanforderung
-    en: Heat demand
-  Kühlanforderung:
-    de: Kühlanforderung
-    en: Cooling demand
-  Ventilatoren:
-    de: Ventilatoren
-    en: Fans
-  Bypassklappe Status:
-    de: Bypassklappe Status
-    en: Bypass damper status
-  "Außenluft- & Fortluftklappen":
-    de: "Außenluft- & Fortluftklappen"
-    en: "Outdoor air & exhaust air dampers"
-  Pumpe Nachheizregister:
-    de: Pumpe Nachheizregister
-    en: Pump post-heater
-  Pumpe Kühl-/Kombiregister:
-    de: Pumpe Kühl-/Kombiregister
-    en: Pump cooling/combi coil
-  Summenstörmeldung:
-    de: Summenstörmeldung
-    en: Collective fault message
-  Filtermeldung:
-    de: Filtermeldung
-    en: Filter alert
-  Temperatur Außenluft:
-    de: Temperatur Außenluft
-    en: Outdoor air temperature
-  Temperatur Fortluft:
-    de: Temperatur Fortluft
-    en: Exhaust air temperature
-  Temperatur Abluft:
-    de: Temperatur Abluft
-    en: Extract air temperature
-  Temperatur Zuluft:
-    de: Temperatur Zuluft
-    en: Supply air temperature
-  Temperatur Vorheizregister:
-    de: Temperatur Vorheizregister
-    en: Preheater temperature
-  Extern Aus / BMZ:
-    de: Extern Aus / BMZ
-    en: External off / fire alarm panel
-  Extern Lüftungsstufe 3:
-    de: Extern Lüftungsstufe 3
-    en: External ventilation level 3
-  Drehzahl Zuluft:
-    de: Drehzahl Zuluft
-    en: Supply air fan speed
-  Drehzahl Abluft:
-    de: Drehzahl Abluft
-    en: Extract air fan speed
-  Sollwert Zuluftvolumenstrom:
-    de: Sollwert Zuluftvolumenstrom
-    en: Setpoint supply air volume flow
-  Sollwert Abluftvolumenstrom:
-    de: Sollwert Abluftvolumenstrom
-    en: Setpoint extract air volume flow
-  Istwert Zuluftvolumenstrom:
-    de: Istwert Zuluftvolumenstrom
-    en: Actual supply air volume flow
-  Istwert Abluftvolumenstrom:
-    de: Istwert Abluftvolumenstrom
-    en: Actual extract air volume flow
-  Betriebsstatus:
-    de: Betriebsstatus
-    en: Operating status
-  Filter Reststandzeit:
-    de: Filter Reststandzeit
-    en: Filter remaining time
-  Berechnete Zuluftsolltemperatur:
-    de: Berechnete Zuluftsolltemperatur
-    en: Calculated supply air setpoint temperature
-  CO2 Regelsignal Sollwert:
-    de: CO2 Regelsignal Sollwert
-    en: CO2 control signal setpoint
-  Vorheizregister PWM:
-    de: Vorheizregister PWM
-    en: Preheater PWM
-  Aktuelle Lüftungsstufe:
-    de: Aktuelle Lüftungsstufe
-    en: Current ventilation level
-  Fehler Erdwärmetauscher:
-    de: Fehler Erdwärmetauscher
-    en: Error geothermal heat exchanger
-  Fehler Bedieneinheit:
-    de: Fehler Bedieneinheit
-    en: Error control unit
-  Fehler Frostschutz NHR (Din3):
-    de: Fehler Frostschutz NHR (Din3)
-    en: Error frost protection post-heater (Din3)
-  Fehler Fortluftventilator:
-    de: Fehler Fortluftventilator
-    en: Error exhaust air fan
-  Fehler Zuluftventilator:
-    de: Fehler Zuluftventilator
-    en: Error supply air fan
-  Fehler Temperatur T1 (Außenluft):
-    de: Fehler Temperatur T1 (Außenluft)
-    en: Error temperature T1 (outdoor air)
-  Fehler Temperatur T2 (Fortluft):
-    de: Fehler Temperatur T2 (Fortluft)
-    en: Error temperature T2 (exhaust air)
-  Fehler Temperatur T3 (Abluft):
-    de: Fehler Temperatur T3 (Abluft)
-    en: Error temperature T3 (extract air)
-  Fehler Temperatur T4 (Zuluft):
-    de: Fehler Temperatur T4 (Zuluft)
-    en: Error temperature T4 (supply air)
-  Fehler Temperatur T5 (Vorheizregister):
-    de: Fehler Temperatur T5 (Vorheizregister)
-    en: Error temperature T5 (preheater)
-  Fehler Temperatur T6 (Zuluft extern):
-    de: Fehler Temperatur T6 (Zuluft extern)
-    en: Error temperature T6 (supply air external)
-  Fehler Temperatur T7 (Außenluft extern):
-    de: Fehler Temperatur T7 (Außenluft extern)
-    en: Error temperature T7 (outdoor air external)
-  Fehler Temperatur T8 (Raum extern):
-    de: Fehler Temperatur T8 (Raum extern)
-    en: Error temperature T8 (room external)
-  Fehler Ventilatoren Kommunikation:
-    de: Fehler Ventilatoren Kommunikation
-    en: Error fans communication
-  Fehler Niedrige Zulufttemperatur:
-    de: Fehler Niedrige Zulufttemperatur
-    en: Error low supply air temperature
-  Fehler Filtermeldung:
-    de: Fehler Filtermeldung
-    en: Error filter alert
-  Fehler Niedrige Vorheizregister Temperatur:
-    de: Fehler Niedrige Vorheizregister Temperatur
-    en: Error low preheater temperature
-  Fehler NHR Frostschutz:
-    de: Fehler NHR Frostschutz
-    en: Error post-heater frost protection
-  Fehler Modbus Sensoren:
-    de: Fehler Modbus Sensoren
-    en: Error Modbus sensors
-  Feuchtesensor 1:
-    de: Feuchtesensor 1
-    en: Humidity sensor 1
-  Feuchtesensor 2:
-    de: Feuchtesensor 2
-    en: Humidity sensor 2
-  Lüftungsgerät Modell:
-    de: Lüftungsgerät Modell
-    en: Ventilation unit model
-  Extern Frostschutz:
-    de: Extern Frostschutz
-    en: External frost protection
-  Zeitprogramm Raumtemperatur Status:
-    de: Zeitprogramm Raumtemperatur Status
-    en: Time program room temperature status
-  Zeitprogramm Lüftungsstufe:
-    de: Zeitprogramm Lüftungsstufe
-    en: Time program ventilation level
-  Betriebsstunden Stufe 2:
-    de: Betriebsstunden Stufe 2
-    en: Operating hours level 2
-  Betriebsstunden Stufe 3:
-    de: Betriebsstunden Stufe 3
-    en: Operating hours level 3
-  Betriebsstunden Grundlüftung:
-    de: Betriebsstunden Grundlüftung
-    en: Operating hours basic ventilation
-  Betriebsstunden Gesamt:
-    de: Betriebsstunden Gesamt
-    en: Operating hours total
-  Betriebsstunden Heizregister:
-    de: Betriebsstunden Heizregister
-    en: Operating hours heating coil
-  Betriebsstunden Bypass:
-    de: Betriebsstunden Bypass
-    en: Operating hours bypass
-  Betriebsstunden Stufe 1:
-    de: Betriebsstunden Stufe 1
-    en: Operating hours level 1
-  CO2 air quality modbus sensor 3:
-    de: CO2-Luftqualität Modbus-Sensor 3
-    en: CO2 air quality modbus sensor 3
-  Relative humidity modbus sensor 3:
-    de: Relative Luftfeuchtigkeit Modbus-Sensor 3
-    en: Relative humidity modbus sensor 3
-  CO2 air quality modbus sensor 4:
-    de: CO2-Luftqualität Modbus-Sensor 4
-    en: CO2 air quality modbus sensor 4
-  Relative humidity modbus sensor 4:
-    de: Relative Luftfeuchtigkeit Modbus-Sensor 4
-    en: Relative humidity modbus sensor 4
-  CO2 air quality modbus sensor 5:
-    de: CO2-Luftqualität Modbus-Sensor 5
-    en: CO2 air quality modbus sensor 5
-  Relative humidity modbus sensor 5:
-    de: Relative Luftfeuchtigkeit Modbus-Sensor 5
-    en: Relative humidity modbus sensor 5
-  CO2 air quality modbus sensor 6:
-    de: CO2-Luftqualität Modbus-Sensor 6
-    en: CO2 air quality modbus sensor 6
-  Relative humidity modbus sensor 6:
-    de: Relative Luftfeuchtigkeit Modbus-Sensor 6
-    en: Relative humidity modbus sensor 6
-  Extract air duct pressure:
-    de: Abluft-Kanaldruck
-    en: Extract air duct pressure
-  Supply air duct pressure:
-    de: Zuluft-Kanaldruck
-    en: Supply air duct pressure
-  Current CO2 control value:
-    de: Aktueller CO2-Regelwert
-    en: Current CO2 control value
-  Error modbus communication to external pressure sensor:
-    de: Fehler Modbus-Kommunikation zum externen Drucksensor
-    en: Error modbus communication to external pressure sensor
-  Low supply air duct pressure:
-    de: Niedriger Zuluft-Kanaldruck
-    en: Low supply air duct pressure
-  High supply air duct pressure:
-    de: Hoher Zuluft-Kanaldruck
-    en: High supply air duct pressure
-  Low extract air duct pressure:
-    de: Niedriger Abluft-Kanaldruck
-    en: Low extract air duct pressure
-  High extract air duct pressure:
-    de: Hoher Abluft-Kanaldruck
-    en: High extract air duct pressure
-  Pre-heater air reduction:
-    de: Vorheizregister Luftreduktion
-    en: Pre-heater air reduction
-  Pre-heater Volume flow reduction:
-    de: Vorheizregister Volumenstromreduzierung
-    en: Pre-heater Volume flow reduction
-  Z28 danger condensation:
-    de: Z28 Kondensationsgefahr
-    en: Z28 danger condensation
-  Z29 Airfilter SUP:
-    de: Z29 Luftfilter Zuluft
-    en: Z29 Airfilter SUP
-  Z30 Airfilter ETA:
-    de: Z30 Luftfilter Abluft
-    en: Z30 Airfilter ETA
-  Z31 External Preheater alarm:
-    de: Z31 Externer Vorheizregister-Alarm
-    en: Z31 External Preheater alarm
-  Z32 Door contact:
-    de: Z32 Türkontakt
-    en: Z32 Door contact
-  Filterpressure SUP:
-    de: Filterdruck Zuluft
-    en: Filterpressure SUP
-  Filterpressure ETA:
-    de: Filterdruck Abluft
-    en: Filterpressure ETA
-  Current rH value:
-    de: Aktueller rF-Wert
-    en: Current rH value
-  Sommernacht Kühlung Status:
-    de: Sommernacht Kühlung Status
-    en: Summer-night cooling status
-  Sommernacht Kühlung Testzeit:
-    de: Sommernacht Kühlung Testzeit
-    en: Summer-night cooling test time
-  Sommernacht Kühlung Wiederholungszeit:
-    de: Sommernacht Kühlung Wiederholungszeit
-    en: Summer-night cooling repeat time
-  Din1 Extern Sommernacht Kühlung aktiviert:
-    de: Din1 Extern Sommernacht Kühlung aktiviert
-    en: Din1 external summer-night cooling activated
-  Lüftung:
-    en: Ventilation
-    de: Lüftung
-  Klima:
-    de: Klima
-    en: Climate
+# Generated by the converter (variant support/converter/dimplex_pichler/dimplex_pichler-convert.py) from modbus_local_gateway base + manufacturer Modbus doc —
+# do not edit here; edit support/devicedocs/pichler-lg350-lg450/augment.yaml and re-run:
+#   MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+#   SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
+#     .venv/bin/python support/converter/convert_all.py
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -2711,3 +2068,651 @@ template:
       map:
         heat: Winter
         cool: Sommer
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Lüftungsgerät LG 350 - LG 450:
+    de: Lüftungsgerät LG 350 - LG 450
+    en: Ventilation unit LG 350 - LG 450
+  Modbus configuration:
+    en: Modbus configuration
+    de: Modbus-Konfiguration
+  CO2 control:
+    en: CO2 control
+    de: CO2 Regelung
+  Humidity control:
+    en: Humidity control
+    de: Feuchte Regelung
+  Summer-night cooling:
+    en: Summer-night cooling
+    de: Sommernachtkühlung
+  Pre/post-heater:
+    en: Pre/post-heater
+    de: Vor-/Nachheizung
+  Filter:
+    en: Filter
+    de: Filter
+  "Fan & flow":
+    en: "Fan & flow"
+    de: "Ventilator & Luftmenge"
+  Firmware / model:
+    en: Firmware / model
+    de: Firmware / Modell
+  Sommer:
+    de: Sommer
+    en: Summer
+  Winter:
+    de: Winter
+    en: Winter
+  T8 extern:
+    de: T8 extern
+    en: T8 external
+  Nein:
+    de: Nein
+    en: "No"
+  Ja:
+    de: Ja
+    en: "Yes"
+  Aus:
+    de: Aus
+    en: "Off"
+  Ein:
+    de: Ein
+    en: "On"
+  Automatisch:
+    de: Automatisch
+    en: Automatically
+  Regelung arbeiten lassen:
+    de: Regelung arbeiten lassen
+    en: Let controller operate
+  Bypass geschlossen:
+    de: Bypass geschlossen
+    en: Bypass closed
+  Bypass offen:
+    de: Bypass offen
+    en: Bypass open
+  Keine Aktion:
+    de: Keine Aktion
+    en: No action
+  Fehlerprotokoll löschen:
+    de: Fehlerprotokoll löschen
+    en: Clear error log
+  Filterprotokoll löschen:
+    de: Filterprotokoll löschen
+    en: Clear filter log
+  Neustart:
+    de: Neustart
+    en: Restart
+  Deaktivieren:
+    de: Deaktivieren
+    en: Disable
+  Aktivieren:
+    de: Aktivieren
+    en: Enable
+  Inaktiv:
+    de: Inaktiv
+    en: Inactive
+  Aktiv:
+    de: Aktiv
+    en: Active
+  None:
+    de: Keine
+    en: None
+  Even:
+    de: Gerade
+    en: Even
+  Odd:
+    de: Ungerade
+    en: Odd
+  Constant air volume flow:
+    de: Konstanter Volumenstrom
+    en: Constant air volume flow
+  Constant pressure:
+    de: Konstanter Druck
+    en: Constant pressure
+  Inactive:
+    de: Inaktiv
+    en: Inactive
+  Active:
+    de: Aktiv
+    en: Active
+  Only in Standby:
+    de: Nur im Standby
+    en: Only in Standby
+  All levels:
+    de: Alle Stufen
+    en: All levels
+  CPU Startup:
+    de: CPU-Start
+    en: CPU Startup
+  Anlauf:
+    de: Anlauf
+    en: Starting
+  Betrieb:
+    de: Betrieb
+    en: Operation
+  Nachlauf:
+    de: Nachlauf
+    en: Run-on
+  Standby Powersafe:
+    de: Standby Powersafe
+    en: Standby power-save
+  Testmodus:
+    de: Testmodus
+    en: Test mode
+  AUS von extern:
+    de: AUS von extern
+    en: Off from external
+  Fehler:
+    de: Fehler
+    en: Fault
+  Betriebsmodus Sommer/Winter:
+    de: Betriebsmodus Sommer/Winter
+    en: Operating mode summer/winter
+  Lüftungsstufe:
+    de: Lüftungsstufe
+    en: Ventilation level
+  EWT Sommer Umschaltpunkt:
+    de: EWT Sommer Umschaltpunkt
+    en: Geothermal heat exchanger summer switching point
+  EWT Winter Umschaltpunkt:
+    de: EWT Winter Umschaltpunkt
+    en: Geothermal heat exchanger winter switching point
+  Temperaturregelungsart:
+    de: Temperaturregelungsart
+    en: Temperature control type
+  Luftstrom Lüftungsstufe 1:
+    de: Luftstrom Lüftungsstufe 1
+    en: Air flow ventilation level 1
+  Luftstrom Lüftungsstufe 2:
+    de: Luftstrom Lüftungsstufe 2
+    en: Air flow ventilation level 2
+  Luftstrom Lüftungsstufe 3:
+    de: Luftstrom Lüftungsstufe 3
+    en: Air flow ventilation level 3
+  Luftstrom Grundlüftung:
+    de: Luftstrom Grundlüftung
+    en: Air flow basic ventilation
+  Vorheizregister Relais Schwellwert:
+    de: Vorheizregister Relais Schwellwert
+    en: Preheater relay threshold
+  Soll Zulufttemperatur:
+    de: Soll Zulufttemperatur
+    en: Target supply air temperature
+  Soll Raumlufttemperatur:
+    de: Soll Raumlufttemperatur
+    en: Target room air temperature
+  Soll Ablufttemperatur:
+    de: Soll Ablufttemperatur
+    en: Target extract air temperature
+  Lüftungsstufe 3 Nachlaufzeit (External Din2):
+    de: Lüftungsstufe 3 Nachlaufzeit (External Din2)
+    en: Ventilation level 3 run-on time (External Din2)
+  Tauschintervall Filter:
+    de: Tauschintervall Filter
+    en: Filter replacement interval
+  Raumtemperaturfühler Quelle:
+    de: Raumtemperaturfühler Quelle
+    en: Room temperature sensor source
+  Filter zurücksetzen:
+    de: Filter zurücksetzen
+    en: Reset filter
+  Filter später erinnern:
+    de: Filter später erinnern
+    en: Snooze filter reminder
+  Konfiguration Lüftungsstufe:
+    de: Konfiguration Lüftungsstufe
+    en: Configuration ventilation level
+  Bedieneinheit Fehlerausgabe:
+    de: Bedieneinheit Fehlerausgabe
+    en: Control unit error output
+  CO2 Regelung:
+    de: CO2 Regelung
+    en: CO2 control
+  CO2 Sollwert:
+    de: CO2 Sollwert
+    en: CO2 setpoint
+  Feuchte Regelung:
+    de: Feuchte Regelung
+    en: Humidity control
+  Luftfeuchte Sollwert:
+    de: Luftfeuchte Sollwert
+    en: Humidity setpoint
+  Feuchte Regelung LS3 maximale Zeit:
+    de: Feuchte Regelung LS3 maximale Zeit
+    en: Humidity control level 3 maximum time
+  Sommer/Winter Zeitumstellung:
+    de: Sommer/Winter Zeitumstellung
+    en: Summer/winter time change
+  Bypassklappe Stellung:
+    de: Bypassklappe Stellung
+    en: Bypass damper position
+  Soll Zulufttemperatur (Abgesenkt):
+    de: Soll Zulufttemperatur (Abgesenkt)
+    en: Target supply air temperature (setback)
+  Soll Raumlufttemperatur (Abgesenkt):
+    de: Soll Raumlufttemperatur (Abgesenkt)
+    en: Target room air temperature (setback)
+  Soll Ablufttemperatur (Abgesenkt):
+    de: Soll Ablufttemperatur (Abgesenkt)
+    en: Target extract air temperature (setback)
+  System Zurücksetzen:
+    de: System Zurücksetzen
+    en: System reset
+  Vorheizregister Zieltemperatur:
+    de: Vorheizregister Zieltemperatur
+    en: Preheater target temperature
+  Automatische Umschaltung Sommer/Winter:
+    de: Automatische Umschaltung Sommer/Winter
+    en: Automatic summer/winter switching
+  Lüftungsstufe 3 Maximale Zeit:
+    de: Lüftungsstufe 3 Maximale Zeit
+    en: Ventilation level 3 maximum time
+  Kanaldruck Zuluft Stufe 1:
+    de: Kanaldruck Zuluft Stufe 1
+    en: Duct pressure supply air level 1
+  Kanaldruck Zuluft Stufe 2:
+    de: Kanaldruck Zuluft Stufe 2
+    en: Duct pressure supply air level 2
+  Kanaldruck Zuluft Stufe 3:
+    de: Kanaldruck Zuluft Stufe 3
+    en: Duct pressure supply air level 3
+  Kanaldruck Zuluft Grundlüftung:
+    de: Kanaldruck Zuluft Grundlüftung
+    en: Duct pressure supply air basic ventilation
+  Kanaldruck Abluft Stufe 1:
+    de: Kanaldruck Abluft Stufe 1
+    en: Duct pressure extract air level 1
+  Kanaldruck Abluft Stufe 2:
+    de: Kanaldruck Abluft Stufe 2
+    en: Duct pressure extract air level 2
+  Kanaldruck Abluft Stufe 3:
+    de: Kanaldruck Abluft Stufe 3
+    en: Duct pressure extract air level 3
+  Kanaldruck Abluft Grundlüftung:
+    de: Kanaldruck Abluft Grundlüftung
+    en: Duct pressure extract air basic ventilation
+  Abluft-Balance Lüftungsstufe 1:
+    de: Abluft-Balance Lüftungsstufe 1
+    en: Extract air balance ventilation level 1
+  Abluft-Balance Lüftungsstufe 2:
+    de: Abluft-Balance Lüftungsstufe 2
+    en: Extract air balance ventilation level 2
+  Abluft-Balance Lüftungsstufe 3:
+    de: Abluft-Balance Lüftungsstufe 3
+    en: Extract air balance ventilation level 3
+  Abluft-Balance Grundlüftung:
+    de: Abluft-Balance Grundlüftung
+    en: Extract air balance basic ventilation
+  Freigabe Heizen:
+    de: Freigabe Heizen
+    en: Heating enable
+  Freigabe Kühlen:
+    de: Freigabe Kühlen
+    en: Cooling enable
+  Zeitprogramm Lüftungsstufen:
+    de: Zeitprogramm Lüftungsstufen
+    en: Time program ventilation levels
+  Zeitprogramm Temperaturregelung:
+    de: Zeitprogramm Temperaturregelung
+    en: Time program temperature control
+  Modbus address:
+    de: Modbus-Adresse
+    en: Modbus address
+  Modbus parity:
+    de: Modbus-Parität
+    en: Modbus parity
+  Activate modbus sensors:
+    de: Modbus-Sensoren aktivieren
+    en: Activate modbus sensors
+  Fan regulation:
+    de: Ventilatorregelung
+    en: Fan regulation
+  Touch Display Show Air Quality:
+    de: Touchdisplay Luftqualität anzeigen
+    en: Touch Display Show Air Quality
+  Baudrate Modbus sensors:
+    de: Baudrate Modbus-Sensoren
+    en: Baudrate Modbus sensors
+  Relative humidity setpoint Winter:
+    de: Relative Luftfeuchtigkeit Sollwert Winter
+    en: Relative humidity setpoint Winter
+  Enable Presence mode:
+    de: Anwesenheitsmodus aktivieren
+    en: Enable Presence mode
+  Enable Summernight cooling:
+    de: Sommernachtkühlung aktivieren
+    en: Enable Summernight cooling
+  Summernight cooling enable T:
+    de: Sommernachtkühlung Einschalttemperatur T
+    en: Summernight cooling enable T
+  Summernight cooling disable T:
+    de: Sommernachtkühlung Abschalttemperatur T
+    en: Summernight cooling disable T
+  Summernight cooling release T:
+    de: Sommernachtkühlung Freigabetemperatur T
+    en: Summernight cooling release T
+  Summernight cooling start hour:
+    de: Sommernachtkühlung Startstunde
+    en: Summernight cooling start hour
+  Summernight cooling start minute:
+    de: Sommernachtkühlung Startminute
+    en: Summernight cooling start minute
+  Summernight cooling stop hour:
+    de: Sommernachtkühlung Stoppstunde
+    en: Summernight cooling stop hour
+  Summernight cooling stop minute:
+    de: Sommernachtkühlung Stoppminute
+    en: Summernight cooling stop minute
+  Summernight cooling ventilation level:
+    de: Sommernachtkühlung Lüftungsstufe
+    en: Summernight cooling ventilation level
+  Summernight cooling release ventilation level:
+    de: Sommernachtkühlung Freigabe Lüftungsstufe
+    en: Summernight cooling release ventilation level
+  Außentemperatur gedämpft:
+    de: Außentemperatur gedämpft
+    en: Damped outdoor temperature
+  L7/Ai4 Abluft externer Sensor:
+    de: L7/Ai4 Abluft externer Sensor
+    en: L7/Ai4 extract air external sensor
+  Zuluft Temperatur (extern):
+    de: Zuluft Temperatur (extern)
+    en: Supply air temperature (external)
+  Außenluft Temperatur (extern):
+    de: Außenluft Temperatur (extern)
+    en: Outdoor air temperature (external)
+  Raum Temperatur (extern):
+    de: Raum Temperatur (extern)
+    en: Room temperature (external)
+  Raumtemperatur TouchDisplay:
+    de: Raumtemperatur TouchDisplay
+    en: Room temperature touch display
+  Heizmischer Steuersignal:
+    de: Heizmischer Steuersignal
+    en: Heating mixer control signal
+  Kühlmischer Steuersignal:
+    de: Kühlmischer Steuersignal
+    en: Cooling mixer control signal
+  Kombiregister Mischer Steuersignal:
+    de: Kombiregister Mischer Steuersignal
+    en: Combi coil mixer control signal
+  Vorheizregister Relais:
+    de: Vorheizregister Relais
+    en: Preheater relay
+  Heizanforderung:
+    de: Heizanforderung
+    en: Heat demand
+  Kühlanforderung:
+    de: Kühlanforderung
+    en: Cooling demand
+  Ventilatoren:
+    de: Ventilatoren
+    en: Fans
+  Bypassklappe Status:
+    de: Bypassklappe Status
+    en: Bypass damper status
+  "Außenluft- & Fortluftklappen":
+    de: "Außenluft- & Fortluftklappen"
+    en: "Outdoor air & exhaust air dampers"
+  Pumpe Nachheizregister:
+    de: Pumpe Nachheizregister
+    en: Pump post-heater
+  Pumpe Kühl-/Kombiregister:
+    de: Pumpe Kühl-/Kombiregister
+    en: Pump cooling/combi coil
+  Summenstörmeldung:
+    de: Summenstörmeldung
+    en: Collective fault message
+  Filtermeldung:
+    de: Filtermeldung
+    en: Filter alert
+  Temperatur Außenluft:
+    de: Temperatur Außenluft
+    en: Outdoor air temperature
+  Temperatur Fortluft:
+    de: Temperatur Fortluft
+    en: Exhaust air temperature
+  Temperatur Abluft:
+    de: Temperatur Abluft
+    en: Extract air temperature
+  Temperatur Zuluft:
+    de: Temperatur Zuluft
+    en: Supply air temperature
+  Temperatur Vorheizregister:
+    de: Temperatur Vorheizregister
+    en: Preheater temperature
+  Extern Aus / BMZ:
+    de: Extern Aus / BMZ
+    en: External off / fire alarm panel
+  Extern Lüftungsstufe 3:
+    de: Extern Lüftungsstufe 3
+    en: External ventilation level 3
+  Drehzahl Zuluft:
+    de: Drehzahl Zuluft
+    en: Supply air fan speed
+  Drehzahl Abluft:
+    de: Drehzahl Abluft
+    en: Extract air fan speed
+  Sollwert Zuluftvolumenstrom:
+    de: Sollwert Zuluftvolumenstrom
+    en: Setpoint supply air volume flow
+  Sollwert Abluftvolumenstrom:
+    de: Sollwert Abluftvolumenstrom
+    en: Setpoint extract air volume flow
+  Istwert Zuluftvolumenstrom:
+    de: Istwert Zuluftvolumenstrom
+    en: Actual supply air volume flow
+  Istwert Abluftvolumenstrom:
+    de: Istwert Abluftvolumenstrom
+    en: Actual extract air volume flow
+  Betriebsstatus:
+    de: Betriebsstatus
+    en: Operating status
+  Filter Reststandzeit:
+    de: Filter Reststandzeit
+    en: Filter remaining time
+  Berechnete Zuluftsolltemperatur:
+    de: Berechnete Zuluftsolltemperatur
+    en: Calculated supply air setpoint temperature
+  CO2 Regelsignal Sollwert:
+    de: CO2 Regelsignal Sollwert
+    en: CO2 control signal setpoint
+  Vorheizregister PWM:
+    de: Vorheizregister PWM
+    en: Preheater PWM
+  Aktuelle Lüftungsstufe:
+    de: Aktuelle Lüftungsstufe
+    en: Current ventilation level
+  Fehler Erdwärmetauscher:
+    de: Fehler Erdwärmetauscher
+    en: Error geothermal heat exchanger
+  Fehler Bedieneinheit:
+    de: Fehler Bedieneinheit
+    en: Error control unit
+  Fehler Frostschutz NHR (Din3):
+    de: Fehler Frostschutz NHR (Din3)
+    en: Error frost protection post-heater (Din3)
+  Fehler Fortluftventilator:
+    de: Fehler Fortluftventilator
+    en: Error exhaust air fan
+  Fehler Zuluftventilator:
+    de: Fehler Zuluftventilator
+    en: Error supply air fan
+  Fehler Temperatur T1 (Außenluft):
+    de: Fehler Temperatur T1 (Außenluft)
+    en: Error temperature T1 (outdoor air)
+  Fehler Temperatur T2 (Fortluft):
+    de: Fehler Temperatur T2 (Fortluft)
+    en: Error temperature T2 (exhaust air)
+  Fehler Temperatur T3 (Abluft):
+    de: Fehler Temperatur T3 (Abluft)
+    en: Error temperature T3 (extract air)
+  Fehler Temperatur T4 (Zuluft):
+    de: Fehler Temperatur T4 (Zuluft)
+    en: Error temperature T4 (supply air)
+  Fehler Temperatur T5 (Vorheizregister):
+    de: Fehler Temperatur T5 (Vorheizregister)
+    en: Error temperature T5 (preheater)
+  Fehler Temperatur T6 (Zuluft extern):
+    de: Fehler Temperatur T6 (Zuluft extern)
+    en: Error temperature T6 (supply air external)
+  Fehler Temperatur T7 (Außenluft extern):
+    de: Fehler Temperatur T7 (Außenluft extern)
+    en: Error temperature T7 (outdoor air external)
+  Fehler Temperatur T8 (Raum extern):
+    de: Fehler Temperatur T8 (Raum extern)
+    en: Error temperature T8 (room external)
+  Fehler Ventilatoren Kommunikation:
+    de: Fehler Ventilatoren Kommunikation
+    en: Error fans communication
+  Fehler Niedrige Zulufttemperatur:
+    de: Fehler Niedrige Zulufttemperatur
+    en: Error low supply air temperature
+  Fehler Filtermeldung:
+    de: Fehler Filtermeldung
+    en: Error filter alert
+  Fehler Niedrige Vorheizregister Temperatur:
+    de: Fehler Niedrige Vorheizregister Temperatur
+    en: Error low preheater temperature
+  Fehler NHR Frostschutz:
+    de: Fehler NHR Frostschutz
+    en: Error post-heater frost protection
+  Fehler Modbus Sensoren:
+    de: Fehler Modbus Sensoren
+    en: Error Modbus sensors
+  Feuchtesensor 1:
+    de: Feuchtesensor 1
+    en: Humidity sensor 1
+  Feuchtesensor 2:
+    de: Feuchtesensor 2
+    en: Humidity sensor 2
+  Lüftungsgerät Modell:
+    de: Lüftungsgerät Modell
+    en: Ventilation unit model
+  Extern Frostschutz:
+    de: Extern Frostschutz
+    en: External frost protection
+  Zeitprogramm Raumtemperatur Status:
+    de: Zeitprogramm Raumtemperatur Status
+    en: Time program room temperature status
+  Zeitprogramm Lüftungsstufe:
+    de: Zeitprogramm Lüftungsstufe
+    en: Time program ventilation level
+  Betriebsstunden Stufe 2:
+    de: Betriebsstunden Stufe 2
+    en: Operating hours level 2
+  Betriebsstunden Stufe 3:
+    de: Betriebsstunden Stufe 3
+    en: Operating hours level 3
+  Betriebsstunden Grundlüftung:
+    de: Betriebsstunden Grundlüftung
+    en: Operating hours basic ventilation
+  Betriebsstunden Gesamt:
+    de: Betriebsstunden Gesamt
+    en: Operating hours total
+  Betriebsstunden Heizregister:
+    de: Betriebsstunden Heizregister
+    en: Operating hours heating coil
+  Betriebsstunden Bypass:
+    de: Betriebsstunden Bypass
+    en: Operating hours bypass
+  Betriebsstunden Stufe 1:
+    de: Betriebsstunden Stufe 1
+    en: Operating hours level 1
+  CO2 air quality modbus sensor 3:
+    de: CO2-Luftqualität Modbus-Sensor 3
+    en: CO2 air quality modbus sensor 3
+  Relative humidity modbus sensor 3:
+    de: Relative Luftfeuchtigkeit Modbus-Sensor 3
+    en: Relative humidity modbus sensor 3
+  CO2 air quality modbus sensor 4:
+    de: CO2-Luftqualität Modbus-Sensor 4
+    en: CO2 air quality modbus sensor 4
+  Relative humidity modbus sensor 4:
+    de: Relative Luftfeuchtigkeit Modbus-Sensor 4
+    en: Relative humidity modbus sensor 4
+  CO2 air quality modbus sensor 5:
+    de: CO2-Luftqualität Modbus-Sensor 5
+    en: CO2 air quality modbus sensor 5
+  Relative humidity modbus sensor 5:
+    de: Relative Luftfeuchtigkeit Modbus-Sensor 5
+    en: Relative humidity modbus sensor 5
+  CO2 air quality modbus sensor 6:
+    de: CO2-Luftqualität Modbus-Sensor 6
+    en: CO2 air quality modbus sensor 6
+  Relative humidity modbus sensor 6:
+    de: Relative Luftfeuchtigkeit Modbus-Sensor 6
+    en: Relative humidity modbus sensor 6
+  Extract air duct pressure:
+    de: Abluft-Kanaldruck
+    en: Extract air duct pressure
+  Supply air duct pressure:
+    de: Zuluft-Kanaldruck
+    en: Supply air duct pressure
+  Current CO2 control value:
+    de: Aktueller CO2-Regelwert
+    en: Current CO2 control value
+  Error modbus communication to external pressure sensor:
+    de: Fehler Modbus-Kommunikation zum externen Drucksensor
+    en: Error modbus communication to external pressure sensor
+  Low supply air duct pressure:
+    de: Niedriger Zuluft-Kanaldruck
+    en: Low supply air duct pressure
+  High supply air duct pressure:
+    de: Hoher Zuluft-Kanaldruck
+    en: High supply air duct pressure
+  Low extract air duct pressure:
+    de: Niedriger Abluft-Kanaldruck
+    en: Low extract air duct pressure
+  High extract air duct pressure:
+    de: Hoher Abluft-Kanaldruck
+    en: High extract air duct pressure
+  Pre-heater air reduction:
+    de: Vorheizregister Luftreduktion
+    en: Pre-heater air reduction
+  Pre-heater Volume flow reduction:
+    de: Vorheizregister Volumenstromreduzierung
+    en: Pre-heater Volume flow reduction
+  Z28 danger condensation:
+    de: Z28 Kondensationsgefahr
+    en: Z28 danger condensation
+  Z29 Airfilter SUP:
+    de: Z29 Luftfilter Zuluft
+    en: Z29 Airfilter SUP
+  Z30 Airfilter ETA:
+    de: Z30 Luftfilter Abluft
+    en: Z30 Airfilter ETA
+  Z31 External Preheater alarm:
+    de: Z31 Externer Vorheizregister-Alarm
+    en: Z31 External Preheater alarm
+  Z32 Door contact:
+    de: Z32 Türkontakt
+    en: Z32 Door contact
+  Filterpressure SUP:
+    de: Filterdruck Zuluft
+    en: Filterpressure SUP
+  Filterpressure ETA:
+    de: Filterdruck Abluft
+    en: Filterpressure ETA
+  Current rH value:
+    de: Aktueller rF-Wert
+    en: Current rH value
+  Sommernacht Kühlung Status:
+    de: Sommernacht Kühlung Status
+    en: Summer-night cooling status
+  Sommernacht Kühlung Testzeit:
+    de: Sommernacht Kühlung Testzeit
+    en: Summer-night cooling test time
+  Sommernacht Kühlung Wiederholungszeit:
+    de: Sommernacht Kühlung Wiederholungszeit
+    en: Summer-night cooling repeat time
+  Din1 Extern Sommernacht Kühlung aktiviert:
+    de: Din1 Extern Sommernacht Kühlung aktiviert
+    en: Din1 external summer-night cooling activated
+  Lüftung:
+    en: Ventilation
+    de: Lüftung
+  Klima:
+    de: Klima
+    en: Climate

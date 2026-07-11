@@ -1,621 +1,8 @@
-# Converted from modbus_local_gateway 'Schneider_ATV312.yaml'; entity groups from support/devicedocs/schneider-atv312/augment.yaml
-# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
-translations:
-  nO Not assigned:
-    de: nO Nicht zugewiesen
-    en: nO Not assigned
-  FLt Drive detected fault:
-    de: "FLt Antrieb: Fehler erkannt"
-    en: FLt Drive detected fault
-  rUn Drive running:
-    de: rUn Antrieb läuft
-    en: rUn Drive running
-  FtA Frequency threshold reached:
-    de: FtA Frequenzschwelle erreicht
-    en: FtA Frequency threshold reached
-  FLA High speed (HSP) reached:
-    de: FLA Hohe Drehzahl (HSP) erreicht
-    en: FLA High speed (HSP) reached
-  CtA Current threshold reached:
-    de: CtA Stromschwelle erreicht
-    en: CtA Current threshold reached
-  SrA Frequency reference reached:
-    de: SrA Frequenzsollwert erreicht
-    en: SrA Frequency reference reached
-  tSA Motor thermal threshold reached:
-    de: tSA Thermische Motorschwelle erreicht
-    en: tSA Motor thermal threshold reached
-  "APL Loss of 4-20 mA signal, even if LFL = nO":
-    de: "APL Verlust des 4-20-mA-Signals, auch wenn LFL = nO"
-    en: "APL Loss of 4-20 mA signal, even if LFL = nO"
-  LI1 Returns the value of LI1:
-    de: LI1 Gibt den Wert von LI1 zurück
-    en: LI1 Returns the value of LI1
-  LI2 Returns the value of LI2:
-    de: LI2 Gibt den Wert von LI2 zurück
-    en: LI2 Returns the value of LI2
-  LI3 Returns the value of LI3:
-    de: LI3 Gibt den Wert von LI3 zurück
-    en: LI3 Returns the value of LI3
-  LI4 Returns the value of LI4:
-    de: LI4 Gibt den Wert von LI4 zurück
-    en: LI4 Returns the value of LI4
-  LI5 Returns the value of LI5:
-    de: LI5 Gibt den Wert von LI5 zurück
-    en: LI5 Returns the value of LI5
-  LI6 Returns the value of LI6:
-    de: LI6 Gibt den Wert von LI6 zurück
-    en: LI6 Returns the value of LI6
-  "bLC Brake sequence (for information, as this assignment can be only be activated or deactivated via the bLC":
-    de: "bLC Bremssequenz (zur Information, da diese Zuordnung nur über bLC aktiviert oder deaktiviert werden kann"
-    en: "bLC Brake sequence (for information, as this assignment can be only be activated or deactivated via the bLC"
-  AI1 Analog input AI1:
-    de: AI1 Analogeingang AI1
-    en: AI1 Analog input AI1
-  AI2 Analog input AI2:
-    de: AI2 Analogeingang AI2
-    en: AI2 Analog input AI2
-  AI3 Analog input AI3:
-    de: AI3 Analogeingang AI3
-    en: AI3 Analog input AI3
-  AIV1 Analog input AIV1:
-    de: AIV1 Analogeingang AIV1
-    en: AIV1 Analog input AIV1
-  UPdt (1) + speed/- speed via LI:
-    de: UPdt (1) + Drehzahl/- Drehzahl über LI
-    en: UPdt (1) + speed/- speed via LI
-  UpdH (1) + speed/- speed using the jog dial:
-    de: UpdH (1) + Drehzahl/- Drehzahl über das Jog-Rad
-    en: UpdH (1) + speed/- speed using the jog dial
-  "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu":
-    de: "LCC Sollwert über das externe Bedienterminal, Parameter LFr im SEt- oder SUP-Menü"
-    en: "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu"
-  "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu":
-    de: "Mdb Sollwert über Modbus, Parameter LFr im SEt- oder SUP-Menü"
-    en: "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu"
-  "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu":
-    de: "nEt Sollwert über CANopen, Parameter LFr im SEt- oder SUP-Menü"
-    en: "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu"
-  tEr Terminal block control:
-    de: tEr Steuerung über Klemmenblock
-    en: tEr Terminal block control
-  LOC Keypad control:
-    de: LOC Steuerung über Bedienfeld
-    en: LOC Keypad control
-  LCC Remote display terminal control:
-    de: LCC Steuerung über externes Bedienterminal
-    en: LCC Remote display terminal control
-  Mdb Control via Modbus:
-    de: Mdb Steuerung über Modbus
-    en: Mdb Control via Modbus
-  nEt Control via CANopen:
-    de: nEt Steuerung über CANopen
-    en: nEt Control via CANopen
-  Ready to switch on:
-    de: Einschaltbereit
-    en: Ready to switch on
-  Switched on:
-    de: Eingeschaltet
-    en: Switched on
-  Operation enabled:
-    de: Betrieb freigegeben
-    en: Operation enabled
-  Detected fault:
-    de: Fehler erkannt
-    en: Detected fault
-  Quick stop:
-    de: Schnellhalt
-    en: Quick stop
-  Switch on disabled:
-    de: Einschalten gesperrt
-    en: Switch on disabled
-  Alarm present:
-    de: Alarm anstehend
-    en: Alarm present
-  Reference reached:
-    de: Sollwert erreicht
-    en: Reference reached
-  Reference exceeded LSP/HSP limits:
-    de: Sollwert überschreitet LSP/HSP-Grenzen
-    en: Reference exceeded LSP/HSP limits
-  STOP key imposed stop:
-    de: Halt durch STOP-Taste
-    en: STOP key imposed stop
-  Reverse rotation:
-    de: Linkslauf
-    en: Reverse rotation
-  unknown:
-    de: Unbekannt
-    en: unknown
-  M2 200...240 V single phase:
-    de: M2 200...240 V einphasig
-    en: M2 200...240 V single phase
-  M3 200...240 V 3-phase:
-    de: M3 200...240 V 3-phasig
-    en: M3 200...240 V 3-phase
-  N4 380...500 V 3-phase:
-    de: N4 380...500 V 3-phasig
-    en: N4 380...500 V 3-phase
-  S6 525...600 V 3-phase:
-    de: S6 525...600 V 3-phasig
-    en: S6 525...600 V 3-phase
-  LI1 active:
-    de: LI1 aktiv
-    en: LI1 active
-  LI2 active:
-    de: LI2 aktiv
-    en: LI2 active
-  LI3 active:
-    de: LI3 aktiv
-    en: LI3 active
-  LI4 active:
-    de: LI4 aktiv
-    en: LI4 active
-  LI5 active:
-    de: LI5 aktiv
-    en: LI5 active
-  LI6 active:
-    de: LI6 aktiv
-    en: LI6 active
-  Keypad present:
-    de: Bedienfeld vorhanden
-    en: Keypad present
-  R1 output active:
-    de: R1-Ausgang aktiv
-    en: R1 output active
-  R2 output active:
-    de: R2-Ausgang aktiv
-    en: R2 output active
-  LO output active:
-    de: LO-Ausgang aktiv
-    en: LO output active
-  AOC/AOV analog output mode:
-    de: AOC/AOV Analogausgangsmodus
-    en: AOC/AOV analog output mode
-  Write parameters not authorized:
-    de: Parameterschreiben nicht zugelassen
-    en: Write parameters not authorized
-  Parameter consistency check enabled:
-    de: Parameter-Konsistenzprüfung aktiviert
-    en: Parameter consistency check enabled
-  Fault reset authorized:
-    de: Fehler-Reset zugelassen
-    en: Fault reset authorized
-  Motor running:
-    de: Motor läuft
-    en: Motor running
-  DC injection active:
-    de: Gleichstrombremsung aktiv
-    en: DC injection active
-  Transient state:
-    de: Übergangszustand
-    en: Transient state
-  Motor thermal overload alarm:
-    de: Thermischer Motorüberlastalarm
-    en: Motor thermal overload alarm
-  Excessive braking alarm:
-    de: Alarm übermäßiges Bremsen
-    en: Excessive braking alarm
-  Accelerating:
-    de: Beschleunigt
-    en: Accelerating
-  Decelerating:
-    de: Verzögert
-    en: Decelerating
-  Current limit alarm:
-    de: Stromgrenzenalarm
-    en: Current limit alarm
-  Fast stop in progress:
-    de: Schnellhalt läuft
-    en: Fast stop in progress
-  Drive detected fault:
-    de: Vom Antrieb erkannter Fehler
-    en: Drive detected fault
-  Frequency threshold reached:
-    de: Frequenzschwelle erreicht
-    en: Frequency threshold reached
-  High speed reached:
-    de: Hohe Drehzahl erreicht
-    en: High speed reached
-  Current threshold reached:
-    de: Stromschwelle erreicht
-    en: Current threshold reached
-  Speed reference reached:
-    de: Drehzahlsollwert erreicht
-    en: Speed reference reached
-  Brake control in progress:
-    de: Bremssteuerung läuft
-    en: Brake control in progress
-  Loss of 4-20 mA:
-    de: Verlust 4-20 mA
-    en: Loss of 4-20 mA
-  Drive thermal overload alarm:
-    de: Thermischer Antriebsüberlastalarm
-    en: Drive thermal overload alarm
-  Reference uses Fr2:
-    de: Sollwert verwendet Fr2
-    en: Reference uses Fr2
-  Command uses Fr2/Cd2:
-    de: Befehl verwendet Fr2/Cd2
-    en: Command uses Fr2/Cd2
-  ACC2/dE2 active:
-    de: ACC2/dE2 aktiv
-    en: ACC2/dE2 active
-  CL2 current limit active:
-    de: CL2 Stromgrenze aktiv
-    en: CL2 current limit active
-  Motor 1 active:
-    de: Motor 1 aktiv
-    en: Motor 1 active
-  Motor 2 active:
-    de: Motor 2 aktiv
-    en: Motor 2 active
-  "0x2310 OCF overcurrent":
-    de: "0x2310 OCF Überstrom"
-    en: "0x2310 OCF overcurrent"
-  "0x2320 OCF impeding short-circuit/power module":
-    de: "0x2320 OCF drohender Kurzschluss/Leistungsmodul"
-    en: "0x2320 OCF impeding short-circuit/power module"
-  "0x2330 SCF short-circuit to ground":
-    de: "0x2330 SCF Kurzschluss gegen Erde"
-    en: "0x2330 SCF short-circuit to ground"
-  "0x2340 OCF phase-to-phase short-circuit":
-    de: "0x2340 OCF Phase-Phase-Kurzschluss"
-    en: "0x2340 OCF phase-to-phase short-circuit"
-  "0x3110 OSF line overvoltage":
-    de: "0x3110 OSF Netzüberspannung"
-    en: "0x3110 OSF line overvoltage"
-  "0x3120 USF line undervoltage":
-    de: "0x3120 USF Netzunterspannung"
-    en: "0x3120 USF line undervoltage"
-  "0x3130 PHF line phase loss":
-    de: "0x3130 PHF Netzphasenausfall"
-    en: "0x3130 PHF line phase loss"
-  "0x3310 ObF/OPF DC bus overvoltage or motor phase loss":
-    de: "0x3310 ObF/OPF Überspannung im DC-Zwischenkreis oder Motorphasenausfall"
-    en: "0x3310 ObF/OPF DC bus overvoltage or motor phase loss"
-  "0x4210 OHF drive overheating":
-    de: "0x4210 OHF Überhitzung des Antriebs"
-    en: "0x4210 OHF drive overheating"
-  "0x6100 InF internal":
-    de: "0x6100 InF intern"
-    en: "0x6100 InF internal"
-  "0x6300 CFF/CFI invalid parameter configuration":
-    de: "0x6300 CFF/CFI ungültige Parameterkonfiguration"
-    en: "0x6300 CFF/CFI invalid parameter configuration"
-  "0x7300 LFF 4-20 mA loss":
-    de: "0x7300 LFF Verlust 4-20 mA"
-    en: "0x7300 LFF 4-20 mA loss"
-  "0x7510 SLF/CNF communication interruption":
-    de: "0x7510 SLF/CNF Kommunikationsunterbrechung"
-    en: "0x7510 SLF/CNF communication interruption"
-  "0x7520 ILF optional internal link":
-    de: "0x7520 ILF optionale interne Verbindung"
-    en: "0x7520 ILF optional internal link"
-  "0x8100 COF CANopen communication interruption":
-    de: "0x8100 COF CANopen-Kommunikationsunterbrechung"
-    en: "0x8100 COF CANopen communication interruption"
-  "0x9000 EPF external fault":
-    de: "0x9000 EPF externer Fehler"
-    en: "0x9000 EPF external fault"
-  "0xFF00 tnF auto-tuning unsuccessful":
-    de: "0xFF00 tnF Autotuning fehlgeschlagen"
-    en: "0xFF00 tnF auto-tuning unsuccessful"
-  "0xFF01 bLF brake control":
-    de: "0xFF01 bLF Bremssteuerung"
-    en: "0xFF01 bLF brake control"
-  nOF No fault code saved:
-    de: nOF Kein Fehlercode gespeichert
-    en: nOF No fault code saved
-  CFF Incorrect configuration (parameters):
-    de: CFF Falsche Konfiguration (Parameter)
-    en: CFF Incorrect configuration (parameters)
-  CFI Invalid configuration (parameters):
-    de: CFI Ungültige Konfiguration (Parameter)
-    en: CFI Invalid configuration (parameters)
-  SLF Modbus communication interruption:
-    de: SLF Modbus-Kommunikationsunterbrechung
-    en: SLF Modbus communication interruption
-  ILF Internal communication interruption:
-    de: ILF Interne Kommunikationsunterbrechung
-    en: ILF Internal communication interruption
-  CnF Communication option card fault:
-    de: CnF Fehler Kommunikations-Optionskarte
-    en: CnF Communication option card fault
-  EPF External fault:
-    de: EPF Externer Fehler
-    en: EPF External fault
-  OCF Overcurrent:
-    de: OCF Überstrom
-    en: OCF Overcurrent
-  CrF Capacitor pre-charge fault:
-    de: CrF Fehler Kondensator-Vorladung
-    en: CrF Capacitor pre-charge fault
-  LFF 4 - 20 mA loss:
-    de: LFF Verlust 4 - 20 mA
-    en: LFF 4 - 20 mA loss
-  OHF Drive overheating:
-    de: OHF Überhitzung des Antriebs
-    en: OHF Drive overheating
-  OLF Motor overload:
-    de: OLF Motorüberlast
-    en: OLF Motor overload
-  ObF DC bus overvoltage:
-    de: ObF Überspannung DC-Zwischenkreis
-    en: ObF DC bus overvoltage
-  OSF Line supply overvoltage:
-    de: OSF Netzüberspannung
-    en: OSF Line supply overvoltage
-  OPF Motor phase loss:
-    de: OPF Motorphasenausfall
-    en: OPF Motor phase loss
-  PHF Line phase loss:
-    de: PHF Netzphasenausfall
-    en: PHF Line phase loss
-  USF Line supply undervoltage:
-    de: USF Netzunterspannung
-    en: USF Line supply undervoltage
-  OCF Phase-to-phase short-circuit:
-    de: OCF Phase-Phase-Kurzschluss
-    en: OCF Phase-to-phase short-circuit
-  SOF Motor overspeed:
-    de: SOF Motorüberdrehzahl
-    en: SOF Motor overspeed
-  tnF Auto-tuning was unsuccessful:
-    de: tnF Autotuning war nicht erfolgreich
-    en: tnF Auto-tuning was unsuccessful
-  IF1 Unknown rating:
-    de: IF1 Unbekannte Nennleistung
-    en: IF1 Unknown rating
-  IF2 MMI card:
-    de: IF2 MMI-Karte
-    en: IF2 MMI card
-  IF3 MMI communication interruption:
-    de: IF3 MMI-Kommunikationsunterbrechung
-    en: IF3 MMI communication interruption
-  IF4 Industrial EEPROM fault:
-    de: IF4 Fehler Industrie-EEPROM
-    en: IF4 Industrial EEPROM fault
-  EEF EEPROM memory fault:
-    de: EEF EEPROM-Speicherfehler
-    en: EEF EEPROM memory fault
-  OCF impeding short-circuit:
-    de: OCF drohender Kurzschluss
-    en: OCF impeding short-circuit
-  SCF Motor short-circuit (to ground):
-    de: SCF Motorkurzschluss (gegen Erde)
-    en: SCF Motor short-circuit (to ground)
-  OPF Motor phase loss - 3 phases:
-    de: OPF Motorphasenausfall - 3 Phasen
-    en: OPF Motor phase loss - 3 phases
-  "COF Communication interuption, fault line 2 (CANopen)":
-    de: "COF Kommunikationsunterbrechung, Fehler Leitung 2 (CANopen)"
-    en: "COF Communication interuption, fault line 2 (CANopen)"
-  bLF Brake control fault:
-    de: bLF Fehler Bremssteuerung
-    en: bLF Brake control fault
-  "OCF Power module, specific to ATV312pD15p":
-    de: "OCF Leistungsmodul, spezifisch für ATV312pD15p"
-    en: "OCF Power module, specific to ATV312pD15p"
-  "SCF Power module or motor short-circuit, detected at power up":
-    de: "SCF Leistungsmodul- oder Motorkurzschluss, beim Einschalten erkannt"
-    en: "SCF Power module or motor short-circuit, detected at power up"
-  Drive ready:
-    de: Antrieb bereit
-    en: Drive ready
-  No emergency stop:
-    de: Kein Not-Halt
-    en: No emergency stop
-  Drive accelerating:
-    de: Antrieb beschleunigt
-    en: Drive accelerating
-  Drive decelerating:
-    de: Antrieb verzögert
-    en: Drive decelerating
-  Reverse rotation requested:
-    de: Linkslauf angefordert
-    en: Reverse rotation requested
-  LFr Frequency Reference via Bus:
-    de: LFr Frequenzsollwert über Bus
-    en: LFr Frequency Reference via Bus
-  CMD Control Word:
-    de: CMD Steuerwort
-    en: CMD Control Word
-  PISP PI Reference via Bus:
-    de: PISP PI-Sollwert über Bus
-    en: PISP PI Reference via Bus
-  ACC Acceleration Ramp Time:
-    de: ACC Beschleunigungsrampenzeit
-    en: ACC Acceleration Ramp Time
-  dEC Deceleration Ramp Time:
-    de: dEC Verzögerungsrampenzeit
-    en: dEC Deceleration Ramp Time
-  LSP Low Speed:
-    de: LSP Niedrige Drehzahl
-    en: LSP Low Speed
-  HSP High Speed:
-    de: HSP Hohe Drehzahl
-    en: HSP High Speed
-  tFr Maximum Output Frequency:
-    de: tFr Maximale Ausgangsfrequenz
-    en: tFr Maximum Output Frequency
-  ItH Motor Thermal Protection Current:
-    de: ItH Thermischer Motorschutzstrom
-    en: ItH Motor Thermal Protection Current
-  CLI Current Limit:
-    de: CLI Stromgrenze
-    en: CLI Current Limit
-  Ftd Motor Frequency Threshold:
-    de: Ftd Motorfrequenzschwelle
-    en: Ftd Motor Frequency Threshold
-  Relay R1 Assignment:
-    de: Relais R1 Zuordnung
-    en: Relay R1 Assignment
-  Relay R2 Assignment:
-    de: Relais R2 Zuordnung
-    en: Relay R2 Assignment
-  JPF Skip Frequency:
-    de: JPF Ausblendfrequenz
-    en: JPF Skip Frequency
-  JF2 Second Skip Frequency:
-    de: JF2 Zweite Ausblendfrequenz
-    en: JF2 Second Skip Frequency
-  tLS Low Speed Operating Time:
-    de: tLS Betriebszeit bei niedriger Drehzahl
-    en: tLS Low Speed Operating Time
-  rPt Ramp Type:
-    de: rPt Rampentyp
-    en: rPt Ramp Type
-  Inr Ramp Increment:
-    de: Inr Rampeninkrement
-    en: Inr Ramp Increment
-  AC2 Second Acceleration Ramp Time:
-    de: AC2 Zweite Beschleunigungsrampenzeit
-    en: AC2 Second Acceleration Ramp Time
-  dE2 Second Deceleration Ramp Time:
-    de: dE2 Zweite Verzögerungsrampenzeit
-    en: dE2 Second Deceleration Ramp Time
-  Frt Ramp Switching Threshold:
-    de: Frt Rampenumschaltschwelle
-    en: Frt Ramp Switching Threshold
-  brA Deceleration Ramp Adaptation:
-    de: brA Anpassung der Verzögerungsrampe
-    en: brA Deceleration Ramp Adaptation
-  SFr Switching Frequency:
-    de: SFr Schaltfrequenz
-    en: SFr Switching Frequency
-  nrd Noise Reduction:
-    de: nrd Geräuschreduzierung
-    en: nrd Noise Reduction
-  SrF Speed Loop Filter Suppression:
-    de: SrF Unterdrückung des Drehzahlregelkreisfilters
-    en: SrF Speed Loop Filter Suppression
-  Fr1 Reference Channel 1:
-    de: Fr1 Sollwertkanal 1
-    en: Fr1 Reference Channel 1
-  Fr2 Reference Channel 2:
-    de: Fr2 Sollwertkanal 2
-    en: Fr2 Reference Channel 2
-  Cd1 Control Channel 1:
-    de: Cd1 Steuerkanal 1
-    en: Cd1 Control Channel 1
-  Cd2 Control Channel 2:
-    de: Cd2 Steuerkanal 2
-    en: Cd2 Control Channel 2
-  ETA Status Word:
-    de: ETA Statuswort
-    en: ETA Status Word
-  Drive Fault Active:
-    de: Antriebsfehler aktiv
-    en: Drive Fault Active
-  Drive Alarm Present:
-    de: Antriebsalarm anstehend
-    en: Drive Alarm Present
-  rFr Output Frequency:
-    de: rFr Ausgangsfrequenz
-    en: rFr Output Frequency
-  FrH Frequency Reference Before Ramp:
-    de: FrH Frequenzsollwert vor Rampe
-    en: FrH Frequency Reference Before Ramp
-  LFR1 Modbus Frequency Reference Image:
-    de: LFR1 Modbus-Frequenzsollwert-Abbild
-    en: LFR1 Modbus Frequency Reference Image
-  LCr Motor Current:
-    de: LCr Motorstrom
-    en: LCr Motor Current
-  Otr Motor Torque:
-    de: Otr Motordrehmoment
-    en: Otr Motor Torque
-  OPr Motor Power:
-    de: OPr Motorleistung
-    en: OPr Motor Power
-  ULn Line Voltage:
-    de: ULn Netzspannung
-    en: ULn Line Voltage
-  tHr Motor Thermal State:
-    de: tHr Thermischer Motorzustand
-    en: tHr Motor Thermal State
-  tHd Drive Thermal State:
-    de: tHd Thermischer Antriebszustand
-    en: tHd Drive Thermal State
-  TDM Max Drive Thermal State:
-    de: TDM Max. thermischer Antriebszustand
-    en: TDM Max Drive Thermal State
-  rtH Operating Time:
-    de: rtH Betriebszeit
-    en: rtH Operating Time
-  INV Nominal Drive Current:
-    de: INV Nennstrom des Antriebs
-    en: INV Nominal Drive Current
-  NCV Drive Rating:
-    de: NCV Leistungsgröße des Antriebs
-    en: NCV Drive Rating
-  VCAL Drive Voltage:
-    de: VCAL Antriebsspannung
-    en: VCAL Drive Voltage
-  UdP Firmware Version Raw:
-    de: UdP Firmware-Version (Rohwert)
-    en: UdP Firmware Version Raw
-  TSP Drive Firmware Type:
-    de: TSP Antriebs-Firmware-Typ
-    en: TSP Drive Firmware Type
-  O1Ct Option Board 1 Type:
-    de: O1Ct Optionskarte 1 Typ
-    en: O1Ct Option Board 1 Type
-  Relay R1 Output Active:
-    de: Relais R1 Ausgang aktiv
-    en: Relay R1 Output Active
-  Relay R2 Output Active:
-    de: Relais R2 Ausgang aktiv
-    en: Relay R2 Output Active
-  Logic Output Active:
-    de: Logikausgang aktiv
-    en: Logic Output Active
-  IOLR Logic IO State:
-    de: IOLR Logik-E/A-Zustand
-    en: IOLR Logic IO State
-  ETI Extended Status Word:
-    de: ETI Erweitertes Statuswort
-    en: ETI Extended Status Word
-  Speed Reference Reached Status:
-    de: Drehzahlsollwert erreicht (Status)
-    en: Speed Reference Reached Status
-  LRS1 Extended Status:
-    de: LRS1 Erweiterter Status
-    en: LRS1 Extended Status
-  LRS3 Channel Status:
-    de: LRS3 Kanalstatus
-    en: LRS3 Channel Status
-  ERRD Active Fault Code:
-    de: ERRD Aktiver Fehlercode
-    en: ERRD Active Fault Code
-  LFt Last Detected Fault:
-    de: LFt Zuletzt erkannter Fehler
-    en: LFt Last Detected Fault
-  DP1 Past Detected Fault 1:
-    de: DP1 Früherer erkannter Fehler 1
-    en: DP1 Past Detected Fault 1
-  DP2 Past Detected Fault 2:
-    de: DP2 Früherer erkannter Fehler 2
-    en: DP2 Past Detected Fault 2
-  DP3 Past Detected Fault 3:
-    de: DP3 Früherer erkannter Fehler 3
-    en: DP3 Past Detected Fault 3
-  DP4 Past Detected Fault 4:
-    de: DP4 Früherer erkannter Fehler 4
-    en: DP4 Past Detected Fault 4
-  EP1 Past Fault Status 1:
-    de: EP1 Früherer Fehlerstatus 1
-    en: EP1 Past Fault Status 1
-  EP2 Past Fault Status 2:
-    de: EP2 Früherer Fehlerstatus 2
-    en: EP2 Past Fault Status 2
-  EP3 Past Fault Status 3:
-    de: EP3 Früherer Fehlerstatus 3
-    en: EP3 Past Fault Status 3
-  EP4 Past Fault Status 4:
-    de: EP4 Früherer Fehlerstatus 4
-    en: EP4 Past Fault Status 4
+# Generated by the converter (variant support/converter/modbus_local_gateway/modbus_local_gateway-convert.py) from modbus_local_gateway 'Schneider_ATV312.yaml' —
+# do not edit here; edit support/devicedocs/schneider-atv312/augment.yaml and re-run:
+#   MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+#   SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
+#     .venv/bin/python support/converter/convert_all.py
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -1686,3 +1073,621 @@ holding:
       name: EP4 Past Fault Status 4
       entity_category: diagnostic
       enabled_by_default: false
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  nO Not assigned:
+    de: nO Nicht zugewiesen
+    en: nO Not assigned
+  FLt Drive detected fault:
+    de: "FLt Antrieb: Fehler erkannt"
+    en: FLt Drive detected fault
+  rUn Drive running:
+    de: rUn Antrieb läuft
+    en: rUn Drive running
+  FtA Frequency threshold reached:
+    de: FtA Frequenzschwelle erreicht
+    en: FtA Frequency threshold reached
+  FLA High speed (HSP) reached:
+    de: FLA Hohe Drehzahl (HSP) erreicht
+    en: FLA High speed (HSP) reached
+  CtA Current threshold reached:
+    de: CtA Stromschwelle erreicht
+    en: CtA Current threshold reached
+  SrA Frequency reference reached:
+    de: SrA Frequenzsollwert erreicht
+    en: SrA Frequency reference reached
+  tSA Motor thermal threshold reached:
+    de: tSA Thermische Motorschwelle erreicht
+    en: tSA Motor thermal threshold reached
+  "APL Loss of 4-20 mA signal, even if LFL = nO":
+    de: "APL Verlust des 4-20-mA-Signals, auch wenn LFL = nO"
+    en: "APL Loss of 4-20 mA signal, even if LFL = nO"
+  LI1 Returns the value of LI1:
+    de: LI1 Gibt den Wert von LI1 zurück
+    en: LI1 Returns the value of LI1
+  LI2 Returns the value of LI2:
+    de: LI2 Gibt den Wert von LI2 zurück
+    en: LI2 Returns the value of LI2
+  LI3 Returns the value of LI3:
+    de: LI3 Gibt den Wert von LI3 zurück
+    en: LI3 Returns the value of LI3
+  LI4 Returns the value of LI4:
+    de: LI4 Gibt den Wert von LI4 zurück
+    en: LI4 Returns the value of LI4
+  LI5 Returns the value of LI5:
+    de: LI5 Gibt den Wert von LI5 zurück
+    en: LI5 Returns the value of LI5
+  LI6 Returns the value of LI6:
+    de: LI6 Gibt den Wert von LI6 zurück
+    en: LI6 Returns the value of LI6
+  "bLC Brake sequence (for information, as this assignment can be only be activated or deactivated via the bLC":
+    de: "bLC Bremssequenz (zur Information, da diese Zuordnung nur über bLC aktiviert oder deaktiviert werden kann"
+    en: "bLC Brake sequence (for information, as this assignment can be only be activated or deactivated via the bLC"
+  AI1 Analog input AI1:
+    de: AI1 Analogeingang AI1
+    en: AI1 Analog input AI1
+  AI2 Analog input AI2:
+    de: AI2 Analogeingang AI2
+    en: AI2 Analog input AI2
+  AI3 Analog input AI3:
+    de: AI3 Analogeingang AI3
+    en: AI3 Analog input AI3
+  AIV1 Analog input AIV1:
+    de: AIV1 Analogeingang AIV1
+    en: AIV1 Analog input AIV1
+  UPdt (1) + speed/- speed via LI:
+    de: UPdt (1) + Drehzahl/- Drehzahl über LI
+    en: UPdt (1) + speed/- speed via LI
+  UpdH (1) + speed/- speed using the jog dial:
+    de: UpdH (1) + Drehzahl/- Drehzahl über das Jog-Rad
+    en: UpdH (1) + speed/- speed using the jog dial
+  "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu":
+    de: "LCC Sollwert über das externe Bedienterminal, Parameter LFr im SEt- oder SUP-Menü"
+    en: "LCC Reference via the remote display terminal, LFr parameter in the SEt- or SUP-menu"
+  "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu":
+    de: "Mdb Sollwert über Modbus, Parameter LFr im SEt- oder SUP-Menü"
+    en: "Mdb Reference via Modbus, LFr parameter in the SEt- or SUP-menu"
+  "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu":
+    de: "nEt Sollwert über CANopen, Parameter LFr im SEt- oder SUP-Menü"
+    en: "nEt Reference via CANopen, LFr parameter in the SEt- or SUP-menu"
+  tEr Terminal block control:
+    de: tEr Steuerung über Klemmenblock
+    en: tEr Terminal block control
+  LOC Keypad control:
+    de: LOC Steuerung über Bedienfeld
+    en: LOC Keypad control
+  LCC Remote display terminal control:
+    de: LCC Steuerung über externes Bedienterminal
+    en: LCC Remote display terminal control
+  Mdb Control via Modbus:
+    de: Mdb Steuerung über Modbus
+    en: Mdb Control via Modbus
+  nEt Control via CANopen:
+    de: nEt Steuerung über CANopen
+    en: nEt Control via CANopen
+  Ready to switch on:
+    de: Einschaltbereit
+    en: Ready to switch on
+  Switched on:
+    de: Eingeschaltet
+    en: Switched on
+  Operation enabled:
+    de: Betrieb freigegeben
+    en: Operation enabled
+  Detected fault:
+    de: Fehler erkannt
+    en: Detected fault
+  Quick stop:
+    de: Schnellhalt
+    en: Quick stop
+  Switch on disabled:
+    de: Einschalten gesperrt
+    en: Switch on disabled
+  Alarm present:
+    de: Alarm anstehend
+    en: Alarm present
+  Reference reached:
+    de: Sollwert erreicht
+    en: Reference reached
+  Reference exceeded LSP/HSP limits:
+    de: Sollwert überschreitet LSP/HSP-Grenzen
+    en: Reference exceeded LSP/HSP limits
+  STOP key imposed stop:
+    de: Halt durch STOP-Taste
+    en: STOP key imposed stop
+  Reverse rotation:
+    de: Linkslauf
+    en: Reverse rotation
+  unknown:
+    de: Unbekannt
+    en: unknown
+  M2 200...240 V single phase:
+    de: M2 200...240 V einphasig
+    en: M2 200...240 V single phase
+  M3 200...240 V 3-phase:
+    de: M3 200...240 V 3-phasig
+    en: M3 200...240 V 3-phase
+  N4 380...500 V 3-phase:
+    de: N4 380...500 V 3-phasig
+    en: N4 380...500 V 3-phase
+  S6 525...600 V 3-phase:
+    de: S6 525...600 V 3-phasig
+    en: S6 525...600 V 3-phase
+  LI1 active:
+    de: LI1 aktiv
+    en: LI1 active
+  LI2 active:
+    de: LI2 aktiv
+    en: LI2 active
+  LI3 active:
+    de: LI3 aktiv
+    en: LI3 active
+  LI4 active:
+    de: LI4 aktiv
+    en: LI4 active
+  LI5 active:
+    de: LI5 aktiv
+    en: LI5 active
+  LI6 active:
+    de: LI6 aktiv
+    en: LI6 active
+  Keypad present:
+    de: Bedienfeld vorhanden
+    en: Keypad present
+  R1 output active:
+    de: R1-Ausgang aktiv
+    en: R1 output active
+  R2 output active:
+    de: R2-Ausgang aktiv
+    en: R2 output active
+  LO output active:
+    de: LO-Ausgang aktiv
+    en: LO output active
+  AOC/AOV analog output mode:
+    de: AOC/AOV Analogausgangsmodus
+    en: AOC/AOV analog output mode
+  Write parameters not authorized:
+    de: Parameterschreiben nicht zugelassen
+    en: Write parameters not authorized
+  Parameter consistency check enabled:
+    de: Parameter-Konsistenzprüfung aktiviert
+    en: Parameter consistency check enabled
+  Fault reset authorized:
+    de: Fehler-Reset zugelassen
+    en: Fault reset authorized
+  Motor running:
+    de: Motor läuft
+    en: Motor running
+  DC injection active:
+    de: Gleichstrombremsung aktiv
+    en: DC injection active
+  Transient state:
+    de: Übergangszustand
+    en: Transient state
+  Motor thermal overload alarm:
+    de: Thermischer Motorüberlastalarm
+    en: Motor thermal overload alarm
+  Excessive braking alarm:
+    de: Alarm übermäßiges Bremsen
+    en: Excessive braking alarm
+  Accelerating:
+    de: Beschleunigt
+    en: Accelerating
+  Decelerating:
+    de: Verzögert
+    en: Decelerating
+  Current limit alarm:
+    de: Stromgrenzenalarm
+    en: Current limit alarm
+  Fast stop in progress:
+    de: Schnellhalt läuft
+    en: Fast stop in progress
+  Drive detected fault:
+    de: Vom Antrieb erkannter Fehler
+    en: Drive detected fault
+  Frequency threshold reached:
+    de: Frequenzschwelle erreicht
+    en: Frequency threshold reached
+  High speed reached:
+    de: Hohe Drehzahl erreicht
+    en: High speed reached
+  Current threshold reached:
+    de: Stromschwelle erreicht
+    en: Current threshold reached
+  Speed reference reached:
+    de: Drehzahlsollwert erreicht
+    en: Speed reference reached
+  Brake control in progress:
+    de: Bremssteuerung läuft
+    en: Brake control in progress
+  Loss of 4-20 mA:
+    de: Verlust 4-20 mA
+    en: Loss of 4-20 mA
+  Drive thermal overload alarm:
+    de: Thermischer Antriebsüberlastalarm
+    en: Drive thermal overload alarm
+  Reference uses Fr2:
+    de: Sollwert verwendet Fr2
+    en: Reference uses Fr2
+  Command uses Fr2/Cd2:
+    de: Befehl verwendet Fr2/Cd2
+    en: Command uses Fr2/Cd2
+  ACC2/dE2 active:
+    de: ACC2/dE2 aktiv
+    en: ACC2/dE2 active
+  CL2 current limit active:
+    de: CL2 Stromgrenze aktiv
+    en: CL2 current limit active
+  Motor 1 active:
+    de: Motor 1 aktiv
+    en: Motor 1 active
+  Motor 2 active:
+    de: Motor 2 aktiv
+    en: Motor 2 active
+  "0x2310 OCF overcurrent":
+    de: "0x2310 OCF Überstrom"
+    en: "0x2310 OCF overcurrent"
+  "0x2320 OCF impeding short-circuit/power module":
+    de: "0x2320 OCF drohender Kurzschluss/Leistungsmodul"
+    en: "0x2320 OCF impeding short-circuit/power module"
+  "0x2330 SCF short-circuit to ground":
+    de: "0x2330 SCF Kurzschluss gegen Erde"
+    en: "0x2330 SCF short-circuit to ground"
+  "0x2340 OCF phase-to-phase short-circuit":
+    de: "0x2340 OCF Phase-Phase-Kurzschluss"
+    en: "0x2340 OCF phase-to-phase short-circuit"
+  "0x3110 OSF line overvoltage":
+    de: "0x3110 OSF Netzüberspannung"
+    en: "0x3110 OSF line overvoltage"
+  "0x3120 USF line undervoltage":
+    de: "0x3120 USF Netzunterspannung"
+    en: "0x3120 USF line undervoltage"
+  "0x3130 PHF line phase loss":
+    de: "0x3130 PHF Netzphasenausfall"
+    en: "0x3130 PHF line phase loss"
+  "0x3310 ObF/OPF DC bus overvoltage or motor phase loss":
+    de: "0x3310 ObF/OPF Überspannung im DC-Zwischenkreis oder Motorphasenausfall"
+    en: "0x3310 ObF/OPF DC bus overvoltage or motor phase loss"
+  "0x4210 OHF drive overheating":
+    de: "0x4210 OHF Überhitzung des Antriebs"
+    en: "0x4210 OHF drive overheating"
+  "0x6100 InF internal":
+    de: "0x6100 InF intern"
+    en: "0x6100 InF internal"
+  "0x6300 CFF/CFI invalid parameter configuration":
+    de: "0x6300 CFF/CFI ungültige Parameterkonfiguration"
+    en: "0x6300 CFF/CFI invalid parameter configuration"
+  "0x7300 LFF 4-20 mA loss":
+    de: "0x7300 LFF Verlust 4-20 mA"
+    en: "0x7300 LFF 4-20 mA loss"
+  "0x7510 SLF/CNF communication interruption":
+    de: "0x7510 SLF/CNF Kommunikationsunterbrechung"
+    en: "0x7510 SLF/CNF communication interruption"
+  "0x7520 ILF optional internal link":
+    de: "0x7520 ILF optionale interne Verbindung"
+    en: "0x7520 ILF optional internal link"
+  "0x8100 COF CANopen communication interruption":
+    de: "0x8100 COF CANopen-Kommunikationsunterbrechung"
+    en: "0x8100 COF CANopen communication interruption"
+  "0x9000 EPF external fault":
+    de: "0x9000 EPF externer Fehler"
+    en: "0x9000 EPF external fault"
+  "0xFF00 tnF auto-tuning unsuccessful":
+    de: "0xFF00 tnF Autotuning fehlgeschlagen"
+    en: "0xFF00 tnF auto-tuning unsuccessful"
+  "0xFF01 bLF brake control":
+    de: "0xFF01 bLF Bremssteuerung"
+    en: "0xFF01 bLF brake control"
+  nOF No fault code saved:
+    de: nOF Kein Fehlercode gespeichert
+    en: nOF No fault code saved
+  CFF Incorrect configuration (parameters):
+    de: CFF Falsche Konfiguration (Parameter)
+    en: CFF Incorrect configuration (parameters)
+  CFI Invalid configuration (parameters):
+    de: CFI Ungültige Konfiguration (Parameter)
+    en: CFI Invalid configuration (parameters)
+  SLF Modbus communication interruption:
+    de: SLF Modbus-Kommunikationsunterbrechung
+    en: SLF Modbus communication interruption
+  ILF Internal communication interruption:
+    de: ILF Interne Kommunikationsunterbrechung
+    en: ILF Internal communication interruption
+  CnF Communication option card fault:
+    de: CnF Fehler Kommunikations-Optionskarte
+    en: CnF Communication option card fault
+  EPF External fault:
+    de: EPF Externer Fehler
+    en: EPF External fault
+  OCF Overcurrent:
+    de: OCF Überstrom
+    en: OCF Overcurrent
+  CrF Capacitor pre-charge fault:
+    de: CrF Fehler Kondensator-Vorladung
+    en: CrF Capacitor pre-charge fault
+  LFF 4 - 20 mA loss:
+    de: LFF Verlust 4 - 20 mA
+    en: LFF 4 - 20 mA loss
+  OHF Drive overheating:
+    de: OHF Überhitzung des Antriebs
+    en: OHF Drive overheating
+  OLF Motor overload:
+    de: OLF Motorüberlast
+    en: OLF Motor overload
+  ObF DC bus overvoltage:
+    de: ObF Überspannung DC-Zwischenkreis
+    en: ObF DC bus overvoltage
+  OSF Line supply overvoltage:
+    de: OSF Netzüberspannung
+    en: OSF Line supply overvoltage
+  OPF Motor phase loss:
+    de: OPF Motorphasenausfall
+    en: OPF Motor phase loss
+  PHF Line phase loss:
+    de: PHF Netzphasenausfall
+    en: PHF Line phase loss
+  USF Line supply undervoltage:
+    de: USF Netzunterspannung
+    en: USF Line supply undervoltage
+  OCF Phase-to-phase short-circuit:
+    de: OCF Phase-Phase-Kurzschluss
+    en: OCF Phase-to-phase short-circuit
+  SOF Motor overspeed:
+    de: SOF Motorüberdrehzahl
+    en: SOF Motor overspeed
+  tnF Auto-tuning was unsuccessful:
+    de: tnF Autotuning war nicht erfolgreich
+    en: tnF Auto-tuning was unsuccessful
+  IF1 Unknown rating:
+    de: IF1 Unbekannte Nennleistung
+    en: IF1 Unknown rating
+  IF2 MMI card:
+    de: IF2 MMI-Karte
+    en: IF2 MMI card
+  IF3 MMI communication interruption:
+    de: IF3 MMI-Kommunikationsunterbrechung
+    en: IF3 MMI communication interruption
+  IF4 Industrial EEPROM fault:
+    de: IF4 Fehler Industrie-EEPROM
+    en: IF4 Industrial EEPROM fault
+  EEF EEPROM memory fault:
+    de: EEF EEPROM-Speicherfehler
+    en: EEF EEPROM memory fault
+  OCF impeding short-circuit:
+    de: OCF drohender Kurzschluss
+    en: OCF impeding short-circuit
+  SCF Motor short-circuit (to ground):
+    de: SCF Motorkurzschluss (gegen Erde)
+    en: SCF Motor short-circuit (to ground)
+  OPF Motor phase loss - 3 phases:
+    de: OPF Motorphasenausfall - 3 Phasen
+    en: OPF Motor phase loss - 3 phases
+  "COF Communication interuption, fault line 2 (CANopen)":
+    de: "COF Kommunikationsunterbrechung, Fehler Leitung 2 (CANopen)"
+    en: "COF Communication interuption, fault line 2 (CANopen)"
+  bLF Brake control fault:
+    de: bLF Fehler Bremssteuerung
+    en: bLF Brake control fault
+  "OCF Power module, specific to ATV312pD15p":
+    de: "OCF Leistungsmodul, spezifisch für ATV312pD15p"
+    en: "OCF Power module, specific to ATV312pD15p"
+  "SCF Power module or motor short-circuit, detected at power up":
+    de: "SCF Leistungsmodul- oder Motorkurzschluss, beim Einschalten erkannt"
+    en: "SCF Power module or motor short-circuit, detected at power up"
+  Drive ready:
+    de: Antrieb bereit
+    en: Drive ready
+  No emergency stop:
+    de: Kein Not-Halt
+    en: No emergency stop
+  Drive accelerating:
+    de: Antrieb beschleunigt
+    en: Drive accelerating
+  Drive decelerating:
+    de: Antrieb verzögert
+    en: Drive decelerating
+  Reverse rotation requested:
+    de: Linkslauf angefordert
+    en: Reverse rotation requested
+  LFr Frequency Reference via Bus:
+    de: LFr Frequenzsollwert über Bus
+    en: LFr Frequency Reference via Bus
+  CMD Control Word:
+    de: CMD Steuerwort
+    en: CMD Control Word
+  PISP PI Reference via Bus:
+    de: PISP PI-Sollwert über Bus
+    en: PISP PI Reference via Bus
+  ACC Acceleration Ramp Time:
+    de: ACC Beschleunigungsrampenzeit
+    en: ACC Acceleration Ramp Time
+  dEC Deceleration Ramp Time:
+    de: dEC Verzögerungsrampenzeit
+    en: dEC Deceleration Ramp Time
+  LSP Low Speed:
+    de: LSP Niedrige Drehzahl
+    en: LSP Low Speed
+  HSP High Speed:
+    de: HSP Hohe Drehzahl
+    en: HSP High Speed
+  tFr Maximum Output Frequency:
+    de: tFr Maximale Ausgangsfrequenz
+    en: tFr Maximum Output Frequency
+  ItH Motor Thermal Protection Current:
+    de: ItH Thermischer Motorschutzstrom
+    en: ItH Motor Thermal Protection Current
+  CLI Current Limit:
+    de: CLI Stromgrenze
+    en: CLI Current Limit
+  Ftd Motor Frequency Threshold:
+    de: Ftd Motorfrequenzschwelle
+    en: Ftd Motor Frequency Threshold
+  Relay R1 Assignment:
+    de: Relais R1 Zuordnung
+    en: Relay R1 Assignment
+  Relay R2 Assignment:
+    de: Relais R2 Zuordnung
+    en: Relay R2 Assignment
+  JPF Skip Frequency:
+    de: JPF Ausblendfrequenz
+    en: JPF Skip Frequency
+  JF2 Second Skip Frequency:
+    de: JF2 Zweite Ausblendfrequenz
+    en: JF2 Second Skip Frequency
+  tLS Low Speed Operating Time:
+    de: tLS Betriebszeit bei niedriger Drehzahl
+    en: tLS Low Speed Operating Time
+  rPt Ramp Type:
+    de: rPt Rampentyp
+    en: rPt Ramp Type
+  Inr Ramp Increment:
+    de: Inr Rampeninkrement
+    en: Inr Ramp Increment
+  AC2 Second Acceleration Ramp Time:
+    de: AC2 Zweite Beschleunigungsrampenzeit
+    en: AC2 Second Acceleration Ramp Time
+  dE2 Second Deceleration Ramp Time:
+    de: dE2 Zweite Verzögerungsrampenzeit
+    en: dE2 Second Deceleration Ramp Time
+  Frt Ramp Switching Threshold:
+    de: Frt Rampenumschaltschwelle
+    en: Frt Ramp Switching Threshold
+  brA Deceleration Ramp Adaptation:
+    de: brA Anpassung der Verzögerungsrampe
+    en: brA Deceleration Ramp Adaptation
+  SFr Switching Frequency:
+    de: SFr Schaltfrequenz
+    en: SFr Switching Frequency
+  nrd Noise Reduction:
+    de: nrd Geräuschreduzierung
+    en: nrd Noise Reduction
+  SrF Speed Loop Filter Suppression:
+    de: SrF Unterdrückung des Drehzahlregelkreisfilters
+    en: SrF Speed Loop Filter Suppression
+  Fr1 Reference Channel 1:
+    de: Fr1 Sollwertkanal 1
+    en: Fr1 Reference Channel 1
+  Fr2 Reference Channel 2:
+    de: Fr2 Sollwertkanal 2
+    en: Fr2 Reference Channel 2
+  Cd1 Control Channel 1:
+    de: Cd1 Steuerkanal 1
+    en: Cd1 Control Channel 1
+  Cd2 Control Channel 2:
+    de: Cd2 Steuerkanal 2
+    en: Cd2 Control Channel 2
+  ETA Status Word:
+    de: ETA Statuswort
+    en: ETA Status Word
+  Drive Fault Active:
+    de: Antriebsfehler aktiv
+    en: Drive Fault Active
+  Drive Alarm Present:
+    de: Antriebsalarm anstehend
+    en: Drive Alarm Present
+  rFr Output Frequency:
+    de: rFr Ausgangsfrequenz
+    en: rFr Output Frequency
+  FrH Frequency Reference Before Ramp:
+    de: FrH Frequenzsollwert vor Rampe
+    en: FrH Frequency Reference Before Ramp
+  LFR1 Modbus Frequency Reference Image:
+    de: LFR1 Modbus-Frequenzsollwert-Abbild
+    en: LFR1 Modbus Frequency Reference Image
+  LCr Motor Current:
+    de: LCr Motorstrom
+    en: LCr Motor Current
+  Otr Motor Torque:
+    de: Otr Motordrehmoment
+    en: Otr Motor Torque
+  OPr Motor Power:
+    de: OPr Motorleistung
+    en: OPr Motor Power
+  ULn Line Voltage:
+    de: ULn Netzspannung
+    en: ULn Line Voltage
+  tHr Motor Thermal State:
+    de: tHr Thermischer Motorzustand
+    en: tHr Motor Thermal State
+  tHd Drive Thermal State:
+    de: tHd Thermischer Antriebszustand
+    en: tHd Drive Thermal State
+  TDM Max Drive Thermal State:
+    de: TDM Max. thermischer Antriebszustand
+    en: TDM Max Drive Thermal State
+  rtH Operating Time:
+    de: rtH Betriebszeit
+    en: rtH Operating Time
+  INV Nominal Drive Current:
+    de: INV Nennstrom des Antriebs
+    en: INV Nominal Drive Current
+  NCV Drive Rating:
+    de: NCV Leistungsgröße des Antriebs
+    en: NCV Drive Rating
+  VCAL Drive Voltage:
+    de: VCAL Antriebsspannung
+    en: VCAL Drive Voltage
+  UdP Firmware Version Raw:
+    de: UdP Firmware-Version (Rohwert)
+    en: UdP Firmware Version Raw
+  TSP Drive Firmware Type:
+    de: TSP Antriebs-Firmware-Typ
+    en: TSP Drive Firmware Type
+  O1Ct Option Board 1 Type:
+    de: O1Ct Optionskarte 1 Typ
+    en: O1Ct Option Board 1 Type
+  Relay R1 Output Active:
+    de: Relais R1 Ausgang aktiv
+    en: Relay R1 Output Active
+  Relay R2 Output Active:
+    de: Relais R2 Ausgang aktiv
+    en: Relay R2 Output Active
+  Logic Output Active:
+    de: Logikausgang aktiv
+    en: Logic Output Active
+  IOLR Logic IO State:
+    de: IOLR Logik-E/A-Zustand
+    en: IOLR Logic IO State
+  ETI Extended Status Word:
+    de: ETI Erweitertes Statuswort
+    en: ETI Extended Status Word
+  Speed Reference Reached Status:
+    de: Drehzahlsollwert erreicht (Status)
+    en: Speed Reference Reached Status
+  LRS1 Extended Status:
+    de: LRS1 Erweiterter Status
+    en: LRS1 Extended Status
+  LRS3 Channel Status:
+    de: LRS3 Kanalstatus
+    en: LRS3 Channel Status
+  ERRD Active Fault Code:
+    de: ERRD Aktiver Fehlercode
+    en: ERRD Active Fault Code
+  LFt Last Detected Fault:
+    de: LFt Zuletzt erkannter Fehler
+    en: LFt Last Detected Fault
+  DP1 Past Detected Fault 1:
+    de: DP1 Früherer erkannter Fehler 1
+    en: DP1 Past Detected Fault 1
+  DP2 Past Detected Fault 2:
+    de: DP2 Früherer erkannter Fehler 2
+    en: DP2 Past Detected Fault 2
+  DP3 Past Detected Fault 3:
+    de: DP3 Früherer erkannter Fehler 3
+    en: DP3 Past Detected Fault 3
+  DP4 Past Detected Fault 4:
+    de: DP4 Früherer erkannter Fehler 4
+    en: DP4 Past Detected Fault 4
+  EP1 Past Fault Status 1:
+    de: EP1 Früherer Fehlerstatus 1
+    en: EP1 Past Fault Status 1
+  EP2 Past Fault Status 2:
+    de: EP2 Früherer Fehlerstatus 2
+    en: EP2 Past Fault Status 2
+  EP3 Past Fault Status 3:
+    de: EP3 Früherer Fehlerstatus 3
+    en: EP3 Past Fault Status 3
+  EP4 Past Fault Status 4:
+    de: EP4 Früherer Fehlerstatus 4
+    en: EP4 Past Fault Status 4

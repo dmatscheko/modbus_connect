@@ -1,231 +1,8 @@
-# Converted from modbus_local_gateway 'SDM630.yaml'; entity groups from support/devicedocs/eastron-sdm630/augment.yaml
-# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
-translations:
-  Serial Number:
-    de: Seriennummer
-    en: Serial Number
-  Communicate address:
-    de: Kommunikationsadresse
-    en: Communicate address
-  Baud Rate:
-    de: Baudrate
-    en: Baud Rate
-  Energy Units Prefix:
-    de: Energieeinheiten-Präfix
-    en: Energy Units Prefix
-  Phase 1 Voltage:
-    de: Phase 1 Spannung
-    en: Phase 1 Voltage
-  Phase 2 Voltage:
-    de: Phase 2 Spannung
-    en: Phase 2 Voltage
-  Phase 3 Voltage:
-    de: Phase 3 Spannung
-    en: Phase 3 Voltage
-  Phase 1 Current:
-    de: Phase 1 Strom
-    en: Phase 1 Current
-  Phase 2 Current:
-    de: Phase 2 Strom
-    en: Phase 2 Current
-  Phase 3 Current:
-    de: Phase 3 Strom
-    en: Phase 3 Current
-  Phase 1 Active Power:
-    de: Phase 1 Wirkleistung
-    en: Phase 1 Active Power
-  Phase 2 Active Power:
-    de: Phase 2 Wirkleistung
-    en: Phase 2 Active Power
-  Phase 3 Active Power:
-    de: Phase 3 Wirkleistung
-    en: Phase 3 Active Power
-  Phase 1 Apparent Power:
-    de: Phase 1 Scheinleistung
-    en: Phase 1 Apparent Power
-  Phase 2 Apparent Power:
-    de: Phase 2 Scheinleistung
-    en: Phase 2 Apparent Power
-  Phase 3 Apparent Power:
-    de: Phase 3 Scheinleistung
-    en: Phase 3 Apparent Power
-  Phase 1 Reactive Power:
-    de: Phase 1 Blindleistung
-    en: Phase 1 Reactive Power
-  Phase 2 Reactive Power:
-    de: Phase 2 Blindleistung
-    en: Phase 2 Reactive Power
-  Phase 3 Reactive Power:
-    de: Phase 3 Blindleistung
-    en: Phase 3 Reactive Power
-  Phase 1 Power Factor:
-    de: Phase 1 Leistungsfaktor
-    en: Phase 1 Power Factor
-  Phase 2 Power Factor:
-    de: Phase 2 Leistungsfaktor
-    en: Phase 2 Power Factor
-  Phase 3 Power Factor:
-    de: Phase 3 Leistungsfaktor
-    en: Phase 3 Power Factor
-  Phase 1 Phase Angle:
-    de: Phase 1 Phasenwinkel
-    en: Phase 1 Phase Angle
-  Phase 2 Phase Angle:
-    de: Phase 2 Phasenwinkel
-    en: Phase 2 Phase Angle
-  Phase 3 Phase Angle:
-    de: Phase 3 Phasenwinkel
-    en: Phase 3 Phase Angle
-  Average Line to neutral Volts:
-    de: Mittlere Leiter-Neutralleiter-Spannung
-    en: Average Line to neutral Volts
-  Average Line Current:
-    de: Mittlerer Leiterstrom
-    en: Average Line Current
-  Sum of Line currents:
-    de: Summe der Leiterströme
-    en: Sum of Line currents
-  Total System Power:
-    de: Gesamtsystemleistung
-    en: Total System Power
-  Total System VA:
-    de: Gesamtsystem-Scheinleistung
-    en: Total System VA
-  Total System VAr:
-    de: Gesamtsystem-Blindleistung
-    en: Total System VAr
-  Total System Power factor:
-    de: Gesamtsystem-Leistungsfaktor
-    en: Total System Power factor
-  Total System Phase Angle:
-    de: Gesamtsystem-Phasenwinkel
-    en: Total System Phase Angle
-  Frequency:
-    de: Frequenz
-    en: Frequency
-  Total Import Active Energy:
-    de: Gesamte bezogene Wirkenergie
-    en: Total Import Active Energy
-  Total Export Active Energy:
-    de: Gesamte eingespeiste Wirkenergie
-    en: Total Export Active Energy
-  Total Import Reactive Energy:
-    de: Gesamte bezogene Blindenergie
-    en: Total Import Reactive Energy
-  Total Export Reactive Energy:
-    de: Gesamte eingespeiste Blindenergie
-    en: Total Export Reactive Energy
-  Total System Power demand:
-    de: Gesamtsystem-Leistungsbedarf
-    en: Total System Power demand
-  Maximum Total System Power demand:
-    de: Maximaler Gesamtsystem-Leistungsbedarf
-    en: Maximum Total System Power demand
-  Total System VA demand:
-    de: Gesamtsystem-Scheinleistungsbedarf
-    en: Total System VA demand
-  Maximum Total System VA demand:
-    de: Maximaler Gesamtsystem-Scheinleistungsbedarf
-    en: Maximum Total System VA demand
-  Neutral Current demand:
-    de: Neutralleiter-Strombedarf
-    en: Neutral Current demand
-  Maximum neutral Current demand:
-    de: Maximaler Neutralleiter-Strombedarf
-    en: Maximum neutral Current demand
-  Line 1 to Line 2 Volts:
-    de: Spannung Leiter 1 zu Leiter 2
-    en: Line 1 to Line 2 Volts
-  Line 2 to Line 3 Volts:
-    de: Spannung Leiter 2 zu Leiter 3
-    en: Line 2 to Line 3 Volts
-  Line 3 to Line 1 Volts:
-    de: Spannung Leiter 3 zu Leiter 1
-    en: Line 3 to Line 1 Volts
-  Average Line to Line Volts:
-    de: Mittlere Leiter-Leiter-Spannung
-    en: Average Line to Line Volts
-  Neutral Current:
-    de: Neutralleiterstrom
-    en: Neutral Current
-  Phase 2 L/N Volts THD:
-    de: Phase 2 L/N Spannung-THD
-    en: Phase 2 L/N Volts THD
-  Phase 3 L/N Volts THD:
-    de: Phase 3 L/N Spannung-THD
-    en: Phase 3 L/N Volts THD
-  Phase 2 Current THD:
-    de: Phase 2 Strom-THD
-    en: Phase 2 Current THD
-  Phase 3 Current THD:
-    de: Phase 3 Strom-THD
-    en: Phase 3 Current THD
-  Phase 1 Current demand:
-    de: Phase 1 Strombedarf
-    en: Phase 1 Current demand
-  Phase 2 Current demand:
-    de: Phase 2 Strombedarf
-    en: Phase 2 Current demand
-  Phase 3 Current demand:
-    de: Phase 3 Strombedarf
-    en: Phase 3 Current demand
-  Phase 1 Maximum Current Demand:
-    de: Phase 1 maximaler Strombedarf
-    en: Phase 1 Maximum Current Demand
-  Phase 2 Maximum Current Demand:
-    de: Phase 2 maximaler Strombedarf
-    en: Phase 2 Maximum Current Demand
-  Phase 3 Maximum Current Demand:
-    de: Phase 3 maximaler Strombedarf
-    en: Phase 3 Maximum Current Demand
-  L2 Import kWh:
-    de: L2 Bezug kWh
-    en: L2 Import kWh
-  L3 Import kWh:
-    de: L3 Bezug kWh
-    en: L3 Import kWh
-  L1 Export kWh:
-    de: L1 Einspeisung kWh
-    en: L1 Export kWh
-  L2 Export kWh:
-    de: L2 Einspeisung kWh
-    en: L2 Export kWh
-  L3 Export kWh:
-    de: L3 Einspeisung kWh
-    en: L3 Export kWh
-  L1 Total kWh:
-    de: L1 Gesamt kWh
-    en: L1 Total kWh
-  L2 Total kWh:
-    de: L2 Gesamt kWh
-    en: L2 Total kWh
-  L3 Total kWh:
-    de: L3 Gesamt kWh
-    en: L3 Total kWh
-  L2 Import kVArh:
-    de: L2 Bezug kVArh
-    en: L2 Import kVArh
-  L3 Import kVArh:
-    de: L3 Bezug kVArh
-    en: L3 Import kVArh
-  L1 Export kVArh:
-    de: L1 Einspeisung kVArh
-    en: L1 Export kVArh
-  L2 Export kVArh:
-    de: L2 Einspeisung kVArh
-    en: L2 Export kVArh
-  L3 Export kVArh:
-    de: L3 Einspeisung kVArh
-    en: L3 Export kVArh
-  L1 Total kVArh:
-    de: L1 Gesamt kVArh
-    en: L1 Total kVArh
-  L2 Total kVArh:
-    de: L2 Gesamt kVArh
-    en: L2 Total kVArh
-  L3 Total kVArh:
-    de: L3 Gesamt kVArh
-    en: L3 Total kVArh
+# Generated by the converter (variant support/converter/modbus_local_gateway/modbus_local_gateway-convert.py) from modbus_local_gateway 'SDM630.yaml' —
+# do not edit here; edit support/devicedocs/eastron-sdm630/augment.yaml and re-run:
+#   MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+#   SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
+#     .venv/bin/python support/converter/convert_all.py
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -1026,3 +803,231 @@ input:
       name: L3 Total kVArh
       unit_of_measurement: kVArh
       precision: 2
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Serial Number:
+    de: Seriennummer
+    en: Serial Number
+  Communicate address:
+    de: Kommunikationsadresse
+    en: Communicate address
+  Baud Rate:
+    de: Baudrate
+    en: Baud Rate
+  Energy Units Prefix:
+    de: Energieeinheiten-Präfix
+    en: Energy Units Prefix
+  Phase 1 Voltage:
+    de: Phase 1 Spannung
+    en: Phase 1 Voltage
+  Phase 2 Voltage:
+    de: Phase 2 Spannung
+    en: Phase 2 Voltage
+  Phase 3 Voltage:
+    de: Phase 3 Spannung
+    en: Phase 3 Voltage
+  Phase 1 Current:
+    de: Phase 1 Strom
+    en: Phase 1 Current
+  Phase 2 Current:
+    de: Phase 2 Strom
+    en: Phase 2 Current
+  Phase 3 Current:
+    de: Phase 3 Strom
+    en: Phase 3 Current
+  Phase 1 Active Power:
+    de: Phase 1 Wirkleistung
+    en: Phase 1 Active Power
+  Phase 2 Active Power:
+    de: Phase 2 Wirkleistung
+    en: Phase 2 Active Power
+  Phase 3 Active Power:
+    de: Phase 3 Wirkleistung
+    en: Phase 3 Active Power
+  Phase 1 Apparent Power:
+    de: Phase 1 Scheinleistung
+    en: Phase 1 Apparent Power
+  Phase 2 Apparent Power:
+    de: Phase 2 Scheinleistung
+    en: Phase 2 Apparent Power
+  Phase 3 Apparent Power:
+    de: Phase 3 Scheinleistung
+    en: Phase 3 Apparent Power
+  Phase 1 Reactive Power:
+    de: Phase 1 Blindleistung
+    en: Phase 1 Reactive Power
+  Phase 2 Reactive Power:
+    de: Phase 2 Blindleistung
+    en: Phase 2 Reactive Power
+  Phase 3 Reactive Power:
+    de: Phase 3 Blindleistung
+    en: Phase 3 Reactive Power
+  Phase 1 Power Factor:
+    de: Phase 1 Leistungsfaktor
+    en: Phase 1 Power Factor
+  Phase 2 Power Factor:
+    de: Phase 2 Leistungsfaktor
+    en: Phase 2 Power Factor
+  Phase 3 Power Factor:
+    de: Phase 3 Leistungsfaktor
+    en: Phase 3 Power Factor
+  Phase 1 Phase Angle:
+    de: Phase 1 Phasenwinkel
+    en: Phase 1 Phase Angle
+  Phase 2 Phase Angle:
+    de: Phase 2 Phasenwinkel
+    en: Phase 2 Phase Angle
+  Phase 3 Phase Angle:
+    de: Phase 3 Phasenwinkel
+    en: Phase 3 Phase Angle
+  Average Line to neutral Volts:
+    de: Mittlere Leiter-Neutralleiter-Spannung
+    en: Average Line to neutral Volts
+  Average Line Current:
+    de: Mittlerer Leiterstrom
+    en: Average Line Current
+  Sum of Line currents:
+    de: Summe der Leiterströme
+    en: Sum of Line currents
+  Total System Power:
+    de: Gesamtsystemleistung
+    en: Total System Power
+  Total System VA:
+    de: Gesamtsystem-Scheinleistung
+    en: Total System VA
+  Total System VAr:
+    de: Gesamtsystem-Blindleistung
+    en: Total System VAr
+  Total System Power factor:
+    de: Gesamtsystem-Leistungsfaktor
+    en: Total System Power factor
+  Total System Phase Angle:
+    de: Gesamtsystem-Phasenwinkel
+    en: Total System Phase Angle
+  Frequency:
+    de: Frequenz
+    en: Frequency
+  Total Import Active Energy:
+    de: Gesamte bezogene Wirkenergie
+    en: Total Import Active Energy
+  Total Export Active Energy:
+    de: Gesamte eingespeiste Wirkenergie
+    en: Total Export Active Energy
+  Total Import Reactive Energy:
+    de: Gesamte bezogene Blindenergie
+    en: Total Import Reactive Energy
+  Total Export Reactive Energy:
+    de: Gesamte eingespeiste Blindenergie
+    en: Total Export Reactive Energy
+  Total System Power demand:
+    de: Gesamtsystem-Leistungsbedarf
+    en: Total System Power demand
+  Maximum Total System Power demand:
+    de: Maximaler Gesamtsystem-Leistungsbedarf
+    en: Maximum Total System Power demand
+  Total System VA demand:
+    de: Gesamtsystem-Scheinleistungsbedarf
+    en: Total System VA demand
+  Maximum Total System VA demand:
+    de: Maximaler Gesamtsystem-Scheinleistungsbedarf
+    en: Maximum Total System VA demand
+  Neutral Current demand:
+    de: Neutralleiter-Strombedarf
+    en: Neutral Current demand
+  Maximum neutral Current demand:
+    de: Maximaler Neutralleiter-Strombedarf
+    en: Maximum neutral Current demand
+  Line 1 to Line 2 Volts:
+    de: Spannung Leiter 1 zu Leiter 2
+    en: Line 1 to Line 2 Volts
+  Line 2 to Line 3 Volts:
+    de: Spannung Leiter 2 zu Leiter 3
+    en: Line 2 to Line 3 Volts
+  Line 3 to Line 1 Volts:
+    de: Spannung Leiter 3 zu Leiter 1
+    en: Line 3 to Line 1 Volts
+  Average Line to Line Volts:
+    de: Mittlere Leiter-Leiter-Spannung
+    en: Average Line to Line Volts
+  Neutral Current:
+    de: Neutralleiterstrom
+    en: Neutral Current
+  Phase 2 L/N Volts THD:
+    de: Phase 2 L/N Spannung-THD
+    en: Phase 2 L/N Volts THD
+  Phase 3 L/N Volts THD:
+    de: Phase 3 L/N Spannung-THD
+    en: Phase 3 L/N Volts THD
+  Phase 2 Current THD:
+    de: Phase 2 Strom-THD
+    en: Phase 2 Current THD
+  Phase 3 Current THD:
+    de: Phase 3 Strom-THD
+    en: Phase 3 Current THD
+  Phase 1 Current demand:
+    de: Phase 1 Strombedarf
+    en: Phase 1 Current demand
+  Phase 2 Current demand:
+    de: Phase 2 Strombedarf
+    en: Phase 2 Current demand
+  Phase 3 Current demand:
+    de: Phase 3 Strombedarf
+    en: Phase 3 Current demand
+  Phase 1 Maximum Current Demand:
+    de: Phase 1 maximaler Strombedarf
+    en: Phase 1 Maximum Current Demand
+  Phase 2 Maximum Current Demand:
+    de: Phase 2 maximaler Strombedarf
+    en: Phase 2 Maximum Current Demand
+  Phase 3 Maximum Current Demand:
+    de: Phase 3 maximaler Strombedarf
+    en: Phase 3 Maximum Current Demand
+  L2 Import kWh:
+    de: L2 Bezug kWh
+    en: L2 Import kWh
+  L3 Import kWh:
+    de: L3 Bezug kWh
+    en: L3 Import kWh
+  L1 Export kWh:
+    de: L1 Einspeisung kWh
+    en: L1 Export kWh
+  L2 Export kWh:
+    de: L2 Einspeisung kWh
+    en: L2 Export kWh
+  L3 Export kWh:
+    de: L3 Einspeisung kWh
+    en: L3 Export kWh
+  L1 Total kWh:
+    de: L1 Gesamt kWh
+    en: L1 Total kWh
+  L2 Total kWh:
+    de: L2 Gesamt kWh
+    en: L2 Total kWh
+  L3 Total kWh:
+    de: L3 Gesamt kWh
+    en: L3 Total kWh
+  L2 Import kVArh:
+    de: L2 Bezug kVArh
+    en: L2 Import kVArh
+  L3 Import kVArh:
+    de: L3 Bezug kVArh
+    en: L3 Import kVArh
+  L1 Export kVArh:
+    de: L1 Einspeisung kVArh
+    en: L1 Export kVArh
+  L2 Export kVArh:
+    de: L2 Einspeisung kVArh
+    en: L2 Export kVArh
+  L3 Export kVArh:
+    de: L3 Einspeisung kVArh
+    en: L3 Export kVArh
+  L1 Total kVArh:
+    de: L1 Gesamt kVArh
+    en: L1 Total kVArh
+  L2 Total kVArh:
+    de: L2 Gesamt kVArh
+    en: L2 Total kVArh
+  L3 Total kVArh:
+    de: L3 Gesamt kVArh
+    en: L3 Total kVArh

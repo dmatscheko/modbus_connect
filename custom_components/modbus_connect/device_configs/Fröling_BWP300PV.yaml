@@ -1,261 +1,8 @@
-# Converted from modbus_local_gateway 'Fröling_BWP300PV.yaml'; entity groups from support/devicedocs/froeling-bwp300-pv/augment.yaml
-# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
-translations:
-  Aus:
-    de: Aus
-    en: "Off"
-  WP:
-    de: WP
-    en: Heat pump
-  EL:
-    de: EL
-    en: Electric
-  WP+EL:
-    de: WP+EL
-    en: Heat pump+Electric
-  Kessel:
-    de: Kessel
-    en: Boiler
-  WP+Kessel:
-    de: WP+Kessel
-    en: Heat pump+Boiler
-  Niedrig/Aus:
-    de: Niedrig/Aus
-    en: Low/Off
-  Hoch/EC Niedrig:
-    de: Hoch/EC Niedrig
-    en: High/EC low
-  EC Mittel:
-    de: EC Mittel
-    en: EC medium
-  EC Hoch:
-    de: EC Hoch
-    en: EC high
-  Niedrig:
-    de: Niedrig
-    en: Low
-  Mittel:
-    de: Mittel
-    en: Middle
-  Hoch:
-    de: Hoch
-    en: High
-  "1 Woche":
-    de: "1 Woche"
-    en: "1 week"
-  "2 Woche":
-    de: "2 Woche"
-    en: "2 weeks"
-  "3 Woche":
-    de: "3 Woche"
-    en: "3 weeks"
-  "3 Tage":
-    de: "3 Tage"
-    en: "3 days"
-  Manuell:
-    de: Manuell
-    en: Manual
-  "Off":
-    de: Aus
-    en: "Off"
-  English:
-    de: Englisch
-    en: English
-  German:
-    de: Deutsch
-    en: German
-  French:
-    de: Französisch
-    en: French
-  Dutch:
-    de: Niederländisch
-    en: Dutch
-  Spanish:
-    de: Spanisch
-    en: Spanish
-  Italian:
-    de: Italienisch
-    en: Italian
-  Danish:
-    de: Dänisch
-    en: Danish
-  Swedish:
-    de: Schwedisch
-    en: Swedish
-  Norwegian:
-    de: Norwegisch
-    en: Norwegian
-  Polish:
-    de: Polnisch
-    en: Polish
-  Slovenian:
-    de: Slowenisch
-    en: Slovenian
-  Croatian:
-    de: Kroatisch
-    en: Croatian
-  Air:
-    de: Luft
-    en: Air
-  Betriebsbereit:
-    de: Betriebsbereit
-    en: Ready
-  Legionellenmodus:
-    de: Legionellenmodus
-    en: Legionella mode
-  Abtau-Ende:
-    de: Abtau-Ende
-    en: Defrost end
-  In Betrieb:
-    de: In Betrieb
-    en: In operation
-  Legionellenmodus-Ende:
-    de: Legionellenmodus-Ende
-    en: Legionella mode end
-  Abtau:
-    de: Abtau
-    en: Defrosting
-  Störung:
-    de: Störung
-    en: Error
-  WP Gesperrt:
-    de: WP Gesperrt
-    en: Heat pump locked
-  Ferien:
-    de: Ferien
-    en: Vacation
-  "Speicherfühler: Kurzschluss":
-    de: "Speicherfühler: Kurzschluss"
-    en: "Tank sensor: Short circuit"
-  "Speicherfühler: Unterbrechung":
-    de: "Speicherfühler: Unterbrechung"
-    en: "Tank sensor: Open circuit"
-  "Verdampferfühler: Kurzschluss":
-    de: "Verdampferfühler: Kurzschluss"
-    en: "Evaporator sensor: Short circuit"
-  "Verdampferfühler: Unterbrechung":
-    de: "Verdampferfühler: Unterbrechung"
-    en: "Evaporator sensor: Open circuit"
-  "1. Pressostat-Meldung":
-    de: "1. Pressostat-Meldung"
-    en: "1st pressure switch message"
-  Pressostat Störung:
-    de: Pressostat Störung
-    en: Pressure switch error
-  Anode kontrollieren:
-    de: Anode kontrollieren
-    en: Check anode
-  Legio Temperatur nicht erreicht:
-    de: Legio Temperatur nicht erreicht
-    en: Legionella temperature not reached
-  "Uhrzeit einstellen!":
-    de: "Uhrzeit einstellen!"
-    en: "Set the time!"
-  "Temperatur: T Soll":
-    de: "Temperatur: T Soll"
-    en: "Temperature: T setpoint"
-  "Temperatur: T min":
-    de: "Temperatur: T min"
-    en: "Temperature: T min"
-  "Temperatur: T2 min":
-    de: "Temperatur: T2 min"
-    en: "Temperature: T2 min"
-  "Zeitplanung: Zustand":
-    de: "Zeitplanung: Zustand"
-    en: "Schedule: State"
-  "Zeitplanung: Start Heizpatrone (Stunde)":
-    de: "Zeitplanung: Start Heizpatrone (Stunde)"
-    en: "Schedule: Start heating element (hour)"
-  "Zeitplanung: Start Heizpatrone (Minute)":
-    de: "Zeitplanung: Start Heizpatrone (Minute)"
-    en: "Schedule: Start heating element (minute)"
-  "Zeitplanung: Stop Heizpatrone (Stunde)":
-    de: "Zeitplanung: Stop Heizpatrone (Stunde)"
-    en: "Schedule: Stop heating element (hour)"
-  "Zeitplanung: Stop Heizpatrone (Minute)":
-    de: "Zeitplanung: Stop Heizpatrone (Minute)"
-    en: "Schedule: Stop heating element (minute)"
-  "Betriebsmodus: Standard":
-    de: "Betriebsmodus: Standard"
-    en: "Operating mode: Standard"
-  "Temperatur: T Legio":
-    de: "Temperatur: T Legio"
-    en: "Temperature: T Legio"
-  KWL (Raumlüftung):
-    de: KWL (Raumlüftung)
-    en: KWL (room ventilation)
-  "Betriebsmodus: PV/SG":
-    de: "Betriebsmodus: PV/SG"
-    en: "Operating mode: PV/SG"
-  "Temperatur: T.PV_WP":
-    de: "Temperatur: T.PV_WP"
-    en: "Temperature: T.PV_WP"
-  "Temperatur: T.PV_EL":
-    de: "Temperatur: T.PV_EL"
-    en: "Temperature: T.PV_EL"
-  "Abwesenheit: Zustand":
-    de: "Abwesenheit: Zustand"
-    en: "Absence: State"
-  "Abwesenheit: Manuell":
-    de: "Abwesenheit: Manuell"
-    en: "Absence: Manual"
-  Lüfterpause:
-    de: Lüfterpause
-    en: Fan pause
-  Sprache:
-    de: Sprache
-    en: Language
-  Abtauart:
-    de: Abtauart
-    en: Defrost mode
-  "Temperatur: T max":
-    de: "Temperatur: T max"
-    en: "Temperature: T max"
-  Lüftertyp:
-    de: Lüftertyp
-    en: Fan type
-  "Legionellenfunktion: Intervall":
-    de: "Legionellenfunktion: Intervall"
-    en: "Legionella function: Interval"
-  "Kontakt 1: Pressostat":
-    de: "Kontakt 1: Pressostat"
-    en: "Contact 1: Pressure switch"
-  "Kontakt 2: SG-Ready":
-    de: "Kontakt 2: SG-Ready"
-    en: "Contact 2: SG-Ready"
-  "Temperatur: T1 (Verdampfer)":
-    de: "Temperatur: T1 (Verdampfer)"
-    en: "Temperature: T1 (evaporator)"
-  "Temperatur: T2 (Speicher)":
-    de: "Temperatur: T2 (Speicher)"
-    en: "Temperature: T2 (tank)"
-  "Relais 1: Kompressor":
-    de: "Relais 1: Kompressor"
-    en: "Relay 1: Compressor"
-  "Relais 2: Heizstab (EL)":
-    de: "Relais 2: Heizstab (EL)"
-    en: "Relay 2: Heating element (EL)"
-  "Relais 3: Kessel":
-    de: "Relais 3: Kessel"
-    en: "Relay 3: Boiler"
-  "Relais 4: Magnetventil":
-    de: "Relais 4: Magnetventil"
-    en: "Relay 4: Solenoid valve"
-  "Relais 6: Kondensator":
-    de: "Relais 6: Kondensator"
-    en: "Relay 6: Condenser"
-  "Relais 7: Ventilator":
-    de: "Relais 7: Ventilator"
-    en: "Relay 7: Fan"
-  "Abwesenheit: Verbleibend":
-    de: "Abwesenheit: Verbleibend"
-    en: "Absence: Remaining"
-  Unit Alarm:
-    de: Geräte-Alarm
-    en: Unit Alarm
-  Unit Alarm (raw):
-    de: Geräte-Alarm (roh)
-    en: Unit Alarm (raw)
+# Generated by the converter (variant support/converter/modbus_local_gateway/modbus_local_gateway-convert.py) from modbus_local_gateway 'Fröling_BWP300PV.yaml' —
+# do not edit here; edit support/devicedocs/froeling-bwp300-pv/augment.yaml and re-run:
+#   MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+#   SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
+#     .venv/bin/python support/converter/convert_all.py
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -795,3 +542,261 @@ input:
       icon: "mdi:chip"
       entity_category: diagnostic
       enabled_by_default: true
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  Aus:
+    de: Aus
+    en: "Off"
+  WP:
+    de: WP
+    en: Heat pump
+  EL:
+    de: EL
+    en: Electric
+  WP+EL:
+    de: WP+EL
+    en: Heat pump+Electric
+  Kessel:
+    de: Kessel
+    en: Boiler
+  WP+Kessel:
+    de: WP+Kessel
+    en: Heat pump+Boiler
+  Niedrig/Aus:
+    de: Niedrig/Aus
+    en: Low/Off
+  Hoch/EC Niedrig:
+    de: Hoch/EC Niedrig
+    en: High/EC low
+  EC Mittel:
+    de: EC Mittel
+    en: EC medium
+  EC Hoch:
+    de: EC Hoch
+    en: EC high
+  Niedrig:
+    de: Niedrig
+    en: Low
+  Mittel:
+    de: Mittel
+    en: Middle
+  Hoch:
+    de: Hoch
+    en: High
+  "1 Woche":
+    de: "1 Woche"
+    en: "1 week"
+  "2 Woche":
+    de: "2 Woche"
+    en: "2 weeks"
+  "3 Woche":
+    de: "3 Woche"
+    en: "3 weeks"
+  "3 Tage":
+    de: "3 Tage"
+    en: "3 days"
+  Manuell:
+    de: Manuell
+    en: Manual
+  "Off":
+    de: Aus
+    en: "Off"
+  English:
+    de: Englisch
+    en: English
+  German:
+    de: Deutsch
+    en: German
+  French:
+    de: Französisch
+    en: French
+  Dutch:
+    de: Niederländisch
+    en: Dutch
+  Spanish:
+    de: Spanisch
+    en: Spanish
+  Italian:
+    de: Italienisch
+    en: Italian
+  Danish:
+    de: Dänisch
+    en: Danish
+  Swedish:
+    de: Schwedisch
+    en: Swedish
+  Norwegian:
+    de: Norwegisch
+    en: Norwegian
+  Polish:
+    de: Polnisch
+    en: Polish
+  Slovenian:
+    de: Slowenisch
+    en: Slovenian
+  Croatian:
+    de: Kroatisch
+    en: Croatian
+  Air:
+    de: Luft
+    en: Air
+  Betriebsbereit:
+    de: Betriebsbereit
+    en: Ready
+  Legionellenmodus:
+    de: Legionellenmodus
+    en: Legionella mode
+  Abtau-Ende:
+    de: Abtau-Ende
+    en: Defrost end
+  In Betrieb:
+    de: In Betrieb
+    en: In operation
+  Legionellenmodus-Ende:
+    de: Legionellenmodus-Ende
+    en: Legionella mode end
+  Abtau:
+    de: Abtau
+    en: Defrosting
+  Störung:
+    de: Störung
+    en: Error
+  WP Gesperrt:
+    de: WP Gesperrt
+    en: Heat pump locked
+  Ferien:
+    de: Ferien
+    en: Vacation
+  "Speicherfühler: Kurzschluss":
+    de: "Speicherfühler: Kurzschluss"
+    en: "Tank sensor: Short circuit"
+  "Speicherfühler: Unterbrechung":
+    de: "Speicherfühler: Unterbrechung"
+    en: "Tank sensor: Open circuit"
+  "Verdampferfühler: Kurzschluss":
+    de: "Verdampferfühler: Kurzschluss"
+    en: "Evaporator sensor: Short circuit"
+  "Verdampferfühler: Unterbrechung":
+    de: "Verdampferfühler: Unterbrechung"
+    en: "Evaporator sensor: Open circuit"
+  "1. Pressostat-Meldung":
+    de: "1. Pressostat-Meldung"
+    en: "1st pressure switch message"
+  Pressostat Störung:
+    de: Pressostat Störung
+    en: Pressure switch error
+  Anode kontrollieren:
+    de: Anode kontrollieren
+    en: Check anode
+  Legio Temperatur nicht erreicht:
+    de: Legio Temperatur nicht erreicht
+    en: Legionella temperature not reached
+  "Uhrzeit einstellen!":
+    de: "Uhrzeit einstellen!"
+    en: "Set the time!"
+  "Temperatur: T Soll":
+    de: "Temperatur: T Soll"
+    en: "Temperature: T setpoint"
+  "Temperatur: T min":
+    de: "Temperatur: T min"
+    en: "Temperature: T min"
+  "Temperatur: T2 min":
+    de: "Temperatur: T2 min"
+    en: "Temperature: T2 min"
+  "Zeitplanung: Zustand":
+    de: "Zeitplanung: Zustand"
+    en: "Schedule: State"
+  "Zeitplanung: Start Heizpatrone (Stunde)":
+    de: "Zeitplanung: Start Heizpatrone (Stunde)"
+    en: "Schedule: Start heating element (hour)"
+  "Zeitplanung: Start Heizpatrone (Minute)":
+    de: "Zeitplanung: Start Heizpatrone (Minute)"
+    en: "Schedule: Start heating element (minute)"
+  "Zeitplanung: Stop Heizpatrone (Stunde)":
+    de: "Zeitplanung: Stop Heizpatrone (Stunde)"
+    en: "Schedule: Stop heating element (hour)"
+  "Zeitplanung: Stop Heizpatrone (Minute)":
+    de: "Zeitplanung: Stop Heizpatrone (Minute)"
+    en: "Schedule: Stop heating element (minute)"
+  "Betriebsmodus: Standard":
+    de: "Betriebsmodus: Standard"
+    en: "Operating mode: Standard"
+  "Temperatur: T Legio":
+    de: "Temperatur: T Legio"
+    en: "Temperature: T Legio"
+  KWL (Raumlüftung):
+    de: KWL (Raumlüftung)
+    en: KWL (room ventilation)
+  "Betriebsmodus: PV/SG":
+    de: "Betriebsmodus: PV/SG"
+    en: "Operating mode: PV/SG"
+  "Temperatur: T.PV_WP":
+    de: "Temperatur: T.PV_WP"
+    en: "Temperature: T.PV_WP"
+  "Temperatur: T.PV_EL":
+    de: "Temperatur: T.PV_EL"
+    en: "Temperature: T.PV_EL"
+  "Abwesenheit: Zustand":
+    de: "Abwesenheit: Zustand"
+    en: "Absence: State"
+  "Abwesenheit: Manuell":
+    de: "Abwesenheit: Manuell"
+    en: "Absence: Manual"
+  Lüfterpause:
+    de: Lüfterpause
+    en: Fan pause
+  Sprache:
+    de: Sprache
+    en: Language
+  Abtauart:
+    de: Abtauart
+    en: Defrost mode
+  "Temperatur: T max":
+    de: "Temperatur: T max"
+    en: "Temperature: T max"
+  Lüftertyp:
+    de: Lüftertyp
+    en: Fan type
+  "Legionellenfunktion: Intervall":
+    de: "Legionellenfunktion: Intervall"
+    en: "Legionella function: Interval"
+  "Kontakt 1: Pressostat":
+    de: "Kontakt 1: Pressostat"
+    en: "Contact 1: Pressure switch"
+  "Kontakt 2: SG-Ready":
+    de: "Kontakt 2: SG-Ready"
+    en: "Contact 2: SG-Ready"
+  "Temperatur: T1 (Verdampfer)":
+    de: "Temperatur: T1 (Verdampfer)"
+    en: "Temperature: T1 (evaporator)"
+  "Temperatur: T2 (Speicher)":
+    de: "Temperatur: T2 (Speicher)"
+    en: "Temperature: T2 (tank)"
+  "Relais 1: Kompressor":
+    de: "Relais 1: Kompressor"
+    en: "Relay 1: Compressor"
+  "Relais 2: Heizstab (EL)":
+    de: "Relais 2: Heizstab (EL)"
+    en: "Relay 2: Heating element (EL)"
+  "Relais 3: Kessel":
+    de: "Relais 3: Kessel"
+    en: "Relay 3: Boiler"
+  "Relais 4: Magnetventil":
+    de: "Relais 4: Magnetventil"
+    en: "Relay 4: Solenoid valve"
+  "Relais 6: Kondensator":
+    de: "Relais 6: Kondensator"
+    en: "Relay 6: Condenser"
+  "Relais 7: Ventilator":
+    de: "Relais 7: Ventilator"
+    en: "Relay 7: Fan"
+  "Abwesenheit: Verbleibend":
+    de: "Abwesenheit: Verbleibend"
+    en: "Absence: Remaining"
+  Unit Alarm:
+    de: Geräte-Alarm
+    en: Unit Alarm
+  Unit Alarm (raw):
+    de: Geräte-Alarm (roh)
+    en: Unit Alarm (raw)

@@ -639,11 +639,8 @@ def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozense
             split.setdefault(table, []).append(addr)
         meta["split_before"] = split
     ir = _to_intermediate(meta, ents, templates)
-    header = "Generated from homeassistant-solax-modbus by solax_convert.py — review before use."
-    if note:
-        header += "\n# " + note
     name = filename[:-5] if filename.endswith(".yaml") else filename
-    augment.write_augmented(ir, name, header=header)
+    augment.write_augmented(ir, name, source="homeassistant-solax-modbus", variant=__file__, note=note)
     plat = Counter(b.get("ha", {}).get("platform", "internal") for _, _, b in ents)
     print(f"\nWROTE {filename}: {dict(plat)} +{len(templates)} template total {len(ents) + len(templates)}")
     print("  skipped:", {k: v for k, v in skipped.items() if v})

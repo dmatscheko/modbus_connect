@@ -394,11 +394,9 @@ def convert_file(path: Path, out_dir: Path) -> int:
         print(f"  {path.name}: owned by the dimplex_pichler importer — skipped")
         return 0
     ir = to_intermediate(convert_device(doc, path.name))
-    header = (
-        f"Converted from modbus_local_gateway '{path.name}'; "
-        f"entity groups from support/devicedocs/{augment.folder_for(name)}/augment.yaml"
+    augment.write_augmented(
+        ir, name, source=f"modbus_local_gateway '{path.name}'", variant=__file__, dest_dir=out_dir
     )
-    augment.write_augmented(ir, name, header=header, dest_dir=out_dir)
     count = sum(len(ir.get(s, ())) for s in augment.TABLES)
     print(f"  {path.name}: {count} entities -> {out_dir / f'{name}.yaml'}")
     return count

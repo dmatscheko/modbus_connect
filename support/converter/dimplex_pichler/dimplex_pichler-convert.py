@@ -94,13 +94,9 @@ def run() -> None:
     upstream_dir = _upstream_dir()
     for name in DEVICES:
         ir, skipped = build_intermediate(name, upstream_dir)
-        dev = ir.get("device") or {}
-        header = (
-            f"{dev.get('manufacturer', '')} {dev.get('model', '')} — regenerated from source "
-            f"(modbus_local_gateway base + manufacturer Modbus doc); "
-            f"policy in support/devicedocs/{augment.folder_for(name)}/augment.yaml"
-        ).strip()
-        summary = augment.write_augmented(ir, name, header=header)
+        summary = augment.write_augmented(
+            ir, name, source="modbus_local_gateway base + manufacturer Modbus doc", variant=__file__
+        )
         note = f"  (skipped {len(skipped)} write-only source rows)" if skipped else ""
         print(f"  {name}: {summary}{note}")
 

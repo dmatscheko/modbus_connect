@@ -1,393 +1,8 @@
-# Generated from homeassistant-solax-modbus by solax_convert.py — review before use.
-# Translations: per-language text for the strings below (device model, group labels, entity names, map/flag values), keyed by the source string.
-translations:
-  External CT:
-    de: Externer CT
-    en: External CT
-  External Meter:
-    de: Externer Zähler
-    en: External Meter
-  Inverter:
-    de: Wechselrichter
-    en: Inverter
-  Stop:
-    de: Stopp
-    en: Stop
-  Fast:
-    de: Schnell
-    en: Fast
-  Green:
-    de: Grün
-    en: Green
-  Plug and Charge:
-    de: Einstecken und Laden
-    en: Plug and Charge
-  Swipe Card to Start:
-    de: Karte zum Starten durchziehen
-    en: Swipe Card to Start
-  App Start:
-    de: App-Start
-    en: App Start
-  Timer Boost:
-    de: Timer-Boost
-    en: Timer Boost
-  Smart Boost:
-    de: Smart-Boost
-    en: Smart Boost
-  Unlock:
-    de: Entsperren
-    en: Unlock
-  Lock:
-    de: Sperren
-    en: Lock
-  Disabled:
-    de: Deaktiviert
-    en: Disabled
-  Enabled:
-    de: Aktiviert
-    en: Enabled
-  PV Mode:
-    de: PV-Modus
-    en: PV Mode
-  Standard Mode:
-    de: Standardmodus
-    en: Standard Mode
-  OCPP Mode:
-    de: OCPP-Modus
-    en: OCPP Mode
-  Three Phase:
-    de: Dreiphasig
-    en: Three Phase
-  L1 Phase:
-    de: Phase L1
-    en: L1 Phase
-  L2 Phase:
-    de: Phase L2
-    en: L2 Phase
-  L3 Phase:
-    de: Phase L3
-    en: L3 Phase
-  No Command:
-    de: Kein Befehl
-    en: No Command
-  Available:
-    de: Verfügbar
-    en: Available
-  Unavailable:
-    de: Nicht verfügbar
-    en: Unavailable
-  Stop Charging:
-    de: Laden stoppen
-    en: Stop Charging
-  Start Charging:
-    de: Laden starten
-    en: Start Charging
-  Reserve:
-    de: Reservieren
-    en: Reserve
-  Cancel the Reservation:
-    de: Reservierung stornieren
-    en: Cancel the Reservation
-  Preparing:
-    de: Vorbereitung
-    en: Preparing
-  Charging:
-    de: Lädt
-    en: Charging
-  Finishing:
-    de: Wird abgeschlossen
-    en: Finishing
-  Faulted:
-    de: Gestört
-    en: Faulted
-  Reserved:
-    de: Reserviert
-    en: Reserved
-  Suspended EV:
-    de: Angehalten (EV)
-    en: Suspended EV
-  Suspended EVSE:
-    de: Angehalten (EVSE)
-    en: Suspended EVSE
-  Update:
-    de: Aktualisierung
-    en: Update
-  Card Activation:
-    de: Kartenaktivierung
-    en: Card Activation
-  Start Delay:
-    de: Startverzögerung
-    en: Start Delay
-  Charge Paused:
-    de: Laden pausiert
-    en: Charge Paused
-  Stopping:
-    de: Wird gestoppt
-    en: Stopping
-  Single Phase:
-    de: Einphasig
-    en: Single Phase
-  "No":
-    de: Nein
-    en: "No"
-  "Yes":
-    de: Ja
-    en: "Yes"
-  "Off":
-    de: Aus
-    en: "Off"
-  "On":
-    de: Ein
-    en: "On"
-  Unlocked:
-    de: Entsperrt
-    en: Unlocked
-  Locked:
-    de: Gesperrt
-    en: Locked
-  Not Limited:
-    de: Nicht begrenzt
-    en: Not Limited
-  "Limited, Charging":
-    de: "Begrenzt, lädt"
-    en: "Limited, Charging"
-  Stopped Charging:
-    de: Laden gestoppt
-    en: Stopped Charging
-  Not in Delay:
-    de: Keine Verzögerung
-    en: Not in Delay
-  In Random Delay:
-    de: In Zufallsverzögerung
-    en: In Random Delay
-  Okay:
-    de: OK
-    en: Okay
-  Charge Prohibited:
-    de: Laden verboten
-    en: Charge Prohibited
-  Meter Setting:
-    de: Zählereinstellung
-    en: Meter Setting
-  Charger Use Mode:
-    de: Nutzungsmodus
-    en: Charger Use Mode
-  ECO Gear:
-    de: ECO-Stufe
-    en: ECO Gear
-  Green Gear:
-    de: Grün-Stufe
-    en: Green Gear
-  Start Charge Mode:
-    de: Lade-Startmodus
-    en: Start Charge Mode
-  Overload Limit:
-    de: Überlastgrenze
-    en: Overload Limit
-  Undervoltage Limit:
-    de: Unterspannungsgrenze
-    en: Undervoltage Limit
-  Boost Mode:
-    de: Boost-Modus
-    en: Boost Mode
-  Main Breaker Limit:
-    de: Hauptschalter-Grenze
-    en: Main Breaker Limit
-  Device Lock:
-    de: Gerätesperre
-    en: Device Lock
-  RFID Card Activation:
-    de: RFID-Kartenaktivierung
-    en: RFID Card Activation
-  Charge Added Total:
-    de: Geladene Energie gesamt
-    en: Charge Added Total
-  Charging Mode:
-    de: Lademodus
-    en: Charging Mode
-  Sync RTC:
-    de: RTC synchronisieren
-    en: Sync RTC
-  Charge Phase:
-    de: Ladephase
-    en: Charge Phase
-  Control Command:
-    de: Steuerbefehl
-    en: Control Command
-  Charge Current:
-    de: Ladestrom
-    en: Charge Current
-  Timer Boost Start Time:
-    de: Timer-Boost Startzeit
-    en: Timer Boost Start Time
-  Timer Boost End Time:
-    de: Timer-Boost Endzeit
-    en: Timer Boost End Time
-  Smart Boost End Time:
-    de: Smart-Boost Endzeit
-    en: Smart Boost End Time
-  Smart Boost Energy:
-    de: Smart-Boost Energie
-    en: Smart Boost Energy
-  Charge Phase Alt:
-    de: Ladephase (alt)
-    en: Charge Phase Alt
-  Modbus Address:
-    de: Modbus-Adresse
-    en: Modbus Address
-  Max Charge Current:
-    de: Max. Ladestrom
-    en: Max Charge Current
-  EVSE Mode:
-    de: EVSE-Modus
-    en: EVSE Mode
-  Charge Voltage L1:
-    de: Ladespannung L1
-    en: Charge Voltage L1
-  Charge Voltage L2:
-    de: Ladespannung L2
-    en: Charge Voltage L2
-  Charge Voltage L3:
-    de: Ladespannung L3
-    en: Charge Voltage L3
-  Charge PE Voltage:
-    de: Ladespannung PE
-    en: Charge PE Voltage
-  Charge Current L1:
-    de: Ladestrom L1
-    en: Charge Current L1
-  Charge Current L2:
-    de: Ladestrom L2
-    en: Charge Current L2
-  Charge Current L3:
-    de: Ladestrom L3
-    en: Charge Current L3
-  Charge PE Current:
-    de: Ladestrom PE
-    en: Charge PE Current
-  Charge Power L1:
-    de: Ladeleistung L1
-    en: Charge Power L1
-  Charge Power L2:
-    de: Ladeleistung L2
-    en: Charge Power L2
-  Charge Power L3:
-    de: Ladeleistung L3
-    en: Charge Power L3
-  Charge Power Total:
-    de: Ladeleistung gesamt
-    en: Charge Power Total
-  Charge Frequency L1:
-    de: Ladefrequenz L1
-    en: Charge Frequency L1
-  Charge Frequency L2:
-    de: Ladefrequenz L2
-    en: Charge Frequency L2
-  Charge Frequency L3:
-    de: Ladefrequenz L3
-    en: Charge Frequency L3
-  Charge Added:
-    de: Geladene Energie
-    en: Charge Added
-  Charge Added - Cumulative:
-    de: Geladene Energie - kumuliert
-    en: Charge Added - Cumulative
-  Grid Current L1:
-    de: Netzstrom L1
-    en: Grid Current L1
-  Grid Current L2:
-    de: Netzstrom L2
-    en: Grid Current L2
-  Grid Current L3:
-    de: Netzstrom L3
-    en: Grid Current L3
-  Grid Power L1:
-    de: Netzleistung L1
-    en: Grid Power L1
-  Grid Power L2:
-    de: Netzleistung L2
-    en: Grid Power L2
-  Grid Power L3:
-    de: Netzleistung L3
-    en: Grid Power L3
-  Grid Power Total:
-    de: Netzleistung gesamt
-    en: Grid Power Total
-  CC Voltage:
-    de: CC-Spannung
-    en: CC Voltage
-  CP Voltage:
-    de: CP-Spannung
-    en: CP Voltage
-  PWM Duty Cycle:
-    de: PWM-Tastverhältnis
-    en: PWM Duty Cycle
-  Charger Temperature:
-    de: Ladegerät-Temperatur
-    en: Charger Temperature
-  Run Mode:
-    de: Betriebsmodus
-    en: Run Mode
-  Fault Code:
-    de: Fehlercode
-    en: Fault Code
-  Power Rating:
-    de: Nennleistung
-    en: Power Rating
-  Phase Type:
-    de: Phasentyp
-    en: Phase Type
-  Charging Scene:
-    de: Ladeszene
-    en: Charging Scene
-  Screen Fitted:
-    de: Bildschirm vorhanden
-    en: Screen Fitted
-  Active Charge Phase:
-    de: Aktive Ladephase
-    en: Active Charge Phase
-  Unbalanced Power Limit:
-    de: Unsymmetrische Leistungsgrenze
-    en: Unbalanced Power Limit
-  Phase Unbalance:
-    de: Phasenunsymmetrie
-    en: Phase Unbalance
-  Charging Duration:
-    de: Ladedauer
-    en: Charging Duration
-  Lock State:
-    de: Sperrzustand
-    en: Lock State
-  Main Breaker Limit State:
-    de: Hauptschalter-Begrenzungsstatus
-    en: Main Breaker Limit State
-  Random Delay State:
-    de: Status Zufallsverzögerung
-    en: Random Delay State
-  Ban State:
-    de: Sperrstatus
-    en: Ban State
-  Charge Power L1 Alt:
-    de: Ladeleistung L1 (alt)
-    en: Charge Power L1 Alt
-  Charge Power L2 Alt:
-    de: Ladeleistung L2 (alt)
-    en: Charge Power L2 Alt
-  Charge Power L3 Alt:
-    de: Ladeleistung L3 (alt)
-    en: Charge Power L3 Alt
-  Max Power Charging:
-    de: Laden mit maximaler Leistung
-    en: Max Power Charging
-  Charge Mode Active:
-    de: Aktiver Lademodus
-    en: Charge Mode Active
-  Green Mode Start Power:
-    de: Grün-Modus Startleistung
-    en: Green Mode Start Power
-  Run Mode Alt:
-    de: Betriebsmodus (alt)
-    en: Run Mode Alt
+# Generated by the converter (variant support/converter/solax/homeassistant_solax_modbus-convert.py) from homeassistant-solax-modbus —
+# do not edit here; edit support/devicedocs/solax-x3-hac/augment.yaml and re-run:
+#   MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
+#   SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \
+#     .venv/bin/python support/converter/convert_all.py
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -1353,3 +968,393 @@ template:
       entity_category: diagnostic
       enabled_by_default: false
     state: "{% set tz = rtc_tz - 65536 if rtc_tz > 32767 else rtc_tz %}{{ '20%02d-%02d-%02d %02d:%02d:%02d UTC%s%02d:%02d' | format(rtc_year, rtc_month, rtc_day, rtc_hour, rtc_minute, rtc_second, '+' if tz >= 0 else '-', (tz | abs) // 60, (tz | abs) % 60) }}"
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  External CT:
+    de: Externer CT
+    en: External CT
+  External Meter:
+    de: Externer Zähler
+    en: External Meter
+  Inverter:
+    de: Wechselrichter
+    en: Inverter
+  Stop:
+    de: Stopp
+    en: Stop
+  Fast:
+    de: Schnell
+    en: Fast
+  Green:
+    de: Grün
+    en: Green
+  Plug and Charge:
+    de: Einstecken und Laden
+    en: Plug and Charge
+  Swipe Card to Start:
+    de: Karte zum Starten durchziehen
+    en: Swipe Card to Start
+  App Start:
+    de: App-Start
+    en: App Start
+  Timer Boost:
+    de: Timer-Boost
+    en: Timer Boost
+  Smart Boost:
+    de: Smart-Boost
+    en: Smart Boost
+  Unlock:
+    de: Entsperren
+    en: Unlock
+  Lock:
+    de: Sperren
+    en: Lock
+  Disabled:
+    de: Deaktiviert
+    en: Disabled
+  Enabled:
+    de: Aktiviert
+    en: Enabled
+  PV Mode:
+    de: PV-Modus
+    en: PV Mode
+  Standard Mode:
+    de: Standardmodus
+    en: Standard Mode
+  OCPP Mode:
+    de: OCPP-Modus
+    en: OCPP Mode
+  Three Phase:
+    de: Dreiphasig
+    en: Three Phase
+  L1 Phase:
+    de: Phase L1
+    en: L1 Phase
+  L2 Phase:
+    de: Phase L2
+    en: L2 Phase
+  L3 Phase:
+    de: Phase L3
+    en: L3 Phase
+  No Command:
+    de: Kein Befehl
+    en: No Command
+  Available:
+    de: Verfügbar
+    en: Available
+  Unavailable:
+    de: Nicht verfügbar
+    en: Unavailable
+  Stop Charging:
+    de: Laden stoppen
+    en: Stop Charging
+  Start Charging:
+    de: Laden starten
+    en: Start Charging
+  Reserve:
+    de: Reservieren
+    en: Reserve
+  Cancel the Reservation:
+    de: Reservierung stornieren
+    en: Cancel the Reservation
+  Preparing:
+    de: Vorbereitung
+    en: Preparing
+  Charging:
+    de: Lädt
+    en: Charging
+  Finishing:
+    de: Wird abgeschlossen
+    en: Finishing
+  Faulted:
+    de: Gestört
+    en: Faulted
+  Reserved:
+    de: Reserviert
+    en: Reserved
+  Suspended EV:
+    de: Angehalten (EV)
+    en: Suspended EV
+  Suspended EVSE:
+    de: Angehalten (EVSE)
+    en: Suspended EVSE
+  Update:
+    de: Aktualisierung
+    en: Update
+  Card Activation:
+    de: Kartenaktivierung
+    en: Card Activation
+  Start Delay:
+    de: Startverzögerung
+    en: Start Delay
+  Charge Paused:
+    de: Laden pausiert
+    en: Charge Paused
+  Stopping:
+    de: Wird gestoppt
+    en: Stopping
+  Single Phase:
+    de: Einphasig
+    en: Single Phase
+  "No":
+    de: Nein
+    en: "No"
+  "Yes":
+    de: Ja
+    en: "Yes"
+  "Off":
+    de: Aus
+    en: "Off"
+  "On":
+    de: Ein
+    en: "On"
+  Unlocked:
+    de: Entsperrt
+    en: Unlocked
+  Locked:
+    de: Gesperrt
+    en: Locked
+  Not Limited:
+    de: Nicht begrenzt
+    en: Not Limited
+  "Limited, Charging":
+    de: "Begrenzt, lädt"
+    en: "Limited, Charging"
+  Stopped Charging:
+    de: Laden gestoppt
+    en: Stopped Charging
+  Not in Delay:
+    de: Keine Verzögerung
+    en: Not in Delay
+  In Random Delay:
+    de: In Zufallsverzögerung
+    en: In Random Delay
+  Okay:
+    de: OK
+    en: Okay
+  Charge Prohibited:
+    de: Laden verboten
+    en: Charge Prohibited
+  Meter Setting:
+    de: Zählereinstellung
+    en: Meter Setting
+  Charger Use Mode:
+    de: Nutzungsmodus
+    en: Charger Use Mode
+  ECO Gear:
+    de: ECO-Stufe
+    en: ECO Gear
+  Green Gear:
+    de: Grün-Stufe
+    en: Green Gear
+  Start Charge Mode:
+    de: Lade-Startmodus
+    en: Start Charge Mode
+  Overload Limit:
+    de: Überlastgrenze
+    en: Overload Limit
+  Undervoltage Limit:
+    de: Unterspannungsgrenze
+    en: Undervoltage Limit
+  Boost Mode:
+    de: Boost-Modus
+    en: Boost Mode
+  Main Breaker Limit:
+    de: Hauptschalter-Grenze
+    en: Main Breaker Limit
+  Device Lock:
+    de: Gerätesperre
+    en: Device Lock
+  RFID Card Activation:
+    de: RFID-Kartenaktivierung
+    en: RFID Card Activation
+  Charge Added Total:
+    de: Geladene Energie gesamt
+    en: Charge Added Total
+  Charging Mode:
+    de: Lademodus
+    en: Charging Mode
+  Sync RTC:
+    de: RTC synchronisieren
+    en: Sync RTC
+  Charge Phase:
+    de: Ladephase
+    en: Charge Phase
+  Control Command:
+    de: Steuerbefehl
+    en: Control Command
+  Charge Current:
+    de: Ladestrom
+    en: Charge Current
+  Timer Boost Start Time:
+    de: Timer-Boost Startzeit
+    en: Timer Boost Start Time
+  Timer Boost End Time:
+    de: Timer-Boost Endzeit
+    en: Timer Boost End Time
+  Smart Boost End Time:
+    de: Smart-Boost Endzeit
+    en: Smart Boost End Time
+  Smart Boost Energy:
+    de: Smart-Boost Energie
+    en: Smart Boost Energy
+  Charge Phase Alt:
+    de: Ladephase (alt)
+    en: Charge Phase Alt
+  Modbus Address:
+    de: Modbus-Adresse
+    en: Modbus Address
+  Max Charge Current:
+    de: Max. Ladestrom
+    en: Max Charge Current
+  EVSE Mode:
+    de: EVSE-Modus
+    en: EVSE Mode
+  Charge Voltage L1:
+    de: Ladespannung L1
+    en: Charge Voltage L1
+  Charge Voltage L2:
+    de: Ladespannung L2
+    en: Charge Voltage L2
+  Charge Voltage L3:
+    de: Ladespannung L3
+    en: Charge Voltage L3
+  Charge PE Voltage:
+    de: Ladespannung PE
+    en: Charge PE Voltage
+  Charge Current L1:
+    de: Ladestrom L1
+    en: Charge Current L1
+  Charge Current L2:
+    de: Ladestrom L2
+    en: Charge Current L2
+  Charge Current L3:
+    de: Ladestrom L3
+    en: Charge Current L3
+  Charge PE Current:
+    de: Ladestrom PE
+    en: Charge PE Current
+  Charge Power L1:
+    de: Ladeleistung L1
+    en: Charge Power L1
+  Charge Power L2:
+    de: Ladeleistung L2
+    en: Charge Power L2
+  Charge Power L3:
+    de: Ladeleistung L3
+    en: Charge Power L3
+  Charge Power Total:
+    de: Ladeleistung gesamt
+    en: Charge Power Total
+  Charge Frequency L1:
+    de: Ladefrequenz L1
+    en: Charge Frequency L1
+  Charge Frequency L2:
+    de: Ladefrequenz L2
+    en: Charge Frequency L2
+  Charge Frequency L3:
+    de: Ladefrequenz L3
+    en: Charge Frequency L3
+  Charge Added:
+    de: Geladene Energie
+    en: Charge Added
+  Charge Added - Cumulative:
+    de: Geladene Energie - kumuliert
+    en: Charge Added - Cumulative
+  Grid Current L1:
+    de: Netzstrom L1
+    en: Grid Current L1
+  Grid Current L2:
+    de: Netzstrom L2
+    en: Grid Current L2
+  Grid Current L3:
+    de: Netzstrom L3
+    en: Grid Current L3
+  Grid Power L1:
+    de: Netzleistung L1
+    en: Grid Power L1
+  Grid Power L2:
+    de: Netzleistung L2
+    en: Grid Power L2
+  Grid Power L3:
+    de: Netzleistung L3
+    en: Grid Power L3
+  Grid Power Total:
+    de: Netzleistung gesamt
+    en: Grid Power Total
+  CC Voltage:
+    de: CC-Spannung
+    en: CC Voltage
+  CP Voltage:
+    de: CP-Spannung
+    en: CP Voltage
+  PWM Duty Cycle:
+    de: PWM-Tastverhältnis
+    en: PWM Duty Cycle
+  Charger Temperature:
+    de: Ladegerät-Temperatur
+    en: Charger Temperature
+  Run Mode:
+    de: Betriebsmodus
+    en: Run Mode
+  Fault Code:
+    de: Fehlercode
+    en: Fault Code
+  Power Rating:
+    de: Nennleistung
+    en: Power Rating
+  Phase Type:
+    de: Phasentyp
+    en: Phase Type
+  Charging Scene:
+    de: Ladeszene
+    en: Charging Scene
+  Screen Fitted:
+    de: Bildschirm vorhanden
+    en: Screen Fitted
+  Active Charge Phase:
+    de: Aktive Ladephase
+    en: Active Charge Phase
+  Unbalanced Power Limit:
+    de: Unsymmetrische Leistungsgrenze
+    en: Unbalanced Power Limit
+  Phase Unbalance:
+    de: Phasenunsymmetrie
+    en: Phase Unbalance
+  Charging Duration:
+    de: Ladedauer
+    en: Charging Duration
+  Lock State:
+    de: Sperrzustand
+    en: Lock State
+  Main Breaker Limit State:
+    de: Hauptschalter-Begrenzungsstatus
+    en: Main Breaker Limit State
+  Random Delay State:
+    de: Status Zufallsverzögerung
+    en: Random Delay State
+  Ban State:
+    de: Sperrstatus
+    en: Ban State
+  Charge Power L1 Alt:
+    de: Ladeleistung L1 (alt)
+    en: Charge Power L1 Alt
+  Charge Power L2 Alt:
+    de: Ladeleistung L2 (alt)
+    en: Charge Power L2 Alt
+  Charge Power L3 Alt:
+    de: Ladeleistung L3 (alt)
+    en: Charge Power L3 Alt
+  Max Power Charging:
+    de: Laden mit maximaler Leistung
+    en: Max Power Charging
+  Charge Mode Active:
+    de: Aktiver Lademodus
+    en: Charge Mode Active
+  Green Mode Start Power:
+    de: Grün-Modus Startleistung
+    en: Green Mode Start Power
+  Run Mode Alt:
+    de: Betriebsmodus (alt)
+    en: Run Mode Alt

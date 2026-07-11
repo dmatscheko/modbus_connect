@@ -40,8 +40,13 @@ policy and its docs live together: `support/devicedocs/eastron-sdm630/augment.ya
 ### `_common/augment.py` — the shared library (the single writer)
 
 The only code that writes a `device_configs/*.yaml`. Public entry point:
-`write_augmented(ir, device_name, header=…)`. It owns emit → validate → write, so no
-converter formats YAML itself.
+`write_augmented(ir, device_name, source=…, variant=…)`. It owns emit → validate → write, so
+no converter formats YAML itself — including the file **header**, which it composes in one
+canonical form from the `source` (what upstream the device came from) and `variant` (the
+converter script's `__file__`) each converter passes. Every config's header names the
+converter variant, the source, where to edit entries (`support/devicedocs/<slug>/augment.yaml`),
+and the exact `convert_all.py` command to regenerate. A converter may pass an optional `note`
+(an extra header line) or `header=` to override the composed text entirely.
 
 The `augment.yaml` DSL — an ordered `ops:` list, each op one verb plus an optional `where`
 selector (all clauses AND together):
