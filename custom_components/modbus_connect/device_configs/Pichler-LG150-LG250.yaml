@@ -43,6 +43,9 @@ translations:
   Aus:
     de: Aus
     en: "Off"
+  Heat recovery:
+    de: Wärmerückgewinnung
+    en: Heat recovery
   Bypass:
     de: Bypass
     en: Bypass
@@ -55,6 +58,9 @@ translations:
   Vorheizregister:
     de: Vorheizregister
     en: Preheater coil
+  Lüftung:
+    en: Ventilation
+    de: Lüftung
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:

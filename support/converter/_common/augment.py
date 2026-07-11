@@ -124,7 +124,7 @@ def apply(ir: dict, spec: dict | None) -> dict:
     if spec.get("device"):
         _deep_merge(ir.setdefault("device", {}), spec["device"])
     if spec.get("translations"):
-        _deep_merge(ir.setdefault("translations", {}), spec["translations"])
+        ir["translations"] = [*(ir.get("translations") or []), *spec["translations"]]
     for op in spec.get("ops", []) or []:
         _apply_op(ir, op)
     return ir
@@ -464,7 +464,9 @@ def emit(ir: dict, header: str | None = None) -> str:
     buf = io.StringIO()
     if header:
         buf.write(f"# {header}\n")
-    if ir.get("translations"):
+    # ``resolve_translations`` turns the input lists of {lang: text} units into the
+    # per-device ``{source: {lang: text}}`` catalog; only that resolved dict is emitted.
+    if isinstance(ir.get("translations"), dict) and ir["translations"]:
         _emit_translations(buf, ir["translations"])
         buf.write("\n")
     _emit_device(buf, ir.get("device") or {})
@@ -505,12 +507,14 @@ def load(path: str | Path) -> dict | None:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
-def load_shared_translations(path: str | Path | None = None) -> dict:
-    """The shared translate-once memory (``{source string: {lang: text}}``); ``{}`` if absent."""
+def load_shared_translations(path: str | Path | None = None) -> list:
+    """The shared translate-once memory: a list of ``{lang: text}`` translation
+    units, each matched against a source string by *any* of its language values
+    (so one unit serves the German source and the English source alike). ``[]`` if absent."""
     path = Path(path) if path else _SHARED_TRANSLATIONS
     if not path.exists():
-        return {}
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        return []
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or []
 
 
 # A pure value label — a number with an optional unit ("-19 °C", "50 %", "3") —
@@ -552,26 +556,45 @@ def _collect_translatable(ir: dict) -> tuple[list[str], list[str]]:
     return list(enum_like), list(names)
 
 
-def resolve_translations(ir: dict, shared: dict) -> tuple[list[str], list[str]]:
+def _translation_index(units: object, origin: str) -> dict[str, dict[str, str]]:
+    """Index a list of ``{lang: text}`` translation units by *every* language value
+    they contain, so a source string in any language finds its unit. Warns when one
+    value maps to two conflicting units (an ambiguous lookup — disambiguate by making
+    the value unique, e.g. rename one, or override it in the device's augment.yaml)."""
+    index: dict[str, dict[str, str]] = {}
+    for unit in units if isinstance(units, list) else []:
+        if not isinstance(unit, dict):
+            continue
+        texts = {lang: t for lang, t in unit.items() if isinstance(t, str) and t}
+        for value in texts.values():
+            if value in index and index[value] != texts:
+                print(
+                    f"  WARNING {origin}translations: {value!r} maps to two different "
+                    f"units ({index[value]} vs {texts}) — the lookup is ambiguous; keeping "
+                    f"the first. Make the value unique or override it per device.",
+                    file=sys.stderr,
+                )
+                continue
+            index[value] = texts
+    return index
+
+
+def resolve_translations(ir: dict, shared_units: object) -> tuple[list[str], list[str]]:
     """Replace ``ir['translations']`` with this device's emitted catalog and report gaps.
 
-    The catalog is every translatable string the file uses (plus any the device's
-    own ``translations:`` names explicitly), resolved from the shared memory with
-    the device's entries overriding it per language. Only strings with at least one
-    translation are emitted, so the file carries exactly what it needs and no more.
-    Returns ``(untranslated_enum_like, untranslated_names)`` for coverage reporting.
+    Both the shared memory and the device's own ``translations:`` are lists of
+    ``{lang: text}`` units, matched against a source string by any of their language
+    values. For every translatable string the file uses, the shared unit is looked up
+    and the device unit (if any) overrides it per language. The emitted catalog is
+    keyed by the actual source string, so the integration's lookup is unchanged and the
+    file carries exactly what it needs. Returns ``(untranslated_enum, untranslated_names)``.
     """
-    device_block = ir.get("translations") or {}
+    shared_index = _translation_index(shared_units, "shared ")
+    device_index = _translation_index(ir.get("translations"), "")
     enum_like, names = _collect_translatable(ir)
-    order = list(dict.fromkeys([*enum_like, *names, *device_block]))
     resolved: dict[str, dict] = {}
-    for source in order:
-        base = shared.get(source)
-        over = device_block.get(source)
-        merged = {
-            **(base if isinstance(base, dict) else {}),
-            **(over if isinstance(over, dict) else {}),
-        }
+    for source in [*enum_like, *names]:
+        merged = {**shared_index.get(source, {}), **device_index.get(source, {})}
         if merged:
             resolved[source] = merged
     ir["translations"] = resolved

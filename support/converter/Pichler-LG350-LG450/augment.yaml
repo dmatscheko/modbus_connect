@@ -25,9 +25,7 @@ device:
 # Device-specific translations (the model). Shared vocabulary — group labels, enum
 # values — comes from support/converter/_common/translations.yaml automatically.
 translations:
-  Lüftungsgerät LG 350 - LG 450:
-    de: Lüftungsgerät LG 350 - LG 450
-    en: Ventilation unit LG 350 - LG 450
+  - {de: Lüftungsgerät LG 350 - LG 450, en: Ventilation unit LG 350 - LG 450}
 
 ops:
   # --- curated registers --------------------------------------------------- #

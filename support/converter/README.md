@@ -60,22 +60,27 @@ selector (all clauses AND together):
 
 Human-facing strings (device model, group labels, entity/template names, `map:`/`flags:`
 values) can carry per-language text. The integration resolves it at load against Home
-Assistant's language, falling back to English then the source string. Two layers, both
-`{source string: {lang: text}}`:
+Assistant's language, falling back to English then the source string. The converter inputs
+are **lists of `{lang: text}` translation units**, each matched against a source string by
+**any** of its language values — so one unit `{de: Kühlen, en: Cool}` serves both a
+German-sourced device (map value `Kühlen`) and an English-sourced one (`Cool`), with no
+duplicate entry. Two layers:
 
-- **`_common/translations.yaml`** — the shared **translate-once memory**. Put a string's
-  translation here once; the generator applies it to *every* device config that uses that
-  string. This is the primary home for the shared HVAC/domain vocabulary (enum values,
-  common group labels).
-- **`<device>/augment.yaml` → `translations:`** — per-device entries that **override** the
-  shared memory (per language), for a string that needs different text in one device.
+- **`_common/translations.yaml`** — the shared **translate-once memory**. Add a concept's
+  unit here once; the generator applies it to *every* device config that uses any of its
+  values. This is the home for the shared HVAC/domain vocabulary (enum values, group labels).
+- **`<device>/augment.yaml` → `translations:`** — a per-device list for **device-specific**
+  strings (the model lives here) and to **override** a shared unit (per language) for one
+  device. A device unit overrides a shared one when they share a value.
 
-At emit time `augment.py` collects the strings each device actually uses, resolves them
-(shared, overridden by the device block), and writes **only those** into the file's
-top-level `translations:` block — so no file carries a translation it does not need. It
-then **warns on stderr** about used strings with no translation anywhere (the to-do list
-for extending the memory), and about any template that still compares a *translated* label
-as a literal.
+At emit time `augment.py` collects the strings each device actually uses, looks each up in
+the shared and device indexes (device wins per language), and writes **only those** into
+the file's top-level `translations:` block — keyed by the actual source string, so the
+integration's lookup is unchanged and no file carries a translation it does not need. It
+**warns on stderr** about: used strings with no translation anywhere (the to-do list for
+extending the memory); any template that still compares a *translated* label as a literal;
+and any value that maps to two different units (**ambiguous** — keep every value unique, so
+e.g. the mode is `Cool` and the group label is `Cooling`, both mapping to German cleanly).
 
 That last warning matters: because a translated `map:`/`flags:` value changes what
 templates see, a template must compare the stable map key via **`key('entity') == N`**,

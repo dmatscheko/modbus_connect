@@ -34,9 +34,7 @@ device:
 # The climate templates below compare the stable map key via key(), so translating those
 # enum labels is safe.
 translations:
-  Sole/Wasser-Wärmepumpe SI 11TU:
-    de: Sole/Wasser-Wärmepumpe SI 11TU
-    en: Brine/water heat pump SI 11TU
+  - {de: Sole/Wasser-Wärmepumpe SI 11TU, en: Brine/water heat pump SI 11TU}
 
 ops:
   # --- base-sensor preset fixes -------------------------------------------- #

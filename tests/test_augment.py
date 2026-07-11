@@ -233,22 +233,23 @@ def test_round_trip_validates_against_schema():
 
 # --- shared translation memory -------------------------------------------------
 
-_SHARED = {
-    "X1": {"de": "X1", "en": "Model One"},
-    "Sommer": {"de": "Sommer", "en": "Summer"},
-    "Auto": {"de": "Auto", "en": "Automatic"},
-    "Cooling": {"en": "Cooling", "de": "Kühlung"},
-}
+# A list of {lang: text} units, matched against a source string by any of its values.
+_SHARED = [
+    {"de": "Sommer", "en": "Summer"},
+    {"de": "Auto", "en": "Automatic"},
+    {"en": "Cooling", "de": "Kühlung"},
+]
 
 
 def _translations_ir():
-    ir = aug.intermediate({"manufacturer": "Acme", "model": "X1",
+    ir = aug.intermediate({"manufacturer": "Acme", "model": "Model X",
                            "group_labels": {"cooling": "Cooling", "x": "Custom Label"}})
     aug.add_entity(ir, "holding", "mode", address=1,
                    map={0: "Sommer", 1: "Auto", 9: "ObskurerModus"},
                    ha={"platform": "select", "name": "Betriebsart"})
     aug.add_entity(ir, "holding", "offset", address=2, map={0: "-5 °C", 1: "0 °C"},
                    ha={"platform": "select", "name": "Offset"})
+    ir["translations"] = [{"de": "Model X", "en": "Model One"}]  # device-specific (the model)
     return ir
 
 
@@ -256,12 +257,11 @@ def test_shared_translations_applied_used_only():
     ir = _translations_ir()
     u_enum, u_names = aug.resolve_translations(ir, _SHARED)
     cat = ir["translations"]
-    # used strings that have a translation are emitted (model, group label, enum values)...
-    assert cat["X1"]["en"] == "Model One"
-    assert cat["Sommer"]["en"] == "Summer"
-    assert cat["Cooling"]["de"] == "Kühlung"
-    # ...unused shared entries are not carried by this device
-    assert "Auto" in cat  # (Auto IS used by 'mode')
+    # model resolves from the device unit; enum + group label from shared (matched by value)
+    assert cat["Model X"] == {"de": "Model X", "en": "Model One"}
+    assert cat["Sommer"] == {"de": "Sommer", "en": "Summer"}
+    assert cat["Auto"] == {"de": "Auto", "en": "Automatic"}
+    assert cat["Cooling"] == {"en": "Cooling", "de": "Kühlung"}
     # untranslated used strings are reported, not emitted
     assert "ObskurerModus" not in cat and "ObskurerModus" in u_enum
     assert "Custom Label" not in cat and "Custom Label" in u_enum
@@ -270,11 +270,30 @@ def test_shared_translations_applied_used_only():
     assert "-5 °C" not in cat and "-5 °C" not in u_enum
 
 
+def test_shared_unit_matches_source_in_either_language():
+    # a device whose source string is the ENGLISH value still finds the shared unit
+    ir = aug.intermediate({"manufacturer": "Acme", "model": "M"})
+    aug.add_entity(ir, "holding", "mode", address=1, map={0: "Summer"},
+                   ha={"platform": "select"})
+    aug.resolve_translations(ir, _SHARED)
+    assert ir["translations"]["Summer"] == {"de": "Sommer", "en": "Summer"}
+
+
 def test_device_translations_override_shared_per_language():
     ir = _translations_ir()
-    ir["translations"] = {"Auto": {"en": "Auto mode"}}  # device fixes just the English
+    # device unit shares 'Auto' with the shared unit, and overrides just the English
+    ir["translations"] = [{"de": "Auto", "en": "Auto mode"}]
     aug.resolve_translations(ir, _SHARED)
     assert ir["translations"]["Auto"] == {"de": "Auto", "en": "Auto mode"}
+
+
+def test_ambiguous_translation_value_warns(capsys):
+    # the same value in two units with different text is ambiguous -> warn, keep first
+    index = aug._translation_index(
+        [{"de": "Kühlen", "en": "Cooling"}, {"en": "Cooling", "de": "Kühlung"}], "test "
+    )
+    assert "ambiguous" in capsys.readouterr().err
+    assert index["Cooling"] == {"de": "Kühlen", "en": "Cooling"}  # first wins
 
 
 def test_label_comparison_lint_flags_translated_literal():
@@ -288,7 +307,10 @@ def test_label_comparison_lint_flags_translated_literal():
     assert hits == {"clim": {"Sommer"}}
 
 
-def test_load_shared_translations_reads_committed_file():
+def test_load_shared_translations_is_a_list_matched_by_value():
     shared = aug.load_shared_translations()
-    assert shared["Sommer"] == {"de": "Sommer", "en": "Summer"}
-    assert shared["Energy & runtime"]["de"] == "Energie & Laufzeit"
+    assert isinstance(shared, list)
+    index = aug._translation_index(shared, "")
+    # one unit, found from either language value
+    assert index["Sommer"] == index["Summer"] == {"de": "Sommer", "en": "Summer"}
+    assert index["Energy & runtime"]["de"] == "Energie & Laufzeit"

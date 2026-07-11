@@ -1,67 +1,66 @@
-# Shared translation memory — translate each source string once, here, and it is
-# applied to every generated device config that uses it. The generator (augment.py:
-# resolve_translations) collects the human-facing strings each device actually uses
-# (model, group labels, map/flag values) and emits only those, so no device file
-# carries a translation it does not need.
+# Shared translation memory — translate each concept once, here, as a list of
+# translation units. Each unit is a `{lang: text}` mapping and is matched against a
+# source string by ANY of its language values, so ONE unit serves the German-sourced
+# use and the English-sourced use of the same concept — no duplicate entries.
 #
-# Keyed by the *source string* exactly as it appears in the generated config. Each
-# entry lists every language (including the source language, for clarity). A device's
-# own support/converter/<device>/augment.yaml `translations:` block OVERRIDES an entry
-# here, per language — use that to fix a translation that is wrong for one device.
+# The generator (augment.py: resolve_translations) collects the human-facing strings
+# each device actually uses (model, group labels, map/flag values), looks each up here,
+# and emits a per-device `{source: {lang: text}}` catalog containing only those. A
+# device's own support/converter/<device>/augment.yaml `translations:` list OVERRIDES a
+# unit here (per language) for that device; device models live there too, being
+# device-specific. The generator warns about used strings still untranslated.
 #
-# The generator warns (per device, on stderr) about used strings that have no entry
-# here or in the device's augment.yaml — that list is the to-do for extending this file.
+# Keep every value UNIQUE across units: because lookup matches on any value, a text that
+# means two different things (e.g. English "Cooling" = the mode "Kühlen" AND the group
+# "Kühlung") would be ambiguous. Here the mode is "Cool" and the group is "Cooling".
 #
-# NOTE: because a translated map/flag value changes what templates see, templates must
-# compare the stable map key via key('entity') == N, never the label. See the converter
-# README and Dimplex-SI-11TU/augment.yaml for worked examples.
+# NOTE: a translated map/flag value changes what templates see, so templates must compare
+# the stable map key via key('entity') == N, never the label. See the README and the
+# migrated climate templates in Dimplex-SI-11TU / Pichler-* augment.yaml.
 
-# Device models are device-specific (each is used by one config), so they live in
-# that device's augment.yaml translations: block, not here.
+# --- operating modes, status and valve positions (German <-> English) ----------
+- {de: Sommer, en: Summer}
+- {de: Winter, en: Winter}
+- {de: Auto, en: Automatic}
+- {de: Urlaub, en: Holiday}
+- {de: Party, en: Party}
+- {de: Kühlen, en: Cool}
+- {de: Heizen, en: Heating}
+- {de: Warmwasser, en: Hot water}
+- {de: Schwimmbad, en: Pool}
+- {de: Aus, en: "Off"}   # quote: bare Off is a YAML 1.1 boolean
+- {de: Abtauen, en: Defrost}
+- {de: Sperre, en: Blocked}
+- {de: "2.Wärmeerzeuger", en: "2nd heat generator"}
+- {de: Wärmerückgewinnung, en: Heat recovery}
+- {de: Bypass, en: Bypass}
+- {de: Vorheizregister, en: Preheater coil}
+- {de: Fehler, en: Fault}
 
-# --- operating modes, status and valve positions (German source -> English) ----
-Sommer: {de: Sommer, en: Summer}
-Winter: {de: Winter, en: Winter}
-Auto: {de: Auto, en: Automatic}
-Urlaub: {de: Urlaub, en: Holiday}
-Party: {de: Party, en: Party}
-Kühlen: {de: Kühlen, en: Cooling}
-Heizen: {de: Heizen, en: Heating}
-Warmwasser: {de: Warmwasser, en: "Hot water"}
-Schwimmbad: {de: Schwimmbad, en: Pool}
-Aus: {de: Aus, en: "Off"}  # quote: bare Off is a YAML 1.1 boolean
-Abtauen: {de: Abtauen, en: Defrost}
-Sperre: {de: Sperre, en: Blocked}
-"2.Wärmeerzeuger": {de: "2.Wärmeerzeuger", en: "2nd heat generator"}
-Wärmerückgewinnung: {de: Wärmerückgewinnung, en: "Heat recovery"}
-Bypass: {de: Bypass, en: Bypass}
-Vorheizregister: {de: Vorheizregister, en: "Preheater coil"}
-Fehler: {de: Fehler, en: Fault}
-
-# --- group-switch labels (English source -> German) ---------------------------
+# --- group-switch labels (English <-> German) ---------------------------------
 # Dimplex heat pump
-"Schedule / time program": {en: "Schedule / time program", de: "Zeitplan / Zeitprogramm"}
-Clock: {en: Clock, de: Uhr}
-"Heating circuit 2": {en: "Heating circuit 2", de: "Heizkreis 2"}
-"Heating circuit 3": {en: "Heating circuit 3", de: "Heizkreis 3"}
-Cooling: {en: Cooling, de: Kühlung}
-Solar: {en: Solar, de: Solar}
-Ventilation: {en: Ventilation, de: Lüftung}
-"Room climate sensors": {en: "Room climate sensors", de: "Raumklimasensoren"}
-"Smart Grid": {en: "Smart Grid", de: "Smart Grid"}
-"Hot water (extra)": {en: "Hot water (extra)", de: "Warmwasser (extra)"}
-"Energy & runtime": {en: "Energy & runtime", de: "Energie & Laufzeit"}
-"Heat source (brine)": {en: "Heat source (brine)", de: "Wärmequelle (Sole)"}
-"Component status": {en: "Component status", de: "Komponentenstatus"}
+- {en: "Schedule / time program", de: "Zeitplan / Zeitprogramm"}
+- {en: Clock, de: Uhr}
+- {en: "Heating circuit 2", de: "Heizkreis 2"}
+- {en: "Heating circuit 3", de: "Heizkreis 3"}
+- {en: Cooling, de: Kühlung}
+- {en: Solar, de: Solar}
+- {en: Ventilation, de: Lüftung}
+- {en: "Room climate sensors", de: Raumklimasensoren}
+- {en: "Smart Grid", de: "Smart Grid"}
+- {en: "Hot water (extra)", de: "Warmwasser (extra)"}
+- {en: "Energy & runtime", de: "Energie & Laufzeit"}
+- {en: "Heat source (brine)", de: "Wärmequelle (Sole)"}
+- {en: "Component status", de: Komponentenstatus}
 # Pichler ventilation units
-"Modbus configuration": {en: "Modbus configuration", de: "Modbus-Konfiguration"}
-"CO2 control": {en: "CO2 control", de: "CO2-Regelung"}
-"Humidity control": {en: "Humidity control", de: "Feuchteregelung"}
-"Heat exchanger / bypass": {en: "Heat exchanger / bypass", de: "Wärmetauscher / Bypass"}
-"Pre/post-heater": {en: "Pre/post-heater", de: "Vor-/Nachheizung"}
-"Defrost / frost": {en: "Defrost / frost", de: "Abtauung / Frost"}
-"External sensors": {en: "External sensors", de: "Externe Sensoren"}
-Filter: {en: Filter, de: Filter}
-"Fan & flow": {en: "Fan & flow", de: "Ventilator & Luftmenge"}
-"Firmware / model": {en: "Firmware / model", de: "Firmware / Modell"}
-"Summer-night cooling": {en: "Summer-night cooling", de: "Sommernachtkühlung"}
+- {en: "Modbus configuration", de: "Modbus-Konfiguration"}
+- {en: "CO2 control", de: "CO2-Regelung"}
+- {en: "Humidity control", de: Feuchteregelung}
+- {en: "Heat exchanger / bypass", de: "Wärmetauscher / Bypass"}
+- {en: "Pre/post-heater", de: "Vor-/Nachheizung"}
+- {en: "Defrost / frost", de: "Abtauung / Frost"}
+- {en: "External sensors", de: "Externe Sensoren"}
+- {en: Filter, de: Filter}
+- {en: "Fan & flow", de: "Ventilator & Luftmenge"}
+- {en: "Firmware / model", de: "Firmware / Modell"}
+- {en: "Summer-night cooling", de: Sommernachtkühlung}

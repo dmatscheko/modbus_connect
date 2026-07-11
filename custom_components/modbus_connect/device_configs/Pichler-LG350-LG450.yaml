@@ -40,6 +40,9 @@ translations:
   Fehler:
     de: Fehler
     en: Fault
+  Lüftung:
+    en: Ventilation
+    de: Lüftung
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
