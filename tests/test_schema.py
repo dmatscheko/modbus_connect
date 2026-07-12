@@ -1761,3 +1761,304 @@ def test_translations_localize_action_map_in_lockstep():
     clim = next(t for t in dev.templates if t.key == "clim")
     # "Auto" tracks the target's translated map; "Off" (not in catalog) stays.
     assert clim.config["set_hvac_mode"].value_map == {"heat": "Automatik", "off": "Off"}
+
+
+# --- write-action payload / target guards (bug review 2026-07-12) --------------
+
+MAPPED_MODE = {"address": 0, "map": {0: "Off", 1: "On"}, "ha": {"platform": "select"}}
+
+
+def switch_tpl(**action_overrides) -> dict:
+    actions = {
+        "turn_on": {"entity": "mode", "value": "On"},
+        "turn_off": {"entity": "mode", "value": "Off"},
+    }
+    actions.update(action_overrides)
+    return {
+        **DEVICE,
+        "holding": {"mode": dict(MAPPED_MODE)},
+        "template": {"s": {"ha": {"platform": "switch"}, "state": "{{ mode }}", **actions}},
+    }
+
+
+def test_fixed_action_accepts_map_label():
+    dev = parse_device(switch_tpl(), "t.yaml")
+    tdef = dev.templates[0]
+    assert tdef.config["turn_on"].value == "On"
+    assert tdef.config["turn_off"].value == "Off"
+
+
+def test_fixed_action_label_localizes_in_lockstep():
+    data = switch_tpl()
+    data["translations"] = {"On": {"de": "Ein"}, "Off": {"de": "Aus"}}
+    dev = parse_device(data, "t.yaml", language="de")
+    tdef = dev.templates[0]
+    # the target's map values are translated, and the fixed payloads follow
+    assert dev.entities[0].value_map == {0: "Aus", 1: "Ein"}
+    assert tdef.config["turn_on"].value == "Ein"
+
+
+def test_fixed_action_number_against_mapped_target_rejected():
+    with pytest.raises(DeviceSchemaError, match="not one of the map labels"):
+        parse_device(switch_tpl(turn_on={"entity": "mode", "value": 1}), "t.yaml")
+
+
+def test_fixed_action_unknown_label_rejected():
+    with pytest.raises(DeviceSchemaError, match="not one of the map labels"):
+        parse_device(switch_tpl(turn_on={"entity": "mode", "value": "Onn"}), "t.yaml")
+
+
+def test_value_action_against_mapped_target_rejected():
+    data = {
+        **DEVICE,
+        "holding": {"mode": dict(MAPPED_MODE)},
+        "template": {
+            "n": {
+                "ha": {"platform": "number", "min": 0, "max": 10},
+                "state": "{{ 1 }}",
+                "set_value": {"entity": "mode"},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="accepts only its labels"):
+        parse_device(data, "t.yaml")
+
+
+def test_mapped_action_payloads_checked_against_target_map():
+    data = {
+        **DEVICE,
+        "holding": {"mode": dict(MAPPED_MODE)},
+        "template": {
+            "c": {
+                "ha": {"platform": "climate"},
+                "hvac_modes": ["heat", "off"],
+                "set_hvac_mode": {"entity": "mode", "map": {"heat": "Onn", "off": "Off"}},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="not one of the map labels"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_map_boolean_key_rejected():
+    # YAML 1.1 parses an unquoted `off:` map key as the boolean False
+    data = {
+        **DEVICE,
+        "holding": {"mode": dict(MAPPED_MODE)},
+        "template": {
+            "c": {
+                "ha": {"platform": "climate"},
+                "hvac_modes": ["heat", "off"],
+                "set_hvac_mode": {"entity": "mode", "map": {"heat": "On", False: "Off"}},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="YAML booleans"):
+        parse_device(data, "t.yaml")
+
+
+def test_switch_cases_boolean_key_rejected():
+    data = {
+        **DEVICE,
+        "holding": {
+            "mode": dict(MAPPED_MODE),
+            "setp": {"address": 1, "ha": {"platform": "number", "min": 0, "max": 9}},
+        },
+        "template": {
+            "n": {
+                "ha": {"platform": "number", "min": 0, "max": 9},
+                "state": "{{ 1 }}",
+                "set_value": {"by": "{{ mode }}", "cases": {True: {"entity": "setp"}}},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="YAML booleans"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_target_time_entity_rejected():
+    data = {
+        **DEVICE,
+        "holding": {
+            "wake": {"address": 0, "type": "time", "ha": {"platform": "time"}},
+        },
+        "template": {
+            "s": {
+                "ha": {"platform": "switch"},
+                "state": "{{ 1 }}",
+                "turn_on": {"entity": "wake", "value": 1},
+                "turn_off": {"entity": "wake", "value": 0},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="time entity"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_target_button_rejected():
+    data = {
+        **DEVICE,
+        "holding": {"btn": {"address": 0, "write_value": 1, "ha": {"platform": "button"}}},
+        "template": {
+            "s": {
+                "ha": {"platform": "switch"},
+                "state": "{{ 1 }}",
+                "turn_on": {"entity": "btn", "value": 1},
+                "turn_off": {"entity": "btn", "value": 0},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="targets the button"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_target_masked_internal_needs_rmw():
+    def data(**extra):
+        return {
+            **DEVICE,
+            "holding": {"raw": {"address": 0, "internal": True, "mask": 0xF0, **extra}},
+            "template": {
+                "n": {
+                    "ha": {"platform": "number", "min": 0, "max": 15},
+                    "state": "{{ raw }}",
+                    "set_value": {"entity": "raw"},
+                }
+            },
+        }
+
+    with pytest.raises(DeviceSchemaError, match="read_modify_write"):
+        parse_device(data(), "t.yaml")
+    dev = parse_device(data(read_modify_write=True), "t.yaml")  # the fix the error names
+    assert dev.templates[0].config["set_value"].entity == "raw"
+
+
+def test_action_string_payload_on_coil_rejected():
+    data = {
+        **DEVICE,
+        "coil": {"relay": {"address": 0, "ha": {"platform": "switch"}}},
+        "template": {
+            "s": {
+                "ha": {"platform": "switch"},
+                "state": "{{ relay }}",
+                "turn_on": {"entity": "relay", "value": "On"},
+                "turn_off": {"entity": "relay", "value": False},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="coil write needs"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_string_payload_on_plain_number_rejected():
+    data = {
+        **DEVICE,
+        "holding": {"setp": {"address": 0, "ha": {"platform": "number", "min": 0, "max": 9}}},
+        "template": {
+            "s": {
+                "ha": {"platform": "switch"},
+                "state": "{{ setp }}",
+                "turn_on": {"entity": "setp", "value": "On"},
+                "turn_off": {"entity": "setp", "value": 0},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="expects a number"):
+        parse_device(data, "t.yaml")
+
+
+def test_action_target_flags_entity_rejected():
+    data = {
+        **DEVICE,
+        "holding": {"status": {"address": 0, "flags": {0: "Run"}, "ha": {"platform": "sensor"}}},
+        "template": {
+            "s": {
+                "ha": {"platform": "switch"},
+                "state": "{{ status }}",
+                "turn_on": {"entity": "status", "value": 1},
+                "turn_off": {"entity": "status", "value": 0},
+            }
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="flags entities are read-only"):
+        parse_device(data, "t.yaml")
+
+
+# --- entity-level guards (bug review 2026-07-12) --------------------------------
+
+
+def test_off_value_requires_on_value():
+    with pytest.raises(DeviceSchemaError, match="'off_value' requires 'on_value'"):
+        parse_device(
+            doc(x={"address": 0, "off_value": 5, "ha": {"platform": "switch"}}), "t.yaml"
+        )
+
+
+def test_number_string_type_rejected():
+    with pytest.raises(DeviceSchemaError, match="numeric type"):
+        parse_device(
+            doc(x={"address": 0, "type": "string", "count": 2,
+                   "ha": {"platform": "number", "min": 0, "max": 9}}),
+            "t.yaml",
+        )
+
+
+def test_button_duplicate_as_sensor_rejected():
+    with pytest.raises(DeviceSchemaError, match="not valid for buttons"):
+        parse_device(
+            doc(x={"address": 0, "write_value": 1, "duplicate_as_sensor": True,
+                   "ha": {"platform": "button"}}),
+            "t.yaml",
+        )
+
+
+def test_span_past_address_space_rejected():
+    with pytest.raises(DeviceSchemaError, match="past the last address"):
+        parse_device(
+            doc(x={"address": 65535, "type": "string", "count": 4,
+                   "ha": {"platform": "text"}}),
+            "t.yaml",
+        )
+
+
+def test_static_value_and_optimistic_default_localize():
+    data = {
+        **DEVICE,
+        "translations": {"Off": {"de": "Aus"}},
+        "holding": {
+            "a": {"address": 0, "map": {0: "Off", 1: "On"}, "static_value": "Off",
+                  "ha": {"platform": "select"}},
+            "b": {"address": 1, "map": {0: "Off", 1: "On"}, "optimistic_default": "Off",
+                  "ha": {"platform": "select"}},
+        },
+    }
+    dev = parse_device(data, "t.yaml", language="de")
+    by_key = {e.key: e for e in dev.entities}
+    # the seed/fallback labels follow the map into the target language, so the
+    # select's state matches its (translated) options
+    assert by_key["a"].value_map == {0: "Aus", 1: "On"}
+    assert by_key["a"].static_value == "Aus"
+    assert by_key["b"].optimistic_default == "Aus"
+
+
+def test_select_explicit_options_checked_and_localized():
+    def data(options):
+        return {
+            **DEVICE,
+            "translations": {"On": {"de": "Ein"}, "Off": {"de": "Aus"}},
+            "holding": {"mode": dict(MAPPED_MODE)},
+            "template": {
+                "sel": {
+                    "ha": {"platform": "select"},
+                    "state": "{{ mode }}",
+                    "options": options,
+                    "select_option": {"entity": "mode"},
+                }
+            },
+        }
+
+    # options localize in lockstep with the target's map labels
+    dev = parse_device(data(["On", "Off"]), "t.yaml", language="de")
+    assert dev.templates[0].config["options"] == ["Ein", "Aus"]
+    # an option the target can never encode is rejected at parse time
+    with pytest.raises(DeviceSchemaError, match="not one of the map labels"):
+        parse_device(data(["On", "Onn"]), "t.yaml")

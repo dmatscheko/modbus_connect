@@ -537,6 +537,10 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     address = _int_in_range(ctx, "address", address, 0, 0xFFFF)
 
     typ, count, sum_scale, swap = _parse_shape(ctx, raw, table)
+    if address + count > 0x10000:
+        raise ctx.fail(
+            f"address {address} + count {count} runs past the last address 65535"
+        )
     mask, multiplier, offset, value_map, flags = _parse_conversions(
         ctx, raw, typ, count, sum_scale, swap
     )
@@ -583,6 +587,13 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
             "optimistic_default must be a number, boolean, or string (the fallback value "
             "shown when the register decodes to nothing)"
         )
+    # A string here is a map label the entity shows (e.g. a select's seed), so it
+    # must localize in lockstep with the map values — otherwise a translated
+    # file's select never matches its options and shows "unknown".
+    if isinstance(static_value, str):
+        static_value = ctx.localize(static_value)
+    if isinstance(optimistic_default, str):
+        optimistic_default = ctx.localize(optimistic_default)
 
     duplicate_as_sensor = _bool(ctx, raw, "duplicate_as_sensor")
     groups = _parse_groups(ctx, "groups", raw.get("groups"))
@@ -981,6 +992,8 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
         raise ctx.fail("'rectify_time' is only valid for time entities")
 
     if platform == "number":
+        if defn.type == TYPE_STRING:
+            raise ctx.fail("numbers need a numeric type (use a text entity for strings)")
         for field in ("native_min_value", "native_max_value"):
             if field not in defn.ha:
                 raise ctx.fail("numbers require ha.min and ha.max")
@@ -1019,11 +1032,20 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             "and valve"
         )
 
+    # Reading compares against on_value first; a lone off_value would be used
+    # for writing but silently ignored on read (turn-off would show as on).
+    if defn.off_value is not None and defn.on_value is None:
+        raise ctx.fail("'off_value' requires 'on_value'")
+
     if defn.flags and platform != "sensor":
         raise ctx.fail("'flags' is only valid for sensors")
 
     if defn.duplicate_as_sensor and not defn.writes:
         raise ctx.fail("'duplicate_as_sensor' only makes sense for writable platforms")
+    if defn.duplicate_as_sensor and defn.platform == "button":
+        raise ctx.fail(
+            "'duplicate_as_sensor' is not valid for buttons (they never read a value)"
+        )
 
     if defn.writes and platform != "button" and defn.flags is not None:
         raise ctx.fail("flags entities are read-only")
@@ -1198,6 +1220,13 @@ def _parse_switch_target(
     cases_raw = raw.get("cases")
     if not isinstance(cases_raw, dict) or not cases_raw:
         raise ctx.fail(f"'{name}.cases' must be a non-empty mapping of value -> target")
+    # Same YAML 1.1 footgun as entity on/off keys: an unquoted on/off/yes/no
+    # case key parses as a boolean and would silently become "True"/"False".
+    if any(isinstance(k, bool) for k in cases_raw):
+        raise ctx.fail(
+            f"'{name}.cases': unquoted on/off/yes/no/true/false keys are YAML "
+            'booleans — quote them (e.g. "off":)'
+        )
     cases = {
         str(key): _parse_single_target(ctx, f"{name}.cases.{key}", target, defs, kind)
         for key, target in cases_raw.items()
@@ -1224,22 +1253,84 @@ def _parse_single_target(
         raise ctx.fail(
             f"'{name}.entity' targets '{target}' in the read-only '{defn.table}:' section"
         )
+    _check_target_encodable(ctx, name, target, defn)
 
     value = raw.get("value")
-    if kind == "fixed" and (value is None or not isinstance(value, (int, float, bool))):
-        raise ctx.fail(f"'{name}' needs a 'value' (number or boolean) to write")
+    if kind == "fixed":
+        if value is None or not isinstance(value, (int, float, bool, str)):
+            raise ctx.fail(
+                f"'{name}' needs a 'value' (a number, boolean, or map label) to write"
+            )
+        if isinstance(value, str):
+            # A string payload is an option label of the (possibly translated)
+            # target entity, so it localizes in lockstep with the target's map.
+            value = ctx.localize(value)
+        _check_payload(ctx, f"{name}.value", value, target, defn)
 
     value_map = raw.get("map")
     if value_map is not None:
         if not isinstance(value_map, dict) or not value_map:
             raise ctx.fail(f"'{name}.map' must be a non-empty mapping")
+        # Same YAML 1.1 footgun as entity on/off keys: an unquoted on/off/yes/no
+        # key parses as a boolean and would silently become "True"/"False".
+        if any(isinstance(k, bool) for k in value_map):
+            raise ctx.fail(
+                f"'{name}.map': unquoted on/off/yes/no/true/false keys are YAML "
+                'booleans — quote them (e.g. "off":)'
+            )
         # A string payload is an option label of the (possibly translated) target
         # entity, so localize it in lockstep; numbers/bools are written as-is.
         value_map = {
             str(k): ctx.localize(v) if isinstance(v, str) else v
             for k, v in value_map.items()
         }
+        for map_key, payload in value_map.items():
+            _check_payload(ctx, f"{name}.map[{map_key!r}]", payload, target, defn)
+    elif kind == "value" and defn.value_map is not None:
+        raise ctx.fail(
+            f"'{name}' writes the UI value (a number) to '{target}', which has a "
+            "'map' and accepts only its labels"
+        )
     return WriteTarget(entity=target, value=value, value_map=value_map)
+
+
+def _check_target_encodable(ctx: _Ctx, name: str, target: str, defn: EntityDef) -> None:
+    """Reject write targets no action payload could ever encode for."""
+    if defn.platform == "button":
+        raise ctx.fail(
+            f"'{name}.entity' targets the button '{target}'; target its register "
+            "with a separate (e.g. internal) entity instead"
+        )
+    if defn.type == TYPE_TIME:
+        raise ctx.fail(
+            f"'{name}.entity' targets the time entity '{target}', which only "
+            "accepts a time-of-day (no action payload produces one)"
+        )
+    if defn.flags is not None:
+        raise ctx.fail(f"'{name}.entity' targets '{target}', but flags entities are read-only")
+    if defn.mask is not None and not defn.read_modify_write:
+        raise ctx.fail(
+            f"'{name}.entity' targets '{target}', whose masked write needs "
+            "'read_modify_write: true'"
+        )
+
+
+def _check_payload(ctx: _Ctx, where: str, payload: Any, target: str, defn: EntityDef) -> None:
+    """A concrete action payload must be encodable for the target entity."""
+    if defn.value_map is not None:
+        # The codec unmaps a label back to the register value; anything else
+        # (including the raw register number) raises on every single write.
+        if not isinstance(payload, str) or payload not in set(defn.value_map.values()):
+            raise ctx.fail(
+                f"'{where}': {payload!r} is not one of the map labels of '{target}' "
+                f"({sorted(defn.value_map.values())})"
+            )
+        return
+    if isinstance(payload, str):
+        if defn.table in BIT_TABLES:
+            raise ctx.fail(f"'{where}': a coil write needs a boolean or number, not {payload!r}")
+        if defn.type != TYPE_STRING:
+            raise ctx.fail(f"'{where}': {payload!r} is a string, but '{target}' expects a number")
 
 
 # --- per-platform statics and consistency ------------------------------------------
@@ -1290,7 +1381,25 @@ def _post_select(
     target_map = getattr(target, "value_map", None)
     target_entity = getattr(target, "entity", None)
     if "options" in raw:
-        options = _str_list(ctx, "options", raw["options"])
+        # Explicit options are the UI values select_option writes (through the
+        # target's map when it has one), so they localize and validate exactly
+        # like fixed payloads — otherwise a translated file's state (localized
+        # label) could never match its options, and an unwritable option would
+        # fail on every select.
+        options = [ctx.localize(o) for o in _str_list(ctx, "options", raw["options"])]
+        if target_map is None:
+            targets = (
+                list(target.cases.values())
+                if isinstance(target, SwitchTarget)
+                else [target]
+            )
+            for tgt in targets:
+                if tgt.value_map is not None:
+                    continue  # the per-case map translates the option instead
+                for option in options:
+                    _check_payload(
+                        ctx, f"options[{option!r}]", option, tgt.entity, defs[tgt.entity]
+                    )
     elif target_map:
         options = list(target_map)
     elif target_entity and (entity_map := defs[target_entity].value_map):

@@ -299,9 +299,12 @@ Write actions (`turn_on`, `set_temperature`, …) target one of the device's
 entities by key — through the same codec as everything else, so multipliers,
 offsets, and select maps apply. Targets must live in a writable table
 (`holding:`/`coil:`) and may be `internal`. Actions come in three kinds:
-fixed (`{entity: x, value: 1}` — on/off/open/close/stop), value-carrying
+fixed (`{entity: x, value: 1}` — on/off/open/close/stop; against a `map:`ped
+target the value is one of its labels, e.g. `value: "On"`), value-carrying
 (`{entity: x}` — the UI value is written), and mapped
-(`{entity: x, map: {ui value: written value}}`).
+(`{entity: x, map: {ui value: written value}}`). Payloads are checked against
+the target at load time: a mapped target takes exactly its labels, a plain
+register takes numbers.
 
 Instead of a single `entity`, any action may choose its target at write time
 with `by`/`cases`: the `by` template is rendered and its value selects a case,
