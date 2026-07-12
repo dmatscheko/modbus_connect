@@ -115,11 +115,11 @@ translations:
   - {de: Volumenstrom, en: Volume flow}
   - {de: Aufwärmen, en: Warm-up}
   - {de: 1. Heizkreis Rücklaufsolltemperatur, en: 1st heating circuit return setpoint temperature}
-  - {de: 1. Heizkreis Temperatur (R5), en: 1st heating circuit temperature (R5)}
+  - {de: 1. Heizkreis Temperatur, en: 1st heating circuit temperature}
   - {de: 2.Wärmeerzeuger (E10) Modus, en: 2nd heat generator (E10) mode}
   - {de: 2.Wärmeerzeuger (E10) Laufzeit, en: 2nd heat generator (E10) runtime}
   - {de: 2. Heizkreis Rücklaufsolltemperatur, en: 2nd heating circuit return setpoint temperature}
-  - {de: '2. Heizkreis Temperatur (R?)', en: '2nd heating circuit temperature (R?)'}
+  - {de: 2. Heizkreis Temperatur (R5), en: 2nd heating circuit temperature (R5)}
   - {de: 3. Heizkreis Rücklaufsolltemperatur, en: 3rd heating circuit return setpoint temperature}
   - {de: 3. Heizkreis Temperatur (R13), en: 3rd heating circuit temperature (R13)}
   - {de: Aktiv Zeit 1, en: Active time 1}
@@ -270,8 +270,11 @@ ops:
   - add: {table: input, key: test_temp_what_is_this, before: outside_temp, address: 8, multiplier: 0.1, groups: [basic],
           ha: {platform: sensor, name: TEST What is this, unit_of_measurement: "°C",
                device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  # No R designation for the 1st circuit: R5 is the 2.Heizkreisfühler (doc
+  # 5.5.4), and input 27 is absent from the J/L/M address column entirely
+  # (the H-software column lists 27 as Außentemperatur) — see caveats.md.
   - add: {table: input, key: heating_1st_loop_temp, after: heating_return_temp, address: 27, multiplier: 0.1, groups: [basic],
-          ha: {platform: sensor, name: "1. Heizkreis Temperatur (R5)", unit_of_measurement: "°C",
+          ha: {platform: sensor, name: "1. Heizkreis Temperatur", unit_of_measurement: "°C",
                device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
   - add: {table: input, key: heating_1st_loop_return_target, after: heating_return_target, address: 29, multiplier: 0.1, groups: [basic],
           ha: {platform: sensor, name: "1. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
@@ -279,7 +282,7 @@ ops:
   # The 2./3.-circuit loop sensors live in their circuit groups (not basic):
   # devices without the extra circuits never show or poll them.
   - add: {table: input, key: heating_2nd_loop_temp, after: heating_1st_loop_temp, address: 9, multiplier: 0.1, groups: [heating_circuit_2],
-          ha: {platform: sensor, name: "2. Heizkreis Temperatur (R?)", unit_of_measurement: "°C",
+          ha: {platform: sensor, name: "2. Heizkreis Temperatur (R5)", unit_of_measurement: "°C",
                device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
   - add: {table: input, key: heating_2nd_loop_return_target, after: heating_1st_loop_return_target, address: 54, multiplier: 0.1, groups: [heating_circuit_2],
           ha: {platform: sensor, name: "2. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",

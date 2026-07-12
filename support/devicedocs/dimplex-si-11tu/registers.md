@@ -81,8 +81,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0008` (8) — TEST What is this<br>`test_temp_what_is_this` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0001` (1) — Außentemperatur (R1)<br>`outside_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0002` (2) — Heizung Rücklauftemperatur (R2)<br>`heating_return_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x001B` (27) — 1. Heizkreis Temperatur (R5)<br>`heating_1st_loop_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x0009` (9) — 2. Heizkreis Temperatur (R?)<br>`heating_2nd_loop_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x001B` (27) — 1. Heizkreis Temperatur<br>`heating_1st_loop_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0009` (9) — 2. Heizkreis Temperatur (R5)<br>`heating_2nd_loop_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x000A` (10) — 3. Heizkreis Temperatur (R13)<br>`heating_3rd_loop_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0035` (53) — Heizung Rücklaufsolltemperatur<br>`heating_return_target` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x001D` (29) — 1. Heizkreis Rücklaufsolltemperatur<br>`heating_1st_loop_return_target` | Input (3x) | FC04 read | uint16 · ×0.1 |

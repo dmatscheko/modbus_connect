@@ -690,7 +690,7 @@ input:
     groups: [basic]
     ha:
       platform: sensor
-      name: "1. Heizkreis Temperatur (R5)"
+      name: "1. Heizkreis Temperatur"
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
@@ -701,7 +701,7 @@ input:
     groups: [heating_circuit_2]
     ha:
       platform: sensor
-      name: "2. Heizkreis Temperatur (R?)"
+      name: "2. Heizkreis Temperatur (R5)"
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
@@ -2019,12 +2019,12 @@ translations:
   Heizung Rücklauftemperatur (R2):
     de: Heizung Rücklauftemperatur (R2)
     en: Heating return temperature (R2)
-  "1. Heizkreis Temperatur (R5)":
-    de: "1. Heizkreis Temperatur (R5)"
-    en: "1st heating circuit temperature (R5)"
-  "2. Heizkreis Temperatur (R?)":
-    de: "2. Heizkreis Temperatur (R?)"
-    en: "2nd heating circuit temperature (R?)"
+  "1. Heizkreis Temperatur":
+    de: "1. Heizkreis Temperatur"
+    en: "1st heating circuit temperature"
+  "2. Heizkreis Temperatur (R5)":
+    de: "2. Heizkreis Temperatur (R5)"
+    en: "2nd heating circuit temperature (R5)"
   "3. Heizkreis Temperatur (R13)":
     de: "3. Heizkreis Temperatur (R13)"
     en: "3rd heating circuit temperature (R13)"

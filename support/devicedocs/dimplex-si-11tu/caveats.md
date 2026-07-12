@@ -47,6 +47,17 @@ addresses were verified against the existing hand-tuned entries. All of this
 requires the optional NWPM / NWPM-Touch Modbus-TCP extension on the heat-pump
 manager.
 
+## "1. Heizkreis Temperatur" reads an undocumented register
+
+Input register 27 is inherited from the hand-curated source config, but the
+datapoint list has no entry for it in the address column this file follows
+(WPM software J/L/M) — the *H-software* column lists 27 as Außentemperatur.
+The circuit sensors the doc does name are R5 = 2. Heizkreis (register 9) and
+R13 = 3. Heizkreis (register 10); there is no dedicated 1st-circuit sensor,
+which is why this entity carries no R designation. If its readings track
+"Außentemperatur (R1)" on your unit, register 27 is just mirroring the
+outside temperature and the entity should be removed — please report.
+
 ## Some settings are plain numbers, not selects
 
 A few holding settings are exposed as plain `number` entities because the
