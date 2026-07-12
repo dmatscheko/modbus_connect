@@ -29,8 +29,6 @@ sys.path.insert(0, str(_HERE))
 import pichler_entities as PG  # noqa: E402  (row -> entity generators + slug/clean_name)
 import sources  # noqa: E402  (xlsx / html parsers)
 
-TABLES = ("holding", "input", "coil", "discrete")
-
 _PICHLER_DOCS = {
     "Pichler-LG150-LG250": ("LG150", "pichler-lg150-lg250"),
     "Pichler-LG350-LG450": ("LG350", "pichler-lg350-lg450"),

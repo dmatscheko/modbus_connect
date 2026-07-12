@@ -43,7 +43,15 @@ import yaml
 # support/converter/_common/augment.py  ->  parents: _common, converter, support, <repo>
 _COMMON_DIR = Path(__file__).resolve().parent
 _SUPPORT_DIR = Path(__file__).resolve().parents[2]
-_DEST_DIR = _SUPPORT_DIR.parent / "custom_components/modbus_connect/device_configs"
+_REPO_DIR = _SUPPORT_DIR.parent
+_DEST_DIR = _REPO_DIR / "custom_components/modbus_connect/device_configs"
+
+# The integration's HA-import-free model module is the single source of the
+# table vocabulary; import it (under its canonical package name, so tests and
+# tools share one module object) instead of mirroring it.
+sys.path.insert(0, str(_REPO_DIR))
+from custom_components.modbus_connect.models import TABLES  # noqa: E402
+
 # A device's grouping/patch policy and its manufacturer docs live together, in the same
 # per-device folder under support/devicedocs/<slug>/ (augment.yaml + registers.md + …).
 _DEVICEDOCS_DIR = _SUPPORT_DIR / "devicedocs"
@@ -96,7 +104,6 @@ def _compose_header(source: str, variant: str | Path, folder: str, note: str | N
         lines.append(note)
     return "\n".join(lines)
 
-TABLES = ("holding", "input", "coil", "discrete")
 SECTIONS = (*TABLES, "template")
 
 # Canonical per-entity field order: every scalar/list key in schema._MODBUS_KEYS
@@ -565,9 +572,9 @@ def emit(ir: dict, header: str | None = None) -> str:
 # --------------------------------------------------------------------------- #
 def validate(text: str, filename: str) -> None:
     """Round-trip the emitted YAML through the integration's schema, so an emitter
-    or augment bug fails the conversion loudly instead of the config entry later."""
-    sys.path.insert(0, str(_DEST_DIR.parents[1]))  # .../custom_components
-    from modbus_connect.schema import parse_device
+    or augment bug fails the conversion loudly instead of the config entry later.
+    Imported lazily (unlike models above): schema pulls in Home Assistant."""
+    from custom_components.modbus_connect.schema import parse_device
 
     parse_device(yaml.safe_load(text), filename=filename)
 

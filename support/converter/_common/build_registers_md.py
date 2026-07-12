@@ -19,16 +19,16 @@ REPO = Path(__file__).resolve().parents[3]
 CFG_DIR = REPO / "custom_components/modbus_connect/device_configs"
 OUT_DIR = REPO / "support/devicedocs"
 
-# ---- mirror of the integration's type/FC model (models.py / client.py) ----
-TYPE_BITS = {
-    "bit": 1, "uint8": 8, "int8": 8, "uint16": 16, "int16": 16,
-    "uint32": 32, "int32": 32, "uint64": 64, "int64": 64,
-    "float16": 16, "float32": 32, "float64": 64,
-}
-TYPE_WIDTH = {t: max(1, b // 16) for t, b in TYPE_BITS.items()}
-WRITING_PLATFORMS = {"number", "select", "switch", "text", "time", "button", "valve"}
-WRITABLE_TABLES = {"holding", "coil"}
-BIT_TABLES = {"coil", "discrete"}
+# The integration's HA-import-free model module is the source of the type/table
+# vocabulary; import it instead of mirroring it (a mirror can silently drift).
+sys.path.insert(0, str(REPO))
+from custom_components.modbus_connect.models import (  # noqa: E402
+    BIT_TABLES,
+    TABLES,
+    TYPE_WIDTH,
+    WRITABLE_TABLES,
+    WRITING_PLATFORMS,
+)
 
 # table -> (label, prefix, read-FC)
 TABLE_META = {
@@ -37,7 +37,6 @@ TABLE_META = {
     "coil": ("Coil", "0x", "FC01"),
     "discrete": ("Discrete", "1x", "FC02"),
 }
-TABLE_ORDER = ["holding", "input", "coil", "discrete"]
 
 # config filename -> kebab-case device folder (single source of truth: device_folders.json,
 # also read by augment.py to locate each device's augment.yaml policy). Test.yaml maps to
@@ -163,8 +162,8 @@ def md_escape(s: str) -> str:
 
 def build_table(cfg: dict) -> tuple[str, dict]:
     rows = []
-    counts = dict.fromkeys(TABLE_ORDER, 0)
-    for table in TABLE_ORDER:
+    counts = dict.fromkeys(TABLES, 0)
+    for table in TABLES:
         section = cfg.get(table)
         if not isinstance(section, dict):
             continue
@@ -270,7 +269,7 @@ def gen_one(cfg_path: Path, folder: str, sources: dict) -> str:
     n_tmpl = len(cfg.get("template", {}) or {})
 
     total = sum(counts.values())
-    present = [f"{TABLE_META[t][0]} {counts[t]}" for t in TABLE_ORDER if counts[t]]
+    present = [f"{TABLE_META[t][0]} {counts[t]}" for t in TABLES if counts[t]]
 
     out = []
     out.append(f"# {manuf} {model} — Modbus registers")

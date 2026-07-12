@@ -15,10 +15,15 @@ TABLE_INPUT = "input"
 TABLE_COIL = "coil"
 TABLE_DISCRETE = "discrete"
 
+# The four tables in documentation order — also the section order of a device
+# file. The one ordered source; the sets below and all support tooling derive
+# from it.
+TABLES = (TABLE_HOLDING, TABLE_INPUT, TABLE_COIL, TABLE_DISCRETE)
+
 WORD_TABLES = frozenset({TABLE_HOLDING, TABLE_INPUT})
 BIT_TABLES = frozenset({TABLE_COIL, TABLE_DISCRETE})
 WRITABLE_TABLES = frozenset({TABLE_HOLDING, TABLE_COIL})
-ALL_TABLES = WORD_TABLES | BIT_TABLES
+ALL_TABLES = frozenset(TABLES)
 
 # Modbus protocol limits per read request
 PROTOCOL_MAX_REGISTERS = 125

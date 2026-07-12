@@ -34,6 +34,7 @@ from homeassistant.helpers.entity import EntityCategory  # noqa: E402
 from custom_components.modbus_connect.models import (  # noqa: E402
     PLATFORMS,
     SWAP_MODES,
+    TABLES,
     TYPE_ALIASES,
     TYPE_BITS,
     TYPE_STRING,
@@ -45,7 +46,6 @@ from custom_components.modbus_connect.schema import (  # noqa: E402
     DESCRIPTION_CLASSES,
     HA_ALIASES,
     INTEGRATE_METHODS,
-    SECTIONS,
     description_fields,
 )
 
@@ -280,7 +280,7 @@ def _address_hints() -> dict[str, Any]:
         "type": "object",
         "properties": {
             section: {"type": "array", "items": INTEGER, "minItems": 1}
-            for section in SECTIONS
+            for section in TABLES
         },
         "additionalProperties": False,
         "minProperties": 1,

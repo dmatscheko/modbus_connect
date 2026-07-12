@@ -18,7 +18,9 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_registers_md as R
 
-TABLES = ("holding", "input", "coil", "discrete")
+# The integration's HA-import-free model module is the source of the table order.
+sys.path.insert(0, str(R.REPO))
+from custom_components.modbus_connect.models import TABLES
 
 # Fixed descriptions for the tier groups; feature groups fall back to their label.
 FIXED = {

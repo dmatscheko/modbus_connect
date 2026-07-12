@@ -48,6 +48,7 @@ from .models import (
     FLOAT_TYPES,
     PLATFORMS,
     SWAP_MODES,
+    TABLES,
     TEMPLATE_PLATFORMS,
     TYPE_ALIASES,
     TYPE_BITS,
@@ -78,9 +79,6 @@ DESCRIPTION_CLASSES: dict[str, type[EntityDescription]] = {
     "fan": FanEntityDescription,
     "light": LightEntityDescription,
 }
-
-# The four table sections of a device file, in documentation order
-SECTIONS = ("holding", "input", "coil", "discrete")
 
 # Friendly YAML names -> EntityDescription field names
 HA_ALIASES: dict[str, str] = {
@@ -255,11 +253,11 @@ def parse_device(data: Any, filename: str = "", language: str = "en") -> DeviceD
             "convert it with support/converter/modbus_local_gateway/"
             "modbus_local_gateway-convert.py first"
         )
-    unknown = set(data) - {"device", "template", "translations", *SECTIONS}
+    unknown = set(data) - {"device", "template", "translations", *TABLES}
     if unknown:
         raise ctx.fail(
             f"unknown top-level keys: {sorted(unknown)} "
-            f"(entities live in {'/'.join(SECTIONS)} sections)"
+            f"(entities live in {'/'.join(TABLES)} sections)"
         )
 
     catalog = _parse_translations(ctx, data.get("translations"))
@@ -403,9 +401,9 @@ def _parse_address_hints(
         )
     out: set[tuple[str, int]] = set()
     for table, addrs in raw.items():
-        if table not in SECTIONS:
+        if table not in TABLES:
             raise ctx.fail(
-                f"device.{key}: unknown table {table!r} (expected one of {list(SECTIONS)})"
+                f"device.{key}: unknown table {table!r} (expected one of {list(TABLES)})"
             )
         if not isinstance(addrs, list) or not addrs:
             raise ctx.fail(f"device.{key}.{table} must be a non-empty list of addresses")
@@ -418,7 +416,7 @@ def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[Enti
     """Parse the four table sections into entity definitions."""
     entities: list[EntityDef] = []
     section_of: dict[str, str] = {}
-    for section in SECTIONS:
+    for section in TABLES:
         block = data.get(section)
         if block is None:
             continue
@@ -438,7 +436,7 @@ def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[Enti
 
     if not entities:
         raise ctx.fail(
-            f"no entities defined (add one of the {'/'.join(SECTIONS)} sections)"
+            f"no entities defined (add one of the {'/'.join(TABLES)} sections)"
         )
     return entities
 
@@ -513,7 +511,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     if "table" in raw:
         raise ctx.fail(
             "'table' is not an entity key — entities are grouped by the "
-            f"{'/'.join(SECTIONS)} sections instead"
+            f"{'/'.join(TABLES)} sections instead"
         )
     # An unquoted `on:`/`off:` key is a YAML 1.1 *boolean*, not a string — the
     # reason these fields are named on_value/off_value. Catch both spellings of

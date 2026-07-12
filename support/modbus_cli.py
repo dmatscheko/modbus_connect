@@ -42,6 +42,9 @@ from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse
 
+# Local copy of the table vocabulary (models.py): unlike the other support
+# scripts this tool deliberately imports nothing from the repo, so the single
+# file can be copied to any machine near the gateway and run with just pymodbus.
 BIT_TABLES = ("coil", "discrete")
 TABLES = ("holding", "input", *BIT_TABLES)
 

@@ -72,8 +72,8 @@ def build_intermediate(device_name: str, upstream_dir: Path) -> dict:
     base = _mlg.convert_device(old, f"{device_name}.yaml")
 
     ir = augment.intermediate(base.get("device") or {})
-    base_addr = {t: set() for t in gen.TABLES}
-    for table in gen.TABLES:
+    base_addr = {t: set() for t in augment.TABLES}
+    for table in augment.TABLES:
         for key, fields in (base.get(table) or {}).items():
             fields = {k: v for k, v in fields.items() if k != "groups"}
             base_addr[table].add(fields["address"])
