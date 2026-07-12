@@ -8,7 +8,9 @@ their own (or override built-ins by using the same filename) in
 from __future__ import annotations
 
 import logging
+from collections.abc import Hashable
 from pathlib import Path
+from typing import Any
 
 import yaml
 from homeassistant.core import HomeAssistant
@@ -30,6 +32,27 @@ _LOGGER = logging.getLogger(__name__)
 BUILTIN_DIR = Path(__file__).parent / "device_configs"
 
 
+class _UniqueKeyLoader(_YamlLoader):
+    """Reject duplicate mapping keys.
+
+    YAML silently keeps only the last duplicate, so an entity defined twice in
+    the same section would validate cleanly while one definition is dropped —
+    invisible to the author. Refuse with the key and line named instead.
+    """
+
+    def construct_mapping(self, node: yaml.MappingNode, deep: bool = False) -> dict[Any, Any]:
+        seen: set[Any] = set()
+        for key_node, _value in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if isinstance(key, Hashable):
+                if key in seen:
+                    raise yaml.constructor.ConstructorError(
+                        None, None, f"duplicate key {key!r}", key_node.start_mark
+                    )
+                seen.add(key)
+        return super().construct_mapping(node, deep)
+
+
 def _discover(hass: HomeAssistant) -> dict[str, Path]:
     """Map lowercase filename -> path; user files override built-ins."""
     files: dict[str, Path] = {}
@@ -43,7 +66,7 @@ def _discover(hass: HomeAssistant) -> dict[str, Path]:
 
 def _load_file(path: Path, filename: str, language: str = "en") -> DeviceDef:
     with path.open(encoding="utf-8") as fh:
-        data = yaml.load(fh, Loader=_YamlLoader)
+        data = yaml.load(fh, Loader=_UniqueKeyLoader)  # a SafeLoader subclass
     return parse_device(data, filename=filename, language=language)
 
 
@@ -56,6 +79,10 @@ def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
         return _load_file(path, filename.lower(), hass.config.language)
     except yaml.YAMLError as err:
         raise DeviceSchemaError(f"{filename}: invalid YAML: {err}") from err
+    except OSError as err:
+        # An unreadable file must surface as a config-entry error message, the
+        # same way _load_all reports it, not as a raw traceback.
+        raise DeviceSchemaError(f"{filename}: cannot read: {err}") from err
 
 
 def _load_all(hass: HomeAssistant) -> tuple[dict[str, DeviceDef], dict[str, str]]:

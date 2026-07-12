@@ -1222,3 +1222,37 @@ async def test_remove_hidden_entities_button(hass: HomeAssistant) -> None:
     # the meta entities themselves survive too
     assert reg.async_get_entity_id("switch", DOMAIN, f"{entry.entry_id}_group_advanced")
     assert reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_reads_per_refresh")
+
+
+async def test_setup_duplicate_key_device_file(hass: HomeAssistant) -> None:
+    """A key defined twice in one section must fail the load, not silently
+    drop one definition (YAML keeps only the last duplicate)."""
+    directory = Path(hass.config.config_dir) / DOMAIN
+    directory.mkdir(parents=True, exist_ok=True)
+    dup = directory / "dup.yaml"
+    dup.write_text(
+        "device: {manufacturer: A, model: B}\n"
+        "holding:\n"
+        "  x: {address: 1, ha: {platform: sensor}}\n"
+        "  x: {address: 2, ha: {platform: sensor}}\n",
+        encoding="utf-8",
+    )
+    try:
+        entry = make_entry(filename="dup.yaml")
+        assert not await setup_entry(hass, entry, FakeClient())
+        assert entry.state is ConfigEntryState.SETUP_ERROR
+        assert "duplicate key" in str(entry.reason)
+    finally:
+        dup.unlink()  # the config dir is shared across the test session
+
+
+async def test_setup_unreadable_device_file(hass: HomeAssistant) -> None:
+    """An unreadable file surfaces as a config-entry error, not a traceback."""
+    entry = make_entry()
+    with patch(
+        "custom_components.modbus_connect.loader._load_file",
+        side_effect=OSError("permission denied"),
+    ):
+        assert not await setup_entry(hass, entry, FakeClient())
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert "cannot read" in str(entry.reason)
