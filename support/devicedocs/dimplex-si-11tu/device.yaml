@@ -817,7 +817,7 @@ input:
   compressor1_hours:
     address: 72
     never_resets: true
-    groups: [basic]
+    groups: [energy]
     ha:
       platform: sensor
       name: Verdichter 1 Laufzeit
@@ -829,7 +829,7 @@ input:
   primary_pump_hours:
     address: 74
     never_resets: true
-    groups: [basic]
+    groups: [energy]
     ha:
       platform: sensor
       name: Primärpumpe / Ventilator (M11) Laufzeit
@@ -841,7 +841,7 @@ input:
   heating_pump_hours:
     address: 76
     never_resets: true
-    groups: [basic]
+    groups: [energy]
     ha:
       platform: sensor
       name: Heizungspumpe (M13) Laufzeit
@@ -853,7 +853,7 @@ input:
   hot_water_pump_hours:
     address: 77
     never_resets: true
-    groups: [basic]
+    groups: [energy]
     ha:
       platform: sensor
       name: Warmwasserpumpe (M18) Laufzeit
@@ -865,7 +865,7 @@ input:
   additional_pump_hours:
     address: 71
     never_resets: true
-    groups: [basic]
+    groups: [energy]
     ha:
       platform: sensor
       name: Zusatzumwälzpumpe (M16) Laufzeit
@@ -940,7 +940,7 @@ input:
       entity_category: diagnostic
   blocking_status:
     address: 104
-    groups: [basic]
+    groups: [status]
     map:
       0: keine Meldung
       2: Volumenstrom
@@ -1009,7 +1009,7 @@ input:
       entity_category: diagnostic
   sensor_status:
     address: 106
-    groups: [basic]
+    groups: [status]
     map:
       0: keine Meldung
       1: Außenfühler (R1)
@@ -1246,7 +1246,7 @@ coil:
 discrete:
   hot_water_thermostat:
     address: 3
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Warmwasserthermostat
@@ -1254,7 +1254,7 @@ discrete:
       entity_category: diagnostic
   utility_block:
     address: 5
-    groups: [basic]
+    groups: [smart_grid]
     ha:
       platform: binary_sensor
       name: EVU-Sperre
@@ -1262,7 +1262,7 @@ discrete:
       entity_category: diagnostic
   external_block:
     address: 6
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Sperre Extern
@@ -1270,7 +1270,7 @@ discrete:
       entity_category: diagnostic
   compressor1:
     address: 41
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Verdichter 1 Modus
@@ -1278,7 +1278,7 @@ discrete:
       entity_category: diagnostic
   primary_pump:
     address: 43
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Sole Primärpumpe (M11) / Ventilator (M2) Modus
@@ -1286,7 +1286,7 @@ discrete:
       entity_category: diagnostic
   heating_pump:
     address: 45
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M13) Modus
@@ -1294,7 +1294,7 @@ discrete:
       entity_category: diagnostic
   hot_water_pump:
     address: 46
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Warmwasserpumpe (M18) Modus
@@ -1310,7 +1310,7 @@ discrete:
       entity_category: diagnostic
   additional_pump:
     address: 49
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Zusatzumwälzpumpe (M16) Modus
@@ -1318,7 +1318,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m15:
     address: 51
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M15) Modus
@@ -1342,7 +1342,7 @@ discrete:
       entity_category: diagnostic
   error_indicator:
     address: 57
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Sammelstörmeldung (H5) Modus
@@ -1350,7 +1350,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m14:
     address: 59
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M14) Modus
@@ -1358,7 +1358,7 @@ discrete:
       entity_category: diagnostic
   cooling_pump:
     address: 60
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Kühlpumpe (M17) Modus
@@ -1366,7 +1366,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m20:
     address: 61
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M20) Modus
@@ -1374,14 +1374,14 @@ discrete:
       entity_category: diagnostic
   room_thermostat_mode:
     address: 66
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
       entity_category: diagnostic
   cooling_primary_pump:
     address: 68
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Primärpumpe Kühlen (M12) Modus
@@ -1389,7 +1389,7 @@ discrete:
       entity_category: diagnostic
   solar_pump:
     address: 71
-    groups: [basic]
+    groups: [status]
     ha:
       platform: binary_sensor
       name: Solarpumpe (M23) Modus

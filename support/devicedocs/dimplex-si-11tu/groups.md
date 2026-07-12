@@ -10,7 +10,7 @@ Entities are split into groups you can switch on/off on the integration's device
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 49 | Everyday sensors, main controls and composite climate/fan entities. |
+| `basic` | core | (always on) | 26 | Everyday sensors, main controls and composite climate/fan entities. |
 | `advanced` | tier | Enable Advanced entities | 6 | Miscellaneous extra settings that don't belong to a specific feature. |
 | `schedule` | feature | Enable Schedule / time program entities | 19 | e.g. Zeitfunktion Auswahl, Start Stunde 1, Start Minute 1, … |
 | `clock` | feature | Enable Clock entities | 7 | e.g. Stunde, Minute, Monat, … |
@@ -22,10 +22,10 @@ Entities are split into groups you can switch on/off on the integration's device
 | `solar` | feature | Enable Solar entities | 1 | e.g. Solarspeicher (R22) |
 | `ventilation` | feature | Enable Ventilation entities | 6 | e.g. Außenlufttemperatur, Zulufttemperatur, Ablufttemperatur, … |
 | `room_climate` | feature | Enable Room climate sensors entities | 4 | e.g. Raumtemperatur 1 / RT-RTH Econ, Raumtemperatur 2, Raumfeuchte 1 / RT-RTH Econ, … |
-| `smart_grid` | feature | Enable Smart Grid entities | 3 | e.g. Smart Grid, Smart Grid 1, Smart Grid 2 |
-| `energy` | feature | Enable Energy & runtime entities | 4 | e.g. Verdichter 2 Laufzeit, 2.Wärmeerzeuger (E10) Laufzeit, Flanschheizung (E9) Laufzeit, … |
+| `smart_grid` | feature | Enable Smart Grid entities | 4 | e.g. Smart Grid, Smart Grid 1, Smart Grid 2, … |
+| `energy` | feature | Enable Energy & runtime entities | 9 | e.g. Verdichter 1 Laufzeit, Primärpumpe / Ventilator (M11) Laufzeit, Heizungspumpe (M13) Laufzeit, … |
 | `heat_source` | feature | Enable Heat source (brine) entities | 1 | e.g. Rücklauftemp. gem. Primärkreis (R24) |
-| `status` | feature | Enable Component status entities | 4 | e.g. Schwimmbadthermostat, Verdichter 2 Modus, 2.Wärmeerzeuger (E10) Modus, … |
+| `status` | feature | Enable Component status entities | 21 | e.g. Sperrmeldung, Sensorfehler, Warmwasserthermostat, … |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 
