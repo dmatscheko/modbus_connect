@@ -6,7 +6,7 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 192
+**Total register + template entities:** 190
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
@@ -22,7 +22,7 @@ Entities are split into groups you can switch on/off on the integration's device
 | `filter` | feature | Enable Filter entities | 2 | e.g. Filter time, Z16 Change filters |
 | `fan_control` | feature | Enable Fan & flow entities | 16 | e.g. Supply fan stopping time, Mixing valve cycle time, Mixing valve running time, … |
 | `firmware` | feature | Enable Firmware / model entities | 1 | e.g. Firmware Version Touch Display |
-| *(untagged)* | expert | Enable all entities | 27 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. PIC_AD_T2, PIC_AD_T1, PIC_AD_0_10Vin_S1, … |
+| *(untagged)* | expert | Enable all entities | 25 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. PIC_AD_T2, PIC_AD_T1, PIC_AD_0_10Vin_S1, … |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 

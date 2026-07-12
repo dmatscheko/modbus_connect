@@ -173,8 +173,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0014` (20) — Relay K4 Mixing valve closing/Post-heater level 2<br>`pic_relay_k5` | Input (3x) | FC04 read | uint16 |
 | `0x0015` (21) — Relay K6 Error indication (LG150)/Bypass damper<br>`pic_relay_k6` | Input (3x) | FC04 read | uint16 |
 | `0x0016` (22) — SD card present<br>`pic_sd_card_present` | Input (3x) | FC04 read | uint16 |
-| `0x0017` (23) — FW Version controller<br>`pic_lg150_sw_ver` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x0018` (24) — FW version operating panel<br>`pic_mini_panel_sw_ver` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0017` (23) — controller_fw_version _(internal)_ | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0018` (24) — panel_fw_version _(internal)_ | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0019` (25) — LG model<br>`pic_lg_model` | Input (3x) | FC04 read | uint16 |
 | `0x001A` (26) — PIC_Ventilator_model<br>`pic_ventilator_model` | Input (3x) | FC04 read | uint16 |
 | `0x0023` (35) — S1 0-10Vin<br>`s1_0_10vin` | Input (3x) | FC04 read | uint16 · ×0.1 |

@@ -12,6 +12,7 @@ device:
   modbus_id: 20
   max_read_gap: 64
   hw_version: "{{ ahu_type_hw }}"
+  sw_version: "Controller {{ controller_fw_version }} · Panel {{ panel_fw_version }}"
   default_groups: [basic]
   group_labels:
     modbus_config: Modbus configuration
@@ -1442,18 +1443,16 @@ input:
     ha:
       platform: sensor
       name: SD card present
-  pic_lg150_sw_ver:
+  # The two firmware versions are shown on the device-info page (device.sw_version),
+  # so they are internal read sources rather than sensors of their own.
+  controller_fw_version:
     address: 23
     multiplier: 0.1
-    ha:
-      platform: sensor
-      name: FW Version controller
-  pic_mini_panel_sw_ver:
+    internal: true
+  panel_fw_version:
     address: 24
     multiplier: 0.1
-    ha:
-      platform: sensor
-      name: FW version operating panel
+    internal: true
   pic_lg_model:
     address: 25
     ha:
@@ -2244,12 +2243,6 @@ translations:
   SD card present:
     de: SD-Karte vorhanden
     en: SD card present
-  FW Version controller:
-    de: FW-Version Steuerung
-    en: FW Version controller
-  FW version operating panel:
-    de: FW-Version Bedieneinheit
-    en: FW version operating panel
   LG model:
     de: LG-Modell
     en: LG model
