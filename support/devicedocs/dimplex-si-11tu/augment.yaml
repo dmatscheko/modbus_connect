@@ -216,7 +216,18 @@ translations:
   - {de: Samstag, en: Saturday}
   - {de: 2./3. Heizkreis Auswahl, en: 2nd/3rd heating circuit selection}
   - {de: Sensorfehler, en: Sensor fault}
-  - {de: Absenkung, en: Setback}
+  - {de: Zeitfunktion Auswahl, en: Time function selection}
+  - {de: 2. Heizkreis, en: 2nd heating circuit}
+  - {de: 3. Heizkreis, en: 3rd heating circuit}
+  - {de: 1. Heizkreis Absenkung, en: 1st heating circuit setback}
+  - {de: 1. Heizkreis Anhebung, en: 1st heating circuit boost}
+  - {de: 2. Heizkreis Absenkung, en: 2nd heating circuit setback}
+  - {de: 2. Heizkreis Anhebung, en: 2nd heating circuit boost}
+  - {de: 3. Heizkreis Absenkung, en: 3rd heating circuit setback}
+  - {de: 3. Heizkreis Anhebung, en: 3rd heating circuit boost}
+  - {de: Warmwasser Sperre, en: Hot water block}
+  - {de: Thermische Desinfektion, en: Thermal disinfection}
+  - {de: Zirkulationspumpe, en: Circulation pump}
   - {de: Absenk- / Anhebwert, en: Setback / boost value}
   - {de: Solltemp. dyn. Kühlung, en: Setpoint dyn. cooling}
   - {de: Schwimmbad Solltemperatur, en: Pool setpoint temperature}
@@ -534,3 +545,83 @@ ops:
     where: {key: mixer_m22_open}
   - set: {ha: {name: "3. Heizkreis Mischer (M22) zu"}}
     where: {key: mischer_2}
+
+  # --- richer controls than the generated fallbacks ------------------------ #
+  # 5082 can only ever hold 2 or 3 (the doc lists it as two one-value rows, so
+  # the generator emitted a read-only sensor): the circuit multiplex selector
+  # as a real select (see caveats.md).
+  - set:
+      map: {2: 2. Heizkreis, 3: 3. Heizkreis}
+      ha: {platform: select, entity_category: config}
+    where: {key: auswahl_heizkreis_2}
+  # 5086 is the same coded register as the curated 1st-circuit parallel shift
+  # (0..38 -> -19..19); mirror its labeled select.
+  - set:
+      map:
+        0: "-19 °C"
+        1: "-18 °C"
+        2: "-17 °C"
+        3: "-16 °C"
+        4: "-15 °C"
+        5: "-14 °C"
+        6: "-13 °C"
+        7: "-12 °C"
+        8: "-11 °C"
+        9: "-10 °C"
+        10: "-9 °C"
+        11: "-8 °C"
+        12: "-7 °C"
+        13: "-6 °C"
+        14: "-5 °C"
+        15: "-4 °C"
+        16: "-3 °C"
+        17: "-2 °C"
+        18: "-1 °C"
+        19: "0 °C"
+        20: "1 °C"
+        21: "2 °C"
+        22: "3 °C"
+        23: "4 °C"
+        24: "5 °C"
+        25: "6 °C"
+        26: "7 °C"
+        27: "8 °C"
+        28: "9 °C"
+        29: "10 °C"
+        30: "11 °C"
+        31: "12 °C"
+        32: "13 °C"
+        33: "14 °C"
+        34: "15 °C"
+        35: "16 °C"
+        36: "17 °C"
+        37: "18 °C"
+        38: "19 °C"
+      ha: {platform: select}
+    where: {key: parallelverschiebung}
+  - unset: [ha.min, ha.max]
+    where: {key: parallelverschiebung}
+  # 5089 is coded 0..30 -> 15.0..30.0 °C (doc value table): a real temperature
+  # number instead of the raw code.
+  - set:
+      multiplier: 0.5
+      offset: 15
+      ha: {min: 15, max: 30, step: 0.5, unit_of_measurement: "°C", device_class: temperature}
+    where: {key: kuehlung_raumsolltemperatur}
+  # 5065 is the time-function multiplexer (doc 5.4): writing it selects which
+  # function the schedule registers 5066-5081 edit. The generator saw only the
+  # first one-value row ("Absenkung 1..1") and made a bare sensor; the real
+  # control is a select over every documented function (see caveats.md).
+  - set:
+      map:
+        1: 1. Heizkreis Absenkung
+        2: 1. Heizkreis Anhebung
+        3: 2. Heizkreis Absenkung
+        4: 2. Heizkreis Anhebung
+        5: 3. Heizkreis Absenkung
+        6: 3. Heizkreis Anhebung
+        7: Warmwasser Sperre
+        8: Thermische Desinfektion
+        12: Zirkulationspumpe
+      ha: {platform: select, name: Zeitfunktion Auswahl, entity_category: config}
+    where: {key: absenkung}

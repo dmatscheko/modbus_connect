@@ -12,7 +12,7 @@ Entities are split into groups you can switch on/off on the integration's device
 | --- | --- | --- | --- | --- |
 | `basic` | core | (always on) | 49 | Everyday sensors, main controls and composite climate/fan entities. |
 | `advanced` | tier | Enable Advanced entities | 6 | Miscellaneous extra settings that don't belong to a specific feature. |
-| `schedule` | feature | Enable Schedule / time program entities | 19 | e.g. Absenkung, Start Stunde 1, Start Minute 1, … |
+| `schedule` | feature | Enable Schedule / time program entities | 19 | e.g. Zeitfunktion Auswahl, Start Stunde 1, Start Minute 1, … |
 | `clock` | feature | Enable Clock entities | 7 | e.g. Stunde, Minute, Monat, … |
 | `heating_circuit_2` | feature | Enable Heating circuit 2 entities | 12 | e.g. 2./3. Heizkreis Auswahl, 2./3. Heizkreis Heizkurvenendpunkt, 2./3. Heizkreis Festwertemperatur, … |
 | `heating_circuit_3` | feature | Enable Heating circuit 3 entities | 12 | e.g. 2./3. Heizkreis Auswahl, 2./3. Heizkreis Heizkurvenendpunkt, 2./3. Heizkreis Festwertemperatur, … |

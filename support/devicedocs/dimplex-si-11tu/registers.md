@@ -36,14 +36,14 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x1419` (5145) — Warmwasser Solltemperatur Minimal<br>`hot_water_min_fixed_target` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13B8` (5048) — Warmwasser Solltemperatur Maximal<br>`hot_water_max_fixed_target` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13B3` (5043) — Solltemp. dyn. Kühlung<br>`solltemp_dyn_kuehlung` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x13DA` (5082) — 2./3. Heizkreis Auswahl<br>`auswahl_heizkreis_2` | Holding (4x) | FC03 read | uint16 |
+| `0x13DA` (5082) — 2./3. Heizkreis Auswahl<br>`auswahl_heizkreis_2` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x13DC` (5084) — 2./3. Heizkreis Heizkurvenendpunkt<br>`heizkurvenendpunkt` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13DD` (5085) — 2./3. Heizkreis Festwertemperatur<br>`festwertemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x13DE` (5086) — 2./3. Heizkreis Parallelverschiebung<br>`parallelverschiebung` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13DE` (5086) — 2./3. Heizkreis Parallelverschiebung<br>`parallelverschiebung` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 39 opts |
 | `0x13DF` (5087) — 2./3. Heizkreis Mischerlaufzeit<br>`mischerlaufzeit` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x005D` (93) — 2./3. Heizkreis Mischerhysterese<br>`mischerhysterese` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x13E0` (5088) — 2./3. Heizkreis Maximale Temperatur<br>`maximale_temperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x13E1` (5089) — 2./3. Heizkreis Kühlung Raumsolltemperatur<br>`kuehlung_raumsolltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x13E1` (5089) — 2./3. Heizkreis Kühlung Raumsolltemperatur<br>`kuehlung_raumsolltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.5 · +15 |
 | `0x1398` (5016) — Anzahl Partystunden<br>`anzahl_partystunden` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x1399` (5017) — Anzahl Urlaubstage<br>`anzahl_urlaubstage` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13AA` (5034) — Stufen<br>`stufen` | Holding (4x) | FC03 read · FC06 write | uint16 |
@@ -53,7 +53,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0030` (48) — 2.Wärmeerzeuger Mischerhysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x139C` (5020) — 2.Wärmeerzeuger Grenztemperatur parallel<br>`grenztemperatur_parallel` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x139D` (5021) — 2.Wärmeerzeuger Mischerlaufzeit<br>`mischerlaufzeit_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x13C9` (5065) — Absenkung<br>`absenkung` | Holding (4x) | FC03 read | uint16 |
+| `0x13C9` (5065) — Zeitfunktion Auswahl<br>`absenkung` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 9 opts |
 | `0x13CA` (5066) — Start Stunde 1<br>`start_stunde_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13CB` (5067) — Start Minute 1<br>`start_minute_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13CC` (5068) — Ende Stunde 1<br>`ende_stunde_1` | Holding (4x) | FC03 read · FC06 write | uint16 |
