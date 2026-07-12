@@ -536,9 +536,9 @@ async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
     put("pm_activepower_l2", 1200)
     put("pm_activepower_l3", -300)
     put("measured_power", 400)   # positive = exporting 400 W
-    put("pm__current_l1", 6.5)   # int32 x0.1 A registers
-    put("pm__current_l2", 5.2)
-    put("pm__current_l3", 1.3)
+    put("pm_current_l1", 6.5)   # int32 x0.1 A registers
+    put("pm_current_l2", 5.2)
+    put("pm_current_l3", 1.3)
     coordinator = await make_coordinator(
         hass, device, client, monkeypatch, FakeTime(),
         options={OPTION_ENABLED_GROUPS: ["pm_i1"]},

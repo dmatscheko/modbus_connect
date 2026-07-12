@@ -2756,7 +2756,7 @@ input:
       unit_of_measurement: Hz
       state_class: measurement
       precision: 2
-  today_s_yield:
+  yield_today:
     address: 80
     multiplier: 0.1
     groups: [advanced]
@@ -3191,7 +3191,7 @@ input:
       state_class: total_increasing
       precision: 1
       icon: "mdi:solar-power"
-  today_s_solar_energy:
+  solar_energy_today:
     address: 150
     multiplier: 0.1
     groups: [basic]
@@ -3203,7 +3203,7 @@ input:
       state_class: total_increasing
       precision: 1
       icon: "mdi:solar-power"
-  today_s_export_energy:
+  export_energy_today:
     address: 152
     type: uint32
     swap: word
@@ -3217,7 +3217,7 @@ input:
       state_class: total_increasing
       precision: 2
       icon: "mdi:home-export-outline"
-  today_s_import_energy:
+  import_energy_today:
     address: 154
     type: uint32
     swap: word
@@ -3851,7 +3851,7 @@ input:
       name: PM Reactive or ApparentPower L3
       unit_of_measurement: VA
       device_class: apparent_power
-  pm__current_l1:
+  pm_current_l1:
     address: 492
     type: int32
     swap: word
@@ -3864,7 +3864,7 @@ input:
       unit_of_measurement: A
       device_class: current
       precision: 1
-  pm__current_l2:
+  pm_current_l2:
     address: 494
     type: int32
     swap: word
@@ -3877,7 +3877,7 @@ input:
       unit_of_measurement: A
       device_class: current
       precision: 1
-  pm__current_l3:
+  pm_current_l3:
     address: 496
     type: int32
     swap: word
@@ -4524,7 +4524,7 @@ template:
       device_class: current
       state_class: measurement
       icon: "mdi:current-ac"
-    state: "{{ ((pm__current_l1 or 0) + (pm__current_l2 or 0) + (pm__current_l3 or 0)) | round(1) }}"
+    state: "{{ ((pm_current_l1 or 0) + (pm_current_l2 or 0) + (pm_current_l3 or 0)) | round(1) }}"
     groups: [pm_i1, pm_i2, pm_i3]
   pm_total_pv_current:
     ha:

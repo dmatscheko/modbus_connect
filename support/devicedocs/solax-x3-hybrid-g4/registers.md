@@ -325,7 +325,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0048` (72) — Grid Export Total<br>`grid_export_total` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
 | `0x004A` (74) — Grid Import Total<br>`grid_import_total` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
 | `0x004F` (79) — EPS Frequency<br>`eps_frequency` | Input (3x) | FC04 read | uint16 · ×0.01 |
-| `0x0050` (80) — Today's Yield<br>`today_s_yield` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0050` (80) — Today's Yield<br>`yield_today` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0052` (82) — Total Yield<br>`total_yield` | Input (3x) | FC04 read | uint32 · swap word · ×0.1 |
 | `0x0054` (84) — lock_state_readback _(internal)_ | Input (3x) | FC04 read | uint16 · enum · 3 opts |
 | `0x0066` (102) — Bus Volt<br>`bus_volt` | Input (3x) | FC04 read | uint16 · ×0.1 |
@@ -366,9 +366,9 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0091` (145) — E Charge Today<br>`e_charge_today` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0092` (146) — E Charge Total<br>`e_charge_total` | Input (3x) | FC04 read | uint32 · swap word · ×0.1 |
 | `0x0094` (148) — Total Solar Energy<br>`total_solar_energy` | Input (3x) | FC04 read | uint32 · swap word · ×0.1 |
-| `0x0096` (150) — Today's Solar Energy<br>`today_s_solar_energy` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x0098` (152) — Today's Export Energy<br>`today_s_export_energy` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
-| `0x009A` (154) — Today's Import Energy<br>`today_s_import_energy` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
+| `0x0096` (150) — Today's Solar Energy<br>`solar_energy_today` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0098` (152) — Today's Export Energy<br>`export_energy_today` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
+| `0x009A` (154) — Today's Import Energy<br>`import_energy_today` | Input (3x) | FC04 read | uint32 · swap word · ×0.01 |
 | `0x00A0` (160) — EV Charger Communication State<br>`ev_charger_communication_state` | Input (3x) | FC04 read | uint16 · enum · 2 opts |
 | `0x00A1` (161) — Adapter Box Communication State<br>`adapt_box_communication_state` | Input (3x) | FC04 read | uint16 · enum · 2 opts |
 | `0x00A2` (162) — Battery Max Charge Power<br>`battery_max_charge_power` | Input (3x) | FC04 read | uint32 · swap word |
@@ -425,9 +425,9 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x01E6` (486) — PM Reactive or ApparentPower L1<br>`pm_reactive_or_apparentpower_l1` | Input (3x) | FC04 read | int32 · swap word |
 | `0x01E8` (488) — PM Reactive or ApparentPower L2<br>`pm_reactive_or_apparentpower_l2` | Input (3x) | FC04 read | int32 · swap word |
 | `0x01EA` (490) — PM Reactive or ApparentPower L3<br>`pm_reactive_or_apparentpower_l3` | Input (3x) | FC04 read | int32 · swap word |
-| `0x01EC` (492) — PM Inverter Current L1<br>`pm__current_l1` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
-| `0x01EE` (494) — PM Inverter Current L2<br>`pm__current_l2` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
-| `0x01F0` (496) — PM Inverter Current L3<br>`pm__current_l3` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
+| `0x01EC` (492) — PM Inverter Current L1<br>`pm_current_l1` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
+| `0x01EE` (494) — PM Inverter Current L2<br>`pm_current_l2` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
+| `0x01F0` (496) — PM Inverter Current L3<br>`pm_current_l3` | Input (3x) | FC04 read | int32 · swap word · ×0.1 |
 | `0x01F2` (498) — PM PV Power 1<br>`pm_pv_power_1` | Input (3x) | FC04 read | uint32 · swap word |
 | `0x01F4` (500) — PM PV Power 2<br>`pm_pv_power_2` | Input (3x) | FC04 read | uint32 · swap word |
 | `0x01F6` (502) — PM PV Current 1<br>`pm_pv_current_1` | Input (3x) | FC04 read | uint32 · swap word · ×0.1 |
