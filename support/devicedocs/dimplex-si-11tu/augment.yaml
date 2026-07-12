@@ -114,7 +114,8 @@ translations:
   - {de: Aufwärmen, en: Warm-up}
   - {de: 1. Heizkreis Rücklaufsolltemperatur, en: 1st heating circuit return setpoint temperature}
   - {de: 1. Heizkreis Temperatur (R5), en: 1st heating circuit temperature (R5)}
-  - {de: 2.Wärmeerzeuger (E10), en: 2nd heat generator (E10)}
+  - {de: 2.Wärmeerzeuger (E10) Modus, en: 2nd heat generator (E10) mode}
+  - {de: 2.Wärmeerzeuger (E10) Laufzeit, en: 2nd heat generator (E10) runtime}
   - {de: 2. Heizkreis Rücklaufsolltemperatur, en: 2nd heating circuit return setpoint temperature}
   - {de: '2. Heizkreis Temperatur (R?)', en: '2nd heating circuit temperature (R?)'}
   - {de: 3. Heizkreis Rücklaufsolltemperatur, en: 3rd heating circuit return setpoint temperature}
@@ -129,9 +130,10 @@ translations:
   - {de: Sammelstörmeldung (H5) Modus, en: Collective fault message (H5) mode}
   - {de: Verdichter 1 Modus, en: Compressor 1 mode}
   - {de: Verdichter 1 Laufzeit, en: Compressor 1 runtime}
-  - {de: Verdichter 2, en: Compressor 2}
+  - {de: Verdichter 2 Modus, en: Compressor 2 mode}
+  - {de: Verdichter 2 Laufzeit, en: Compressor 2 runtime}
   - {de: Kühlpumpe (M17) Modus, en: Cooling pump (M17) mode}
-  - {de: Kühlung Raumsolltemperatur, en: Cooling room setpoint temperature}
+  - {de: 2./3. Heizkreis Kühlung Raumsolltemperatur, en: 2nd/3rd heating circuit cooling room setpoint temperature}
   - {de: Tag, en: Day}
   - {de: Ende Stunde 1, en: End hour 1}
   - {de: Ende Stunde 2, en: End hour 2}
@@ -142,8 +144,9 @@ translations:
   - {de: Drehzahl Abluftventilator, en: Extract air fan speed}
   - {de: Ablufttemperatur, en: Extract air temperature}
   - {de: Störmeldung, en: Fault message}
-  - {de: Festwertemperatur, en: Fixed value temperature}
-  - {de: Flanschheizung (E9), en: Flange heater (E9)}
+  - {de: 2./3. Heizkreis Festwertemperatur, en: 2nd/3rd heating circuit fixed value temperature}
+  - {de: Flanschheizung (E9) Modus, en: Flange heater (E9) mode}
+  - {de: Flanschheizung (E9) Laufzeit, en: Flange heater (E9) runtime}
   - {de: Vorlauftemperatur (R11), en: Flow temperature (R11)}
   - {de: Vorlauftemperatur (R9), en: Flow temperature (R9)}
   - {de: Freitag, en: Friday}
@@ -159,7 +162,7 @@ translations:
   - {de: Wärmequelleneintrittstemperatur (R24), en: Heat source inlet temperature (R24)}
   - {de: Wärmequellenaustrittstemperatur (R6), en: Heat source outlet temperature (R6)}
   - {de: Heizung Heizkurvenendpunkt, en: Heating curve end point}
-  - {de: Heizkurvenendpunkt, en: Heating curve endpoint}
+  - {de: 2./3. Heizkreis Heizkurvenendpunkt, en: 2nd/3rd heating circuit heating curve end point}
   - {de: Heizung Hysterese, en: Heating hysteresis}
   - {de: Heizung Parallelverschiebung, en: Heating parallel shift}
   - {de: Heizungspumpe (M13) Modus, en: Heating pump (M13) mode}
@@ -179,23 +182,25 @@ translations:
   - {de: Warmwasser Temperatur (R3), en: Hot water temperature (R3)}
   - {de: Warmwasserthermostat, en: Hot water thermostat}
   - {de: Stunde, en: Hour}
-  - {de: Hysterese, en: Hysteresis}
-  - {de: Maximale Temperatur, en: Maximum temperature}
-  - {de: Mischer (M21) ZU, en: Mixer (M21) closed}
-  - {de: Mischer (M21) Modus, en: Mixer (M21) mode}
-  - {de: Mischer (M22) Zu, en: Mixer (M22) closed}
-  - {de: Mischer (M22) Modus, en: Mixer (M22) mode}
-  - {de: Mischerhysterese, en: Mixer hysteresis}
-  - {de: Mischerlaufzeit, en: Mixer runtime}
+  - {de: Schwimmbad Hysterese, en: Pool hysteresis}
+  - {de: 2./3. Heizkreis Maximale Temperatur, en: 2nd/3rd heating circuit maximum temperature}
+  - {de: 2. Heizkreis Mischer (M21) zu, en: 2nd heating circuit mixer (M21) closed}
+  - {de: 2. Heizkreis Mischer (M21) auf, en: 2nd heating circuit mixer (M21) open}
+  - {de: 3. Heizkreis Mischer (M22) zu, en: 3rd heating circuit mixer (M22) closed}
+  - {de: 3. Heizkreis Mischer (M22) auf, en: 3rd heating circuit mixer (M22) open}
+  - {de: 2./3. Heizkreis Mischerhysterese, en: 2nd/3rd heating circuit mixer hysteresis}
+  - {de: 2.Wärmeerzeuger Mischerhysterese, en: 2nd heat generator mixer hysteresis}
+  - {de: 2./3. Heizkreis Mischerlaufzeit, en: 2nd/3rd heating circuit mixer runtime}
+  - {de: 2.Wärmeerzeuger Mischerlaufzeit, en: 2nd heat generator mixer runtime}
   - {de: Montag, en: Monday}
   - {de: Monat, en: Month}
   - {de: Anzahl Urlaubstage, en: Number of holiday days}
   - {de: Anzahl Partystunden, en: Number of party hours}
   - {de: Außenlufttemperatur, en: Outside air temperature}
   - {de: Außentemperatur (R1), en: Outside temperature (R1)}
-  - {de: Grenztemperatur parallel, en: Parallel limit temperature}
-  - {de: Parallelverschiebung, en: Parallel shift}
-  - {de: Schwimmbadpumpe (M19), en: Pool pump (M19)}
+  - {de: 2.Wärmeerzeuger Grenztemperatur parallel, en: 2nd heat generator parallel limit temperature}
+  - {de: 2./3. Heizkreis Parallelverschiebung, en: 2nd/3rd heating circuit parallel shift}
+  - {de: Schwimmbadpumpe (M19) Laufzeit, en: Pool pump (M19) runtime}
   - {de: Schwimmbadpumpe (M19) Modus, en: Pool pump (M19) mode}
   - {de: Schwimmbadthermostat, en: Pool thermostat}
   - {de: Primärpumpe / Ventilator (M11) Laufzeit, en: Primary pump / fan (M11) runtime}
@@ -207,12 +212,12 @@ translations:
   - {de: Raumtemperatur 2, en: Room temperature 2}
   - {de: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus, en: Room thermostats heating/cooling switch-over (N9) mode}
   - {de: Samstag, en: Saturday}
-  - {de: Auswahl Heizkreis 2, en: Selection heating circuit 2}
+  - {de: 2./3. Heizkreis Auswahl, en: 2nd/3rd heating circuit selection}
   - {de: Sensorfehler, en: Sensor fault}
   - {de: Absenkung, en: Setback}
   - {de: Absenk- / Anhebwert, en: Setback / boost value}
   - {de: Solltemp. dyn. Kühlung, en: Setpoint dyn. cooling}
-  - {de: Solltemperatur, en: Setpoint temperature}
+  - {de: Schwimmbad Solltemperatur, en: Pool setpoint temperature}
   - {de: Solarpumpe (M23) Modus, en: Solar pump (M23) mode}
   - {de: Solarspeicher (R22), en: Solar storage (R22)}
   - {de: Heizung, en: Space heating}
@@ -428,9 +433,75 @@ ops:
         30: '!Heißgasthermostat'
     where:
       key: fault_status
-  # fix: 'Mischer Hysterese' -> 'Mischerhysterese'
+
+  # --- doc-section context restored in names ------------------------------ #
+  # The NWPM datapoint list carries the subsystem in its section headings
+  # (5.2 Historie, 5.3.2 2./3.Heizkreis, 5.3.5 Schwimmbad, 5.3.6 2.Wärmeerzeuger,
+  # 5.7 Ausgänge); the generated rows lose that heading, so identically named
+  # settings of different subsystems collided (two "Mischerhysterese", two
+  # "Mischerlaufzeit", Historie counters vs output states). Qualify them the
+  # way the curated base names do ("Heizung …", "Warmwasser …").
+  #
+  # 5.3.2 — the multiplexed 2./3. heating-circuit block: register 5082 selects
+  # circuit 2 or 3, then 5084-5089 and 93 read/write that circuit (caveats.md).
+  - set: {ha: {name: 2./3. Heizkreis Auswahl}}
+    where: {key: auswahl_heizkreis_2}
+  - set: {ha: {name: 2./3. Heizkreis Heizkurvenendpunkt}}
+    where: {key: heizkurvenendpunkt}
+  - set: {ha: {name: 2./3. Heizkreis Festwertemperatur}}
+    where: {key: festwertemperatur}
+  - set: {ha: {name: 2./3. Heizkreis Parallelverschiebung}}
+    where: {key: parallelverschiebung}
+  - set: {ha: {name: 2./3. Heizkreis Mischerlaufzeit, unit_of_measurement: min}}
+    where: {key: mischerlaufzeit}
+  - set: {ha: {name: 2./3. Heizkreis Mischerhysterese}}
+    where: {key: mischerhysterese}
+  - set: {ha: {name: 2./3. Heizkreis Maximale Temperatur}}
+    where: {key: maximale_temperatur}
+  - set: {ha: {name: 2./3. Heizkreis Kühlung Raumsolltemperatur}}
+    where: {key: kuehlung_raumsolltemperatur}
+  # 5.3.6 — the 2nd heat generator's mixer settings ('Mischer Hysterese' in the
+  # doc; the compound spelling matches its 5.3.2 twin).
+  - set: {ha: {name: 2.Wärmeerzeuger Mischerhysterese}}
+    where: {key: mischer_hysterese}
+  - set: {ha: {name: 2.Wärmeerzeuger Mischerlaufzeit, unit_of_measurement: min}}
+    where: {key: mischerlaufzeit_2}
+  - set: {ha: {name: 2.Wärmeerzeuger Grenztemperatur parallel}}
+    where: {key: grenztemperatur_parallel}
+  # 5.3.5 — Schwimmbad:
+  - set: {ha: {name: Schwimmbad Hysterese}}
+    where: {key: hysterese}
+  - set: {ha: {name: Schwimmbad Solltemperatur}}
+    where: {key: solltemperatur}
+  # 5.2 Historie — operating-hours counters, shaped like the curated base
+  # counters (h, total_increasing, never_resets, diagnostic):
+  - set: {ha: {name: Verdichter 2 Laufzeit}}
+    where: {key: verdichter_2}
+  - set: {ha: {name: "2.Wärmeerzeuger (E10) Laufzeit"}}
+    where: {key: waermeerzeuger}
+  - set: {ha: {name: "Flanschheizung (E9) Laufzeit"}}
+    where: {key: flanschheizung}
+  - set: {ha: {name: "Schwimmbadpumpe (M19) Laufzeit"}}
+    where: {key: schwimmbadpumpe}
   - set:
-      ha:
-        name: Mischerhysterese
-    where:
-      key: mischer_hysterese
+      never_resets: true
+      ha: {unit_of_measurement: h, state_class: total_increasing, precision: 0,
+           icon: "mdi:history", entity_category: diagnostic}
+    where: {key: [verdichter_2, waermeerzeuger, flanschheizung, schwimmbadpumpe]}
+  # 5.7 Ausgänge — output states, "… Modus" like the curated base states:
+  - set: {ha: {name: Verdichter 2 Modus}}
+    where: {key: verdichter_2_2}
+  - set: {ha: {name: "2.Wärmeerzeuger (E10) Modus"}}
+    where: {key: waermeerzeuger_2}
+  - set: {ha: {name: "Flanschheizung (E9) Modus"}}
+    where: {key: flanschheizung_2}
+  # The M21/M22 mixers belong to the 2nd/3rd heating circuits; prefix them too
+  # and normalize the doc's Auf/ZU/Zu casing:
+  - set: {ha: {name: "2. Heizkreis Mischer (M21) auf"}}
+    where: {key: mixer_open}
+  - set: {ha: {name: "2. Heizkreis Mischer (M21) zu"}}
+    where: {key: mischer}
+  - set: {ha: {name: "3. Heizkreis Mischer (M22) auf"}}
+    where: {key: mixer_m22_open}
+  - set: {ha: {name: "3. Heizkreis Mischer (M22) zu"}}
+    where: {key: mischer_2}
