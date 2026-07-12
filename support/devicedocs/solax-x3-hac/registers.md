@@ -8,9 +8,7 @@
 - Source: [https://github.com/user-attachments/files/18746087/X1.X3-HAC.EV.Charger.Modbus.TCP.RTU.V1.0.0-EN.pdf](https://github.com/user-attachments/files/18746087/X1.X3-HAC.EV.Charger.Modbus.TCP.RTU.V1.0.0-EN.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (SolaX does not publish it publicly)
 - Register addresses vs device file: verified — holding 0x060E–0x0669 → device-file 1548–1641 (device-lock, charge-current, boost timers, EVSE mode), input 0x00–0x36; 0-based PDU
-- Local copy: [`SolaX-X1X3-HAC-EV-Charger-ModbusTCP-RTU-V1.0.0-EN.pdf`](./SolaX-X1X3-HAC-EV-Charger-ModbusTCP-RTU-V1.0.0-EN.pdf) — 685 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 730 bytes
-- Local copy: [`groups.md`](./groups.md) — 1 KB
+- Local copy: [`SolaX-X1X3-HAC-EV-Charger-ModbusTCP-RTU-V1.0.0-EN.pdf`](./SolaX-X1X3-HAC-EV-Charger-ModbusTCP-RTU-V1.0.0-EN.pdf) — 685 KB
 
 > Exact-model document (title page ‘X1/X3-HAC EV charger’); the power-rating enum includes 2 = 11 kW. SolaX does not publish publicly; genuine SolaX PDF redistributed via GitHub.
 

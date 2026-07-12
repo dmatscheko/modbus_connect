@@ -9,8 +9,6 @@
 - Source type: manufacturer-authored PDF, community-hosted (SolaX does not publish it publicly)
 - Register addresses vs device file: verified — 0x1F use-mode, 0x42 export limit, 0x7C ARM/DSP + power-control, 0xEA peak-shaving, VPP/schedule; 0-based PDU, big-endian words
 - Local copy: [`SolaX-Hybrid-X1X3-G4-ModbusTCPRTU-V3.36-EN-240611.pdf`](./SolaX-Hybrid-X1X3-G4-ModbusTCPRTU-V3.36-EN-240611.pdf) — 3.9 MB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 1 KB
-- Local copy: [`groups.md`](./groups.md) — 2 KB
 - Local copy: [`SolaX-EnergyStorageInverter-MODBUS-Protocol-V001.02.pdf`](./SolaX-EnergyStorageInverter-MODBUS-Protocol-V001.02.pdf) — 3.0 MB
 
 > SolaX does not publish its Modbus protocol publicly; this is the genuine SolaX-authored PDF (the revision homeassistant-solax-modbus references), redistributed via GitHub. A second doc, V001.02 (matches the device-file header ‘V1.02+’, lists X3-Hybrid G4 / G4 PRO / X1-Hybrid G4), is also in this folder. The inverter supports FC06 (write single) and FC16 (write multiple); the remote-control block requires FC16, and writes require the inverter unlocked.

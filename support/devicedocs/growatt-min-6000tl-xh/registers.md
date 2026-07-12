@@ -8,8 +8,7 @@
 - Source: [https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf](https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)
 - Register addresses vs device file: verified — 3000-range TL-XH input group + storage extension (3125–3249: vbat/soc/pchr); storage settings live in the 3000-range holding (3036/3037/3047/3048/3049)
-- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 683 bytes
+- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB
 
 > Growatt does not host the protocol PDF publicly; verbatim grott mirror of the manufacturer document. Big-endian / high-word-first; FC03/FC04 read, FC06/FC16 write. TL-XH storage config is in the 3000-range holding (not the 1000-range).
 

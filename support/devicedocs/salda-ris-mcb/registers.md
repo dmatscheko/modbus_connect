@@ -9,7 +9,6 @@
 - Source type: official-manufacturer (salda.lt MCB config server)
 - Register addresses vs device file: partial — holding regs match (fan-mode addr 1, setpoint addr 2) and the ‘Modbus PDU = XLS − 1’ (1-based XLS) note is confirmed; but the 4 temperature input addresses (0/3/6/9) do not match the table’s T1–T4 (18–21)
 - Local copy: [`MCB 1.29 Modbus table 2026-04-22.xlsx`](./MCB%201.29%20Modbus%20table%202026-04-22.xlsx) — 89 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 810 bytes
 - Local copy: [`MCB_miniMCB [EN][SL] v2019.1.pdf`](./MCB_miniMCB%20[EN][SL]%20v2019.1.pdf) — 29.7 MB
 
 > The .xlsx is the register table the device-file comment refers to (sheets: Holding / Coils / Discrete inputs / Input register / System state / Alarm list). The device file already notes its live temperatures use a custom layout, not the documented T1–T4. A ~30 MB MCB / mini-MCB installation manual PDF is also included in this folder.

@@ -8,9 +8,7 @@
 - Source: [https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20150AB-LG250A/LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx](https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20150AB-LG250A/LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx)
 - Source type: official-manufacturer (pichlerluft.at)
 - Register addresses vs device file: verified — Setpoints sheet = holding (FC03 read / FC06 write, address base 1), Datapoints = input (FC04, base 0); device-file holding addresses & enums map 1:1
-- Local copy: [`LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx`](./LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx) — 33 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 1 KB
-- Local copy: [`groups.md`](./groups.md) — 3 KB
+- Local copy: [`LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx`](./LIST_Modbus_ES1015_FW_LG150AB_LG250A_v2.0.0.xlsx) — 33 KB
 
 > Pichler / LS-Control workbook (sheets: Modbus Settings / Setpoints / Datapoints); controller ES1015. The XLS ‘Address’ column is 1-based; the device file uses the same 1-based holding addresses.
 
@@ -20,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 190 (Holding 99, Input 91) · plus 2 composite template entities
+**Registers in this file:** 192 (Holding 101, Input 91) · plus 2 composite template entities
 
 ## Registers
 
@@ -83,6 +81,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0034` (52) — Test mode<br>`test_var4` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 4 opts |
 | `0x0035` (53) — Reset to factory settings<br>`reset_to_default` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0036` (54) — Reset operating hours counter<br>`reset_hour_counter` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x003F` (63) — Clear error log<br>`clear_error_log_button` | Holding (4x) | FC06 write-only | uint16 |
+| `0x003F` (63) — Reset Filter Error<br>`reset_filter_error_button` | Holding (4x) | FC06 write-only | uint16 |
 | `0x0037` (55) — Test SD-Card<br>`test_sd_card` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0038` (56) — Low supply air temperature setpoint<br>`zuluftsollwert_abgesenkt` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
 | `0x0039` (57) — Low room air temperature setpoint<br>`raumsollwert_abgesenkt` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
@@ -91,8 +91,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x003C` (60) — Maximum fanspeed difference ventilation level 1<br>`max_fanspeed_ls1` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x003D` (61) — Maximum fanspeed difference ventilation level 2<br>`max_fanspeed_ls2` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x003E` (62) — Maximum fanspeed difference ventilation level 3<br>`max_fanspeed_ls3` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x003F` (63) — Reset<br>`reset_eventlog` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0040` (64) — AHU Type<br>`ahu_type` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 3 opts |
+| `0x0040` (64) — ahu_type_hw _(internal)_ | Holding (4x) | FC03 read | uint16 · enum · 3 opts |
 | `0x0041` (65) — Preheater control temperature<br>`vhr_ssr_temp` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
 | `0x0042` (66) — Pre heater SSR Reg KP<br>`vhr_ssr_pid_p` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0043` (67) — Pre heater SSR Reg TI<br>`vhr_ssr_pid_i` | Holding (4x) | FC03 read · FC06 write | uint16 |

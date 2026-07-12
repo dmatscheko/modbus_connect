@@ -8,8 +8,7 @@
 - Source: [https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf](https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)
 - Register addresses vs device file: verified — 3000-range three-phase group (3030/3031/3032 Vac2/Iac2/Pac2, 3034–3036 phase 3, 3038–3040 line-line)
-- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 666 bytes
+- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB
 
 > Growatt does not host the protocol PDF publicly; verbatim grott mirror. Three-phase string inverter; uses the same 3000-range ‘TL-X and TL-XH’ input group as MOD TL3-XH (NOT the separate ‘TL3-X MAX/MID/MAC’ 0–249 layout). Big-endian; FC03/FC04 read, FC06/FC16 write.
 

@@ -9,7 +9,6 @@
 - Source type: official-manufacturer (Eastron-authored; protocol PDFs are login-gated on eastron.* so the protocol copy is from a distributor mirror)
 - Register addresses vs device file: verified — measurements = input float32 pairs from 0x0000 (FC04, MSB-register first); config = holding (FC03 read / FC16 write): Node 0x14, Baud 0x1C, energy 0x48–0x4E
 - Local copy: [`eastroneurope-SDM230-Protocol.pdf`](./eastroneurope-SDM230-Protocol.pdf) — 527 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 764 bytes
 - Local copy: [`eastron-sdm230-modbus-usermanual-v1.8.pdf`](./eastron-sdm230-modbus-usermanual-v1.8.pdf) — 1.2 MB
 - Local copy: [`eastron-SDM230Modbus-Protocol-V1.2.pdf`](./eastron-SDM230Modbus-Protocol-V1.2.pdf) — 508 KB
 

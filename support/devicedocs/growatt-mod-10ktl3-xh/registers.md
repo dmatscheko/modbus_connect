@@ -8,8 +8,7 @@
 - Source: [https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf](https://github.com/johanmeijer/grott/blob/master/documentatie/Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English-new.pdf)
 - Source type: manufacturer-authored PDF, community-hosted (grott mirror; Growatt does not publish it publicly)
 - Register addresses vs device file: verified — explicitly named ‘MOD TL3-XH’ in the doc (03: 0–124, 3000–3124; 04: 3000–3124, 3125–3249); three-phase hybrid + storage 3125–3249
-- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 616 bytes
+- Local copy: [`Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf`](./Growatt-Inverter-Modbus-RTU-Protocol-II-V1.24-English.pdf) — 737 KB
 
 > Growatt does not host the protocol PDF publicly; verbatim grott mirror. Best explicit model-name match in the document. Big-endian; FC03/FC04 read, FC06/FC16 write.
 

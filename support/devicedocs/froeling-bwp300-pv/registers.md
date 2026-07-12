@@ -8,8 +8,6 @@ No public primary-source register document from the manufacturer could be confir
 
 - Best available reference: [https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/](https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/)
 
-- Local copy: [`caveats.md`](./caveats.md) — 899 bytes
-
 > Fröling publishes no Modbus register document for the BWP 300 PV (an OEM domestic-hot-water heat pump). Its official technical documents are storage-tank installation manuals with no Modbus content. The upstream modbus_local_gateway config — from which this device file derives — cites no source, and its register map (holding 4–33, input 0–119) points to a third-party controller and appears vendor-supplied/reverse-engineered. Any Fröling Modbus spec, if one exists, is behind the login-gated connect.froeling.com partner portal. The table below therefore reflects the device file only; treat its addresses as community-provided, not manufacturer-confirmed.
 
 ## Scope & conventions

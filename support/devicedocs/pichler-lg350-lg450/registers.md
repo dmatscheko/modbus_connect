@@ -8,9 +8,7 @@
 - Source: [https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20350_LG%20450_LG%20740_LG%201000%20SK/LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx](https://www.pichlerluft.at/unterlagen.html?file=files/content/downloads/LOGIN/LG%20350_LG%20450_LG%20740_LG%201000%20SK/LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx)
 - Source type: official-manufacturer (pichlerluft.at)
 - Register addresses vs device file: verified — Setpoints = holding (FC03/FC06, base 1), Datapoints = input (FC04); device-file addresses & enums match (e.g. addr 7 Regelung 1=Abluft)
-- Local copy: [`LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx`](./LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx) — 32 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 1 KB
-- Local copy: [`groups.md`](./groups.md) — 2 KB
+- Local copy: [`LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx`](./LIST_Modbus_ES2020_FW_LG350_LG450_LG740_LG1000_v2.0.0.xlsx) — 32 KB
 
 > Same LS-Control workbook family (controller ES2020; also covers LG740 / LG1000). Holding = FC03 read / FC06 write; XLS address column is 1-based.
 

@@ -8,9 +8,7 @@
 - Source: [https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP](https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP)
 - Source type: official-manufacturer (Dimplex wiki)
 - Register addresses vs device file: verified — settings/holding 5015 Betriebsmodus, 5036 Parallelverschiebung, 5045/5145 Warmwasser, 5096 Wärmemenge; operating-data input 1 Außentemperatur, 103 Statusmeldung
-- Local copy: [`NWPM-Modbus-TCP-Datenpunktliste.html`](./NWPM-Modbus-TCP-Datenpunktliste.html) — 245 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 1 KB
-- Local copy: [`groups.md`](./groups.md) — 3 KB
+- Local copy: [`NWPM-Modbus-TCP-Datenpunktliste.html`](./NWPM-Modbus-TCP-Datenpunktliste.html) — 245 KB
 
 > Requires the optional NWPM / NWPM-Touch Modbus-TCP extension. The datapoint list carries two address columns — ‘WPM-Software J/L/M’ (the newer 5xxx map this device file uses) and legacy ‘WPM-Software H’. Saved as HTML via the Confluence REST API because the wiki is a JavaScript app. The doc lists function codes FC01/03/05/06/15/16.
 

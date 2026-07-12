@@ -8,8 +8,7 @@
 - Source: [https://www.varmann.ru/download/downloads_files/Exchange_Protocol_with_VARMANN_convector_control_units.pdf](https://www.varmann.ru/download/downloads_files/Exchange_Protocol_with_VARMANN_convector_control_units.pdf)
 - Source type: official-manufacturer (varmann.ru; Russian-language)
 - Register addresses vs device file: verified — holding 0x00–0x17 map one-for-one (0x02 UstTmp ×10, 0x06 UstFan %, 0x13 I_Manual bit flags, 0x09 TmpOut ×10); FC03 read, FC06 write-single, FC16 write-multiple; default slave 16
-- Local copy: [`Exchange_Protocol_with_VARMANN_convector_control_units.pdf`](./Exchange_Protocol_with_VARMANN_convector_control_units.pdf) — 123 KB — primary source
-- Local copy: [`caveats.md`](./caveats.md) — 840 bytes
+- Local copy: [`Exchange_Protocol_with_VARMANN_convector_control_units.pdf`](./Exchange_Protocol_with_VARMANN_convector_control_units.pdf) — 123 KB
 
 > The manufacturer document is Russian-language (VARMANN is a Russian brand). Note: the doc defines register 0x03 HeatChill as 1=heat / 2=cool / 3=heat+cool, whereas the device file maps 0=Heating / 1=Cooling / 2=Auto (shifted by −1).
 
