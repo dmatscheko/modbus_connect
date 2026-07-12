@@ -18,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 134 (Holding 54, Input 51, Coil 2, Discrete 27) · plus 2 composite template entities
+**Registers in this file:** 128 (Holding 54, Input 45, Coil 2, Discrete 27) · plus 2 composite template entities
 
 ## Registers
 
@@ -100,6 +100,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0047` (71) — Zusatzumwälzpumpe (M16) Laufzeit<br>`additional_pump_hours` | Input (3x) | FC04 read | uint16 |
 | `0x13E8` (5096) — Wärmemenge Heizung<br>`heating_energy` | Input (3x) | FC04 read | uint16 · sum_scale [1, 10000, 100000000] |
 | `0x13EB` (5099) — Wärmemenge Warmwasser<br>`hot_water_energy` | Input (3x) | FC04 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x13EE` (5102) — Wärmemenge Schwimmbad<br>`pool_energy` | Input (3x) | FC04 read | uint16 · sum_scale [1, 10000, 100000000] |
 | `0x0067` (103) — Statusmeldung<br>`operation_status` | Input (3x) | FC04 read | uint16 · enum · 10 opts |
 | `0x0068` (104) — Sperrmeldung<br>`blocking_status` | Input (3x) | FC04 read | uint16 · enum · 27 opts |
 | `0x0069` (105) — Störmeldung<br>`fault_status` | Input (3x) | FC04 read | uint16 · enum · 24 opts |
@@ -122,13 +123,6 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x004B` (75) — 2.Wärmeerzeuger (E10) Laufzeit<br>`waermeerzeuger` | Input (3x) | FC04 read | uint16 |
 | `0x004E` (78) — Flanschheizung (E9) Laufzeit<br>`flanschheizung` | Input (3x) | FC04 read | uint16 |
 | `0x004F` (79) — Schwimmbadpumpe (M19) Laufzeit<br>`schwimmbadpumpe` | Input (3x) | FC04 read | uint16 |
-| `0x13E9` (5097) — Wärmemenge * Heizen 5-8<br>`waermemenge_heizen_5_8` | Input (3x) | FC04 read | uint16 |
-| `0x13EA` (5098) — Wärmemenge * Heizen 9-12<br>`waermemenge_heizen_9_12` | Input (3x) | FC04 read | uint16 |
-| `0x13EC` (5100) — Wärmemenge * Warmwasser 5-8<br>`waermemenge_warmwasser_5_8` | Input (3x) | FC04 read | uint16 |
-| `0x13ED` (5101) — Wärmemenge * Warmwasser 9-12<br>`waermemenge_warmwasser_9_12` | Input (3x) | FC04 read | uint16 |
-| `0x13EE` (5102) — Wärmemenge * Schwimmbad 1-4<br>`waermemenge_schwimmbad_1_4` | Input (3x) | FC04 read | uint16 |
-| `0x13EF` (5103) — Wärmemenge * Schwimmbad 5-8<br>`waermemenge_schwimmbad_5_8` | Input (3x) | FC04 read | uint16 |
-| `0x13F0` (5104) — Wärmemenge * Schwimmbad 9-12<br>`waermemenge_schwimmbad_9_12` | Input (3x) | FC04 read | uint16 |
 | `0x0003` (3) — Smart Grid 1<br>`smart_grid_1` | Coil (0x) | FC01 read · FC05 write | bool (bit) |
 | `0x0004` (4) — Smart Grid 2<br>`smart_grid_2` | Coil (0x) | FC01 read · FC05 write | bool (bit) |
 | `0x0003` (3) — Warmwasserthermostat<br>`hot_water_thermostat` | Discrete (1x) | FC02 read | bool (bit) |

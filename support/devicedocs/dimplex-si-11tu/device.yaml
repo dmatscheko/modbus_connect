@@ -23,7 +23,6 @@ device:
     ventilation: Ventilation
     room_climate: Room climate sensors
     smart_grid: Smart Grid
-    hot_water: Hot water (extra)
     energy: "Energy & runtime"
     heat_source: Heat source (brine)
     status: Component status
@@ -903,6 +902,23 @@ input:
       precision: 0
       icon: "mdi:meter-electric"
       entity_category: diagnostic
+  # Like heating/hot-water energy, the pool total is the 1-4/5-8/9-12 register
+  # triplet (5102-5104) folded into one counter via sum_scale (× 1, 1e4, 1e8) —
+  # the calculation the NWPM "Beispiel Wärmemengen*" info box documents.
+  pool_energy:
+    address: 5102
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [pool]
+    ha:
+      platform: sensor
+      name: Wärmemenge Schwimmbad
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
   operation_status:
     address: 103
     groups: [basic]
@@ -1210,48 +1226,6 @@ input:
       precision: 0
       icon: "mdi:history"
       entity_category: diagnostic
-  waermemenge_heizen_5_8:
-    address: 5097
-    groups: [energy]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Heizen 5-8"
-  waermemenge_heizen_9_12:
-    address: 5098
-    groups: [energy]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Heizen 9-12"
-  waermemenge_warmwasser_5_8:
-    address: 5100
-    groups: [hot_water]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Warmwasser 5-8"
-  waermemenge_warmwasser_9_12:
-    address: 5101
-    groups: [hot_water]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Warmwasser 9-12"
-  waermemenge_schwimmbad_1_4:
-    address: 5102
-    groups: [pool, energy]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Schwimmbad 1-4"
-  waermemenge_schwimmbad_5_8:
-    address: 5103
-    groups: [pool, energy]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Schwimmbad 5-8"
-  waermemenge_schwimmbad_9_12:
-    address: 5104
-    groups: [pool, energy]
-    ha:
-      platform: sensor
-      name: "Wärmemenge * Schwimmbad 9-12"
 
 # Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
@@ -2075,6 +2049,9 @@ translations:
   Wärmemenge Warmwasser:
     de: Wärmemenge Warmwasser
     en: Heat quantity hot water
+  Wärmemenge Schwimmbad:
+    de: Wärmemenge Schwimmbad
+    en: Heat quantity pool
   Statusmeldung:
     de: Statusmeldung
     en: Status message
@@ -2138,27 +2115,6 @@ translations:
   Schwimmbadpumpe (M19) Laufzeit:
     de: Schwimmbadpumpe (M19) Laufzeit
     en: Pool pump (M19) runtime
-  "Wärmemenge * Heizen 5-8":
-    de: "Wärmemenge * Heizen 5-8"
-    en: "Heat quantity * heating 5-8"
-  "Wärmemenge * Heizen 9-12":
-    de: "Wärmemenge * Heizen 9-12"
-    en: "Heat quantity * heating 9-12"
-  "Wärmemenge * Warmwasser 5-8":
-    de: "Wärmemenge * Warmwasser 5-8"
-    en: "Heat quantity * hot water 5-8"
-  "Wärmemenge * Warmwasser 9-12":
-    de: "Wärmemenge * Warmwasser 9-12"
-    en: "Heat quantity * hot water 9-12"
-  "Wärmemenge * Schwimmbad 1-4":
-    de: "Wärmemenge * Schwimmbad 1-4"
-    en: "Heat quantity * pool 1-4"
-  "Wärmemenge * Schwimmbad 5-8":
-    de: "Wärmemenge * Schwimmbad 5-8"
-    en: "Heat quantity * pool 5-8"
-  "Wärmemenge * Schwimmbad 9-12":
-    de: "Wärmemenge * Schwimmbad 9-12"
-    en: "Heat quantity * pool 9-12"
   Warmwasserthermostat:
     de: Warmwasserthermostat
     en: Hot water thermostat

@@ -38,6 +38,23 @@ controller uses register 5065 for its room addresses (codes 50–79, doc
 section 6.1.2). An unknown select stays operable: pick an option to take
 control.
 
+## Heat-quantity counters (Wärmemenge), and no Umweltenergie
+
+Each heat-quantity counter is published as **three** registers — a `1-4`, `5-8`
+and `9-12` digit group (NWPM section 5.2, the `*` marks the "Beispiel
+Wärmemengen*" info box). They are one number split across registers:
+`total = (9-12 × 100 000 000) + (5-8 × 10 000) + (1-4)`. This file folds each
+triplet into a single counter with `sum_scale: [1, 10000, 100000000]`, so you
+get one clean `kWh` total per category — **Wärmemenge Heizung** (5096–5098),
+**Warmwasser** (5099–5101) and **Schwimmbad** (5102–5104) — instead of nine
+partial registers that each roll over into the next.
+
+**Umweltenergie** (the ambient heat harvested = heat delivered − electrical
+input) is **not available**: the NWPM datapoint list publishes no environmental
+-energy register, and no electrical-energy or power-input counter either, so it
+cannot be read or computed over Modbus. The heat pump shows it on its own
+display only.
+
 ## Auto-generated expanded entities
 
 The entities added beyond the curated core carry German names taken from the
