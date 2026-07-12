@@ -179,7 +179,7 @@ holding:
       unit_of_measurement: "°C"
       icon: "mdi:water-thermometer-outline"
       entity_category: config
-  solltemp_dyn_kuehlung:
+  dynamic_cooling_setpoint:
     address: 5043
     groups: [cooling]
     ha:
@@ -190,7 +190,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  auswahl_heizkreis_2:
+  heating_circuit_select:
     address: 5082
     groups: [heating_circuit_2, heating_circuit_3]
     map:
@@ -200,7 +200,7 @@ holding:
       platform: select
       name: "2./3. Heizkreis Auswahl"
       entity_category: config
-  heizkurvenendpunkt:
+  heating_curve_endpoint:
     address: 5084
     groups: [heating_circuit_2, heating_circuit_3]
     ha:
@@ -211,7 +211,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  festwertemperatur:
+  fixed_temperature:
     address: 5085
     groups: [heating_circuit_2, heating_circuit_3]
     ha:
@@ -222,7 +222,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  parallelverschiebung:
+  parallel_shift:
     address: 5086
     groups: [heating_circuit_2, heating_circuit_3]
     map:
@@ -269,7 +269,7 @@ holding:
       platform: select
       name: "2./3. Heizkreis Parallelverschiebung"
       entity_category: config
-  mischerlaufzeit:
+  mixer_runtime:
     address: 5087
     groups: [heating_circuit_2, heating_circuit_3]
     ha:
@@ -279,7 +279,7 @@ holding:
       max: 6
       unit_of_measurement: min
       entity_category: config
-  mischerhysterese:
+  mixer_hysteresis:
     address: 93
     multiplier: 0.1
     groups: [heating_circuit_2, heating_circuit_3]
@@ -291,7 +291,7 @@ holding:
       step: 0.1
       unit_of_measurement: K
       entity_category: config
-  maximale_temperatur:
+  max_temperature:
     address: 5088
     groups: [heating_circuit_2, heating_circuit_3]
     ha:
@@ -302,7 +302,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  kuehlung_raumsolltemperatur:
+  cooling_room_setpoint:
     address: 5089
     multiplier: 0.5
     offset: 15
@@ -316,7 +316,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  anzahl_partystunden:
+  party_hours:
     address: 5016
     groups: [advanced]
     ha:
@@ -325,7 +325,7 @@ holding:
       min: 0
       max: 72
       entity_category: config
-  anzahl_urlaubstage:
+  holiday_days:
     address: 5017
     groups: [advanced]
     ha:
@@ -334,7 +334,7 @@ holding:
       min: 0
       max: 150
       entity_category: config
-  stufen:
+  stages:
     address: 5034
     groups: [advanced]
     ha:
@@ -343,7 +343,7 @@ holding:
       min: 0
       max: 5
       entity_category: config
-  zeitwert_stosslueften:
+  burst_ventilation_time:
     address: 127
     groups: [advanced]
     ha:
@@ -352,7 +352,7 @@ holding:
       min: 15
       max: 90
       entity_category: config
-  hysterese:
+  pool_hysteresis:
     address: 5049
     groups: [pool]
     ha:
@@ -362,7 +362,7 @@ holding:
       max: 20
       unit_of_measurement: K
       entity_category: config
-  solltemperatur:
+  pool_setpoint:
     address: 5051
     groups: [pool]
     ha:
@@ -373,7 +373,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  mischer_hysterese:
+  heat_generator_2_mixer_hysteresis:
     address: 48
     multiplier: 0.1
     groups: [heat_generator_2]
@@ -385,7 +385,7 @@ holding:
       step: 0.1
       unit_of_measurement: K
       entity_category: config
-  grenztemperatur_parallel:
+  parallel_limit_temperature:
     address: 5020
     groups: [heat_generator_2]
     ha:
@@ -396,7 +396,7 @@ holding:
       unit_of_measurement: "°C"
       device_class: temperature
       entity_category: config
-  mischerlaufzeit_2:
+  heat_generator_2_mixer_runtime:
     address: 5021
     groups: [heat_generator_2]
     ha:
@@ -406,7 +406,7 @@ holding:
       max: 85
       unit_of_measurement: min
       entity_category: config
-  absenkung:
+  time_function_select:
     address: 5065
     groups: [schedule]
     map:
@@ -423,7 +423,7 @@ holding:
       platform: select
       name: Zeitfunktion Auswahl
       entity_category: config
-  start_stunde_1:
+  start_hour_1:
     address: 5066
     groups: [schedule]
     ha:
@@ -441,7 +441,7 @@ holding:
       min: 0
       max: 59
       entity_category: config
-  ende_stunde_1:
+  end_hour_1:
     address: 5068
     groups: [schedule]
     ha:
@@ -450,7 +450,7 @@ holding:
       min: 0
       max: 23
       entity_category: config
-  ende_minute_1:
+  end_minute_1:
     address: 5069
     groups: [schedule]
     ha:
@@ -459,7 +459,7 @@ holding:
       min: 0
       max: 59
       entity_category: config
-  start_stunde_2:
+  start_hour_2:
     address: 5070
     groups: [schedule]
     ha:
@@ -477,7 +477,7 @@ holding:
       min: 0
       max: 59
       entity_category: config
-  ende_stunde_2:
+  end_hour_2:
     address: 5072
     groups: [schedule]
     ha:
@@ -486,7 +486,7 @@ holding:
       min: 0
       max: 23
       entity_category: config
-  ende_minute_2:
+  end_minute_2:
     address: 5073
     groups: [schedule]
     ha:
@@ -495,7 +495,7 @@ holding:
       min: 0
       max: 59
       entity_category: config
-  sonntag:
+  sunday:
     address: 5074
     groups: [schedule]
     ha:
@@ -504,7 +504,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  montag:
+  monday:
     address: 5075
     groups: [schedule]
     ha:
@@ -513,7 +513,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  dienstag:
+  tuesday:
     address: 5076
     groups: [schedule]
     ha:
@@ -522,7 +522,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  mittwoch:
+  wednesday:
     address: 5077
     groups: [schedule]
     ha:
@@ -531,7 +531,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  donnerstag:
+  thursday:
     address: 5078
     groups: [schedule]
     ha:
@@ -540,7 +540,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  freitag:
+  friday:
     address: 5079
     groups: [schedule]
     ha:
@@ -549,7 +549,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  samstag:
+  saturday:
     address: 5080
     groups: [schedule]
     ha:
@@ -558,7 +558,7 @@ holding:
       min: 0
       max: 3
       entity_category: config
-  absenk_anhebwert:
+  setback_boost_value:
     address: 5081
     groups: [schedule]
     ha:
@@ -568,7 +568,7 @@ holding:
       max: 19
       unit_of_measurement: K
       entity_category: config
-  stunde:
+  clock_hour:
     address: 5006
     groups: [clock]
     ha:
@@ -577,7 +577,7 @@ holding:
       min: 0
       max: 23
       entity_category: config
-  minute:
+  clock_minute:
     address: 5007
     groups: [clock]
     ha:
@@ -595,7 +595,7 @@ holding:
       min: 1
       max: 12
       entity_category: config
-  wochentag:
+  clock_weekday:
     address: 5009
     groups: [clock]
     ha:
@@ -604,7 +604,7 @@ holding:
       min: 1
       max: 7
       entity_category: config
-  tag:
+  clock_day:
     address: 5010
     groups: [clock]
     ha:
@@ -1084,7 +1084,7 @@ input:
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-  vorlauftemperatur:
+  cooling_flow_temp:
     address: 19
     type: float16
     groups: [advanced]
@@ -1094,7 +1094,7 @@ input:
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-  ruecklauftemperatur:
+  cooling_return_temp:
     address: 20
     type: float16
     groups: [advanced]
@@ -1104,7 +1104,7 @@ input:
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-  ruecklauftemp_gem_primaerkreis:
+  primary_return_temp:
     address: 21
     type: float16
     groups: [heat_source]
@@ -1124,7 +1124,7 @@ input:
       unit_of_measurement: "°C"
       device_class: temperature
       state_class: measurement
-  aussenlufttemperatur:
+  outdoor_air_temp:
     address: 120
     type: float16
     groups: [ventilation]
@@ -1190,7 +1190,7 @@ input:
       precision: 0
       icon: "mdi:history"
       entity_category: diagnostic
-  waermeerzeuger:
+  heat_generator_2_hours:
     address: 75
     never_resets: true
     groups: [heat_generator_2, energy]
@@ -1202,7 +1202,7 @@ input:
       precision: 0
       icon: "mdi:history"
       entity_category: diagnostic
-  flanschheizung:
+  flange_heater_hours:
     address: 78
     never_resets: true
     groups: [energy]
@@ -1214,7 +1214,7 @@ input:
       precision: 0
       icon: "mdi:history"
       entity_category: diagnostic
-  schwimmbadpumpe:
+  pool_pump_hours:
     address: 79
     never_resets: true
     groups: [pool, energy]
@@ -1395,19 +1395,19 @@ discrete:
       name: Solarpumpe (M23) Modus
       device_class: running
       entity_category: diagnostic
-  aktiv_zeit_1:
+  active_time_1:
     address: 125
     groups: [schedule]
     ha:
       platform: binary_sensor
       name: Aktiv Zeit 1
-  aktiv_zeit_2:
+  active_time_2:
     address: 126
     groups: [schedule]
     ha:
       platform: binary_sensor
       name: Aktiv Zeit 2
-  schwimmbadthermostat:
+  pool_thermostat:
     address: 4
     groups: [pool, status]
     ha:
@@ -1419,25 +1419,25 @@ discrete:
     ha:
       platform: binary_sensor
       name: Verdichter 2 Modus
-  waermeerzeuger_2:
+  heat_generator_2_mode:
     address: 44
     groups: [heat_generator_2, status]
     ha:
       platform: binary_sensor
       name: "2.Wärmeerzeuger (E10) Modus"
-  mischer:
+  circuit_2_mixer_closed:
     address: 48
     groups: [heating_circuit_2]
     ha:
       platform: binary_sensor
       name: "2. Heizkreis Mischer (M21) zu"
-  flanschheizung_2:
+  flange_heater_mode:
     address: 50
     groups: [status]
     ha:
       platform: binary_sensor
       name: Flanschheizung (E9) Modus
-  mischer_2:
+  circuit_3_mixer_closed:
     address: 53
     groups: [heating_circuit_3]
     ha:
@@ -1446,7 +1446,7 @@ discrete:
 
 # Templates: composite Home Assistant entities derived from the registers above.
 template:
-  warmwasser:
+  hot_water:
     ha:
       platform: climate
       name: Warmwasser
@@ -1460,7 +1460,7 @@ template:
     temp_step: 1
     set_temperature:
       entity: hot_water_fixed_target
-  heizung:
+  heating:
     ha:
       platform: climate
       name: Heizung
