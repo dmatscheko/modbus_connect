@@ -151,7 +151,15 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
             return False
         if self._defn.platform == "button":
             return True  # buttons do not read
-        return self.device_value is not None
+        if self.device_value is not None:
+            return True
+        # A None value can mean two things. Registers unread (hole,
+        # quarantine, failed block): a real outage -> unavailable. Registers
+        # answered but the value does not decode or map (a select whose
+        # register holds a code outside its options, an unset 24:00 time, a
+        # NaN float): the device is fine, the state is merely unknown -- and
+        # a writable entity must stay operable so the user can set it.
+        return not self.coordinator.missing(self._defn)
 
     async def _write(self, value: Any) -> None:
         await self.coordinator.async_write(self._defn, value)

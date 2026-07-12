@@ -31,8 +31,12 @@ and 5.4):
 
 The integration shows one set of entities per block: the values of the active
 selection. Switch the select first, wait one poll cycle so the block re-reads,
-then edit. After power-up the selects may show "unknown" until a selection is
-first written (the device can report a code outside the documented options).
+then edit. Both selects show "unknown" whenever the register holds a code
+outside their documented options — after power-up (no selection made yet,
+register reads 0), and on *Zeitfunktion Auswahl* also when a Smart-RTC room
+controller uses register 5065 for its room addresses (codes 50–79, doc
+section 6.1.2). An unknown select stays operable: pick an option to take
+control.
 
 ## Auto-generated expanded entities
 

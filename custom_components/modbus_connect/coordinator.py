@@ -634,7 +634,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = self._seeded_data()
         for defn in due:
             value = self._decode(defn)
-            unread = value is None and self._missing(defn)
+            unread = value is None and self.missing(defn)
             if unread:
                 self._track_failure_streak(defn, now)  # may quarantine the key
             else:
@@ -659,9 +659,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._notify_refresh(data)
         return data
 
-    def _missing(self, defn: EntityDef) -> bool:
+    def missing(self, defn: EntityDef) -> bool:
         """Whether any of the entity's addresses is absent from the raw cache
-        (i.e. its last block read failed, as opposed to a decode error)."""
+        (i.e. its last block read failed, as opposed to a decode error).
+
+        Public: entity availability uses this to tell a real outage apart
+        from an answered read whose value merely fails to decode or map."""
         return any(
             (defn.table, a) not in self._cache
             for a in range(defn.address, defn.address + defn.count)

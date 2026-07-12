@@ -240,7 +240,7 @@ def make_client() -> FakeClient:
             ("holding", 6): 1,  # valve on
             ("holding", 7): 9,  # status: not in the map -> undecodable
             ("holding", 8): 3102,  # schedule: 12*256 + 30 -> 12:30
-            ("holding", 9): 0x1800,  # schedule_unset: 24:00, no rectify -> unavailable
+            ("holding", 9): 0x1800,  # schedule_unset: 24:00, no rectify -> unknown
             ("holding", 10): 0x1800,  # schedule_rectified: 24:00 -> 23:59
             ("coil", 0): True,  # pump on
             ("discrete", 1): True,  # alarm on
@@ -430,7 +430,7 @@ async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
         ("climate", "t_climate", "heat"),
         ("time", "schedule", "12:30:00"),
         ("time", "schedule_rectified", "23:59:00"),  # 24:00 rectified to end of day
-        ("time", "schedule_unset", "unavailable"),  # 24:00 without rectify_time drops out
+        ("time", "schedule_unset", "unknown"),  # 24:00 without rectify_time has no value
     ]:
         state = hass.states.get(eid(hass, entry, platform, key))
         assert state is not None, f"{platform}/{key} has no state"
@@ -652,7 +652,36 @@ async def test_switch_variants_and_undecodable_value(hass: HomeAssistant) -> Non
     )
     assert client.values[("holding", 6)] == 0
 
-    # a register value missing from the map decodes to None -> unavailable
+    # a register value missing from the map decodes to None -> unknown (the
+    # register answered; only an unread register makes an entity unavailable)
+    assert hass.states.get(eid(hass, entry, "sensor", "status")).state == "unknown"
+
+
+async def test_unmapped_select_stays_operable(hass: HomeAssistant) -> None:
+    """A select whose register holds a code outside its map reads as unknown,
+    not unavailable — the user must still be able to make the first selection
+    (e.g. a Dimplex multiplexer register that powers up as 0)."""
+    entry = make_entry()
+    client = make_client()
+    client.values[("holding", 2)] = 7  # mode: not in {0: Off, 1: Auto}
+    assert await setup_entry(hass, entry, client)
+
+    mode = eid(hass, entry, "select", "mode")
+    assert hass.states.get(mode).state == "unknown"
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": mode, "option": "Auto"}, blocking=True
+    )
+    assert client.values[("holding", 2)] == 1
+    assert hass.states.get(mode).state == "Auto"
+
+
+async def test_unread_register_is_unavailable(hass: HomeAssistant) -> None:
+    """A register the device never answers stays unavailable — unlike an
+    answered register whose value merely fails to decode or map."""
+    entry = make_entry()
+    client = make_client()
+    client.fail_addresses = {7}  # the status register never reads
+    assert await setup_entry(hass, entry, client)
     assert hass.states.get(eid(hass, entry, "sensor", "status")).state == "unavailable"
 
 
