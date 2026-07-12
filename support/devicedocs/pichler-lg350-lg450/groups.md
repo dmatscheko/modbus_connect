@@ -16,7 +16,7 @@ Entities are split into groups you can switch on/off on the integration's device
 | `co2_control` | feature | Enable CO2 control entities | 3 | e.g. EPB CO2, EPB CO2 Regulation, Current CO2 control value |
 | `humidity_control` | feature | Enable Humidity control entities | 1 | e.g. Relative humidity setpoint Winter |
 | `summer_night_cooling` | feature | Enable Summer-night cooling entities | 4 | e.g. Sommernacht Kühlung Status, Sommernacht Kühlung Testzeit, Sommernacht Kühlung Wiederholungszeit, … |
-| `preheater` | feature | Enable Pre/post-heater entities | 4 | e.g. PreHeaterMaxTemperature, Pre-heater air reduction, Pre-heater Volume flow reduction, … |
+| `preheater` | feature | Enable Pre/post-heater entities | 4 | e.g. Pre-heater max temperature, Pre-heater air reduction, Pre-heater Volume flow reduction, … |
 | `filter` | feature | Enable Filter entities | 5 | e.g. EnableAirfilterAlarm, Z29 Airfilter SUP, Z30 Airfilter ETA, … |
 | `fan_control` | feature | Enable Fan & flow entities | 1 | e.g. Fan regulation |
 | `firmware` | feature | Enable Firmware / model entities | 1 | e.g. Firmware Version Touch Display |
