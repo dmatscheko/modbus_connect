@@ -53,12 +53,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
             retries=device.retries,
             request_delay=device.request_delay,
         )
+    # Drop the gateway reference on unload — and on any setup failure below
+    # (HA runs on-unload callbacks for failed setups too), so an exception
+    # after this point can never leak the shared client's refcount.
+    entry.async_on_unload(lambda: client.release(entry.entry_id))
     coordinator = ModbusConnectCoordinator(hass, entry, client, device)
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except Exception:
-        client.release(entry.entry_id)
-        raise
+    await coordinator.async_config_entry_first_refresh()
 
     # Fill firmware/hardware/serial from the first read before entities (and the
     # device registry entry) are created.
@@ -86,8 +86,5 @@ async def _async_options_updated(hass: HomeAssistant, entry: ModbusConnectConfig
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry) -> bool:
-    """Unload a device and drop its gateway reference."""
-    ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if ok:
-        entry.runtime_data.client.release(entry.entry_id)
-    return ok
+    """Unload a device; the on-unload callback drops the gateway reference."""
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
