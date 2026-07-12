@@ -43,6 +43,12 @@ _PICHLER_DOCS = {
 def unit_dc(*texts: str, name: str = "") -> tuple[str | None, str | None, str | None]:
     """Return ``(unit, device_class, state_class)`` for a blob of source text."""
     blob = " ".join(t or "" for t in texts)
+    # A lone "K" unit cell is a temperature *difference* (hysteresis): keep the
+    # kelvin unit but no temperature device_class — HA would otherwise convert
+    # the delta like an absolute temperature. Checked against the unit cell
+    # only; a bare K inside running text is too ambiguous.
+    if (texts[0] or "").strip() == "K":
+        return "K", None, "measurement"
     if re.search(r"°C|\bdeg", blob):
         return "°C", "temperature", "measurement"
     if re.search(r"\bppm\b", blob):
@@ -206,6 +212,11 @@ def dimplex_expansion(base_addr: dict[str, set]) -> tuple[list[dict], list[tuple
             else:
                 e["platform"] = "number"
                 e["min"], e["max"] = mn, mx
+                if r.get("decimals"):
+                    # Decimal bounds are display units over an integer register
+                    # holding tenths (validated against register 47: its
+                    # hand-modeled base entity is multiplier 0.1, 0.5..5.0 K).
+                    e["multiplier"] = e["step"] = round(10 ** -r["decimals"], 6)
                 e["entity_category"] = "config"
         elif tbl == "discrete":
             e["platform"] = "binary_sensor"

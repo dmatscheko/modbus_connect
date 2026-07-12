@@ -238,10 +238,16 @@ holding:
       entity_category: config
   mischerhysterese:
     address: 93
+    multiplier: 0.1
     groups: [advanced]
     ha:
-      platform: sensor
+      platform: number
       name: Mischerhysterese
+      min: 0.5
+      max: 2
+      step: 0.1
+      unit_of_measurement: K
+      entity_category: config
   maximale_temperatur:
     address: 5088
     groups: [advanced]
@@ -306,6 +312,7 @@ holding:
       name: Hysterese
       min: 1
       max: 20
+      unit_of_measurement: K
       entity_category: config
   solltemperatur:
     address: 5051
@@ -320,10 +327,16 @@ holding:
       entity_category: config
   mischer_hysterese:
     address: 48
+    multiplier: 0.1
     groups: [advanced]
     ha:
-      platform: sensor
+      platform: number
       name: Mischerhysterese
+      min: 0.5
+      max: 2
+      step: 0.1
+      unit_of_measurement: K
+      entity_category: config
   grenztemperatur_parallel:
     address: 5020
     groups: [advanced]
@@ -493,6 +506,7 @@ holding:
       name: Absenk- / Anhebwert
       min: 0
       max: 19
+      unit_of_measurement: K
       entity_category: config
   stunde:
     address: 5006

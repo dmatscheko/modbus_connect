@@ -141,8 +141,11 @@ def dimplex_datapoints() -> list[dict]:
     Each row is anchored on its R/W cell (the table has an optional legacy
     'WPM-Software H' address column that shifts positions). Returns dicts with
     name, addr (the WPM J/L/M address our config uses), type, rw, table
-    (holding/input/coil/discrete), min, max, unit.
+    (holding/input/coil/discrete), min, max, unit, decimals (bound decimal
+    places — the doc states decimal bounds in display units, so ``decimals``
+    is the implied register scale: 1 means the register holds tenths).
     """
+    number = r"-?\d+(?:\.\d+)?"
     seen, out = set(), []
     for r in parse_html_rows(_dimplex_html()):
         rwi = next((i for i, c in enumerate(r) if (c or "").upper() in ("R", "R/W", "W")), None)
@@ -158,9 +161,13 @@ def dimplex_datapoints() -> list[dict]:
         typ = next((c for c in r if c and re.search(r"float|int|word", c, re.I)), "uint16")
         rw = r[rwi].upper()
         tail = r[rwi + 1:]
-        tnum = [c for c in tail if re.fullmatch(r"-?\d+", c or "")]
-        mn, mx = (int(tnum[0]), int(tnum[1])) if len(tnum) >= 2 else (None, None)
-        unit = next((c for c in tail if c and not re.fullmatch(r"-?\d+", c) and len(c) < 8), None)
+        tnum = [c for c in tail if re.fullmatch(number, c or "")]
+        mn, mx = (float(tnum[0]), float(tnum[1])) if len(tnum) >= 2 else (None, None)
+        mn, mx = (int(v) if v is not None and v.is_integer() else v for v in (mn, mx))
+        decimals = max((len(c.split(".")[1]) for c in tnum[:2] if "." in c), default=0)
+        unit = next(
+            (c for c in tail if c and not re.fullmatch(number, c) and len(c) < 8), None
+        )
         if cr.upper() == "COIL":
             table = "coil" if rw in ("R/W", "W") else "discrete"
         else:
@@ -170,7 +177,8 @@ def dimplex_datapoints() -> list[dict]:
             continue
         seen.add(key)
         out.append({"name": r[0], "addr": addr, "type": typ, "rw": rw,
-                    "table": table, "min": mn, "max": mx, "unit": unit})
+                    "table": table, "min": mn, "max": mx, "unit": unit,
+                    "decimals": decimals})
     return out
 
 

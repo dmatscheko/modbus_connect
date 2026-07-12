@@ -41,7 +41,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x13DD` (5085) — Festwertemperatur<br>`festwertemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13DE` (5086) — Parallelverschiebung<br>`parallelverschiebung` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13DF` (5087) — Mischerlaufzeit<br>`mischerlaufzeit` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x005D` (93) — Mischerhysterese<br>`mischerhysterese` | Holding (4x) | FC03 read | uint16 |
+| `0x005D` (93) — Mischerhysterese<br>`mischerhysterese` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x13E0` (5088) — Maximale Temperatur<br>`maximale_temperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13E1` (5089) — Kühlung Raumsolltemperatur<br>`kuehlung_raumsolltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x1398` (5016) — Anzahl Partystunden<br>`anzahl_partystunden` | Holding (4x) | FC03 read · FC06 write | uint16 |
@@ -50,7 +50,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x007F` (127) — Zeitwert Stoßlüften<br>`zeitwert_stosslueften` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13B9` (5049) — Hysterese<br>`hysterese` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13BB` (5051) — Solltemperatur<br>`solltemperatur` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x0030` (48) — Mischerhysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read | uint16 |
+| `0x0030` (48) — Mischerhysterese<br>`mischer_hysterese` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x139C` (5020) — Grenztemperatur parallel<br>`grenztemperatur_parallel` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x139D` (5021) — Mischerlaufzeit<br>`mischerlaufzeit_2` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x13C9` (5065) — Absenkung<br>`absenkung` | Holding (4x) | FC03 read | uint16 |
