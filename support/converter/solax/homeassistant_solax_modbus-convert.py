@@ -590,7 +590,12 @@ def annotate_groups(entities, templates, basic, extra=None):
     for t in templates:
         if t.get("groups"):
             continue  # explicit tag (the PM totals carry their feature group)
-        groups = tier_groups(t["key"], t.get("ha", {}), basic)
+        # Templates promote like entities do: grid_import/grid_export replace
+        # upstream computed sensors, so the grid promotion must reach them too.
+        promoted = extra.get(t["key"], ())
+        groups = [*tier_groups(t["key"], t.get("ha", {}), basic), *promoted]
+        if promoted:
+            t.get("ha", {}).pop("enabled_by_default", None)
         if groups:
             t["groups"] = groups
 

@@ -6,13 +6,13 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 85
+**Total register + template entities:** 77
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
 | `basic` | core | (always on) | 9 | Everyday sensors, main controls and composite climate/fan entities. |
 | `advanced` | tier | Enable Advanced entities | 37 | Miscellaneous extra settings that don't belong to a specific feature. |
-| *(untagged)* | expert | Enable all entities | 39 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. rtc_tz, rtc_second, rtc_minute, … |
+| *(untagged)* | expert | Enable all entities | 31 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. Charge Phase Alt, Charge PE Voltage, Charge PE Current, … |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 

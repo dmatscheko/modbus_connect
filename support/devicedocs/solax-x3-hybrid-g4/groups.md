@@ -6,7 +6,7 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 470
+**Total register + template entities:** 364
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
@@ -17,11 +17,11 @@ Entities are split into groups you can switch on/off on the integration's device
 | `pm_i3` | feature | Enable Parallel mode Inverter 3 entities | 26 | e.g. PM Inverter Count, PM I3 ActivePower L1, PM I3 ActivePower L2, … |
 | `eps` | feature | Enable Eps entities | 22 | e.g. EPS Min SOC, EPS Restart SOC, EPS Mute, … |
 | `generator` | feature | Enable Generator entities | 33 | e.g. Switch On SOC, Switch Off SOC, Minimum Per On Signal, … |
-| `grid` | feature | Enable Grid entities | 12 | e.g. Grid Voltage, Grid Voltage L1, Grid Voltage L2, … |
+| `grid` | feature | Enable Grid entities | 14 | e.g. Grid Voltage, Grid Voltage L1, Grid Voltage L2, … |
 | `grid_to_battery` | feature | Enable Grid to battery entities | 2 | e.g. E Charge Today, Grid to Battery Power |
 | `home_consumption` | feature | Enable Home consumption entities | 2 | e.g. House load, Home Consumption Energy |
 | `solar_details` | feature | Enable Solar details entities | 2 | e.g. PV Energy 1, PV Energy 2 |
-| *(untagged)* | expert | Enable all entities | 206 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. serial, Safety code, MateBox enabled, … |
+| *(untagged)* | expert | Enable all entities | 100 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. Safety code, MateBox enabled, Battery Awaken, … |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 

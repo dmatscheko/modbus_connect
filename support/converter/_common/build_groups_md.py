@@ -46,7 +46,9 @@ def _scan(cfg: dict):
         for key, p in sec.items():
             if not isinstance(p, dict):
                 continue
-            if i < len(TABLES) and "address" not in p:
+            # internal registers never become HA entities: no switch reveals
+            # them, so they don't belong in any entity count.
+            if i < len(TABLES) and ("address" not in p or p.get("internal")):
                 continue
             total += 1
             for g in (p.get("groups") or ["*untagged*"]):

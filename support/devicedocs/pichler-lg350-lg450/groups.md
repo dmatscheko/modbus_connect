@@ -6,11 +6,11 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 188
+**Total register + template entities:** 187
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 133 | Everyday sensors, main controls and composite climate/fan entities. |
+| `basic` | core | (always on) | 132 | Everyday sensors, main controls and composite climate/fan entities. |
 | `advanced` | tier | Enable Advanced entities | 22 | Miscellaneous extra settings that don't belong to a specific feature. |
 | `modbus_config` | feature | Enable Modbus configuration entities | 14 | e.g. Modbus address, Modbus baudrate, Modbus parity, … |
 | `co2_control` | feature | Enable CO2 control entities | 3 | e.g. EPB CO2, EPB CO2 Regulation, Current CO2 control value |

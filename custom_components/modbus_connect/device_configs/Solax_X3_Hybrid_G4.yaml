@@ -4410,7 +4410,7 @@ template:
       state_class: measurement
       icon: "mdi:home-import-outline"
     state: "{{ [-(measured_power or 0), 0] | max }}"
-    groups: [advanced]
+    groups: [advanced, grid]
   grid_export:
     ha:
       platform: sensor
@@ -4420,7 +4420,7 @@ template:
       state_class: measurement
       icon: "mdi:home-export-outline"
     state: "{{ [measured_power or 0, 0] | max }}"
-    groups: [advanced]
+    groups: [advanced, grid]
   house_load:
     ha:
       platform: sensor

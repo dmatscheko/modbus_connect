@@ -6,12 +6,12 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 194
+**Total register + template entities:** 192
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 45 | Everyday sensors, main controls and composite climate/fan entities. |
-| `advanced` | tier | Enable Advanced entities | 63 | Miscellaneous extra settings that don't belong to a specific feature. |
+| `basic` | core | (always on) | 44 | Everyday sensors, main controls and composite climate/fan entities. |
+| `advanced` | tier | Enable Advanced entities | 62 | Miscellaneous extra settings that don't belong to a specific feature. |
 | `modbus_config` | feature | Enable Modbus configuration entities | 4 | e.g. Modbus address, Modbus baud rate, Modbus parity, … |
 | `co2_control` | feature | Enable CO2 control entities | 4 | e.g. CO2 KP, CO2 TI, CO2 cycle, … |
 | `humidity_control` | feature | Enable Humidity control entities | 1 | e.g. Relative humidity maximum time in level 3 |

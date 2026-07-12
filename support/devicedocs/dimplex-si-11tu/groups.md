@@ -6,11 +6,11 @@ Entities are split into groups you can switch on/off on the integration's device
 
 **Default groups (fresh install):** `basic`
 
-**Total register + template entities:** 136
+**Total register + template entities:** 134
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 58 | Everyday sensors, main controls and composite climate/fan entities. |
+| `basic` | core | (always on) | 56 | Everyday sensors, main controls and composite climate/fan entities. |
 | `advanced` | tier | Enable Advanced entities | 17 | Miscellaneous extra settings that don't belong to a specific feature. |
 | `schedule` | feature | Enable Schedule / time program entities | 17 | e.g. Start Stunde 1, Start Minute 1, Ende Stunde 1, … |
 | `clock` | feature | Enable Clock entities | 7 | e.g. Stunde, Minute, Monat, … |
