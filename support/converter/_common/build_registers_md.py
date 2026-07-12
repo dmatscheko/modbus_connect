@@ -207,7 +207,10 @@ def local_files(folder: str, primary: str | None) -> list[str]:
     d = OUT_DIR / folder
     if not d.exists():
         return []
-    files = [f for f in sorted(d.iterdir()) if f.is_file() and f.name not in _NON_SOURCE_FILES]
+    files = [
+        f for f in sorted(d.iterdir())
+        if f.is_file() and f.name not in _NON_SOURCE_FILES and not f.name.startswith(".")
+    ]
     files.sort(key=lambda f: (f.name != primary, f.name.lower()))
     return files
 
