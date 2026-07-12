@@ -2,27 +2,19 @@
 
 import asyncio
 from datetime import time as dt_time
-from typing import Any
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.modbus_connect.client import ReadError
 from custom_components.modbus_connect.const import (
-    CONF_FILENAME,
-    CONF_SLAVE_ID,
-    DOMAIN,
     OPTION_ENABLED_GROUPS,
     OPTION_SHOW_ALL,
 )
 from custom_components.modbus_connect.coordinator import (
-    ModbusConnectCoordinator,
     is_group_visible,
     resolve_enabled_groups,
     resolve_show_all,
 )
 from custom_components.modbus_connect.models import (
-    DeviceDef,
     EntityDef,
     Span,
     SwitchTarget,
@@ -30,86 +22,7 @@ from custom_components.modbus_connect.models import (
     WriteTarget,
 )
 
-
-class FakeTime:
-    """Controllable monotonic clock."""
-
-    def __init__(self) -> None:
-        self.now = 1000.0
-
-    def monotonic(self) -> float:
-        return self.now
-
-
-class FakeClient:
-    """Duck-typed ModbusBlockClient recording every read."""
-
-    target = "127.0.0.1:502"
-
-    def __init__(self, registers: dict[int, int] | None = None) -> None:
-        self.lock = asyncio.Lock()
-        self.registers = registers or {}
-        self.reads: list[Span] = []
-        self.written: list[tuple[int, list[int]]] = []
-        self.write_multiple_flags: list[bool] = []
-        self.fail_spans: set[Span] = set()
-        self.fail_addresses: set[int] = set()
-        self.illegal = False  # fail with the device's explicit illegal-address answer
-        self.connected_ok = True
-
-    async def ensure_connected(self) -> bool:
-        return self.connected_ok
-
-    async def read_block(self, device_id: int, span: Span) -> list[int]:
-        self.reads.append(span)
-        if span in self.fail_spans or any(
-            span.start <= a < span.end for a in self.fail_addresses
-        ):
-            raise ReadError(f"fail {span}", illegal_address=self.illegal)
-        return [self.registers.get(a, 0) for a in range(span.start, span.end)]
-
-    async def write_registers(
-        self, device_id: int, address: int, words: list[int], *, multiple: bool = False
-    ) -> None:
-        self.written.append((address, words))
-        self.write_multiple_flags.append(multiple)
-        for i, w in enumerate(words):
-            self.registers[address + i] = w
-
-    async def write_coil(self, device_id: int, address: int, value: bool) -> None:
-        self.written.append((address, [int(value)]))
-
-
-def make_device(
-    *entities: EntityDef, max_read: int = 100, max_gap: int = 8, **kwargs: Any
-) -> DeviceDef:
-    return DeviceDef(
-        manufacturer="Acme",
-        model="X1",
-        entities=entities,
-        max_read=max_read,
-        max_gap=max_gap,
-        filename="test.yaml",
-        **kwargs,
-    )
-
-
-def sensor(key: str, address: int, **kwargs: Any) -> EntityDef:
-    kwargs.setdefault("platform", "sensor")
-    return EntityDef(key=key, address=address, **kwargs)
-
-
-async def make_coordinator(
-    hass, device: DeviceDef, client: FakeClient, monkeypatch, faketime, options=None
-):
-    monkeypatch.setattr("custom_components.modbus_connect.coordinator.time", faketime)
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={"host": "127.0.0.1", "port": 502, CONF_SLAVE_ID: 1, CONF_FILENAME: "test.yaml"},
-        options=options or {},
-    )
-    entry.add_to_hass(hass)
-    return ModbusConnectCoordinator(hass, entry, client, device)
+from .fakes import FakeClient, FakeTime, make_coordinator, make_device, sensor
 
 
 async def test_adjacent_entities_one_read(hass, monkeypatch):
@@ -555,13 +468,13 @@ async def test_max_change_and_never_resets(hass, monkeypatch):
     await coordinator.async_refresh()
     assert coordinator.data == {"spiky": 100, "total": 500}
 
-    client.registers[0] = 900  # spike
-    client.registers[1] = 3  # counter reset glitch
+    client.values[("holding", 0)] = 900  # spike
+    client.values[("holding", 1)] = 3  # counter reset glitch
     faketime.now += 60
     await coordinator.async_refresh()
     assert coordinator.data == {"spiky": 100, "total": 500}
 
-    client.registers[0] = 105  # sane change
+    client.values[("holding", 0)] = 105  # sane change
     faketime.now += 60
     await coordinator.async_refresh()
     assert coordinator.data["spiky"] == 105
@@ -976,7 +889,7 @@ async def test_failed_chunk_of_wide_span_does_not_mix_generations(hass, monkeypa
     await coordinator.async_refresh()
     assert coordinator.data["serial"] == "AAAAAAAAAAAA"
 
-    client.registers = dict.fromkeys(range(100, 106), 16962)  # now "BB" x 6
+    client.values = dict.fromkeys((("holding", a) for a in range(100, 106)), 16962)  # now "BB" x 6
     client.fail_addresses = {104}  # second chunk fails this cycle
     ft.now += 60
     await coordinator.async_refresh()
@@ -1069,7 +982,7 @@ async def test_unchanged_data_skips_listener_updates(hass, monkeypatch):
     ft.now += 60
     await coordinator.async_refresh()  # identical values -> no state churn
     assert len(calls) == first
-    client.registers[0] = 6
+    client.values[("holding", 0)] = 6
     ft.now += 60
     await coordinator.async_refresh()
     assert len(calls) == first + 1

@@ -1,6 +1,5 @@
 """Integration setup, platform, write, and diagnostics tests with a fake client."""
 
-import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
@@ -28,7 +27,8 @@ from custom_components.modbus_connect.const import (
 from custom_components.modbus_connect.diagnostics import (
     async_get_config_entry_diagnostics,
 )
-from custom_components.modbus_connect.models import BIT_TABLES, Span
+
+from .fakes import FakeClient
 
 DEVICE_YAML = """
 device:
@@ -226,14 +226,11 @@ template:
 """
 
 
-class FakeClient:
-    """Duck-typed ModbusBlockClient backed by a dict."""
-
-    target = "192.0.2.1:502"
-
-    def __init__(self) -> None:
-        self.lock = asyncio.Lock()
-        self.values: dict[tuple[str, int], int | bool] = {
+def make_client() -> FakeClient:
+    """The shared fake client, seeded with this module's device-file registers."""
+    client = FakeClient(target="192.0.2.1:502")
+    client.values.update(
+        {
             ("holding", 0): 215,  # temperature 21.5
             ("holding", 1): 42,  # setpoint
             ("holding", 2): 1,  # mode "Auto"
@@ -248,30 +245,8 @@ class FakeClient:
             ("coil", 0): True,  # pump on
             ("discrete", 1): True,  # alarm on
         }
-        self.released: list[str] = []
-        self.connected_ok = True
-
-    async def ensure_connected(self) -> bool:
-        return self.connected_ok
-
-    async def read_block(self, device_id: int, span: Span) -> list[int] | list[bool]:
-        default: int | bool = False if span.table in BIT_TABLES else 0
-        return [
-            self.values.get((span.table, a), default)
-            for a in range(span.start, span.end)
-        ]
-
-    async def write_registers(
-        self, device_id: int, address: int, words: list[int], *, multiple: bool = False
-    ) -> None:
-        for i, word in enumerate(words):
-            self.values[("holding", address + i)] = word
-
-    async def write_coil(self, device_id: int, address: int, value: bool) -> None:
-        self.values[("coil", address)] = value
-
-    def release(self, entry_id: str) -> None:
-        self.released.append(entry_id)
+    )
+    return client
 
 
 def write_device_file(hass: HomeAssistant) -> None:
@@ -325,7 +300,7 @@ async def test_connection_tuning_reaches_the_client(hass: HomeAssistant) -> None
     entry = make_entry("tuned.yaml")
     entry.add_to_hass(hass)
     with patch.object(
-        ModbusBlockClient, "acquire", return_value=FakeClient()
+        ModbusBlockClient, "acquire", return_value=make_client()
     ) as acquire:
         assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -360,7 +335,7 @@ holding:
 """,
         encoding="utf-8",
     )
-    client = FakeClient()
+    client = make_client()
     client.values[("holding", 20)] = 2  # ball valve: custom on_value -> open
     client.values[("holding", 21)] = 40  # mixer at 40 %
     entry = make_entry("valves.yaml")
@@ -420,7 +395,7 @@ async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
     with patch.object(
-        ModbusBlockClient, "acquire_serial", return_value=FakeClient()
+        ModbusBlockClient, "acquire_serial", return_value=make_client()
     ) as acquire:
         assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -435,7 +410,7 @@ async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
 
 async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
     entry = make_entry()
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
     assert entry.state is ConfigEntryState.LOADED
 
     for platform, key, expected in [
@@ -480,7 +455,7 @@ async def test_setup_creates_all_platform_entities(hass: HomeAssistant) -> None:
 
 async def test_unload_releases_client(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     assert await hass.config_entries.async_unload(entry.entry_id)
@@ -491,13 +466,13 @@ async def test_unload_releases_client(hass: HomeAssistant) -> None:
 
 async def test_setup_missing_device_file(hass: HomeAssistant) -> None:
     entry = make_entry(filename="does_not_exist.yaml")
-    assert not await setup_entry(hass, entry, FakeClient())
+    assert not await setup_entry(hass, entry, make_client())
     assert entry.state is ConfigEntryState.SETUP_ERROR
 
 
 async def test_setup_retry_when_gateway_down(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     client.connected_ok = False
     assert not await setup_entry(hass, entry, client)
     assert entry.state is ConfigEntryState.SETUP_RETRY
@@ -509,7 +484,7 @@ async def test_setup_retry_when_gateway_down(hass: HomeAssistant) -> None:
 
 async def test_writes_through_entities(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     # number: multiplier-free write, confirmed by read-back
@@ -561,7 +536,7 @@ async def test_writes_through_entities(hass: HomeAssistant) -> None:
 
 async def test_template_actions(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     # template switch writes through to the coil
@@ -619,7 +594,7 @@ async def test_template_actions(hass: HomeAssistant) -> None:
 
 async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     write_device_file(hass)
     entry.add_to_hass(hass)
     with patch.object(ModbusBlockClient, "acquire", return_value=client):
@@ -638,7 +613,7 @@ async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
 
 async def test_diagnostics(hass: HomeAssistant) -> None:
     entry = make_entry()
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
 
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["entry"]["data"]["host"] == "**REDACTED**"
@@ -653,7 +628,7 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
 
 async def test_switch_variants_and_undecodable_value(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     # configured on/off raw values on a holding register
@@ -683,7 +658,7 @@ async def test_switch_variants_and_undecodable_value(hass: HomeAssistant) -> Non
 
 async def test_template_edge_rendering(hass: HomeAssistant) -> None:
     entry = make_entry()
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
 
     # failing template -> unknown, not an exception
     assert hass.states.get(eid(hass, entry, "sensor", "t_bad")).state == "unknown"
@@ -701,7 +676,7 @@ async def test_template_edge_rendering(hass: HomeAssistant) -> None:
 
 async def test_more_template_actions(hass: HomeAssistant) -> None:
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     # fan: turn_on with a percentage writes both actions
@@ -763,7 +738,7 @@ async def test_unmapped_action_value_raises(hass: HomeAssistant) -> None:
     from homeassistant.exceptions import ServiceValidationError
 
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     # "A" is mapped and writes; "B" is a valid option without a mapping
@@ -789,7 +764,7 @@ async def test_write_failure_becomes_home_assistant_error(hass: HomeAssistant) -
     from homeassistant.exceptions import HomeAssistantError
 
     entry = make_entry()
-    client = FakeClient()
+    client = make_client()
     assert await setup_entry(hass, entry, client)
 
     client.connected_ok = False
@@ -816,7 +791,7 @@ async def test_prefix_drives_entity_ids(hass: HomeAssistant) -> None:
         unique_id="192.0.2.1:502:7",
         title="Heat pump",
     )
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
 
     assert eid(hass, entry, "sensor", "temperature") == "sensor.hp_temperature"
     assert eid(hass, entry, "number", "setpoint") == "number.hp_setpoint"
@@ -836,7 +811,7 @@ async def test_prefix_drives_entity_ids(hass: HomeAssistant) -> None:
 
 async def test_no_prefix_keeps_device_name_entity_ids(hass: HomeAssistant) -> None:
     entry = make_entry()  # no prefix, no name
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
     # default HA naming: device name (manufacturer + model) + entity name
     assert eid(hass, entry, "sensor", "temperature") == "sensor.acme_x1_temperature"
 
@@ -878,7 +853,7 @@ async def test_multiple_entities_share_a_register(hass: HomeAssistant) -> None:
     (directory / "acme_shared.yaml").write_text(SHARED_YAML, encoding="utf-8")
 
     entry = make_entry("acme_shared.yaml")
-    client = FakeClient()
+    client = make_client()
     client.values[("holding", 0)] = 215  # 0x00D7
     assert await setup_entry(hass, entry, client)
 
@@ -946,7 +921,7 @@ async def test_group_switches_control_entity_visibility(hass: HomeAssistant) -> 
     entry.add_to_hass(hass)
     reg = er.async_get(hass)
 
-    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+    with patch.object(ModbusBlockClient, "acquire", return_value=make_client()):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -1023,7 +998,7 @@ async def test_ungrouped_file_has_no_group_switches(hass: HomeAssistant) -> None
     write_device_file(hass)
     entry = make_entry()
     entry.add_to_hass(hass)
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
 
     group_switches = [
         e.unique_id
@@ -1074,7 +1049,7 @@ async def test_integral_sensor_restores_total_across_restart(hass: HomeAssistant
         title="Integral",
     )
     entry.add_to_hass(hass)
-    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+    with patch.object(ModbusBlockClient, "acquire", return_value=make_client()):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         energy = eid(hass, entry, "sensor", "energy")
@@ -1113,7 +1088,7 @@ async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -
         title="Grouped",
     )
     entry.add_to_hass(hass)
-    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+    with patch.object(ModbusBlockClient, "acquire", return_value=make_client()):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -1158,7 +1133,7 @@ async def test_provided_unique_ids_match_registry(hass: HomeAssistant) -> None:
     write_device_file(hass)
     entry = make_entry()
     entry.add_to_hass(hass)
-    assert await setup_entry(hass, entry, FakeClient())
+    assert await setup_entry(hass, entry, make_client())
 
     registered = {
         e.unique_id
@@ -1185,7 +1160,7 @@ async def test_remove_hidden_entities_button(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
     reg = er.async_get(hass)
 
-    with patch.object(ModbusBlockClient, "acquire", return_value=FakeClient()):
+    with patch.object(ModbusBlockClient, "acquire", return_value=make_client()):
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 
@@ -1239,7 +1214,7 @@ async def test_setup_duplicate_key_device_file(hass: HomeAssistant) -> None:
     )
     try:
         entry = make_entry(filename="dup.yaml")
-        assert not await setup_entry(hass, entry, FakeClient())
+        assert not await setup_entry(hass, entry, make_client())
         assert entry.state is ConfigEntryState.SETUP_ERROR
         assert "duplicate key" in str(entry.reason)
     finally:
@@ -1253,6 +1228,6 @@ async def test_setup_unreadable_device_file(hass: HomeAssistant) -> None:
         "custom_components.modbus_connect.loader._load_file",
         side_effect=OSError("permission denied"),
     ):
-        assert not await setup_entry(hass, entry, FakeClient())
+        assert not await setup_entry(hass, entry, make_client())
     assert entry.state is ConfigEntryState.SETUP_ERROR
     assert "cannot read" in str(entry.reason)

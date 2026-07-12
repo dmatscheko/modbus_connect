@@ -22,7 +22,7 @@ from custom_components.modbus_connect.sensor import (
 )
 from custom_components.modbus_connect.switch import ModbusConnectTemplateSwitch
 
-from .test_coordinator import FakeClient, FakeTime, make_coordinator
+from .fakes import FakeClient, FakeTime, make_coordinator
 
 DEVICE_YAML = """
 device:
@@ -175,7 +175,7 @@ async def test_template_binary_sensor(hass, monkeypatch):
                          template_def(device, "is_hot"))
     assert binary.is_on is True  # 35.2 > 30
 
-    client.registers[0] = 100  # 10.0 degrees
+    client.values[("holding", 0)] = 100  # 10.0 degrees
     coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
     await coordinator.async_refresh()
     assert binary.is_on is False
@@ -356,7 +356,7 @@ async def setup_switch_device(hass, monkeypatch):
 
 async def _reselect(coordinator, client, register_value):
     """Change the regulation-type register and re-poll everything."""
-    client.registers[0] = register_value
+    client.values[("holding", 0)] = register_value
     coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
     await coordinator.async_refresh()
 
@@ -474,12 +474,12 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
 
     device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
     by = {e.key: e for e in device.entities}
-    regs: dict[int, int] = {}
+    client = FakeClient()
 
     def put(key, value):  # round-trip through the entity's own codec into raw registers
         defn = by[key]
         for i, w in enumerate(codec.encode(defn, value)):
-            regs[defn.address + i] = w & 0xFFFF
+            client.values[(defn.table, defn.address + i)] = w & 0xFFFF
 
     put("inverter_power", 3000)
     put("measured_power", -800)         # grid: negative = importing 800 W
@@ -487,7 +487,7 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     put("battery_voltage_charge", 204.8)   # V
     put("bms_charge_max_current", 25.0)    # A -> charge ceiling 204.8 * 25 = 5120 W
     coordinator = await make_coordinator(
-        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        hass, device, client, monkeypatch, FakeTime(),
         options={OPTION_SHOW_ALL: True},
     )
     await coordinator.async_refresh()
@@ -525,12 +525,12 @@ async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
     assert device.group_label("pm_i1") == "Parallel mode Inverter 1"
     assert device.group_label("pm_i3") == "Parallel mode Inverter 3"
 
-    regs: dict[int, int] = {}
+    client = FakeClient()
 
-    def put(key, value):
+    def put(key, value):  # round-trip through the entity's own codec into raw registers
         defn = by[key]
         for i, w in enumerate(codec.encode(defn, value)):
-            regs[defn.address + i] = w & 0xFFFF
+            client.values[(defn.table, defn.address + i)] = w & 0xFFFF
 
     put("pm_activepower_l1", 1500)
     put("pm_activepower_l2", 1200)
@@ -540,7 +540,7 @@ async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
     put("pm__current_l2", 5.2)
     put("pm__current_l3", 1.3)
     coordinator = await make_coordinator(
-        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        hass, device, client, monkeypatch, FakeTime(),
         options={OPTION_ENABLED_GROUPS: ["pm_i1"]},
     )
     await coordinator.async_refresh()
@@ -599,12 +599,12 @@ async def test_solax_hybrid_grid_group(hass, monkeypatch):
 
     device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
     by = {e.key: e for e in device.entities}
-    regs: dict[int, int] = {}
+    client = FakeClient()
 
-    def put(key, value):
+    def put(key, value):  # round-trip through the entity's own codec into raw registers
         defn = by[key]
         for i, w in enumerate(codec.encode(defn, value)):
-            regs[defn.address + i] = w & 0xFFFF
+            client.values[(defn.table, defn.address + i)] = w & 0xFFFF
 
     for phase, (v, i, pf) in {
         1: (230.0, 10.0, 95),
@@ -623,7 +623,7 @@ async def test_solax_hybrid_grid_group(hass, monkeypatch):
     assert "entity_registry_enabled_default" not in gv1.ha
 
     coordinator = await make_coordinator(
-        hass, device, FakeClient(regs), monkeypatch, FakeTime(),
+        hass, device, client, monkeypatch, FakeTime(),
         options={OPTION_ENABLED_GROUPS: ["grid"]},
     )
     await coordinator.async_refresh()
@@ -710,7 +710,7 @@ async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
     assert entity.native_value == 0.0
 
     faketime.now += 300  # 600 W ramping to 400 W over 5 min -> 500 W avg
-    client.registers[0] = 400
+    client.values[("holding", 0)] = 400
     await coordinator.async_refresh()
     assert entity.native_value == pytest.approx(500 * 300 / 3_600_000, abs=1e-3)
 
@@ -719,7 +719,7 @@ async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
     assert entity.native_value == pytest.approx(0.075)  # 0.0417 + 400 W x 300 s
 
     faketime.now += 300  # the drop to 0 only shapes its own 5-min interval
-    client.registers[0] = 0
+    client.values[("holding", 0)] = 0
     await coordinator.async_refresh()
     assert entity.native_value == pytest.approx(0.092)  # + 200 W x 300 s, 3-digit display
     unsub_listener()
@@ -744,7 +744,7 @@ async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
         entity._advance(coordinator.data)  # seed
 
         faketime.now += 3600  # one hour 600 W -> 200 W
-        client.registers[0] = 200
+        client.values[("holding", 0)] = 200
         await coordinator.async_refresh()
         assert entity.native_value == pytest.approx(expected / 1000)  # Wh -> kWh
 
@@ -754,7 +754,7 @@ async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
         assert entity.native_value == pytest.approx(expected / 1000)  # unchanged
 
         client.fail_addresses.clear()  # recovery seeds a fresh sample point:
-        client.registers[0] = 500  # the unreadable hour is skipped entirely
+        client.values[("holding", 0)] = 500  # the unreadable hour is skipped entirely
         faketime.now += 3600
         await coordinator.async_refresh()
         assert entity.native_value == pytest.approx(expected / 1000)
