@@ -17,6 +17,8 @@ device:
     clock: Clock
     heating_circuit_2: Heating circuit 2
     heating_circuit_3: Heating circuit 3
+    heat_generator_2: 2nd heat generator
+    pool: Pool
     cooling: Cooling
     solar: Solar
     ventilation: Ventilation
@@ -263,22 +265,20 @@ ops:
   - add: {table: input, key: heating_1st_loop_return_target, after: heating_return_target, address: 29, multiplier: 0.1, groups: [basic],
           ha: {platform: sensor, name: "1. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
                device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
-  - add: {table: input, key: heating_2nd_loop_temp, after: heating_1st_loop_temp, address: 9, multiplier: 0.1, groups: [basic],
+  # The 2./3.-circuit loop sensors live in their circuit groups (not basic):
+  # devices without the extra circuits never show or poll them.
+  - add: {table: input, key: heating_2nd_loop_temp, after: heating_1st_loop_temp, address: 9, multiplier: 0.1, groups: [heating_circuit_2],
           ha: {platform: sensor, name: "2. Heizkreis Temperatur (R?)", unit_of_measurement: "°C",
-               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
-               enabled_by_default: false}}
-  - add: {table: input, key: heating_2nd_loop_return_target, after: heating_1st_loop_return_target, address: 54, multiplier: 0.1, groups: [basic],
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_2nd_loop_return_target, after: heating_1st_loop_return_target, address: 54, multiplier: 0.1, groups: [heating_circuit_2],
           ha: {platform: sensor, name: "2. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
-               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
-               enabled_by_default: false}}
-  - add: {table: input, key: heating_3rd_loop_temp, after: heating_2nd_loop_temp, address: 10, multiplier: 0.1, groups: [basic],
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_3rd_loop_temp, after: heating_2nd_loop_temp, address: 10, multiplier: 0.1, groups: [heating_circuit_3],
           ha: {platform: sensor, name: "3. Heizkreis Temperatur (R13)", unit_of_measurement: "°C",
-               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
-               enabled_by_default: false}}
-  - add: {table: input, key: heating_3rd_loop_return_target, after: heating_2nd_loop_return_target, address: 55, multiplier: 0.1, groups: [basic],
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
+  - add: {table: input, key: heating_3rd_loop_return_target, after: heating_2nd_loop_return_target, address: 55, multiplier: 0.1, groups: [heating_circuit_3],
           ha: {platform: sensor, name: "3. Heizkreis Rücklaufsolltemperatur", unit_of_measurement: "°C",
-               device_class: temperature, state_class: measurement, icon: "mdi:thermometer",
-               enabled_by_default: false}}
+               device_class: temperature, state_class: measurement, icon: "mdi:thermometer"}}
 
   # One-click clock sync: writes the 6 value registers 5006-5011 (hour..year) in
   # one FC16, alongside the individual editable clock fields the source produced.
@@ -352,13 +352,9 @@ ops:
         - source_input_temp
         - source_output_temp
         - test_temp_what_is_this
-        - heating_2nd_loop_temp
-        - heating_3rd_loop_temp
         - heating_1st_loop_temp
         - heating_1st_loop_return_target
         - heating_return_target
-        - heating_2nd_loop_return_target
-        - heating_3rd_loop_return_target
         - hot_water_target
         - additional_pump_hours
         - compressor1_hours
@@ -378,11 +374,8 @@ ops:
         - primary_pump
         - heating_pump
         - hot_water_pump
-        - mixer_open
         - additional_pump
         - heating_pump_m15
-        - mixer_m22_open
-        - pool_pump
         - error_indicator
         - heating_pump_m14
         - cooling_pump
@@ -392,6 +385,42 @@ ops:
         - solar_pump
         - warmwasser
         - heizung
+
+  # Subsystem groups for the doc-section entities. Explicit keys: the rules
+  # below match raw source names, which do not carry the doc section — exactly
+  # why these entities needed qualifying in the first place. The multiplexed
+  # 5.3.2 block belongs to both circuits (either switch reveals it); the M21/M22
+  # mixer states reach their circuit groups through the (M21)/(M22) rules.
+  - group: [heating_circuit_2, heating_circuit_3]
+    where:
+      key:
+        - auswahl_heizkreis_2
+        - heizkurvenendpunkt
+        - festwertemperatur
+        - parallelverschiebung
+        - mischerlaufzeit
+        - mischerhysterese
+        - maximale_temperatur
+  - group: [heating_circuit_2, heating_circuit_3, cooling]
+    where: {key: kuehlung_raumsolltemperatur}
+  - group: [heat_generator_2]
+    where: {key: [mischer_hysterese, grenztemperatur_parallel, mischerlaufzeit_2]}
+  - group: [heat_generator_2, energy]
+    where: {key: waermeerzeuger}
+  - group: [heat_generator_2, status]
+    where: {key: waermeerzeuger_2}
+  - group: [energy]
+    where: {key: [verdichter_2, flanschheizung]}
+  - group: [pool]
+    where: {key: [hysterese, solltemperatur, pool_pump]}
+  - group: [pool, energy]
+    where: {key: [schwimmbadpumpe, waermemenge_schwimmbad_1_4, waermemenge_schwimmbad_5_8, waermemenge_schwimmbad_9_12]}
+  - group: [pool, status]
+    where: {key: schwimmbadthermostat}
+  # The 5065 time-function multiplexer and its shared setback/boost value are
+  # part of the schedule block (see caveats.md).
+  - group: [schedule]
+    where: {key: [absenkung, absenk_anhebwert]}
 
   # Feature groups: first matching rule wins (each gated so base entities and raw
   # internals are never re-classified). Match is a regex over the entity's raw name.

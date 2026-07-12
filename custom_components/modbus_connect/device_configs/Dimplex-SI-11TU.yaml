@@ -17,6 +17,8 @@ device:
     clock: Clock
     heating_circuit_2: Heating circuit 2
     heating_circuit_3: Heating circuit 3
+    heat_generator_2: "2nd heat generator"
+    pool: Pool
     cooling: Cooling
     solar: Solar
     ventilation: Ventilation
@@ -192,13 +194,13 @@ holding:
       entity_category: config
   auswahl_heizkreis_2:
     address: 5082
-    groups: [heating_circuit_2]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: sensor
       name: "2./3. Heizkreis Auswahl"
   heizkurvenendpunkt:
     address: 5084
-    groups: [advanced]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Heizkurvenendpunkt"
@@ -209,7 +211,7 @@ holding:
       entity_category: config
   festwertemperatur:
     address: 5085
-    groups: [advanced]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Festwertemperatur"
@@ -220,7 +222,7 @@ holding:
       entity_category: config
   parallelverschiebung:
     address: 5086
-    groups: [advanced]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Parallelverschiebung"
@@ -229,7 +231,7 @@ holding:
       entity_category: config
   mischerlaufzeit:
     address: 5087
-    groups: [energy]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Mischerlaufzeit"
@@ -240,7 +242,7 @@ holding:
   mischerhysterese:
     address: 93
     multiplier: 0.1
-    groups: [advanced]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Mischerhysterese"
@@ -251,7 +253,7 @@ holding:
       entity_category: config
   maximale_temperatur:
     address: 5088
-    groups: [advanced]
+    groups: [heating_circuit_2, heating_circuit_3]
     ha:
       platform: number
       name: "2./3. Heizkreis Maximale Temperatur"
@@ -262,7 +264,7 @@ holding:
       entity_category: config
   kuehlung_raumsolltemperatur:
     address: 5089
-    groups: [cooling]
+    groups: [heating_circuit_2, heating_circuit_3, cooling]
     ha:
       platform: number
       name: "2./3. Heizkreis Kühlung Raumsolltemperatur"
@@ -307,7 +309,7 @@ holding:
       entity_category: config
   hysterese:
     address: 5049
-    groups: [advanced]
+    groups: [pool]
     ha:
       platform: number
       name: Schwimmbad Hysterese
@@ -317,7 +319,7 @@ holding:
       entity_category: config
   solltemperatur:
     address: 5051
-    groups: [advanced]
+    groups: [pool]
     ha:
       platform: number
       name: Schwimmbad Solltemperatur
@@ -329,7 +331,7 @@ holding:
   mischer_hysterese:
     address: 48
     multiplier: 0.1
-    groups: [advanced]
+    groups: [heat_generator_2]
     ha:
       platform: number
       name: "2.Wärmeerzeuger Mischerhysterese"
@@ -340,7 +342,7 @@ holding:
       entity_category: config
   grenztemperatur_parallel:
     address: 5020
-    groups: [advanced]
+    groups: [heat_generator_2]
     ha:
       platform: number
       name: "2.Wärmeerzeuger Grenztemperatur parallel"
@@ -351,7 +353,7 @@ holding:
       entity_category: config
   mischerlaufzeit_2:
     address: 5021
-    groups: [energy]
+    groups: [heat_generator_2]
     ha:
       platform: number
       name: "2.Wärmeerzeuger Mischerlaufzeit"
@@ -361,7 +363,7 @@ holding:
       entity_category: config
   absenkung:
     address: 5065
-    groups: [advanced]
+    groups: [schedule]
     ha:
       platform: sensor
       name: Absenkung
@@ -502,7 +504,7 @@ holding:
       entity_category: config
   absenk_anhebwert:
     address: 5081
-    groups: [advanced]
+    groups: [schedule]
     ha:
       platform: number
       name: Absenk- / Anhebwert
@@ -638,7 +640,7 @@ input:
   heating_2nd_loop_temp:
     address: 9
     multiplier: 0.1
-    groups: [basic]
+    groups: [heating_circuit_2]
     ha:
       platform: sensor
       name: "2. Heizkreis Temperatur (R?)"
@@ -649,7 +651,7 @@ input:
   heating_3rd_loop_temp:
     address: 10
     multiplier: 0.1
-    groups: [basic]
+    groups: [heating_circuit_3]
     ha:
       platform: sensor
       name: "3. Heizkreis Temperatur (R13)"
@@ -682,7 +684,7 @@ input:
   heating_2nd_loop_return_target:
     address: 54
     multiplier: 0.1
-    groups: [basic]
+    groups: [heating_circuit_2]
     ha:
       platform: sensor
       name: "2. Heizkreis Rücklaufsolltemperatur"
@@ -693,7 +695,7 @@ input:
   heating_3rd_loop_return_target:
     address: 55
     multiplier: 0.1
-    groups: [basic]
+    groups: [heating_circuit_3]
     ha:
       platform: sensor
       name: "3. Heizkreis Rücklaufsolltemperatur"
@@ -1106,7 +1108,7 @@ input:
   verdichter_2:
     address: 73
     never_resets: true
-    groups: [status]
+    groups: [energy]
     ha:
       platform: sensor
       name: Verdichter 2 Laufzeit
@@ -1118,7 +1120,7 @@ input:
   waermeerzeuger:
     address: 75
     never_resets: true
-    groups: [status]
+    groups: [heat_generator_2, energy]
     ha:
       platform: sensor
       name: "2.Wärmeerzeuger (E10) Laufzeit"
@@ -1130,7 +1132,7 @@ input:
   flanschheizung:
     address: 78
     never_resets: true
-    groups: [status]
+    groups: [energy]
     ha:
       platform: sensor
       name: Flanschheizung (E9) Laufzeit
@@ -1142,7 +1144,7 @@ input:
   schwimmbadpumpe:
     address: 79
     never_resets: true
-    groups: [status]
+    groups: [pool, energy]
     ha:
       platform: sensor
       name: Schwimmbadpumpe (M19) Laufzeit
@@ -1177,19 +1179,19 @@ input:
       name: "Wärmemenge * Warmwasser 9-12"
   waermemenge_schwimmbad_1_4:
     address: 5102
-    groups: [energy]
+    groups: [pool, energy]
     ha:
       platform: sensor
       name: "Wärmemenge * Schwimmbad 1-4"
   waermemenge_schwimmbad_5_8:
     address: 5103
-    groups: [energy]
+    groups: [pool, energy]
     ha:
       platform: sensor
       name: "Wärmemenge * Schwimmbad 5-8"
   waermemenge_schwimmbad_9_12:
     address: 5104
-    groups: [energy]
+    groups: [pool, energy]
     ha:
       platform: sensor
       name: "Wärmemenge * Schwimmbad 9-12"
@@ -1269,7 +1271,7 @@ discrete:
       entity_category: diagnostic
   mixer_open:
     address: 47
-    groups: [basic]
+    groups: [heating_circuit_2]
     ha:
       platform: binary_sensor
       name: "2. Heizkreis Mischer (M21) auf"
@@ -1293,7 +1295,7 @@ discrete:
       entity_category: diagnostic
   mixer_m22_open:
     address: 52
-    groups: [basic]
+    groups: [heating_circuit_3]
     ha:
       platform: binary_sensor
       name: "3. Heizkreis Mischer (M22) auf"
@@ -1301,7 +1303,7 @@ discrete:
       entity_category: diagnostic
   pool_pump:
     address: 56
-    groups: [basic]
+    groups: [pool]
     ha:
       platform: binary_sensor
       name: Schwimmbadpumpe (M19) Modus
@@ -1376,7 +1378,7 @@ discrete:
       name: Aktiv Zeit 2
   schwimmbadthermostat:
     address: 4
-    groups: [status]
+    groups: [pool, status]
     ha:
       platform: binary_sensor
       name: Schwimmbadthermostat
@@ -1388,7 +1390,7 @@ discrete:
       name: Verdichter 2 Modus
   waermeerzeuger_2:
     address: 44
-    groups: [status]
+    groups: [heat_generator_2, status]
     ha:
       platform: binary_sensor
       name: "2.Wärmeerzeuger (E10) Modus"
@@ -1464,6 +1466,12 @@ translations:
   Heating circuit 3:
     en: Heating circuit 3
     de: Heizkreis 3
+  "2nd heat generator":
+    de: "2.Wärmeerzeuger"
+    en: "2nd heat generator"
+  Pool:
+    de: Schwimmbad
+    en: Pool
   Cooling:
     en: Cooling
     de: Kühlung
