@@ -824,3 +824,42 @@ async def test_key_helper_is_language_independent(hass, monkeypatch):
                           template_def(device, "is_auto"))
     assert raw.native_value == 1  # ... but the key is unchanged, so
     assert is_auto.native_value == "yes"  # key('mode') == 1 still holds under de
+
+
+async def test_fan_read_only_templates_enable_features(hass, monkeypatch):
+    """percentage/preset_mode state templates must set SET_SPEED/PRESET_MODE —
+    HA only exposes those attributes behind the feature flags, so without them
+    a read-only template would be silently invisible (light.py's brightness
+    already follows this template-or-action pattern)."""
+    from homeassistant.components.fan import FanEntityFeature
+
+    device = parse_device(
+        yaml.safe_load(
+            """
+device: {manufacturer: T, model: F}
+holding:
+  stage: {address: 0, internal: true}
+template:
+  vent:
+    ha: {platform: fan}
+    state: "{{ stage > 0 }}"
+    percentage: "{{ stage * 25 }}"
+    preset_mode: "{{ 'auto' }}"
+    preset_modes: [auto, manual]
+    turn_on: {entity: stage, value: 1}
+    turn_off: {entity: stage, value: 0}
+"""
+        ),
+        "f.yaml",
+    )
+    client = FakeClient({0: 2})
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    fan = make_entity(hass, ModbusConnectFan, coordinator, device.templates[0])
+    assert FanEntityFeature.SET_SPEED in fan.supported_features
+    assert FanEntityFeature.PRESET_MODE in fan.supported_features
+    assert fan.percentage == 50
+    assert fan.preset_mode == "auto"
+    # setting without the action still fails with the clean "no action" error
+    with pytest.raises(ServiceValidationError, match="set_percentage"):
+        await fan.async_set_percentage(40)

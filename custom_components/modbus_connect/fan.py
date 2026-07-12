@@ -43,9 +43,12 @@ class ModbusConnectFan(ModbusConnectTemplateEntity, FanEntity):
         super().__init__(coordinator, tdef, description)
         cfg = tdef.config
         features = FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
-        if "set_percentage" in cfg:
+        # HA shows percentage/preset only when the feature flag is set, so a
+        # read-only template must set it too (like light's brightness); setting
+        # without the action raises the clean "has no ... action" error.
+        if "set_percentage" in cfg or "percentage" in cfg:
             features |= FanEntityFeature.SET_SPEED
-        if "set_preset_mode" in cfg:
+        if "set_preset_mode" in cfg or "preset_mode" in cfg:
             features |= FanEntityFeature.PRESET_MODE
         self._attr_supported_features = features
         self._attr_preset_modes = cfg.get("preset_modes")
