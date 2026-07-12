@@ -231,7 +231,12 @@ def _encode_string(defn: EntityDef, value: object) -> list[int]:
 
 def _invert_conversions(defn: EntityDef, value: object) -> float | int:
     """Run multiplier/offset backwards: displayed value -> raw number."""
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
+    if isinstance(value, bool):
+        # on_value/off_value and fixed action payloads may be booleans even on
+        # a register (the docs' true/false defaults); they mean 1/0 — same
+        # generosity as the coil path, which accepts integers.
+        value = int(value)
+    if not isinstance(value, (int, float)):
         raise CodecError(f"{defn.key}: expected a number, got {value!r}")
     num: float | int = value
     if defn.offset is not None:

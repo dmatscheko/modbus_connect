@@ -454,3 +454,12 @@ def test_decode_multiplier_drops_binary_float_artifacts():
     assert decode(e(type="uint16", multiplier=0.1), [127]) == 12.7
     assert decode(e(type="uint16", multiplier=0.001), [1234]) == 1.234
     assert decode(e(type="int16", multiplier=0.1, offset=-40), [123]) == -27.7
+
+
+def test_bool_payload_on_register_means_1_0():
+    # on_value: true / fixed action value: true on a holding register — the
+    # schema and docs allow booleans there, so encode treats them as 1/0
+    # (mirroring the coil path, which accepts integers).
+    defn = e(platform="switch", on_value=True, off_value=False)
+    assert encode(defn, True) == [1]
+    assert encode(defn, False) == [0]
