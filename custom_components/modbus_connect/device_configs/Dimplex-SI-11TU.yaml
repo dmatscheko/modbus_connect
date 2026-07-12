@@ -91,7 +91,6 @@ holding:
       name: Heizung Parallelverschiebung
       icon: "mdi:home-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   heating_room_temperature:
     address: 46
     groups: [basic]
@@ -103,7 +102,6 @@ holding:
       unit_of_measurement: "°C"
       icon: "mdi:home-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   heating_fixed_target:
     address: 5037
     groups: [basic]
@@ -119,7 +117,6 @@ holding:
       unit_of_measurement: "°C"
       icon: "mdi:home-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   heating_hysteresis:
     address: 47
     multiplier: 0.1
@@ -133,7 +130,6 @@ holding:
       unit_of_measurement: K
       icon: "mdi:home-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   external_block_software:
     address: 5130
     groups: [basic]
@@ -157,7 +153,6 @@ holding:
       unit_of_measurement: K
       icon: "mdi:water-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   hot_water_fixed_target:
     address: 5047
     groups: [basic]
@@ -173,7 +168,6 @@ holding:
       unit_of_measurement: "°C"
       icon: "mdi:water-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   hot_water_max_fixed_target:
     address: 5048
     groups: [basic]
@@ -185,7 +179,6 @@ holding:
       unit_of_measurement: "°C"
       icon: "mdi:water-thermometer-outline"
       entity_category: config
-      enabled_by_default: false
   solltemp_dyn_kuehlung:
     address: 5043
     groups: [cooling]
@@ -637,7 +630,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   heating_3rd_loop_temp:
     address: 10
     multiplier: 0.1
@@ -649,7 +641,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   heating_return_target:
     address: 53
     multiplier: 0.1
@@ -661,7 +652,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   heating_1st_loop_return_target:
     address: 29
     multiplier: 0.1
@@ -684,7 +674,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   heating_3rd_loop_return_target:
     address: 55
     multiplier: 0.1
@@ -696,7 +685,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   hot_water_temp:
     address: 3
     multiplier: 0.1
@@ -719,7 +707,6 @@ input:
       device_class: temperature
       state_class: measurement
       icon: "mdi:thermometer"
-      enabled_by_default: false
   flow_temp:
     address: 5
     multiplier: 0.1
@@ -1192,7 +1179,6 @@ discrete:
       name: Warmwasserthermostat
       icon: "mdi:thermostat"
       entity_category: diagnostic
-      enabled_by_default: false
   utility_block:
     address: 5
     groups: [basic]
@@ -1201,7 +1187,6 @@ discrete:
       name: EVU-Sperre
       icon: "mdi:eye-lock"
       entity_category: diagnostic
-      enabled_by_default: false
   external_block:
     address: 6
     groups: [basic]
@@ -1210,7 +1195,6 @@ discrete:
       name: Sperre Extern
       icon: "mdi:eye-lock"
       entity_category: diagnostic
-      enabled_by_default: false
   compressor1:
     address: 41
     groups: [basic]
@@ -1251,7 +1235,6 @@ discrete:
       name: Mischer (M21) Modus
       device_class: opening
       entity_category: diagnostic
-      enabled_by_default: false
   additional_pump:
     address: 49
     groups: [basic]
@@ -1268,7 +1251,6 @@ discrete:
       name: Heizungspumpe (M15) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   mixer_m22_open:
     address: 52
     groups: [basic]
@@ -1277,7 +1259,6 @@ discrete:
       name: Mischer (M22) Modus
       device_class: opening
       entity_category: diagnostic
-      enabled_by_default: false
   pool_pump:
     address: 56
     groups: [basic]
@@ -1286,7 +1267,6 @@ discrete:
       name: Schwimmbadpumpe (M19) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   error_indicator:
     address: 57
     groups: [basic]
@@ -1295,7 +1275,6 @@ discrete:
       name: Sammelstörmeldung (H5) Modus
       device_class: problem
       entity_category: diagnostic
-      enabled_by_default: false
   heating_pump_m14:
     address: 59
     groups: [basic]
@@ -1304,7 +1283,6 @@ discrete:
       name: Heizungspumpe (M14) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   cooling_pump:
     address: 60
     groups: [basic]
@@ -1313,7 +1291,6 @@ discrete:
       name: Kühlpumpe (M17) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   heating_pump_m20:
     address: 61
     groups: [basic]
@@ -1322,7 +1299,6 @@ discrete:
       name: Heizungspumpe (M20) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   room_thermostat_mode:
     address: 66
     groups: [basic]
@@ -1330,7 +1306,6 @@ discrete:
       platform: binary_sensor
       name: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
       entity_category: diagnostic
-      enabled_by_default: false
   cooling_primary_pump:
     address: 68
     groups: [basic]
@@ -1339,7 +1314,6 @@ discrete:
       name: Primärpumpe Kühlen (M12) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   solar_pump:
     address: 71
     groups: [basic]
@@ -1348,7 +1322,6 @@ discrete:
       name: Solarpumpe (M23) Modus
       device_class: running
       entity_category: diagnostic
-      enabled_by_default: false
   aktiv_zeit_1:
     address: 125
     groups: [schedule]

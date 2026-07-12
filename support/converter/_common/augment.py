@@ -35,6 +35,7 @@ import io
 import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import yaml
@@ -727,6 +728,7 @@ def write_augmented(
     variant: str | Path | None = None,
     note: str | None = None,
     header: str | None = None,
+    transform: Callable[[dict], None] | None = None,
     augment_dir: str | Path | None = None,
     dest_dir: str | Path | None = None,
 ) -> dict:
@@ -737,6 +739,8 @@ def write_augmented(
     The file header is composed here (one canonical format): pass ``source`` (what upstream
     this device came from) and ``variant`` (the converter script's ``__file__``); an optional
     ``note`` becomes a trailing header line. ``header`` overrides the composed text entirely.
+    ``transform`` is a final in-place tweak of the fully-applied intermediate (after ops,
+    before emit) for device-family-wide adjustments a converter wants to make reversibly.
 
     Returns a small ``{table: count}`` summary for logging."""
     augment_dir = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
@@ -745,6 +749,8 @@ def write_augmented(
 
     spec = load(augment_dir / folder / "augment.yaml")
     final = apply(ir, spec)
+    if transform is not None:
+        transform(final)
     # Fold the shared translate-once memory (overridden by the device's own
     # translations:) into the per-device catalog, and report untranslated strings.
     untranslated = resolve_translations(final, load_shared_translations())

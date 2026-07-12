@@ -78,7 +78,6 @@ holding:
       name: Luftfeuchtigkeit Regelung
       icon: "mdi:dip-switch"
       entity_category: config
-      enabled_by_default: false
   co2_regelung_select:
     address: 39
     groups: [basic]
@@ -90,7 +89,6 @@ holding:
       name: CO2 Regelung
       icon: "mdi:dip-switch"
       entity_category: config
-      enabled_by_default: false
   filter_reset_button:
     address: 33
     write_value: 1
@@ -229,7 +227,6 @@ holding:
       device_class: humidity
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   co2_maximum_number:
     address: 40
     groups: [basic]
@@ -242,7 +239,6 @@ holding:
       device_class: carbon_dioxide
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   ewt_sommer:
     address: 3
     multiplier: 0.1
@@ -1142,7 +1138,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   zuluftventilator_drehzahl:
     address: 39
     groups: [basic]
@@ -1281,7 +1276,6 @@ input:
       unit_of_measurement: h
       state_class: total_increasing
       icon: "mdi:timer-sand"
-      enabled_by_default: false
   position_bypassklappe:
     address: 51
     groups: [basic]
@@ -1304,7 +1298,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water"
-      enabled_by_default: false
   feuchtesensor_2:
     address: 92
     groups: [basic]
@@ -1315,7 +1308,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water"
-      enabled_by_default: false
   co2_sensor_1:
     address: 89
     groups: [basic]
@@ -1326,7 +1318,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:water"
-      enabled_by_default: false
   co2_sensor_2:
     address: 90
     groups: [basic]
@@ -1337,7 +1328,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:water"
-      enabled_by_default: false
   pic_ad_t2:
     address: 0
     ha:

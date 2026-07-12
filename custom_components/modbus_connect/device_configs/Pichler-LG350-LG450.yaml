@@ -67,7 +67,6 @@ holding:
       device_class: temperature
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   ewt_winter_number:
     address: 4
     multiplier: 0.1
@@ -83,7 +82,6 @@ holding:
       device_class: temperature
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   temperaturregelungsart_select:
     address: 7
     groups: [basic]
@@ -223,7 +221,6 @@ holding:
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
-      enabled_by_default: false
   filter_tauschintervall_stunden_number:
     address: 29
     groups: [basic]
@@ -235,7 +232,6 @@ holding:
       unit_of_measurement: h
       icon: "mdi:air-filter"
       entity_category: config
-      enabled_by_default: false
   raumtemperaturfuhler_select:
     address: 32
     groups: [basic]
@@ -247,7 +243,6 @@ holding:
       name: Raumtemperaturfühler Quelle
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   filter_reset_button:
     address: 33
     write_value: 1
@@ -277,7 +272,6 @@ holding:
       name: Konfiguration Lüftungsstufe
       icon: "mdi:fan"
       entity_category: config
-      enabled_by_default: false
   bedieneinheit_fehlerausgabe_select:
     address: 35
     groups: [basic]
@@ -289,7 +283,6 @@ holding:
       name: Bedieneinheit Fehlerausgabe
       icon: "mdi:alert-circle"
       entity_category: config
-      enabled_by_default: false
   co2_regelung_select:
     address: 39
     groups: [basic]
@@ -301,7 +294,6 @@ holding:
       name: CO2 Regelung
       icon: "mdi:molecule-co2"
       entity_category: config
-      enabled_by_default: false
   co2_sollwert_number:
     address: 40
     groups: [basic]
@@ -314,7 +306,6 @@ holding:
       device_class: carbon_dioxide
       icon: "mdi:molecule-co2"
       entity_category: config
-      enabled_by_default: false
   luftfeuchtigkeit_regelung_select:
     address: 44
     groups: [basic]
@@ -326,7 +317,6 @@ holding:
       name: Feuchte Regelung
       icon: "mdi:water-percent"
       entity_category: config
-      enabled_by_default: false
   luftfeuchtigkeit_sollwert_number:
     address: 45
     groups: [basic]
@@ -339,7 +329,6 @@ holding:
       device_class: humidity
       icon: "mdi:water-percent"
       entity_category: config
-      enabled_by_default: false
   feuchte_regelung_ls3_max_zeit_number:
     address: 46
     groups: [basic]
@@ -351,7 +340,6 @@ holding:
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
-      enabled_by_default: false
   sommer_winter_zeitumstellung_select:
     address: 48
     groups: [basic]
@@ -363,7 +351,6 @@ holding:
       name: Sommer/Winter Zeitumstellung
       icon: "mdi:calendar-clock"
       entity_category: config
-      enabled_by_default: false
   bypassklappe_select:
     address: 49
     groups: [basic]
@@ -391,7 +378,6 @@ holding:
       device_class: temperature
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   soll_raumlufttemperatur_abgesenkt_number:
     address: 57
     multiplier: 0.1
@@ -407,7 +393,6 @@ holding:
       device_class: temperature
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   soll_ablufttemperatur_abgesenkt_number:
     address: 58
     multiplier: 0.1
@@ -423,7 +408,6 @@ holding:
       device_class: temperature
       icon: "mdi:thermometer"
       entity_category: config
-      enabled_by_default: false
   system_reset_select:
     address: 63
     groups: [basic]
@@ -437,7 +421,6 @@ holding:
       name: System Zurücksetzen
       icon: "mdi:restart"
       entity_category: config
-      enabled_by_default: false
   vorheizregister_target_number:
     address: 65
     multiplier: 0.1
@@ -464,7 +447,6 @@ holding:
       name: Automatische Umschaltung Sommer/Winter
       icon: "mdi:auto-mode"
       entity_category: config
-      enabled_by_default: false
   para_max_zeit_luftungsstufe_3_number:
     address: 70
     groups: [basic]
@@ -476,7 +458,6 @@ holding:
       unit_of_measurement: min
       icon: "mdi:fan-clock"
       entity_category: config
-      enabled_by_default: false
   zul_kanaldruck_stufe_1_number:
     address: 95
     groups: [basic]
@@ -489,7 +470,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   zul_kanaldruck_stufe_2_number:
     address: 96
     groups: [basic]
@@ -502,7 +482,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   zul_kanaldruck_stufe_3_number:
     address: 97
     groups: [basic]
@@ -515,7 +494,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   zul_kanaldruck_grundluftung_number:
     address: 98
     groups: [basic]
@@ -528,7 +506,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   abl_kanaldruck_stufe_1_number:
     address: 99
     groups: [basic]
@@ -541,7 +518,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   abl_kanaldruck_stufe_2_number:
     address: 100
     groups: [basic]
@@ -554,7 +530,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   abl_kanaldruck_stufe_3_number:
     address: 101
     groups: [basic]
@@ -567,7 +542,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   abl_kanaldruck_grundluftung_number:
     address: 102
     groups: [basic]
@@ -580,7 +554,6 @@ holding:
       device_class: pressure
       icon: "mdi:waveform"
       entity_category: config
-      enabled_by_default: false
   abluftbalance_stufe1_number:
     address: 83
     offset: -500
@@ -594,7 +567,6 @@ holding:
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-1"
       entity_category: config
-      enabled_by_default: false
   abluftbalance_stufe2_number:
     address: 84
     offset: -500
@@ -608,7 +580,6 @@ holding:
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-2"
       entity_category: config
-      enabled_by_default: false
   abluftbalance_stufe3_number:
     address: 85
     offset: -500
@@ -622,7 +593,6 @@ holding:
       device_class: volume_flow_rate
       icon: "mdi:fan-speed-3"
       entity_category: config
-      enabled_by_default: false
   abluftbalance_grundluftung_number:
     address: 86
     offset: -500
@@ -636,7 +606,6 @@ holding:
       device_class: volume_flow_rate
       icon: "mdi:fan"
       entity_category: config
-      enabled_by_default: false
   freigabe_heizen_select:
     address: 89
     groups: [basic]
@@ -648,7 +617,6 @@ holding:
       name: Freigabe Heizen
       icon: "mdi:fire"
       entity_category: config
-      enabled_by_default: false
   freigabe_kuhlen_select:
     address: 90
     groups: [basic]
@@ -660,7 +628,6 @@ holding:
       name: Freigabe Kühlen
       icon: "mdi:snowflake"
       entity_category: config
-      enabled_by_default: false
   zeitprogramm_luftungsstufen_select:
     address: 103
     groups: [basic]
@@ -672,7 +639,6 @@ holding:
       name: Zeitprogramm Lüftungsstufen
       icon: "mdi:calendar-clock"
       entity_category: config
-      enabled_by_default: false
   zeitprogramm_temperaturregelung_select:
     address: 104
     groups: [basic]
@@ -684,7 +650,6 @@ holding:
       name: Zeitprogramm Temperaturregelung
       icon: "mdi:calendar-clock"
       entity_category: config
-      enabled_by_default: false
   firmwareversion_touchdisplay:
     address: 105
     groups: [firmware]
@@ -938,7 +903,6 @@ input:
       state_class: measurement
       precision: 0
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   l7_ai2_rf_sensor:
     address: 3
     multiplier: 0.02442
@@ -951,7 +915,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:water-percent"
-      enabled_by_default: false
   aussentemperatur_gedaempft:
     address: 13
     multiplier: 0.1
@@ -965,7 +928,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   l7_ai4_abluft_extern:
     address: 103
     multiplier: 0.01221
@@ -978,7 +940,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   t6_zuluft_extern:
     address: 4
     multiplier: 0.1
@@ -992,7 +953,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   t7_aussen_extern:
     address: 5
     multiplier: 0.1
@@ -1006,7 +966,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   t8_raum_extern:
     address: 9
     multiplier: 0.1
@@ -1020,7 +979,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   t9_touch_display:
     address: 10
     multiplier: 0.1
@@ -1034,7 +992,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   mischer_heizen_0_10v:
     address: 11
     multiplier: 0.01
@@ -1045,7 +1002,6 @@ input:
       unit_of_measurement: V
       precision: 2
       icon: "mdi:fire"
-      enabled_by_default: false
   mischer_kuhlen_0_10v:
     address: 12
     multiplier: 0.01
@@ -1056,7 +1012,6 @@ input:
       unit_of_measurement: V
       precision: 2
       icon: "mdi:snowflake"
-      enabled_by_default: false
   mischer_kombi_0_10v:
     address: 26
     multiplier: 0.01
@@ -1067,7 +1022,6 @@ input:
       unit_of_measurement: V
       precision: 2
       icon: "mdi:water-opacity"
-      enabled_by_default: false
   relais_h2_vorheizregister:
     address: 16
     on_value: 1
@@ -1086,7 +1040,6 @@ input:
       name: Heizanforderung
       device_class: heat
       icon: "mdi:fire"
-      enabled_by_default: false
   relais_h5_kuhlanforderung:
     address: 18
     on_value: 1
@@ -1096,7 +1049,6 @@ input:
       name: Kühlanforderung
       device_class: running
       icon: "mdi:snowflake"
-      enabled_by_default: false
   relais_h67_ventilatoren:
     address: 19
     on_value: 1
@@ -1106,7 +1058,6 @@ input:
       name: Ventilatoren
       device_class: running
       icon: "mdi:fan"
-      enabled_by_default: false
   bypassklappe_status:
     address: 20
     on_value: 1
@@ -1125,7 +1076,6 @@ input:
       name: "Außenluft- & Fortluftklappen"
       device_class: opening
       icon: "mdi:valve"
-      enabled_by_default: false
   relais_h10_heizpumpe:
     address: 27
     on_value: 1
@@ -1135,7 +1085,6 @@ input:
       name: Pumpe Nachheizregister
       device_class: running
       icon: "mdi:pump"
-      enabled_by_default: false
   relais_h11_kuhlpumpe:
     address: 28
     on_value: 1
@@ -1145,7 +1094,6 @@ input:
       name: Pumpe Kühl-/Kombiregister
       device_class: running
       icon: "mdi:pump"
-      enabled_by_default: false
   summenstoermeldung:
     address: 29
     on_value: 1
@@ -1166,7 +1114,6 @@ input:
       device_class: problem
       icon: "mdi:air-filter"
       entity_category: diagnostic
-      enabled_by_default: false
   temperatur_aussenluft:
     address: 30
     multiplier: 0.1
@@ -1232,7 +1179,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   e1_din_extern_aus_bmz:
     address: 37
     on_value: 1
@@ -1241,7 +1187,6 @@ input:
       platform: binary_sensor
       name: Extern Aus / BMZ
       icon: "mdi:alert-circle"
-      enabled_by_default: false
   e2_din_extern_luftstufe3:
     address: 38
     on_value: 1
@@ -1251,7 +1196,6 @@ input:
       name: Extern Lüftungsstufe 3
       device_class: running
       icon: "mdi:fan"
-      enabled_by_default: false
   drehzahl_zuluft:
     address: 39
     groups: [basic]
@@ -1298,7 +1242,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   msensor1_rf:
     address: 45
     groups: [basic]
@@ -1309,7 +1252,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water-percent"
-      enabled_by_default: false
   zuluft_volumenstrom_istwert:
     address: 46
     groups: [basic]
@@ -1366,7 +1308,6 @@ input:
       state_class: measurement
       precision: 1
       icon: "mdi:thermometer"
-      enabled_by_default: false
   co2_regelsignal:
     address: 56
     groups: [basic]
@@ -1377,7 +1318,6 @@ input:
       device_class: volume_flow_rate
       state_class: measurement
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   vorheizregister_pwm:
     address: 58
     multiplier: 0.01
@@ -1413,7 +1353,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_bedieneinheit:
     address: 61
     on_value: 1
@@ -1424,7 +1363,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_frostschutz_nhr:
     address: 62
     on_value: 1
@@ -1435,7 +1373,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_fortluftventilator:
     address: 63
     on_value: 1
@@ -1466,7 +1403,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t2_fortluft:
     address: 66
     on_value: 1
@@ -1477,7 +1413,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t3_abluft:
     address: 67
     on_value: 1
@@ -1488,7 +1423,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t4_zuluft:
     address: 68
     on_value: 1
@@ -1499,7 +1433,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t5_vorheizregister:
     address: 69
     on_value: 1
@@ -1510,7 +1443,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t6_zuluft_extern:
     address: 70
     on_value: 1
@@ -1521,7 +1453,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t7_aussenluft_extern:
     address: 71
     on_value: 1
@@ -1532,7 +1463,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_t8_raum_extern:
     address: 72
     on_value: 1
@@ -1543,7 +1473,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_ventilatoren_kommunikation:
     address: 73
     on_value: 1
@@ -1554,7 +1483,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_niedrige_zuluft_temperatur:
     address: 74
     on_value: 1
@@ -1595,7 +1523,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   fehler_modbus_sensoren:
     address: 88
     on_value: 1
@@ -1606,7 +1533,6 @@ input:
       device_class: problem
       icon: "mdi:alert-circle"
       entity_category: diagnostic
-      enabled_by_default: false
   co2_sensor_1:
     address: 89
     groups: [basic]
@@ -1617,7 +1543,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   co2_sensor_2:
     address: 90
     groups: [basic]
@@ -1628,7 +1553,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   feuchtesensor_1:
     address: 91
     groups: [basic]
@@ -1639,7 +1563,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water-percent"
-      enabled_by_default: false
   feuchtesensor_2:
     address: 92
     groups: [basic]
@@ -1650,7 +1573,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water-percent"
-      enabled_by_default: false
   msensor2_co2:
     address: 97
     groups: [basic]
@@ -1661,7 +1583,6 @@ input:
       device_class: carbon_dioxide
       state_class: measurement
       icon: "mdi:molecule-co2"
-      enabled_by_default: false
   msensor2_rf:
     address: 98
     groups: [basic]
@@ -1672,7 +1593,6 @@ input:
       device_class: humidity
       state_class: measurement
       icon: "mdi:water-percent"
-      enabled_by_default: false
   firmware_version:
     address: 23
     groups: [basic]
@@ -1712,7 +1632,6 @@ input:
       name: Extern Frostschutz
       device_class: running
       icon: "mdi:snowflake"
-      enabled_by_default: false
   raumsoll_zeitprogramm_status:
     address: 118
     on_value: 1
@@ -1722,7 +1641,6 @@ input:
       name: Zeitprogramm Raumtemperatur Status
       device_class: running
       icon: "mdi:calendar-clock"
-      enabled_by_default: false
   luftungsstufe_zeitprogramm:
     address: 119
     groups: [basic]
@@ -1737,7 +1655,6 @@ input:
       platform: sensor
       name: Zeitprogramm Lüftungsstufe
       icon: "mdi:calendar-clock"
-      enabled_by_default: false
   betriebsstunden_luftungsstufe_2:
     address: 81
     groups: [basic]
