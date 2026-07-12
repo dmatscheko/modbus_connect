@@ -2649,7 +2649,7 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: Battery Charge Max Current
+      name: BMS Charge Max Current
       unit_of_measurement: A
       precision: 1
       icon: "mdi:current-dc"
@@ -2658,7 +2658,7 @@ input:
     multiplier: 0.1
     ha:
       platform: sensor
-      name: Battery Discharge Max Current
+      name: BMS Discharge Max Current
       unit_of_measurement: A
       precision: 1
       icon: "mdi:current-dc"
@@ -5457,6 +5457,12 @@ translations:
   Battery Input Energy Today:
     de: Batterie Eingangsenergie heute
     en: Battery Input Energy Today
+  BMS Charge Max Current:
+    de: BMS max. Ladestrom
+    en: BMS Charge Max Current
+  BMS Discharge Max Current:
+    de: BMS max. Entladestrom
+    en: BMS Discharge Max Current
   Battery Total Energy:
     de: Batterie Gesamtenergie
     en: Battery Total Energy

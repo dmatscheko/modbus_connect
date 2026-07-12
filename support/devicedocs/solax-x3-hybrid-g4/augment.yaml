@@ -130,7 +130,9 @@ translations:
   - {de: Batterie-Spannungsfehlerwert, en: Battery Volt Fault Val}
   - {de: Batterie Zellspannungsdifferenz, en: Battery voltage cell difference}
   - {de: Batterie Ladespannung, en: Battery Voltage Charge}
+  - {de: BMS max. Ladestrom, en: BMS Charge Max Current}
   - {de: BMS-Verbindungsstatus, en: BMS Connect State}
+  - {de: BMS max. Entladestrom, en: BMS Discharge Max Current}
   - {de: BMS max. Ladung, en: BMS max charge}
   - {de: Bus-Spannung, en: Bus Volt}
   - {de: Zellspannung hoch, en: Cell Voltage High}
@@ -439,3 +441,12 @@ ops:
       5: Push Power - Zero Mode
   where:
     key: modbus_power_control_direct
+# fix: upstream names both the writable limit (holding 36/37) and the BMS-reported
+# limit (input 36/37) "Battery Charge/Discharge Max Current"; every entity needs a
+# distinct display name, so the read-only BMS sensors carry their key's BMS prefix.
+- set: {ha: {name: BMS Charge Max Current}}
+  where:
+    key: bms_charge_max_current
+- set: {ha: {name: BMS Discharge Max Current}}
+  where:
+    key: bms_discharge_max_current

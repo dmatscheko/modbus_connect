@@ -315,8 +315,8 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0020` (32) — Battery Output Energy Today<br>`battery_output_energy_today` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0021` (33) — Battery Input Energy Total<br>`battery_input_energy_total` | Input (3x) | FC04 read | uint32 · swap word · ×0.1 |
 | `0x0023` (35) — Battery Input Energy Today<br>`battery_input_energy_today` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x0024` (36) — Battery Charge Max Current<br>`bms_charge_max_current` | Input (3x) | FC04 read | uint16 · ×0.1 |
-| `0x0025` (37) — Battery Discharge Max Current<br>`bms_discharge_max_current` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0024` (36) — BMS Charge Max Current<br>`bms_charge_max_current` | Input (3x) | FC04 read | uint16 · ×0.1 |
+| `0x0025` (37) — BMS Discharge Max Current<br>`bms_discharge_max_current` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0026` (38) — Battery Total Energy<br>`bms_battery_capacity` | Input (3x) | FC04 read | uint32 · swap word |
 | `0x0032` (50) — PV Power Total<br>`pv_power_total` | Input (3x) | FC04 read | uint32 · swap word |
 | `0x0034` (52) — Total On-Grid Power<br>`ongrid_power_total` | Input (3x) | FC04 read | int32 · swap word |
