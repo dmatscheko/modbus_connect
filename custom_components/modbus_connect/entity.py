@@ -21,8 +21,26 @@ from .models import (
     SwitchTarget,
     TemplateDef,
     WriteTarget,
+    derive_name,
 )
 from .schema import DESCRIPTION_CLASSES, description_fields
+
+
+def _platform_description(
+    platform: str,
+    key: str,
+    ha: dict[str, Any],
+    overrides: dict[str, Any] | None = None,
+) -> EntityDescription:
+    """Shared builder core: keep the ``ha:`` fields the platform's
+    EntityDescription knows, apply overrides, default the name from the key."""
+    desc_cls = DESCRIPTION_CLASSES[platform]
+    known = description_fields(desc_cls)
+    values = {k: v for k, v in ha.items() if k in known}
+    if overrides:
+        values.update(overrides)
+    values.setdefault("name", derive_name(key))
+    return desc_cls(key=key, **values)
 
 
 def build_description(
@@ -35,13 +53,7 @@ def build_description(
     With ``platform`` set, fields the target platform does not know are
     silently dropped (used for duplicate_as_sensor mirrors).
     """
-    desc_cls = DESCRIPTION_CLASSES[platform or defn.platform]
-    known = description_fields(desc_cls)
-    values = {k: v for k, v in defn.ha.items() if k in known}
-    if overrides:
-        values.update(overrides)
-    values.setdefault("name", defn.key.replace("_", " ").capitalize())
-    return desc_cls(key=defn.key, **values)
+    return _platform_description(platform or defn.platform, defn.key, defn.ha, overrides)
 
 
 def build_mirror_description(defn: EntityDef) -> EntityDescription:
@@ -135,11 +147,7 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
 
 def build_template_description(tdef: TemplateDef) -> EntityDescription:
     """Build the EntityDescription for a template: entry."""
-    desc_cls = DESCRIPTION_CLASSES[tdef.platform]
-    known = description_fields(desc_cls)
-    values = {k: v for k, v in tdef.ha.items() if k in known}
-    values.setdefault("name", tdef.key.replace("_", " ").capitalize())
-    return desc_cls(key=tdef.key, **values)
+    return _platform_description(tdef.platform, tdef.key, tdef.ha)
 
 
 class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):

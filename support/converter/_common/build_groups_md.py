@@ -18,9 +18,10 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_registers_md as R
 
-# The integration's HA-import-free model module is the source of the table order.
+# The integration's HA-import-free model module is the source of the table
+# order and the derived group-switch label.
 sys.path.insert(0, str(R.REPO))
-from custom_components.modbus_connect.models import TABLES
+from custom_components.modbus_connect.models import TABLES, derive_name
 
 # Fixed descriptions for the tier groups; feature groups fall back to their label.
 FIXED = {
@@ -31,7 +32,7 @@ UNTAGGED = ("expert", "Raw internal / diagnostic registers (rail & ADC readings,
 
 
 def _switch_label(group: str, labels: dict) -> str:
-    base = labels.get(group) or (group[:1].upper() + group[1:].replace("_", " "))
+    base = labels.get(group) or derive_name(group)
     return f"Enable {base} entities"
 
 

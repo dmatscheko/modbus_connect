@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.modbus_connect.models import SwitchTarget
+from custom_components.modbus_connect.models import SwitchTarget, derive_name
 from custom_components.modbus_connect.schema import DeviceSchemaError, parse_device
 
 DEVICE = {"device": {"manufacturer": "Acme", "model": "X1"}}
@@ -1500,6 +1500,14 @@ def test_group_labels_parse_and_resolve():
     assert dev.group_label("pm_i1") == "Parallel mode Inverter 1"  # override
     assert dev.group_label("eps") == "EPS"                          # override
     assert dev.group_label("advanced") == "Advanced"                # derived fallback
+
+
+def test_derive_name_preserves_inner_case():
+    """The shared display-name default: first letter up, underscores to spaces,
+    the rest of the key keeps its case (entity names and group labels alike)."""
+    assert derive_name("parallel_mode") == "Parallel mode"
+    assert derive_name("CO2_level") == "CO2 level"
+    assert derive_name("AcChargeEnable") == "AcChargeEnable"
 
 
 def test_group_labels_unknown_group_rejected():

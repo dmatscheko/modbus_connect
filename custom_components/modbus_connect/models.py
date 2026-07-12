@@ -96,6 +96,14 @@ TEMPLATE_PLATFORMS = frozenset(
 SWAP_MODES = frozenset({"byte", "word", "word_byte"})
 
 
+def derive_name(key: str) -> str:
+    """Default display label for an identifier: underscores become spaces and
+    the first letter is capitalized, the rest keeps its case
+    (``parallel_mode`` -> ``Parallel mode``, ``CO2_level`` -> ``CO2 level``).
+    Shared by entity/template name defaults and group-switch labels."""
+    return (key[:1].upper() + key[1:]).replace("_", " ")
+
+
 @dataclass(frozen=True, order=True)
 class Span:
     """A contiguous range of addresses in one Modbus table."""
@@ -302,9 +310,9 @@ class DeviceDef:
 
     def group_label(self, name: str) -> str:
         """Human label for a group's switch: the file's ``group_labels`` override
-        if any, else the name with underscores as spaces and the first letter
-        capitalized (``parallel_mode`` -> ``Parallel mode``)."""
+        if any, else the :func:`derive_name` default (``parallel_mode`` ->
+        ``Parallel mode``)."""
         for key, label in self.group_labels:
             if key == name:
                 return label
-        return (name[:1].upper() + name[1:]).replace("_", " ")
+        return derive_name(name)
