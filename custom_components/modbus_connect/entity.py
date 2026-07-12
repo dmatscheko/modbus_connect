@@ -98,6 +98,18 @@ def resolve_on_off(defn: EntityDef, value: Any) -> bool | None:
     return bool(value)
 
 
+def on_off_payload(defn: EntityDef, on: bool) -> Any:
+    """Write-side twin of :func:`resolve_on_off`, shared by switch and valve:
+    the configured ``on_value``/``off_value`` if any, else a plain boolean on
+    bit tables and 1/0 on registers."""
+    configured = defn.on_value if on else defn.off_value
+    if configured is not None:
+        return configured
+    if defn.table in BIT_TABLES:
+        return on
+    return 1 if on else 0
+
+
 class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
     """Base entity: value access, availability, write helper."""
 

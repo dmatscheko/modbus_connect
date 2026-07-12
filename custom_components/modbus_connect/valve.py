@@ -16,8 +16,8 @@ from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectEntity, build_description, resolve_on_off
-from .models import BIT_TABLES, EntityDef
+from .entity import ModbusConnectEntity, build_description, on_off_payload, resolve_on_off
+from .models import EntityDef
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
@@ -78,25 +78,17 @@ class ModbusConnectValve(ModbusConnectEntity, ValveEntity):
         is_open = resolve_on_off(self._defn, self.device_value)
         return None if is_open is None else not is_open
 
-    def _payload(self, open_valve: bool) -> object:
-        configured = self._defn.on_value if open_valve else self._defn.off_value
-        if configured is not None:
-            return configured
-        if self._defn.table in BIT_TABLES:
-            return open_valve
-        return 1 if open_valve else 0
-
     async def async_open_valve(self) -> None:
         if self.reports_position:
             await self._write(100)
         else:
-            await self._write(self._payload(True))
+            await self._write(on_off_payload(self._defn, True))
 
     async def async_close_valve(self) -> None:
         if self.reports_position:
             await self._write(0)
         else:
-            await self._write(self._payload(False))
+            await self._write(on_off_payload(self._defn, False))
 
     async def async_set_valve_position(self, position: int) -> None:
         await self._write(position)

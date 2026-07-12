@@ -17,10 +17,10 @@ from .entity import (
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
+    on_off_payload,
     resolve_on_off,
     suggest_entity_id,
 )
-from .models import BIT_TABLES
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
@@ -62,19 +62,11 @@ class ModbusConnectSwitch(ModbusConnectEntity, SwitchEntity):
     def is_on(self) -> bool | None:
         return resolve_on_off(self._defn, self.device_value)
 
-    def _payload(self, turn_on: bool) -> Any:
-        configured = self._defn.on_value if turn_on else self._defn.off_value
-        if configured is not None:
-            return configured
-        if self._defn.table in BIT_TABLES:
-            return turn_on
-        return 1 if turn_on else 0
-
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await self._write(self._payload(True))
+        await self._write(on_off_payload(self._defn, True))
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self._write(self._payload(False))
+        await self._write(on_off_payload(self._defn, False))
 
 
 class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
