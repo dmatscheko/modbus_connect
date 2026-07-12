@@ -207,8 +207,9 @@ def human_size(n: int) -> str:
 
 
 # Repo-generated / tooling files that share the device folder but are NOT manufacturer
-# source documents, so they never appear in the "Local copy" list.
-_NON_SOURCE_FILES = {"registers.md", "groups.md", "caveats.md", "augment.yaml"}
+# source documents, so they never appear in the "Local copy" list. device.yaml is the
+# owned device's in-tree source of truth, not a downloaded manufacturer doc.
+_NON_SOURCE_FILES = {"registers.md", "groups.md", "caveats.md", "augment.yaml", "device.yaml"}
 
 
 def local_files(folder: str, primary: str | None) -> list[str]:

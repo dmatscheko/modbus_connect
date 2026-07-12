@@ -1,6 +1,7 @@
-# Generated from support/devicedocs/solax-x3-hac/device.yaml (hand-maintained) —
-# do not edit here; edit support/devicedocs/solax-x3-hac/device.yaml and re-run:
-#   .venv/bin/python support/converter/convert_all.py
+# Hand-maintained source of truth for the solax-x3-hac device.
+# Edit this file directly; support/converter/convert_all.py runs it through the
+# augment library to regenerate
+# custom_components/modbus_connect/device_configs/solax-x3-hac.yaml.
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:

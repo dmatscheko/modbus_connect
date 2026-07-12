@@ -10,10 +10,11 @@ Usage:
 Most MLG-derived bundled files are byte-identical to this converter's output
 and safe to regenerate. These have been HAND-EDITED after conversion and must
 NOT be overwritten blindly (diff against fresh output and re-apply):
-    Test.yaml (annotated example), Salda_RIS_MCB.yaml (fan+climate templates),
-    Pichler-LG150-LG250.yaml, Pichler-LG350-LG450.yaml (templates, internals,
-    filter button), Dimplex-SI-11TU.yaml (climate templates own the setpoints),
-    Fröling_BWP300PV.yaml (repaired 0-indexed flags).
+    test.yaml (annotated example), salda-ris-mcb.yaml (fan+climate templates),
+    froeling-bwp300-pv.yaml (repaired 0-indexed flags).
+
+Dimplex and Pichler are NOT produced here — they are owned in-tree (their source
+of truth is support/devicedocs/<slug>/device.yaml) and skipped below.
 """
 
 from __future__ import annotations
@@ -31,8 +32,8 @@ _aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment
 augment = importlib.util.module_from_spec(_aug_spec)
 _aug_spec.loader.exec_module(augment)
 
-# Owned by the specialized dimplex_pichler importer (base + documented extras +
-# composite templates); this converter leaves them to that later pass.
+# Owned in-tree (source of truth: support/devicedocs/<slug>/device.yaml); their base
+# files exist in the MLG upstream, but this converter leaves them to write_owned.
 SPECIALIZED = {"Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"}
 
 SECTION_TO_TABLE = {
@@ -391,14 +392,15 @@ def convert_file(path: Path, out_dir: Path) -> int:
         return 0
     name = path.stem
     if name in SPECIALIZED:
-        print(f"  {path.name}: owned by the dimplex_pichler importer — skipped")
+        print(f"  {path.name}: owned in-tree (device.yaml) — skipped")
         return 0
     ir = to_intermediate(convert_device(doc, path.name))
     augment.write_augmented(
         ir, name, source=f"modbus_local_gateway '{path.name}'", variant=__file__, dest_dir=out_dir
     )
     count = sum(len(ir.get(s, ())) for s in augment.TABLES)
-    print(f"  {path.name}: {count} entities -> {out_dir / f'{name}.yaml'}")
+    # output is named after the devicedocs slug, not the upstream basename
+    print(f"  {path.name}: {count} entities -> {out_dir / f'{augment.folder_for(name)}.yaml'}")
     return count
 
 

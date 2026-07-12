@@ -106,9 +106,9 @@ for: **persistent state across polls**, a **periodic timer**, **feedback** from
 live measurements, a **multi-register transactional write** each tick, and a
 **teardown** step. A one-shot stateless render cannot express a control loop.
 
-That is why the converter drops it: any button carrying a `value_function` is
-skipped (`support/converter/solax/homeassistant_solax_modbus-convert.py`, `add_button`), the
-same way register-less computed sensors are.
+That is why it was dropped when SolaX was imported: any button carrying a
+`value_function` was skipped, the same way register-less computed sensors were —
+so it is simply absent from the owned `support/devicedocs/solax-x3-hybrid-g4/device.yaml`.
 
 ## What you *can* do today
 
@@ -158,5 +158,6 @@ device.
 
 - Upstream button + loop: `homeassistant-solax-modbus`
   `custom_components/solax_modbus/plugin_solax.py:1501` and `:709`.
-- Time/`value_function` handling and skips: `support/converter/solax/homeassistant_solax_modbus-convert.py`.
+- Time/`value_function` handling and skips: the original SolaX importer (removed once the
+  device became owned in-tree; see its history under `support/converter/` in git).
 - Device-file format (what *is* expressible): [docs/device_files.md](../docs/device_files.md).
