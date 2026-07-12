@@ -264,6 +264,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             e for e in device.entities if e.static_value is not None and e.key in needed
         ]
         self._link_templates: dict[str, Any] = {}
+        # Per-refresh hooks (see async_add_refresh_callback). Separate from the
+        # coordinator listeners, which always_update=False skips on unchanged data.
+        self._refresh_callbacks: list[Callable[[dict[str, Any]], None]] = []
         self.entity_defs = {e.key: e for e in device.entities}
         # value label -> raw map key, per mapped entity, for the template key()
         # helper. Built once (maps never change at runtime); a translated map
@@ -551,6 +554,25 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data.setdefault(defn.key, defn.static_value)
         return data
 
+    def async_add_refresh_callback(
+        self, refresh_callback: Callable[[dict[str, Any]], None]
+    ) -> Callable[[], None]:
+        """Register a hook called with the fresh data after every successful
+        refresh — including one where no value changed, which (because of
+        ``always_update=False``) never reaches the coordinator listeners. The
+        integrating sensors sample time from it: a constant 50 W accumulates
+        energy all the same. Returns the unsubscriber."""
+        self._refresh_callbacks.append(refresh_callback)
+
+        def _unsubscribe() -> None:
+            self._refresh_callbacks.remove(refresh_callback)
+
+        return _unsubscribe
+
+    def _notify_refresh(self, data: dict[str, Any]) -> None:
+        for refresh_callback in list(self._refresh_callbacks):
+            refresh_callback(data)
+
     async def _async_update_data(self) -> dict[str, Any]:
         now = time.monotonic()
         self._cycle_illegal.clear()
@@ -561,7 +583,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ]
         probes = sorted(k for k, t in self.quarantined.items() if t <= now)
         if not due and not probes:
-            return self._seeded_data()
+            data = self._seeded_data()
+            self._notify_refresh(data)
+            return data
 
         spans = {e.span for e in due}
         blocks = plan_blocks(
@@ -632,6 +656,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # read_register entities take their value from other (just-decoded) values
         for defn in self._linked:
             data[defn.key] = self._render_link(defn, data)
+        self._notify_refresh(data)
         return data
 
     def _missing(self, defn: EntityDef) -> bool:

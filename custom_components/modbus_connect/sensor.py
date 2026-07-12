@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
 
 from homeassistant.components.sensor import RestoreSensor, SensorEntity
 from homeassistant.const import EntityCategory
@@ -90,9 +91,12 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
     For values the device offers no native energy counter for, the ``state``
     template yields instantaneous power and each coordinator refresh advances a
     Riemann sum (``integrate: trapezoidal|left|right``) — a dashboard-ready
-    energy total without a manual Integral helper. The total survives restarts;
-    intervals where the source is unavailable (or HA was down) are skipped,
-    never interpolated.
+    energy total without a manual Integral helper. Sampling rides the
+    coordinator's per-refresh hook, not the listener updates: with
+    ``always_update=False`` a listener only fires when some value *changed*,
+    but a constant 50 W accumulates energy all the same. The total survives
+    restarts; intervals where the source is unavailable (or HA was down) are
+    skipped, never interpolated.
     """
 
     def __init__(
@@ -111,12 +115,19 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
         data = await self.async_get_last_sensor_data()
         if data is not None and isinstance(data.native_value, (int, float)):
             self._total = float(data.native_value)
-        self._advance()  # seed the first sample; the restart gap adds nothing
+        self.async_on_remove(
+            self.coordinator.async_add_refresh_callback(self._on_refresh)
+        )
+        self._advance(self.coordinator.data)  # seed; the restart gap adds nothing
 
-    def _advance(self) -> None:
-        value = None
-        if self.coordinator.last_update_success:  # a failed refresh leaves stale data
-            value = self.render_number("state")
+    @callback
+    def _on_refresh(self, data: dict[str, Any]) -> None:
+        """Sample every refresh (success implied) and publish the new total."""
+        self._advance(data)
+        self.async_write_ha_state()
+
+    def _advance(self, data: dict[str, Any] | None) -> None:
+        value = self.render_number("state", data)
         if value is None:  # source gap: drop the interval rather than interpolate
             self._last_sample = None
             return
@@ -134,7 +145,10 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._advance()
+        # Failures arrive here (the refresh hook fires only on success): drop
+        # the open interval — outages are skipped, never interpolated.
+        if not self.coordinator.last_update_success:
+            self._last_sample = None
         super()._handle_coordinator_update()
 
     @property

@@ -1351,3 +1351,22 @@ async def test_failure_window_deque_trims_on_write(hass, monkeypatch):
         await coordinator.async_refresh()
         ft.now += 400
     assert len(coordinator._failure_times) == 1  # older entries trimmed on write
+
+
+async def test_refresh_callback_fires_every_cycle(hass, monkeypatch):
+    """The per-refresh hook fires on every successful refresh — the unchanged
+    and the nothing-due cycles included (which never reach the listeners with
+    always_update=False) — and the unsubscriber removes it."""
+    client = FakeClient({0: 100})
+    device = make_device(sensor("p", 0))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    seen: list[dict] = []
+    unsub = coordinator.async_add_refresh_callback(seen.append)
+
+    await coordinator.async_refresh()          # first read
+    await coordinator.async_refresh()          # nothing due yet: early return
+    assert [d["p"] for d in seen] == [100, 100]
+
+    unsub()
+    await coordinator.async_refresh()
+    assert len(seen) == 2

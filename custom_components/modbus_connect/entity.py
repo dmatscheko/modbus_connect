@@ -166,24 +166,32 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self._compiled: dict[str, Template] = {}
         suggest_entity_id(self, coordinator, tdef.platform, tdef.key)
 
-    def render(self, field: str) -> Any:
-        """Render one of the configured templates; None if absent or failing."""
+    def render(self, field: str, data: dict[str, Any] | None = None) -> Any:
+        """Render one of the configured templates; None if absent or failing.
+
+        ``data`` defaults to the coordinator's current values; the per-refresh
+        hook passes the fresh dict explicitly (it runs before the coordinator
+        publishes it).
+        """
         source = self._tdef.config.get(field)
         if source is None:
             return None
-        return self._render_source(source, field)
+        return self._render_source(source, field, data)
 
-    def _render_source(self, source: str, cache_key: str) -> Any:
+    def _render_source(
+        self, source: str, cache_key: str, data: dict[str, Any] | None = None
+    ) -> Any:
         """Render a template string (compiled cache keyed by ``cache_key``)."""
         template = self._compiled.get(cache_key)
         if template is None:
             template = self._compiled[cache_key] = Template(source, self.hass)
-        data = self.coordinator.data
+        if data is None:
+            data = self.coordinator.data
         return render_over_values(template, data, key_fn=self.coordinator.key_lookup(data))
 
-    def render_number(self, field: str) -> float | None:
+    def render_number(self, field: str, data: dict[str, Any] | None = None) -> float | None:
         """Render a template that must produce a number."""
-        value = self.render(field)
+        value = self.render(field, data)
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return float(value)
         return None

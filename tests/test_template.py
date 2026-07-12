@@ -692,9 +692,10 @@ template:
 
 
 async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
-    """`integrate: trapezoidal` sums rendered watts over the poll intervals —
-    including across refreshes the coordinator suppressed as unchanged, which
-    the sample timestamps absorb exactly."""
+    """`integrate: trapezoidal` sums rendered watts over every refresh — a
+    refresh the coordinator suppresses as unchanged (always_update=False skips
+    the listeners) still samples through the per-refresh hook, so a constant
+    plateau is credited at its constant power, not averaged into the next step."""
     device = _integral_device()
     client = FakeClient({0: 600})
     faketime = FakeTime()
@@ -703,8 +704,9 @@ async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
 
     entity = make_entity(hass, ModbusConnectIntegralSensor, coordinator, device.templates[0])
     entity.async_write_ha_state = lambda: None  # not registered with a platform
-    unsub = coordinator.async_add_listener(entity._handle_coordinator_update)
-    entity._advance()  # the seeding async_added_to_hass does in production
+    unsub_listener = coordinator.async_add_listener(entity._handle_coordinator_update)
+    unsub_refresh = coordinator.async_add_refresh_callback(entity._on_refresh)
+    entity._advance(coordinator.data)  # the seeding async_added_to_hass does
     assert entity.native_value == 0.0
 
     faketime.now += 300  # 600 W ramping to 400 W over 5 min -> 500 W avg
@@ -712,18 +714,21 @@ async def test_integral_sensor_accumulates_watts_into_kwh(hass, monkeypatch):
     await coordinator.async_refresh()
     assert entity.native_value == pytest.approx(500 * 300 / 3_600_000, abs=1e-3)
 
-    faketime.now += 300  # unchanged data: no notify, no new sample ...
+    faketime.now += 300  # unchanged data: the hook still samples 400 W flat
     await coordinator.async_refresh()
-    faketime.now += 300  # ... the next change integrates the whole 10 min span
+    assert entity.native_value == pytest.approx(0.075)  # 0.0417 + 400 W x 300 s
+
+    faketime.now += 300  # the drop to 0 only shapes its own 5-min interval
     client.registers[0] = 0
     await coordinator.async_refresh()
-    assert entity.native_value == pytest.approx(0.075)  # 0.0417 + 200 W x 600 s
-    unsub()
+    assert entity.native_value == pytest.approx(0.092)  # + 200 W x 300 s, 3-digit display
+    unsub_listener()
+    unsub_refresh()
 
 
 async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
-    """left/right rectangles pick the matching endpoint; a non-numeric render
-    (unguarded unavailable source) drops the interval instead of interpolating."""
+    """left/right rectangles pick the matching endpoint; an outage (failed
+    refresh) drops the open interval instead of interpolating across it."""
     for method, expected in (("left", 600.0), ("right", 200.0)):
         device = _integral_device(state='"{{ p }}"', method=method)
         client = FakeClient({0: 600})
@@ -733,26 +738,28 @@ async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
         entity = make_entity(
             hass, ModbusConnectIntegralSensor, coordinator, device.templates[0]
         )
-        entity._advance()
+        entity.async_write_ha_state = lambda: None  # not registered with a platform
+        unsub_listener = coordinator.async_add_listener(entity._handle_coordinator_update)
+        unsub_refresh = coordinator.async_add_refresh_callback(entity._on_refresh)
+        entity._advance(coordinator.data)  # seed
 
         faketime.now += 3600  # one hour 600 W -> 200 W
         client.registers[0] = 200
         await coordinator.async_refresh()
-        entity._advance()
         assert entity.native_value == pytest.approx(expected / 1000)  # Wh -> kWh
 
-        client.fail_addresses.add(0)  # source unreadable: "{{ p }}" is not a number
-        faketime.now += 3600
+        client.fail_addresses.add(0)  # whole refresh fails: the listener sees the
+        faketime.now += 3600          # failure and drops the open interval
         await coordinator.async_refresh()
-        entity._advance()
         assert entity.native_value == pytest.approx(expected / 1000)  # unchanged
 
         client.fail_addresses.clear()  # recovery seeds a fresh sample point:
         client.registers[0] = 500  # the unreadable hour is skipped entirely
         faketime.now += 3600
         await coordinator.async_refresh()
-        entity._advance()
         assert entity.native_value == pytest.approx(expected / 1000)
+        unsub_listener()
+        unsub_refresh()
 
 
 # --- key() template helper: compare enums by stable map key, not by label ------
