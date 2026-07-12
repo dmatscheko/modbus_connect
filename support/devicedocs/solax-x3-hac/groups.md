@@ -1,6 +1,6 @@
 # SolaX Power X3-HAC (11 kW) — entity groups
 
-**Device file:** `custom_components/modbus_connect/device_configs/Solax_X3_HAC.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/solax-x3-hac.yaml`
 
 Entities are split into groups you can switch on/off on the integration's device page. `basic` is always on and never gets a switch; every other group gets an *Enable … entities* toggle. The **Enable all entities** master switch reveals everything, including untagged (expert) registers.
 

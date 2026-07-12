@@ -1,6 +1,6 @@
 # Waveshare Modbus RTU Relay (D) — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Waveshare_RTU_Relay_D.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/waveshare-modbus-rtu-relay-d.yaml`
 
 ## Primary source
 

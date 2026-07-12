@@ -13,7 +13,7 @@ Pipeline (nothing is written to disk except the final config):
     intermediate  --apply(spec)-->                   final       # ordered ops
     final         --emit(header)-->                  text        # canonical YAML, _tags stripped
     text          --validate-->                      parse_device round-trip
-    write custom_components/modbus_connect/device_configs/<device>.yaml
+    write custom_components/modbus_connect/device_configs/<slug>.yaml  # slug == devicedocs folder
 
 The intermediate is a plain dict:
 
@@ -61,17 +61,26 @@ _SHARED_TRANSLATIONS = _DEVICEDOCS_DIR / "translations.yaml"
 # Canonical map: bundled config basename -> its support/devicedocs/<slug> folder. Single
 # source of truth (JSON so importlib-loaded copies of this module need no sibling import).
 _DEVICE_FOLDERS = json.loads((_COMMON_DIR / "device_folders.json").read_text(encoding="utf-8"))
+_SLUGS = frozenset(_DEVICE_FOLDERS.values())
 
 
 def folder_for(device_name: str) -> str:
-    """The ``support/devicedocs/<slug>`` folder holding ``device_name``'s policy and docs."""
-    try:
-        return _DEVICE_FOLDERS[f"{device_name}.yaml"]
-    except KeyError:
-        raise KeyError(
-            f"{device_name!r} is not in support/converter/_common/device_folders.json — "
-            f"add its config-basename -> devicedocs-folder mapping."
-        ) from None
+    """The ``support/devicedocs/<slug>`` folder holding ``device_name``'s policy and docs.
+
+    ``device_name`` may be a *source* basename (an upstream file the MLG converter
+    imports, e.g. ``SDM630``) or the ``<slug>`` itself (owned devices are identified
+    by their devicedocs folder, which is also the output filename). Both resolve to
+    the slug; the emitted config is always ``device_configs/<slug>.yaml``."""
+    slug = _DEVICE_FOLDERS.get(f"{device_name}.yaml")
+    if slug is not None:
+        return slug
+    if device_name in _SLUGS:
+        return device_name
+    raise KeyError(
+        f"{device_name!r} is not in support/converter/_common/device_folders.json "
+        f"(neither a source basename nor a known slug) — add its "
+        f"config-basename -> devicedocs-folder mapping."
+    )
 
 
 # The command that regenerates every bundled config (from convert_all.py's docs), shown in
@@ -801,8 +810,11 @@ def write_augmented(
     if header is None:
         header = _compose_header(source or "(source unspecified)", variant or __file__, folder, note)
     text = emit(final, header)
-    validate(text, f"{device_name}.yaml")
+    # The output filename is the slug (== devicedocs folder), so every bundled
+    # config shares one naming scheme with its docs, regardless of the source
+    # basename the converter passed in.
+    validate(text, f"{folder}.yaml")
 
     dest_dir.mkdir(parents=True, exist_ok=True)
-    (dest_dir / f"{device_name}.yaml").write_text(text, encoding="utf-8")
+    (dest_dir / f"{folder}.yaml").write_text(text, encoding="utf-8")
     return {section: len(final.get(section, [])) for section in SECTIONS if final.get(section)}

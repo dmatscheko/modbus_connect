@@ -1,6 +1,6 @@
 # Dimplex Sole/Wasser-Wärmepumpe SI 11TU — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Dimplex-SI-11TU.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/dimplex-si-11tu.yaml`
 
 ## Primary source
 

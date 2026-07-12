@@ -1,6 +1,6 @@
 # ebyte ME31-AXAX404 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/ME31-AXAX404.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/ebyte-me31-axax404.yaml`
 
 ## Primary source
 

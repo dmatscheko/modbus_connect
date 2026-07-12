@@ -436,7 +436,7 @@ async def test_device_info_skips_unread_register(hass, monkeypatch):
 
 async def test_solax_hybrid_bundled_device_info(hass, monkeypatch):
     """The shipped SolaX X3-Hybrid G4 file yields the real firmware/serial strings."""
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     disp = "H34A10IA764696"  # byte-swapped in the registers (SolaX stores it swapped)
     raw = "".join(disp[i + 1] + disp[i] for i in range(0, len(disp), 2))
     regs = {i // 2: (ord(raw[i]) << 8) | ord(raw[i + 1]) for i in range(0, 14, 2)}  # serial @ 0-6
@@ -451,7 +451,7 @@ async def test_solax_hybrid_bundled_device_info(hass, monkeypatch):
 
 async def test_solax_hybrid_writable_reads_via_readback(hass, monkeypatch):
     """A SolaX setting shows the value from its read-back register, and writes to its own."""
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     by = {e.key: e for e in device.entities}
     # number: read-back reg 144 = 25.0 A (write reg 36 differs);
     # select: mppt read-back reg 188 = Enabled (write reg 72), map borrowed from the select
@@ -472,7 +472,7 @@ async def test_solax_hybrid_computed_flow_sensors(hass, monkeypatch):
     """The rebuilt energy-flow templates split grid/battery power the way SolaX does."""
     from custom_components.modbus_connect import codec
 
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     by = {e.key: e for e in device.entities}
     client = FakeClient()
 
@@ -511,7 +511,7 @@ async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
     all three) but not another inverter's block or the advanced tier."""
     from custom_components.modbus_connect import codec
 
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     by = {e.key: e for e in device.entities}
 
     # the split and the shared members (inverter-1 keys are unprefixed; the count
@@ -565,7 +565,7 @@ async def test_solax_hybrid_parallel_mode_split_per_inverter(hass, monkeypatch):
 async def test_solax_hybrid_energy_dashboard_groups(hass, monkeypatch):
     """The solar_details/home_consumption/grid_to_battery groups (upstream's Energy
     Dashboard switches) reveal the real entities plus the integral templates."""
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     templates = {t.key: t for t in device.templates}
 
     # e_charge_today is promoted out of the expert tier into grid_to_battery
@@ -597,7 +597,7 @@ async def test_solax_hybrid_grid_group(hass, monkeypatch):
     from the signed current, |PF| so a signed power factor can't double the sign."""
     from custom_components.modbus_connect import codec
 
-    device = _load_file(BUILTIN_DIR / "Solax_X3_Hybrid_G4.yaml", "solax_x3_hybrid_g4.yaml")
+    device = _load_file(BUILTIN_DIR / "solax-x3-hybrid-g4.yaml", "solax-x3-hybrid-g4.yaml")
     by = {e.key: e for e in device.entities}
     client = FakeClient()
 

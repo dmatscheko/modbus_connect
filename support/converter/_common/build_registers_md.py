@@ -38,13 +38,23 @@ TABLE_META = {
     "discrete": ("Discrete", "1x", "FC02"),
 }
 
-# config filename -> kebab-case device folder (single source of truth: device_folders.json,
-# also read by augment.py to locate each device's augment.yaml policy). Test.yaml maps to
-# "test" but is excluded from generated docs (example only, no public register document).
-CONFIG_TO_FOLDER = json.loads(
-    (Path(__file__).resolve().parent / "device_folders.json").read_text(encoding="utf-8")
-)
+# Every bundled config is named after its devicedocs folder (the slug), so the
+# folder is just the filename stem — no basename->slug map needed here. Test.yaml
+# maps to "test" but is excluded from generated docs (example only, no public
+# register document).
 DOC_EXCLUDED = {"test"}
+
+
+def config_folders() -> list[tuple[str, str]]:
+    """``(config filename, devicedocs folder)`` for every bundled config, sorted.
+
+    Filename == ``<slug>.yaml`` and folder == ``<slug>``, so this is just the
+    device_configs directory listing (excluding the doc-excluded example)."""
+    return [
+        (p.name, p.stem)
+        for p in sorted(CFG_DIR.glob("*.yaml"))
+        if p.stem not in DOC_EXCLUDED
+    ]
 
 
 def fmtnum(x) -> str:
@@ -317,15 +327,10 @@ def main() -> None:
     sources = json.loads(sources_path.read_text()) if sources_path.exists() else {}
     only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
 
-    for cfg_name, folder in CONFIG_TO_FOLDER.items():
-        if folder in DOC_EXCLUDED:
-            continue
+    for cfg_name, folder in config_folders():
         if only and folder not in only:
             continue
         cfg_path = CFG_DIR / cfg_name
-        if not cfg_path.exists():
-            print(f"!! missing config {cfg_name}", file=sys.stderr)
-            continue
         md = gen_one(cfg_path, folder, sources)
         dest_dir = OUT_DIR / folder
         dest_dir.mkdir(parents=True, exist_ok=True)

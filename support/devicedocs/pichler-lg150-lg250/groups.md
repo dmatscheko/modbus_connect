@@ -1,6 +1,6 @@
 # Pichler Lüftungsgerät LG 150 - LG 250 — entity groups
 
-**Device file:** `custom_components/modbus_connect/device_configs/Pichler-LG150-LG250.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/pichler-lg150-lg250.yaml`
 
 Entities are split into groups you can switch on/off on the integration's device page. `basic` is always on and never gets a switch; every other group gets an *Enable … entities* toggle. The **Enable all entities** master switch reveals everything, including untagged (expert) registers.
 

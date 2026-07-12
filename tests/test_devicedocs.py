@@ -32,11 +32,7 @@ registers_md = _load("build_registers_md", "support/converter/_common/build_regi
 groups_md = _load("build_groups_md", "support/converter/_common/build_groups_md.py")
 
 _SOURCES = json.loads((_ROOT / "support/converter/_common/sources.json").read_text(encoding="utf-8"))
-_DEVICES = [
-    (cfg_name, folder)
-    for cfg_name, folder in registers_md.CONFIG_TO_FOLDER.items()
-    if folder not in registers_md.DOC_EXCLUDED
-]
+_DEVICES = registers_md.config_folders()
 _IDS = [folder for _cfg, folder in _DEVICES]
 
 

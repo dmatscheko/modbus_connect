@@ -1,6 +1,6 @@
 # Finder 7M.38 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/7M_38.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/finder-7m38.yaml`
 
 ## Primary source
 

@@ -1,6 +1,6 @@
 # Pichler Lüftungsgerät LG 350 - LG 450 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Pichler-LG350-LG450.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/pichler-lg350-lg450.yaml`
 
 ## Primary source
 

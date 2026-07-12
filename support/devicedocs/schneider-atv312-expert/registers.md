@@ -1,6 +1,6 @@
 # Schneider Electric Altivar ATV312 Expert — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Schneider_ATV312_expert.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/schneider-atv312-expert.yaml`
 
 ## Primary source
 

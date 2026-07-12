@@ -1,6 +1,6 @@
 # SolaX Power X3-HAC (11 kW) — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Solax_X3_HAC.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/solax-x3-hac.yaml`
 
 ## Primary source
 

@@ -1,6 +1,6 @@
 # Husdata H60 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Husdata_H60.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/husdata-h60.yaml`
 
 ## Primary source
 

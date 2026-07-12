@@ -1,6 +1,6 @@
 # Growatt SPH3600TL BL_UP — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/SPH-3600TL-BL_UP.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/growatt-sph-3600tl-bl-up.yaml`
 
 ## Primary source
 

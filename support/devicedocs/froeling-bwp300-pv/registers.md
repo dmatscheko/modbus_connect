@@ -1,6 +1,6 @@
 # Fröling GmbH BWP300 PV — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Fröling_BWP300PV.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/froeling-bwp300-pv.yaml`
 
 ## Primary source
 

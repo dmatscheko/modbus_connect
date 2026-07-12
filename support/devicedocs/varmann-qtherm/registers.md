@@ -1,6 +1,6 @@
 # Varmann Qtherm — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Varmann Qtherm.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/varmann-qtherm.yaml`
 
 ## Primary source
 

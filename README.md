@@ -119,29 +119,29 @@ Modbus TCP device not listed here works too — write a device file for it.
 
 | Manufacturer | Model | File |
 | --- | --- | --- |
-| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `Dimplex-SI-11TU.yaml` |
-| Eastron | SDM-230 | `SDM230.yaml` |
-| Eastron | SDM-630 | `SDM630.yaml` |
-| ebyte | ME31-AXAX404 | `ME31-AXAX404.yaml` |
-| Finder | 7M.24 | `7M_24.yaml` |
-| Finder | 7M.38 | `7M_38.yaml` |
-| Fröling | BWP300 PV | `Fröling_BWP300PV.yaml` |
-| Growatt | MIC 2500TL-X | `MIC-2500TL-X.yaml` |
-| Growatt | MIN 6000TL-XH | `MIN-6000TL-XH.yaml` |
-| Growatt | MOD 6000TL-X | `MOD-6000TL-X.yaml` |
-| Growatt | MOD 10KTL3-XH | `MOD-10KTL3-XH.yaml` |
-| Growatt | SPH3600TL BL_UP | `SPH-3600TL-BL_UP.yaml` |
-| Husdata | H60 | `Husdata_H60.yaml` |
-| Pichler | Lüftungsgerät LG 150 – LG 250 | `Pichler-LG150-LG250.yaml` |
-| Pichler | Lüftungsgerät LG 350 – LG 450 | `Pichler-LG350-LG450.yaml` |
-| Salda | RIS / RIRS (MCB) | `Salda_RIS_MCB.yaml` |
-| Schneider Electric | Altivar ATV312 | `Schneider_ATV312.yaml` |
-| Schneider Electric | Altivar ATV312 Expert | `Schneider_ATV312_expert.yaml` |
-| SolaX Power | X3-Hybrid G4 | `Solax_X3_Hybrid_G4.yaml` |
-| SolaX Power | X3-HAC (11 kW EV charger) | `Solax_X3_HAC.yaml` |
-| Varmann | Qtherm | `Varmann Qtherm.yaml` |
-| Waveshare | Modbus POE ETH Relay 30CH | `Waveshare_30_POE.yaml` |
-| Waveshare | Modbus RTU Relay (D) | `Waveshare_RTU_Relay_D.yaml` |
+| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` |
+| Eastron | SDM-230 | `eastron-sdm230.yaml` |
+| Eastron | SDM-630 | `eastron-sdm630.yaml` |
+| ebyte | ME31-AXAX404 | `ebyte-me31-axax404.yaml` |
+| Finder | 7M.24 | `finder-7m24.yaml` |
+| Finder | 7M.38 | `finder-7m38.yaml` |
+| Fröling | BWP300 PV | `froeling-bwp300-pv.yaml` |
+| Growatt | MIC 2500TL-X | `growatt-mic-2500tl-x.yaml` |
+| Growatt | MIN 6000TL-XH | `growatt-min-6000tl-xh.yaml` |
+| Growatt | MOD 6000TL-X | `growatt-mod-6000tl-x.yaml` |
+| Growatt | MOD 10KTL3-XH | `growatt-mod-10ktl3-xh.yaml` |
+| Growatt | SPH3600TL BL_UP | `growatt-sph-3600tl-bl-up.yaml` |
+| Husdata | H60 | `husdata-h60.yaml` |
+| Pichler | Lüftungsgerät LG 150 – LG 250 | `pichler-lg150-lg250.yaml` |
+| Pichler | Lüftungsgerät LG 350 – LG 450 | `pichler-lg350-lg450.yaml` |
+| Salda | RIS / RIRS (MCB) | `salda-ris-mcb.yaml` |
+| Schneider Electric | Altivar ATV312 | `schneider-atv312.yaml` |
+| Schneider Electric | Altivar ATV312 Expert | `schneider-atv312-expert.yaml` |
+| SolaX Power | X3-Hybrid G4 | `solax-x3-hybrid-g4.yaml` |
+| SolaX Power | X3-HAC (11 kW EV charger) | `solax-x3-hac.yaml` |
+| Varmann | Qtherm | `varmann-qtherm.yaml` |
+| Waveshare | Modbus POE ETH Relay 30CH | `waveshare-modbus-poe-eth-relay-30ch.yaml` |
+| Waveshare | Modbus RTU Relay (D) | `waveshare-modbus-rtu-relay-d.yaml` |
 
 ## Entity groups
 

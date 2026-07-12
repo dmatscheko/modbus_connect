@@ -1,6 +1,6 @@
 # SolaX Power X3-Hybrid G4 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Solax_X3_Hybrid_G4.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/solax-x3-hybrid-g4.yaml`
 
 ## Primary source
 

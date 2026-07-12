@@ -30,7 +30,7 @@ from custom_components.modbus_connect.schema import parse_device
 
 DEVICE_FILE = (
     Path(__file__).parent.parent
-    / "custom_components/modbus_connect/device_configs/SDM630.yaml"
+    / "custom_components/modbus_connect/device_configs/eastron-sdm630.yaml"
 )
 
 
@@ -96,7 +96,7 @@ async def test_sdm630_polls_in_few_transactions(modbus_server):
     port, requests = modbus_server
 
     with DEVICE_FILE.open(encoding="utf-8") as fh:
-        device = parse_device(yaml.safe_load(fh), filename="SDM630.yaml")
+        device = parse_device(yaml.safe_load(fh), filename="eastron-sdm630.yaml")
     spans = {e.span for e in device.entities if e.platform != "button"}
     entity_count = len(spans)
     assert entity_count > 50  # this is the point of using the SDM630

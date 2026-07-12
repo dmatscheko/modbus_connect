@@ -50,9 +50,10 @@ def test_config_is_regenerated_from_source(name):
     aug.resolve_translations(ir, aug.load_shared_translations())  # as write_augmented does
     regenerated = yaml.safe_load(aug.emit(ir, header="test"))
 
-    parse_device(regenerated, filename=f"{name}.yaml")  # still a legal device file
+    slug = aug.folder_for(name)
+    parse_device(regenerated, filename=f"{slug}.yaml")  # still a legal device file
 
-    committed = yaml.safe_load((_CONFIGS / f"{name}.yaml").read_text())
+    committed = yaml.safe_load((_CONFIGS / f"{slug}.yaml").read_text())
     # values, keys, groups, structure (dict compare is order-independent)
     assert regenerated == committed
     # and the entity order in every section matches the shipped file
@@ -64,9 +65,9 @@ def test_config_is_regenerated_from_source(name):
 def test_dimplex_committed_translations_resolve():
     """The shipped Dimplex catalog localizes the model, a group label, and the
     operating-mode enum. Loads the committed file directly, so it needs no upstream."""
-    doc = yaml.safe_load((_CONFIGS / "Dimplex-SI-11TU.yaml").read_text(encoding="utf-8"))
-    de = parse_device(doc, "Dimplex-SI-11TU.yaml", language="de")
-    en = parse_device(doc, "Dimplex-SI-11TU.yaml", language="en")
+    doc = yaml.safe_load((_CONFIGS / "dimplex-si-11tu.yaml").read_text(encoding="utf-8"))
+    de = parse_device(doc, "dimplex-si-11tu.yaml", language="de")
+    en = parse_device(doc, "dimplex-si-11tu.yaml", language="en")
 
     assert de.model == "Sole/Wasser-Wärmepumpe SI 11TU"       # German source
     assert en.model == "Brine/water heat pump SI 11TU"        # English translation

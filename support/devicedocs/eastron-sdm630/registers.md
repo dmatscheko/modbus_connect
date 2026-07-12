@@ -1,6 +1,6 @@
 # Eastron SDM-630 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/SDM630.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/eastron-sdm630.yaml`
 
 ## Primary source
 

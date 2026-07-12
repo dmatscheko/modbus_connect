@@ -1,6 +1,6 @@
 # Salda RIS / RIRS (MCB) — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Salda_RIS_MCB.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/salda-ris-mcb.yaml`
 
 ## Primary source
 

@@ -1,6 +1,6 @@
 # Eastron SDM-230 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/SDM230.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/eastron-sdm230.yaml`
 
 ## Primary source
 

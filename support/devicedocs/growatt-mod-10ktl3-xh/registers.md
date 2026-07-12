@@ -1,6 +1,6 @@
 # Growatt MOD 10KTL3-XH — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/MOD-10KTL3-XH.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/growatt-mod-10ktl3-xh.yaml`
 
 ## Primary source
 

@@ -1,6 +1,6 @@
 # Waveshare Modbus POE ETH Relay 30CH — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Waveshare_30_POE.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/waveshare-modbus-poe-eth-relay-30ch.yaml`
 
 ## Primary source
 

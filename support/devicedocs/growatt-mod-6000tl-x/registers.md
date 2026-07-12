@@ -1,6 +1,6 @@
 # Growatt MOD 6000TL-X — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/MOD-6000TL-X.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/growatt-mod-6000tl-x.yaml`
 
 ## Primary source
 

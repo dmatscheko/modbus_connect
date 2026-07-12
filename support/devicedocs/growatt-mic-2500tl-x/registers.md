@@ -1,6 +1,6 @@
 # Growatt MIC 2500TL-X — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/MIC-2500TL-X.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/growatt-mic-2500tl-x.yaml`
 
 ## Primary source
 

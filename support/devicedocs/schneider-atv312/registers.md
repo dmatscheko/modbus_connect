@@ -1,6 +1,6 @@
 # Schneider Electric Altivar ATV312 — Modbus registers
 
-**Device file:** `custom_components/modbus_connect/device_configs/Schneider_ATV312.yaml`
+**Device file:** `custom_components/modbus_connect/device_configs/schneider-atv312.yaml`
 
 ## Primary source
 
