@@ -61,6 +61,7 @@ from .models import (
     SwitchTarget,
     TemplateDef,
     WriteTarget,
+    derive_name,
 )
 
 DESCRIPTION_CLASSES: dict[str, type[EntityDescription]] = {
@@ -269,6 +270,7 @@ def parse_device(data: Any, filename: str = "", language: str = "en") -> DeviceD
     device_fields = _parse_device_block(ctx, device)
     entities = _parse_sections(ctx, data, filename)
     templates = _parse_templates(ctx, data, entities, filename)
+    _check_unique_names(ctx, entities, templates)
 
     declared_groups = {g for e in entities for g in e.groups} | {
         g for t in templates for g in t.groups
@@ -439,6 +441,31 @@ def _parse_sections(ctx: _Ctx, data: dict[str, Any], filename: str) -> list[Enti
             f"no entities defined (add one of the {'/'.join(TABLES)} sections)"
         )
     return entities
+
+
+def _check_unique_names(
+    ctx: _Ctx, entities: list[EntityDef], templates: list[TemplateDef]
+) -> None:
+    """Every Home Assistant entity of the device must show a distinct name.
+
+    Two entities with the same display name are indistinguishable in the UI
+    (Home Assistant suffixes the entity id, never the friendly name), so a
+    file that would create that is refused with both keys named. Checked on
+    the localized names — a translation collapsing two distinct source names
+    into one string fails for that language too.
+    """
+    seen: dict[str, str] = {}
+    items: list[EntityDef | TemplateDef] = [*entities, *templates]
+    for item in items:
+        if isinstance(item, EntityDef) and item.internal:
+            continue  # never becomes an HA entity
+        name = item.ha.get("name") or derive_name(item.key)
+        other = seen.setdefault(name, item.key)
+        if other != item.key:
+            raise ctx.fail(
+                f"'{other}' and '{item.key}' would both be named {name!r} — "
+                "entity display names must be unique within a device"
+            )
 
 
 def _parse_templates(

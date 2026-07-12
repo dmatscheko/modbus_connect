@@ -189,6 +189,13 @@ platform's `EntityDescription`. Friendly aliases: `unit_of_measurement`/`unit`
 `state_class`, `entity_category`, number/text `mode`) are validated with the
 full list of valid values in the error message.
 
+`name` is the display name; without one it is derived from the entity key
+(`pv_power` → "Pv power"). Display names must be **unique within the device**
+— two entities showing the same name are indistinguishable in the UI, so the
+file is rejected with both keys named (internal entities excepted). This is
+checked on the localized names, so a translation must not collapse two
+distinct names into one either.
+
 ## Entity groups
 
 Big devices expose far more settings and sensors than most people want. Tag

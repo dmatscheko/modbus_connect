@@ -1510,6 +1510,72 @@ def test_derive_name_preserves_inner_case():
     assert derive_name("AcChargeEnable") == "AcChargeEnable"
 
 
+def test_duplicate_display_names_rejected():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "holding": {
+            "a": {"address": 0, "ha": {"platform": "sensor", "name": "Power"}},
+            "b": {"address": 1, "ha": {"platform": "sensor", "name": "Power"}},
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="'a' and 'b' would both be named 'Power'"):
+        parse_device(data, "t.yaml")
+
+
+def test_explicit_name_colliding_with_derived_default_rejected():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "holding": {
+            "grid_power": {"address": 0, "ha": {"platform": "sensor"}},  # -> "Grid power"
+            "gp": {"address": 1, "ha": {"platform": "sensor", "name": "Grid power"}},
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="display names must be unique"):
+        parse_device(data, "t.yaml")
+
+
+def test_template_name_colliding_with_entity_rejected():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "holding": {"p": {"address": 0, "ha": {"platform": "sensor", "name": "Power"}}},
+        "template": {
+            "tp": {"state": "{{ p }}", "ha": {"platform": "sensor", "name": "Power"}}
+        },
+    }
+    with pytest.raises(DeviceSchemaError, match="'p' and 'tp'"):
+        parse_device(data, "t.yaml")
+
+
+def test_translation_collapsing_two_names_rejected_per_language():
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "translations": {
+            "Power A": {"de": "Leistung"},
+            "Power B": {"de": "Leistung"},
+        },
+        "holding": {
+            "a": {"address": 0, "ha": {"platform": "sensor", "name": "Power A"}},
+            "b": {"address": 1, "ha": {"platform": "sensor", "name": "Power B"}},
+        },
+    }
+    parse_device(data, "t.yaml")  # the English names stay distinct
+    with pytest.raises(DeviceSchemaError, match="'Leistung'"):
+        parse_device(data, "t.yaml", language="de")
+
+
+def test_internal_entities_exempt_from_name_uniqueness():
+    # internal registers never become HA entities, so their derived name may
+    # coincide with a real entity's name
+    data = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "holding": {
+            "power": {"address": 0, "internal": True},  # derived name "Power"
+            "p2": {"address": 1, "ha": {"platform": "sensor", "name": "Power"}},
+        },
+    }
+    parse_device(data, "t.yaml")
+
+
 def test_group_labels_unknown_group_rejected():
     data = {
         "device": {

@@ -16,10 +16,16 @@ from custom_components.modbus_connect.schema import DeviceSchemaError
 BUNDLED = sorted(BUILTIN_DIR.glob("*.yaml"))
 
 
+@pytest.mark.parametrize("language", ["en", "de"])
 @pytest.mark.parametrize("path", BUNDLED, ids=[p.name for p in BUNDLED])
-def test_bundled_device_file_parses(path: Path) -> None:
-    """Every shipped device file must parse and define at least one entity."""
-    device = _load_file(path, path.name.lower())
+def test_bundled_device_file_parses(path: Path, language: str) -> None:
+    """Every shipped device file must parse and define at least one entity.
+
+    Parsed in both catalog languages: parse_device also enforces that every
+    entity keeps a distinct display name, so this proves no translation
+    collapses two names either.
+    """
+    device = _load_file(path, path.name.lower(), language)
     assert device.entities
 
 GOOD = """
