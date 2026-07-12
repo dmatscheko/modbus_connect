@@ -90,22 +90,6 @@ def build_intermediate(device_name: str, upstream_dir: Path) -> dict:
     return ir, skipped
 
 
-def _strip_disabled_by_default(ir: dict) -> None:
-    """Drop every ``ha.enabled_by_default: false`` from the emitted config.
-
-    The group/tier system is the intended visibility control for these devices, so the
-    upstream/manufacturer per-entity "disabled by default" flag is redundant and even
-    conflicts with it (some are in the always-on ``basic`` group). Nothing is deleted from
-    the source — this only filters the OUTPUT. To keep the source flags, comment out the
-    ``transform=_strip_disabled_by_default`` argument in the write call below.
-    """
-    for section in augment.SECTIONS:
-        for entity in ir.get(section, []) or []:
-            ha = entity.get("ha")
-            if isinstance(ha, dict) and ha.get("enabled_by_default") is False:
-                ha.pop("enabled_by_default")
-
-
 def run() -> None:
     upstream_dir = _upstream_dir()
     for name in DEVICES:
@@ -114,7 +98,7 @@ def run() -> None:
             ir, name, source="modbus_local_gateway base + manufacturer Modbus doc", variant=__file__,
             # Group/tier system supersedes per-entity enabled_by_default here.
             # Comment out the next line to restore the source's enabled_by_default flags.
-            transform=_strip_disabled_by_default,
+            transform=augment.strip_disabled_by_default,
         )
         note = f"  (skipped {len(skipped)} write-only source rows)" if skipped else ""
         print(f"  {name}: {summary}{note}")

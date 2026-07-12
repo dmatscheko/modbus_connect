@@ -720,6 +720,21 @@ def _report_translation_coverage(
         print(f"    ... and {len(untranslated_enum) - cap} more enum/label strings", file=sys.stderr)
 
 
+def strip_disabled_by_default(ir: dict) -> None:
+    """Drop every ``ha.enabled_by_default: false`` from an intermediate (in place).
+
+    A ready-made ``transform=`` for ``write_augmented``: for device families whose
+    visibility is fully controlled by the group/tier system, the upstream per-entity
+    "disabled by default" flag is redundant and even conflicts with it (a ``basic``
+    entity marked disabled). This filters the OUTPUT only — the source flags stay put,
+    so a converter can restore them by not passing this transform."""
+    for section in SECTIONS:
+        for entity in ir.get(section, []) or []:
+            ha = entity.get("ha")
+            if isinstance(ha, dict) and ha.get("enabled_by_default") is False:
+                ha.pop("enabled_by_default")
+
+
 def write_augmented(
     ir: dict,
     device_name: str,

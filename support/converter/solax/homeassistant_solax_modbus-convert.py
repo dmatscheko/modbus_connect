@@ -640,7 +640,13 @@ def run(module, spec_fn, meta, filename, extras=(), templates=(), basic=frozense
         meta["split_before"] = split
     ir = _to_intermediate(meta, ents, templates)
     name = filename[:-5] if filename.endswith(".yaml") else filename
-    augment.write_augmented(ir, name, source="homeassistant-solax-modbus", variant=__file__, note=note)
+    augment.write_augmented(
+        ir, name, source="homeassistant-solax-modbus", variant=__file__, note=note,
+        # Tiering is computed from the upstream enabled state BEFORE this (annotate_groups),
+        # so the group/tier system now controls visibility and the per-entity flag is
+        # redundant. Comment out the next line to restore the source's enabled_by_default.
+        transform=augment.strip_disabled_by_default,
+    )
     plat = Counter(b.get("ha", {}).get("platform", "internal") for _, _, b in ents)
     print(f"\nWROTE {filename}: {dict(plat)} +{len(templates)} template total {len(ents) + len(templates)}")
     print("  skipped:", {k: v for k, v in skipped.items() if v})
