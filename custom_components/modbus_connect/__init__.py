@@ -25,7 +25,7 @@ from .schema import DeviceSchemaError
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry) -> bool:
-    """Set up one device (gateway + slave id + device YAML)."""
+    """Set up one device (gateway + Modbus device id + device YAML)."""
     try:
         device = await async_load_device(hass, entry.data[CONF_FILENAME])
     except DeviceSchemaError as err:

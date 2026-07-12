@@ -23,6 +23,11 @@ PLATFORMS: Final = [
 ]
 
 # Config entry data keys
+# The Modbus unit address is called device_id everywhere at runtime (following
+# pymodbus 3 and the UI label "Modbus device ID"); this stored key keeps the
+# name existing entries already carry, and device files call their factory
+# default modbus_id. These two boundary names are the only places "device id"
+# does not appear.
 CONF_SLAVE_ID: Final = "slave_id"
 CONF_FILENAME: Final = "filename"
 CONF_PREFIX: Final = "prefix"

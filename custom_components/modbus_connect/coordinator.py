@@ -205,7 +205,7 @@ def referenced_read_keys(
 
 
 class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    """One coordinator per configured device (gateway + slave id).
+    """One coordinator per configured device (gateway + Modbus device id).
 
     Each refresh collects the address spans of all entities that are due,
     merges them into as few Modbus reads as possible, stores the raw words in
@@ -222,7 +222,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         self.client = client
         self.device_def = device
-        self.slave_id: int = entry.data[CONF_SLAVE_ID]
+        self.device_id: int = entry.data[CONF_SLAVE_ID]
         self.entry_id = entry.entry_id
 
         # Group visibility. Only entities/templates in an enabled group are created,
@@ -326,7 +326,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if CONF_SERIAL_PORT in entry.data
             else f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}"
         )
-        connection = f"{target} · ID {self.slave_id}"
+        connection = f"{target} · ID {self.device_id}"
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
@@ -624,7 +624,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # cycle leaves the device's health untouched.
         if blocks and not ok_blocks:
             self._register_failure()
-            raise UpdateFailed(f"device {self.slave_id} did not answer any read")
+            raise UpdateFailed(f"device {self.device_id} did not answer any read")
         if ok_blocks:
             self._register_success()
 
@@ -709,7 +709,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dead register cannot take its readable neighbours down with it.
         """
         try:
-            self._store(block, await self.client.read_block(self.slave_id, block))
+            self._store(block, await self.client.read_block(self.device_id, block))
             return 1, 1
         except ReadError as err:
             # Drop the whole failed range before retrying: successful sub-reads
@@ -737,7 +737,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         reads = 1 + len(sub_blocks)  # initial try + each sub-read
         for sub in sub_blocks:
             try:
-                self._store(sub, await self.client.read_block(self.slave_id, sub))
+                self._store(sub, await self.client.read_block(self.device_id, sub))
                 any_ok = True
             except ReadError as err:
                 all_ok = False
@@ -776,7 +776,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         any_ok = False
         for span in needed:
             try:
-                self._store(span, await self.client.read_block(self.slave_id, span))
+                self._store(span, await self.client.read_block(self.device_id, span))
                 any_ok = True
             except ReadError as err:
                 self._record_read_failure(span, illegal=err.illegal_address)
@@ -793,7 +793,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         span = self.entity_defs[key].span
         async with self.client.lock:
             try:
-                self._store(span, await self.client.read_block(self.slave_id, span))
+                self._store(span, await self.client.read_block(self.device_id, span))
             except ReadError as err:
                 self.quarantined[key] = now + QUARANTINE_RETRY_SECONDS
                 self._record_read_failure(span, probe=True)
@@ -907,7 +907,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # write them to consecutive registers in one FC16 transaction.
             words = self._render_write_words(defn, value)
             await self.client.write_registers(
-                self.slave_id, defn.address, words, multiple=True
+                self.device_id, defn.address, words, multiple=True
             )
             return value
         if defn.platform == "button" and isinstance(value, str):
@@ -922,15 +922,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
         current_raw: int | None = None
         if defn.mask is not None and defn.read_modify_write:
-            raw = await self.client.read_block(self.slave_id, defn.span)
+            raw = await self.client.read_block(self.device_id, defn.span)
             current_raw = int(raw[0])
         payload = codec.encode(defn, value, current_raw=current_raw)
         if defn.table == TABLE_COIL:
-            await self.client.write_coil(self.slave_id, defn.address, bool(payload))
+            await self.client.write_coil(self.device_id, defn.address, bool(payload))
         else:
             assert isinstance(payload, list)
             await self.client.write_registers(
-                self.slave_id, defn.address, payload, multiple=defn.write_multiple
+                self.device_id, defn.address, payload, multiple=defn.write_multiple
             )
         return value
 
@@ -946,7 +946,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # The device is still applying the write; holding the lock keeps
             # the bus quiet until the read-back.
             await asyncio.sleep(defn.confirm_delay)
-        self._store(defn.span, await self.client.read_block(self.slave_id, defn.span))
+        self._store(defn.span, await self.client.read_block(self.device_id, defn.span))
         confirmed = self._decode(defn)
         if confirmed is None and defn.optimistic_default is not None:
             confirmed = defn.optimistic_default

@@ -261,8 +261,8 @@ automation:
   a whole. Use `mask` with `read_modify_write` to write single fields.
 - **Writes go through the same conversions as reads**, so a value that
   cannot be encoded (e.g. not in the `map`) is rejected instead of written.
-- **One device per config entry.** A gateway serving several slave IDs needs
-  one entry per device (they share the TCP connection automatically).
+- **One device per config entry.** A gateway serving several Modbus device
+  IDs needs one entry per device (they share the TCP connection automatically).
 
 ## Troubleshooting
 
@@ -274,7 +274,7 @@ automation:
   log lists every address the device refused. Those addresses are excluded
   from gap bridging automatically.
 - **Everything is unavailable** — the device did not answer at all: wrong
-  slave ID, or the gateway is up while the RS-485 side is down. The
+  Modbus device ID, or the gateway is up while the RS-485 side is down. The
   integration logs once when a device becomes unreachable and once when it
   recovers, and retries with exponential backoff (up to 5 min).
 - **Wrong values** — usually byte order: try `swap: word`, `byte`, or
