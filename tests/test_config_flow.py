@@ -543,6 +543,8 @@ async def test_connection_type_menu_shown(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.MENU
     assert result["step_id"] == "connection_type"
     assert result["menu_options"] == ["connection", "serial"]
+    # strings.json says "How is {device} reached?" — the placeholder must be filled
+    assert result["description_placeholders"] == {"device": "Acme X1"}
 
 
 async def test_full_serial_flow(hass: HomeAssistant) -> None:

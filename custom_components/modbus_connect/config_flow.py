@@ -334,7 +334,9 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """How the device is reached: network gateway or local serial port."""
         return self.async_show_menu(
-            step_id="connection_type", menu_options=["connection", "serial"]
+            step_id="connection_type",
+            menu_options=["connection", "serial"],
+            description_placeholders={"device": self._title},
         )
 
     async def async_step_connection(
@@ -410,6 +412,7 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_menu(
             step_id="reconfigure_connection_type",
             menu_options=["reconfigure_connection", "reconfigure_serial"],
+            description_placeholders={"device": self._title},
         )
 
     def _finish_reconfigure(
