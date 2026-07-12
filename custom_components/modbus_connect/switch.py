@@ -114,7 +114,7 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._attr_translation_placeholders = {
             "group": coordinator.device_def.group_label(group)
         }
-        self._attr_unique_id = f"{entry.entry_id}_group_{group}"
+        self._attr_unique_id = f"{coordinator.entry_id}_group_{group}"
         self._attr_device_info = coordinator.meta_device_info
         suggest_entity_id(self, coordinator, "switch", f"enable_{group}_entities")
 
@@ -163,7 +163,7 @@ class ModbusConnectShowAllSwitch(SwitchEntity):
     ) -> None:
         self._coordinator = coordinator
         self._entry = entry
-        self._attr_unique_id = f"{entry.entry_id}_show_all_entities"
+        self._attr_unique_id = f"{coordinator.entry_id}_show_all_entities"
         self._attr_device_info = coordinator.meta_device_info
         suggest_entity_id(self, coordinator, "switch", "enable_all_entities")
 
