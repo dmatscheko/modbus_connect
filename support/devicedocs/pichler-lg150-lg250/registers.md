@@ -58,7 +58,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0015` (21) — Minimum supply air temperature<br>`supply_temp_min` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
 | `0x0019` (25) — Heating KP<br>`heating_kp` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x001A` (26) — Heating TI<br>`heating_ti` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x001B` (27) — Mixing valve cycle time<br>`mischertakt` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x001B` (27) — Mixing valve cycle time<br>`mixer_cycle` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x001C` (28) — Mixing valve running time<br>`mixing_valve_time` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 |
 | `0x001D` (29) — Filter time<br>`filter_time` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x001E` (30) — External digital input E2<br>`ext_e2_frost_level_3` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
@@ -96,7 +96,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0041` (65) — Preheater control temperature<br>`vhr_ssr_temp` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.1 · -100 |
 | `0x0042` (66) — Pre heater SSR Reg KP<br>`vhr_ssr_pid_p` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0043` (67) — Pre heater SSR Reg TI<br>`vhr_ssr_pid_i` | Holding (4x) | FC03 read · FC06 write | uint16 |
-| `0x0044` (68) — Pre heater SSR PWM Time<br>`vhr_ssr_pid_reg_takt` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x0044` (68) — Pre heater SSR PWM Time<br>`preheater_pid_cycle` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0045` (69) — Bypass damper type<br>`bypass_damper_type` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0047` (71) — Counter bypass position<br>`bypass_position_counter` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x0048` (72) — Counter heat recovery position<br>`heat_recovery_position_counter` | Holding (4x) | FC03 read · FC06 write | uint16 |
@@ -187,7 +187,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0031` (49) — Current defrost time<br>`current_defrost_time` | Input (3x) | FC04 read | uint16 |
 | `0x0034` (52) — Frost ExtractAir defrost status<br>`extract_defrost_status` | Input (3x) | FC04 read | uint16 |
 | `0x0035` (53) — Frost ExtractAir defrost error counter<br>`extract_defrost_error_counter` | Input (3x) | FC04 read | uint16 |
-| `0x0036` (54) — Mixing valve position<br>`mischer_pos` | Input (3x) | FC04 read | uint16 |
+| `0x0036` (54) — Mixing valve position<br>`mixer_position` | Input (3x) | FC04 read | uint16 |
 | `0x0037` (55) — SUP-T setpoint calculated<br>`supply_setpoint_calculated` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0038` (56) — CO2 control signal<br>`co2_reg_out` | Input (3x) | FC04 read | uint16 |
 | `0x0039` (57) — Summer/winter time<br>`dst_status` | Input (3x) | FC04 read | uint16 |

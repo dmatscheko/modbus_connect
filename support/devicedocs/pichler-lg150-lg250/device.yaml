@@ -407,7 +407,7 @@ holding:
       min: 0.0
       max: 10000.0
       entity_category: config
-  mischertakt:
+  mixer_cycle:
     address: 27
     groups: [fan_control]
     ha:
@@ -776,7 +776,7 @@ holding:
       min: 0.0
       max: 10000.0
       entity_category: config
-  vhr_ssr_pid_reg_takt:
+  preheater_pid_cycle:
     address: 68
     groups: [preheater]
     ha:
@@ -1525,7 +1525,7 @@ input:
     ha:
       platform: sensor
       name: Frost ExtractAir defrost error counter
-  mischer_pos:
+  mixer_position:
     address: 54
     groups: [fan_control]
     ha:
