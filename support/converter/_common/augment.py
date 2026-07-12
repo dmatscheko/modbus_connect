@@ -182,6 +182,11 @@ def apply(ir: dict, spec: dict | None) -> dict:
 
 
 def _apply_op(ir: dict, op: dict) -> None:
+    # One verb per op: the dispatch below is first-match-wins, so a second verb
+    # would be silently ignored (half-applied policy) instead of applied.
+    verbs = [v for v in ("add", "remove", "group", "set", "unset", "tag", "untag") if v in op]
+    if len(verbs) > 1:
+        raise ValueError(f"augment op combines {verbs}; split it into one op per verb: {op!r}")
     if "add" in op:
         new = dict(op["add"])
         table = new.pop("table", None)
@@ -193,6 +198,8 @@ def _apply_op(ir: dict, op: dict) -> None:
             raise ValueError(f"add: entity needs a key ({new!r})")
         new["_tags"] = set(new.get("_tags", ()))
         section = ir.setdefault(table, [])
+        if any(e.get("key") == new["key"] for e in section):
+            raise ValueError(f"add: key {new['key']!r} already exists in {table!r}")
         # Optional positioning: `after`/`before` name an existing key in the same
         # table so a curated entity lands where it belongs (not just at the end).
         anchor = after if after is not None else before
@@ -510,6 +517,17 @@ def _emit_translations(buf, translations: dict) -> None:
             _emit_value(buf, "  ", source, langs)
 
 
+def _check_unique_keys(section: str, rows: list[dict]) -> None:
+    """Duplicate keys in one section would be silently collapsed to the last
+    entry by every YAML loader — the file would validate while an entity is
+    lost. Cross-section duplicates are caught loudly by parse_device; only the
+    same-section case is invisible downstream, so the single writer refuses it."""
+    keys = [e.get("key") for e in rows]
+    dupes = sorted({k for k in keys if keys.count(k) > 1})
+    if dupes:
+        raise ValueError(f"duplicate {section} keys: {dupes}")
+
+
 def emit(ir: dict, header: str | None = None) -> str:
     """Serialize the intermediate to canonical YAML (strips ``_``-prefixed metadata)."""
     buf = io.StringIO()
@@ -524,11 +542,13 @@ def emit(ir: dict, header: str | None = None) -> str:
         rows = [e for e in ir.get(table, []) if e]
         if not rows:
             continue
+        _check_unique_keys(table, rows)
         buf.write(f"\n# {SECTION_COMMENTS[table]}\n{table}:\n")
         for entity in rows:
             _emit_register_entity(buf, entity)
     templates = ir.get("template") or []
     if templates:
+        _check_unique_keys("template", templates)
         buf.write(f"\n# {SECTION_COMMENTS['template']}\ntemplate:\n")
         for entity in templates:
             _emit_template_entity(buf, entity)
