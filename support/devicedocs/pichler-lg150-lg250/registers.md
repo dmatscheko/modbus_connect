@@ -176,7 +176,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0017` (23) — FW Version controller<br>`pic_lg150_sw_ver` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0018` (24) — FW version operating panel<br>`pic_mini_panel_sw_ver` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0019` (25) — LG model<br>`pic_lg_model` | Input (3x) | FC04 read | uint16 |
-| `0x001A` (26) — Fan type<br>`pic_ventilator_model` | Input (3x) | FC04 read | uint16 |
+| `0x001A` (26) — PIC_Ventilator_model<br>`pic_ventilator_model` | Input (3x) | FC04 read | uint16 |
 | `0x0023` (35) — S1 0-10Vin<br>`s1_0_10vin` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0024` (36) — S2 0-10Vin<br>`s2_0_10vin` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0025` (37) — E1 Din ext. Off<br>`e1_dig_in` | Input (3x) | FC04 read | uint16 |
@@ -184,7 +184,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x0029` (41) — Condensate watchdog<br>`e3_in` | Input (3x) | FC04 read | uint16 |
 | `0x002A` (42) — Pressure_P1<br>`pressure_p1` | Input (3x) | FC04 read | uint16 |
 | `0x002B` (43) — Pressure_P2<br>`pressure_p2` | Input (3x) | FC04 read | uint16 |
-| `0x0031` (49) — Defrost time<br>`abtau_zeit` | Input (3x) | FC04 read | uint16 |
+| `0x0031` (49) — Current defrost time<br>`abtau_zeit` | Input (3x) | FC04 read | uint16 |
 | `0x0034` (52) — Frost ExtractAir defrost status<br>`frost_abluft_abtau_status` | Input (3x) | FC04 read | uint16 |
 | `0x0035` (53) — Frost ExtractAir defrost error counter<br>`frost_abluft_abtau_fehler_counter` | Input (3x) | FC04 read | uint16 |
 | `0x0036` (54) — Mixing valve position<br>`mischer_pos` | Input (3x) | FC04 read | uint16 |

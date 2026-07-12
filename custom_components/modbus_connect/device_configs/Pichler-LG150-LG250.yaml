@@ -1464,7 +1464,7 @@ input:
     address: 26
     ha:
       platform: sensor
-      name: Fan type
+      name: PIC_Ventilator_model
   s1_0_10vin:
     address: 35
     multiplier: 0.1
@@ -1514,7 +1514,7 @@ input:
     groups: [defrost]
     ha:
       platform: sensor
-      name: Defrost time
+      name: Current defrost time
   frost_abluft_abtau_status:
     address: 52
     groups: [defrost]
@@ -2257,6 +2257,9 @@ translations:
   Condensate watchdog:
     de: Kondensat-Überwachung
     en: Condensate watchdog
+  Current defrost time:
+    de: Aktuelle Abtauzeit
+    en: Current defrost time
   Frost ExtractAir defrost status:
     de: Frost Abluft Abtaustatus
     en: Frost ExtractAir defrost status

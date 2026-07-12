@@ -69,6 +69,7 @@ translations:
   - {de: Abtau-Differenz, en: Defrost difference}
   - {de: Abtau-Pause, en: Defrost pause}
   - {de: Abtauzeit, en: Defrost time}
+  - {de: Aktuelle Abtauzeit, en: Current defrost time}
   - {de: Abtauung Ein, en: Defrost_On}
   - {de: Abtauung Drehzahlgrenze Fortluftventilator, en: Defrost_Speed limit exhaust fan}
   - {de: Externer digitaler Eingang E2, en: External digital input E2}
@@ -355,3 +356,11 @@ ops:
         0: CPU Startup
     where:
       key: betriebsstatus
+  # fix: the live Datapoints reading and the Setpoints setting both carried the
+  # description 'Defrost time'; qualify the reading.
+  - set: {ha: {name: Current defrost time}}
+    where: {key: abtau_zeit}
+  # fix: the PIC readback of the fan-type setting also showed the setting's
+  # 'Fan type'; use its raw board name like the other PIC_ expert-tier rows.
+  - set: {ha: {name: PIC_Ventilator_model}}
+    where: {key: pic_ventilator_model}
