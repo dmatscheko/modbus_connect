@@ -500,7 +500,7 @@ async def test_bridged_hole_learned(hass, monkeypatch):
         Span("holding", 0, 2),  # unbridged fallback reads
         Span("holding", 6, 2),
     ]
-    assert coordinator._holes == {("holding", a) for a in (2, 3, 4, 5)}
+    assert coordinator.holes == {("holding", a) for a in (2, 3, 4, 5)}
 
     client.reads.clear()
     coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
@@ -927,7 +927,7 @@ async def test_partial_fallback_learns_no_holes(hass, monkeypatch):
     await coordinator.async_refresh()
     assert coordinator.last_update_success
     assert coordinator.data == {"a": 1, "b": None}
-    assert coordinator._holes == set()
+    assert coordinator.holes == set()
 
 
 async def test_write_cannot_connect_raises(hass, monkeypatch):
@@ -1326,7 +1326,7 @@ async def test_isolation_inside_bridged_fallback(hass, monkeypatch):
     await coordinator.async_refresh()
     assert coordinator.data == {"a": None, "b": 2, "c": 3}
     assert coordinator.failed_reads_by_key == {"a": 1}
-    assert coordinator._holes == set()  # a real span failed: nothing learned
+    assert coordinator.holes == set()  # a real span failed: nothing learned
     assert client.reads == [
         Span("holding", 0, 7),  # bridged read fails
         Span("holding", 0, 2),  # unbridged a+b still fails

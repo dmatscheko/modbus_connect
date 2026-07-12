@@ -54,8 +54,8 @@ async def async_get_config_entry_diagnostics(
                 if coordinator.update_interval
                 else None
             ),
-            "consecutive_failures": coordinator._consecutive_failures,
-            "learned_holes": sorted(coordinator._holes),
+            "consecutive_failures": coordinator.consecutive_failures,
+            "learned_holes": sorted(coordinator.holes),
             "last_read_count": coordinator.last_read_count,
             "last_polled_count": coordinator.last_polled_count,
             "read_entity_count": coordinator.read_entity_count,

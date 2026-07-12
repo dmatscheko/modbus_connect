@@ -283,13 +283,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
         # Device-declared dead registers seed the same set the planner grows from
         # failed reads, so they are never read or bridged across.
-        self._holes: set[tuple[str, int]] = set(device.bad_addresses)
+        self.holes: set[tuple[str, int]] = set(device.bad_addresses)
         self._cache: dict[tuple[str, int], int | bool] = {}
         # Keys whose last read failed and that already got their one quick retry;
         # see _async_update_data.
         self._retried: set[str] = set()
         self._full_plan_cache: tuple[int, int] | None = None
-        self._consecutive_failures = 0
+        self.consecutive_failures = 0
         # Read efficiency (diagnostic): block merging lets one Modbus read cover many
         # entities, so these are typically far below read_entity_count.
         self.last_read_count = 0    # block reads issued in the last refresh
@@ -501,15 +501,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return 0
         # The plan only shifts when a hole is learned; cache on the hole count so
         # the sensor's state reads don't re-plan every cycle.
-        if self._full_plan_cache is None or self._full_plan_cache[0] != len(self._holes):
+        if self._full_plan_cache is None or self._full_plan_cache[0] != len(self.holes):
             blocks = plan_blocks(
                 {e.span for e in self._readers},
                 max_read=self.device_def.max_read,
                 max_gap=self.device_def.max_gap,
-                holes=self._holes,
+                holes=self.holes,
                 boundaries=self.device_def.boundaries,
             )
-            self._full_plan_cache = (len(self._holes), len(blocks))
+            self._full_plan_cache = (len(self.holes), len(blocks))
         return self._full_plan_cache[1]
 
     # --- device info ----------------------------------------------------------
@@ -592,7 +592,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             spans,
             max_read=self.device_def.max_read,
             max_gap=self.device_def.max_gap,
-            holes=self._holes,
+            holes=self.holes,
             boundaries=self.device_def.boundaries,
         )
         async with self.client.lock:
@@ -756,7 +756,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # a planning artifact, not a device problem, so it is not recorded.
             new_holes = bridged_addresses(block, needed)
             if new_holes:
-                self._holes |= new_holes
+                self.holes |= new_holes
                 _LOGGER.info(
                     "%s: device rejects %d bridged filler address(es) in the %s table; "
                     "not bridging them again",
@@ -850,13 +850,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # --- backoff ---------------------------------------------------------------
 
     def _register_failure(self) -> None:
-        self._consecutive_failures += 1
-        delay = min(self._tick * 2**self._consecutive_failures, MAX_BACKOFF_SECONDS)
+        self.consecutive_failures += 1
+        delay = min(self._tick * 2**self.consecutive_failures, MAX_BACKOFF_SECONDS)
         self.update_interval = timedelta(seconds=max(self._tick, delay))
 
     def _register_success(self) -> None:
-        if self._consecutive_failures:
-            self._consecutive_failures = 0
+        if self.consecutive_failures:
+            self.consecutive_failures = 0
             self.update_interval = timedelta(seconds=self._tick)
 
     # --- writing ---------------------------------------------------------------
