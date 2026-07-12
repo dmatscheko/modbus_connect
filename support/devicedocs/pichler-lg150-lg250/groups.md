@@ -17,12 +17,12 @@ Entities are split into groups you can switch on/off on the integration's device
 | `humidity_control` | feature | Enable Humidity control entities | 1 | e.g. Relative humidity maximum time in level 3 |
 | `heat_exchanger` | feature | Enable Heat exchanger / bypass entities | 8 | e.g. Geothermal heat exchanger switching point summer, Geothermal heat exchanger switching point winter, Bypass switching point, … |
 | `preheater` | feature | Enable Pre/post-heater entities | 10 | e.g. Post-heater, Internal post heater, Preheater control temperature, … |
-| `defrost` | feature | Enable Defrost / frost entities | 9 | e.g. Defrost_On, Defrost time, Defrost pause, … |
+| `defrost` | feature | Enable Defrost / frost entities | 9 | e.g. Defrost on, Defrost time, Defrost pause, … |
 | `external_sensors` | feature | Enable External sensors entities | 4 | e.g. External digital input E2, External digital input E2 - Ventilation level 3 stopping time, T2 internal to external compensation, … |
 | `filter` | feature | Enable Filter entities | 2 | e.g. Filter time, Z16 Change filters |
 | `fan_control` | feature | Enable Fan & flow entities | 16 | e.g. Supply fan stopping time, Mixing valve cycle time, Mixing valve running time, … |
 | `firmware` | feature | Enable Firmware / model entities | 1 | e.g. Firmware Version Touch Display |
-| *(untagged)* | expert | Enable all entities | 25 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. PIC_AD_T2, PIC_AD_T1, PIC_AD_0_10Vin_S1, … |
+| *(untagged)* | expert | Enable all entities | 25 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. ADC temperature T2, ADC temperature T1, ADC analog input S1 (0-10 V), … |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 
