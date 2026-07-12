@@ -45,7 +45,7 @@ for the full tooling (config expansion, doc generation).
 python3 -m venv .venv
 .venv/bin/pip install -r requirements_test.txt
 .venv/bin/python -m pytest tests/ --cov=custom_components.modbus_connect  # gate: ≥95%
-.venv/bin/ruff check custom_components tests converter support
+.venv/bin/ruff check custom_components tests support
 .venv/bin/mypy custom_components/modbus_connect                           # strict
 ```
 
