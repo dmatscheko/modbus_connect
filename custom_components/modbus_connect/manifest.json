@@ -10,5 +10,5 @@
   "loggers": ["pymodbus"],
   "quality_scale": "custom",
   "requirements": ["pymodbus>=3.13.1", "pyserial>=3.5"],
-  "version": "0.4.2"
+  "version": "0.4.3"
 }
