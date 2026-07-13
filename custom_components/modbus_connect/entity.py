@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity, EntityDescription
-from homeassistant.helpers.template import Template
+from homeassistant.helpers.template import Template, result_as_boolean
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
@@ -85,6 +85,23 @@ def suggest_entity_id(
         entity.entity_id = f"{domain}.{object_id}"
 
 
+def init_meta_entity(
+    entity: Entity,
+    coordinator: ModbusConnectCoordinator,
+    *,
+    unique_suffix: str,
+    domain: str,
+    object_id: str | None = None,
+) -> None:
+    """Shared wiring for the Configuration-device meta entities (the diagnostic
+    and group/config controls): a stable unique id, the meta device, and the
+    entity-id suggestion. ``object_id`` defaults to ``unique_suffix`` — the two
+    switches spell them differently (``group_x`` vs ``enable_x_entities``)."""
+    entity._attr_unique_id = f"{coordinator.entry_id}_{unique_suffix}"
+    entity._attr_device_info = coordinator.meta_device_info
+    suggest_entity_id(entity, coordinator, domain, object_id or unique_suffix)
+
+
 def resolve_on_off(defn: EntityDef, value: Any) -> bool | None:
     """Shared on/off interpretation for switch and binary_sensor."""
     if value is None:
@@ -108,6 +125,18 @@ def on_off_payload(defn: EntityDef, on: bool) -> Any:
     if defn.table in BIT_TABLES:
         return on
     return 1 if on else 0
+
+
+def clamp_round(value: float, hi: int) -> int:
+    """A numeric reading as an integer UI level clamped to ``0..hi`` — a
+    cover/fan/valve position (hi=100) or a light brightness (hi=255)."""
+    return max(0, min(hi, round(value)))
+
+
+def closed_from_position(position: int | None) -> bool | None:
+    """Closed state derived from a position: closed at 0, unknown when the
+    position is unknown. Shared by cover and valve."""
+    return None if position is None else position == 0
 
 
 class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
@@ -223,6 +252,16 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return float(value)
         return None
+
+    def render_bool(self, field: str, data: dict[str, Any] | None = None) -> bool | None:
+        """Render a template that must produce an on/off state; None passes through."""
+        value = self.render(field, data)
+        return None if value is None else result_as_boolean(value)
+
+    def render_str(self, field: str, data: dict[str, Any] | None = None) -> str | None:
+        """Render a template whose value is used as a plain string; None passes through."""
+        value = self.render(field, data)
+        return None if value is None else str(value)
 
     def _resolve_switch(self, name: str, switch: SwitchTarget) -> WriteTarget:
         """Pick a switch action's target by rendering its selector template."""

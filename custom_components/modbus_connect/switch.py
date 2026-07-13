@@ -8,7 +8,6 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import result_as_boolean
 
 from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
@@ -17,9 +16,9 @@ from .entity import (
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
+    init_meta_entity,
     on_off_payload,
     resolve_on_off,
-    suggest_entity_id,
 )
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -34,13 +33,11 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[SwitchEntity] = [
         ModbusConnectSwitch(coordinator, defn, build_description(defn))
-        for defn in coordinator.visible_entities
-        if defn.platform == "switch"
+        for defn in coordinator.entities_for("switch")
     ]
     entities.extend(
         ModbusConnectTemplateSwitch(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "switch"
+        for tdef in coordinator.templates_for("switch")
     )
     # Group toggles are integration-level config controls, never themselves
     # group-filtered: one per named group (basic is always on and gets no toggle),
@@ -74,8 +71,7 @@ class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool | None:
-        value = self.render("state")
-        return None if value is None else result_as_boolean(value)
+        return self.render_bool("state")
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._run_action("turn_on")
@@ -114,9 +110,13 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._attr_translation_placeholders = {
             "group": coordinator.device_def.group_label(group)
         }
-        self._attr_unique_id = f"{coordinator.entry_id}_group_{group}"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "switch", f"enable_{group}_entities")
+        init_meta_entity(
+            self,
+            coordinator,
+            unique_suffix=f"group_{group}",
+            domain="switch",
+            object_id=f"enable_{group}_entities",
+        )
 
     @property
     def is_on(self) -> bool:
@@ -163,9 +163,13 @@ class ModbusConnectShowAllSwitch(SwitchEntity):
     ) -> None:
         self._coordinator = coordinator
         self._entry = entry
-        self._attr_unique_id = f"{coordinator.entry_id}_show_all_entities"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "switch", "enable_all_entities")
+        init_meta_entity(
+            self,
+            coordinator,
+            unique_suffix="show_all_entities",
+            domain="switch",
+            object_id="enable_all_entities",
+        )
 
     @property
     def is_on(self) -> bool:

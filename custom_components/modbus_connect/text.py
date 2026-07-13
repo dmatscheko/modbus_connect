@@ -21,8 +21,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectText(coordinator, defn, build_description(defn))
-        for defn in coordinator.visible_entities
-        if defn.platform == "text"
+        for defn in coordinator.entities_for("text")
     )
 
 

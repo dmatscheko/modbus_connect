@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from enum import Enum
+from typing import Any, TypeVar
 
 from homeassistant.components.climate import (
     ClimateEntity,
@@ -22,6 +23,8 @@ from .models import TemplateDef
 
 _LOGGER = logging.getLogger(__name__)
 
+_HVACEnum = TypeVar("_HVACEnum", bound=Enum)
+
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
 
@@ -34,8 +37,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectClimate(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "climate"
+        for tdef in coordinator.templates_for("climate")
     )
 
 
@@ -79,27 +81,25 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
     def target_temperature(self) -> float | None:
         return self.render_number("target_temperature")
 
-    @property
-    def hvac_mode(self) -> HVACMode | None:
-        value = self.render("hvac_mode")
+    def _render_hvac(self, field: str, enum_cls: type[_HVACEnum]) -> _HVACEnum | None:
+        """Render a template field onto a closed HVAC enum; None (with a debug
+        log) on a value the enum doesn't know."""
+        value = self.render(field)
         if value is None:
             return None
         try:
-            return HVACMode(str(value).lower())
+            return enum_cls(str(value).lower())
         except ValueError:
-            _LOGGER.debug("%s: hvac_mode template returned %r", self._tdef.key, value)
+            _LOGGER.debug("%s: %s template returned %r", self._tdef.key, field, value)
             return None
 
     @property
+    def hvac_mode(self) -> HVACMode | None:
+        return self._render_hvac("hvac_mode", HVACMode)
+
+    @property
     def hvac_action(self) -> HVACAction | None:
-        value = self.render("hvac_action")
-        if value is None:
-            return None
-        try:
-            return HVACAction(str(value).lower())
-        except ValueError:
-            _LOGGER.debug("%s: hvac_action template returned %r", self._tdef.key, value)
-            return None
+        return self._render_hvac("hvac_action", HVACAction)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         temperature = kwargs.get(ATTR_TEMPERATURE)

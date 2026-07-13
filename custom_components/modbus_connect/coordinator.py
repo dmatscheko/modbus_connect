@@ -9,7 +9,7 @@ import re
 import struct
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import timedelta
 from typing import Any
 
@@ -452,6 +452,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """The clock integrating template sensors measure refresh intervals with
         (here so tests drive it together with the scan-interval clock)."""
         return time.monotonic()
+
+    def entities_for(self, platform: str) -> Iterator[EntityDef]:
+        """Visible register-backed entities of one platform (the per-platform
+        ``async_setup_entry`` filter, in one place)."""
+        return (e for e in self.visible_entities if e.platform == platform)
+
+    def templates_for(self, platform: str) -> Iterator[TemplateDef]:
+        """Visible template entities of one platform."""
+        return (t for t in self.visible_templates if t.platform == platform)
 
     @property
     def group_switch_names(self) -> tuple[str, ...]:

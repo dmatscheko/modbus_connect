@@ -11,7 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectEntity, build_description, suggest_entity_id
+from .entity import ModbusConnectEntity, build_description, init_meta_entity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,8 +27,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[ButtonEntity] = [
         ModbusConnectButton(coordinator, defn, build_description(defn))
-        for defn in coordinator.visible_entities
-        if defn.platform == "button"
+        for defn in coordinator.entities_for("button")
     ]
     entities.append(ModbusConnectRemoveHiddenButton(coordinator))
     async_add_entities(entities)
@@ -59,9 +58,9 @@ class ModbusConnectRemoveHiddenButton(ButtonEntity):
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         self._coordinator = coordinator
-        self._attr_unique_id = f"{coordinator.entry_id}_remove_hidden_entities"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "button", "remove_hidden_entities")
+        init_meta_entity(
+            self, coordinator, unique_suffix="remove_hidden_entities", domain="button"
+        )
 
     async def async_press(self) -> None:
         registry = er.async_get(self.hass)

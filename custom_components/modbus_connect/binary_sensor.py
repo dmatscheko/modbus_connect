@@ -11,7 +11,6 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import result_as_boolean
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
@@ -19,8 +18,8 @@ from .entity import (
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
+    init_meta_entity,
     resolve_on_off,
-    suggest_entity_id,
 )
 
 # Read-only platform; all data comes through the coordinator.
@@ -35,15 +34,13 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[BinarySensorEntity] = [
         ModbusConnectBinarySensor(coordinator, defn, build_description(defn))
-        for defn in coordinator.visible_entities
-        if defn.platform == "binary_sensor"
+        for defn in coordinator.entities_for("binary_sensor")
     ]
     entities.extend(
         ModbusConnectTemplateBinarySensor(
             coordinator, tdef, build_template_description(tdef)
         )
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "binary_sensor"
+        for tdef in coordinator.templates_for("binary_sensor")
     )
     entities.append(ModbusConnectReadHealthBinarySensor(coordinator))
     async_add_entities(entities)
@@ -62,8 +59,7 @@ class ModbusConnectTemplateBinarySensor(ModbusConnectTemplateEntity, BinarySenso
 
     @property
     def is_on(self) -> bool | None:
-        value = self.render("state")
-        return None if value is None else result_as_boolean(value)
+        return self.render_bool("state")
 
 
 class ModbusConnectReadHealthBinarySensor(BinarySensorEntity):
@@ -83,9 +79,9 @@ class ModbusConnectReadHealthBinarySensor(BinarySensorEntity):
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         self._coordinator = coordinator
-        self._attr_unique_id = f"{coordinator.entry_id}_read_failures"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "binary_sensor", "read_failures")
+        init_meta_entity(
+            self, coordinator, unique_suffix="read_failures", domain="binary_sensor"
+        )
 
     @property
     def is_on(self) -> bool:

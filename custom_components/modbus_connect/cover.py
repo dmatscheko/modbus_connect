@@ -8,10 +8,14 @@ from homeassistant.components.cover import ATTR_POSITION, CoverEntity, CoverEnti
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import result_as_boolean
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, build_template_description
+from .entity import (
+    ModbusConnectTemplateEntity,
+    build_template_description,
+    clamp_round,
+    closed_from_position,
+)
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -26,8 +30,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectCover(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "cover"
+        for tdef in coordinator.templates_for("cover")
     )
 
 
@@ -58,15 +61,13 @@ class ModbusConnectCover(ModbusConnectTemplateEntity, CoverEntity):
         if "position" not in self._tdef.config:
             return None
         value = self.render_number("position")
-        return None if value is None else max(0, min(100, round(value)))
+        return None if value is None else clamp_round(value, 100)
 
     @property
     def is_closed(self) -> bool | None:
         if "is_closed" in self._tdef.config:
-            value = self.render("is_closed")
-            return None if value is None else result_as_boolean(value)
-        position = self.current_cover_position
-        return None if position is None else position == 0
+            return self.render_bool("is_closed")
+        return closed_from_position(self.current_cover_position)
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         await self._run_action("open_cover")

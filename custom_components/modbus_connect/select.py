@@ -28,13 +28,11 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     entities: list[SelectEntity] = [
         ModbusConnectSelect(coordinator, defn, build_description(defn))
-        for defn in coordinator.visible_entities
-        if defn.platform == "select"
+        for defn in coordinator.entities_for("select")
     ]
     entities.extend(
         ModbusConnectTemplateSelect(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "select"
+        for tdef in coordinator.templates_for("select")
     )
     async_add_entities(entities)
 
@@ -75,8 +73,7 @@ class ModbusConnectTemplateSelect(ModbusConnectTemplateEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        value = self.render("state")
-        return None if value is None else str(value)
+        return self.render_str("state")
 
     async def async_select_option(self, option: str) -> None:
         await self._run_action("select_option", option)

@@ -16,7 +16,14 @@ from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectEntity, build_description, on_off_payload, resolve_on_off
+from .entity import (
+    ModbusConnectEntity,
+    build_description,
+    clamp_round,
+    closed_from_position,
+    on_off_payload,
+    resolve_on_off,
+)
 from .models import EntityDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -41,8 +48,7 @@ async def async_setup_entry(
                 },
             ),
         )
-        for defn in coordinator.visible_entities
-        if defn.platform == "valve"
+        for defn in coordinator.entities_for("valve")
     )
 
 
@@ -68,13 +74,12 @@ class ModbusConnectValve(ModbusConnectEntity, ValveEntity):
         value = self.device_value
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             return None
-        return max(0, min(100, round(value)))
+        return clamp_round(value, 100)
 
     @property
     def is_closed(self) -> bool | None:
         if self.reports_position:
-            position = self.current_valve_position
-            return None if position is None else position == 0
+            return closed_from_position(self.current_valve_position)
         is_open = resolve_on_off(self._defn, self.device_value)
         return None if is_open is None else not is_open
 

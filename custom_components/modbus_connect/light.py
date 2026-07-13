@@ -8,10 +8,9 @@ from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEnti
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import result_as_boolean
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, build_template_description
+from .entity import ModbusConnectTemplateEntity, build_template_description, clamp_round
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -26,8 +25,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectLight(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "light"
+        for tdef in coordinator.templates_for("light")
     )
 
 
@@ -49,15 +47,14 @@ class ModbusConnectLight(ModbusConnectTemplateEntity, LightEntity):
 
     @property
     def is_on(self) -> bool | None:
-        value = self.render("state")
-        return None if value is None else result_as_boolean(value)
+        return self.render_bool("state")
 
     @property
     def brightness(self) -> int | None:
         if "brightness" not in self._tdef.config:
             return None
         value = self.render_number("brightness")
-        return None if value is None else max(0, min(255, round(value)))
+        return None if value is None else clamp_round(value, 255)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         if ATTR_BRIGHTNESS in kwargs and "set_brightness" in self._tdef.config:

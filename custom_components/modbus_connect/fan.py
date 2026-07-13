@@ -8,10 +8,9 @@ from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import result_as_boolean
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, build_template_description
+from .entity import ModbusConnectTemplateEntity, build_template_description, clamp_round
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -26,8 +25,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         ModbusConnectFan(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "fan"
+        for tdef in coordinator.templates_for("fan")
     )
 
 
@@ -55,20 +53,18 @@ class ModbusConnectFan(ModbusConnectTemplateEntity, FanEntity):
 
     @property
     def is_on(self) -> bool | None:
-        value = self.render("state")
-        return None if value is None else result_as_boolean(value)
+        return self.render_bool("state")
 
     @property
     def percentage(self) -> int | None:
         if "percentage" not in self._tdef.config:
             return None
         value = self.render_number("percentage")
-        return None if value is None else max(0, min(100, round(value)))
+        return None if value is None else clamp_round(value, 100)
 
     @property
     def preset_mode(self) -> str | None:
-        value = self.render("preset_mode")
-        return None if value is None else str(value)
+        return self.render_str("preset_mode")
 
     async def async_turn_on(
         self,

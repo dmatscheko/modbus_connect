@@ -21,7 +21,7 @@ from .entity import (
     build_description,
     build_mirror_description,
     build_template_description,
-    suggest_entity_id,
+    init_meta_entity,
 )
 from .models import TemplateDef
 
@@ -55,8 +55,7 @@ async def async_setup_entry(
             if tdef.config.get("integrate")
             else ModbusConnectTemplateSensor(coordinator, tdef, build_template_description(tdef))
         )
-        for tdef in coordinator.visible_templates
-        if tdef.platform == "sensor"
+        for tdef in coordinator.templates_for("sensor")
     )
     entities.append(ModbusConnectReadCountSensor(coordinator))
     entities.append(ModbusConnectFailedReadsSensor(coordinator))
@@ -178,9 +177,9 @@ class ModbusConnectReadCountSensor(
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         super().__init__(coordinator)
-        self._attr_unique_id = f"{coordinator.entry_id}_reads_per_refresh"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "sensor", "reads_per_refresh")
+        init_meta_entity(
+            self, coordinator, unique_suffix="reads_per_refresh", domain="sensor"
+        )
 
     @property
     def native_value(self) -> int:
@@ -209,9 +208,9 @@ class ModbusConnectFailedReadsSensor(SensorEntity):
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         self._coordinator = coordinator
-        self._attr_unique_id = f"{coordinator.entry_id}_failed_reads"
-        self._attr_device_info = coordinator.meta_device_info
-        suggest_entity_id(self, coordinator, "sensor", "failed_reads")
+        init_meta_entity(
+            self, coordinator, unique_suffix="failed_reads", domain="sensor"
+        )
 
     @property
     def native_value(self) -> int:
