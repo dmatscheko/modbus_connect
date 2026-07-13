@@ -24,9 +24,12 @@ sys.path.insert(0, str(R.REPO))
 from custom_components.modbus_connect.models import TABLES, derive_name
 
 # Fixed descriptions for the tier groups; feature groups fall back to their label.
+# basic < standard < advanced is the detail ladder every device shares; the feature
+# groups cut across it (a feature switch reveals its members at every tier).
 FIXED = {
-    "basic": ("core", "Everyday sensors, main controls and composite climate/fan entities."),
-    "advanced": ("tier", "Miscellaneous extra settings that don't belong to a specific feature."),
+    "basic": ("core", "Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown."),
+    "standard": ("tier", "The everyday set beyond the basics: common setpoints, secondary readings and totals. On by default."),
+    "advanced": ("tier", "The full detail — deep settings, per-component diagnostics and secondary readings."),
 }
 UNTAGGED = ("expert", "Raw internal / diagnostic registers (rail & ADC readings, etc.).")
 
@@ -73,9 +76,11 @@ def gen_one(cfg_name: str, folder: str) -> str | None:
     if not feat_counts:
         return None   # config doesn't use groups
 
-    # order: basic, advanced, feature groups (group_labels order, then alphabetical)
-    order = [g for g in ("basic", "advanced") if g in counts]
-    feats = [g for g in counts if g not in ("basic", "advanced", "*untagged*")]
+    # order: basic, standard, advanced (the detail ladder), then feature groups
+    # (group_labels order, then alphabetical)
+    TIERS = ("basic", "standard", "advanced")
+    order = [g for g in TIERS if g in counts]
+    feats = [g for g in counts if g not in (*TIERS, "*untagged*")]
     lab_order = [g for g in labels if g in feats]
     order += lab_order + sorted(g for g in feats if g not in lab_order)
 
@@ -113,9 +118,9 @@ def gen_one(cfg_name: str, folder: str) -> str | None:
     for name, kind, switch, n, desc in rows:
         out.append(f"| {name} | {kind} | {switch} | {n} | {desc} |")
     out += [
-        "", "**Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad "
-        "opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, "
-        "only via **Enable all entities**.", "",
+        "", "**Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by "
+        "default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, "
+        "toggle independently · *expert* = untagged, only via **Enable all entities**.", "",
         "> Groups are OR-combined: an entity is shown when *any* of its groups is enabled. "
         "Hidden entities also drop out of the Modbus read plan (a shown template keeps its "
         "own source registers polled).", "",

@@ -10,10 +10,10 @@ Entities are split into groups you can switch on/off on the integration's device
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 9 | Everyday sensors, main controls and composite climate/fan entities. |
-| `advanced` | tier | Enable Advanced entities | 37 | Miscellaneous extra settings that don't belong to a specific feature. |
+| `basic` | core | (always on) | 9 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
+| `advanced` | tier | Enable Advanced entities | 37 | The full detail — deep settings, per-component diagnostics and secondary readings. |
 | *(untagged)* | expert | Enable all entities | 31 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. Charge Phase Alt, Charge PE Voltage, Charge PE Current, … |
 
-**Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
+**Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 
 > Groups are OR-combined: an entity is shown when *any* of its groups is enabled. Hidden entities also drop out of the Modbus read plan (a shown template keeps its own source registers polled).

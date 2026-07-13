@@ -9,10 +9,16 @@ device:
   max_register_read: 100
   prefix: Dimplex SI
   max_read_gap: 64
-  default_groups: [basic]
+  default_groups: [basic, standard]
   group_labels:
-    schedule: Schedule / time program
-    clock: Clock
+    standard: Standard
+    advanced: Advanced
+    operation: "Operation & mode"
+    heating: Heating circuit 1
+    hot_water: Hot water circuit
+    status: Component status
+    energy: "Energy & runtime"
+    heat_source: Heat source (brine)
     heating_circuit_2: Heating circuit 2
     heating_circuit_3: Heating circuit 3
     heat_generator_2: "2nd heat generator"
@@ -22,15 +28,15 @@ device:
     ventilation: Ventilation
     room_climate: Room climate sensors
     smart_grid: Smart Grid
-    energy: "Energy & runtime"
-    heat_source: Heat source (brine)
-    status: Component status
+    schedule: Schedule / time program
+    clock: Clock
+    test: Test
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   operating_mode:
     address: 5015
-    groups: [basic]
+    groups: [basic, operation]
     map:
       0: Sommer
       1: Auto
@@ -44,7 +50,7 @@ holding:
       icon: "mdi:cog"
   heating_parallel_shift:
     address: 5036
-    groups: [basic]
+    groups: [standard, heating]
     map:
       0: "-19 °C"
       1: "-18 °C"
@@ -92,7 +98,7 @@ holding:
       entity_category: config
   heating_room_temperature:
     address: 46
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: number
       name: Heizung Raumtemperatur
@@ -107,7 +113,7 @@ holding:
     internal: true
   heating_curve_end_point:
     address: 5038
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: number
       name: Heizung Heizkurvenendpunkt
@@ -119,7 +125,7 @@ holding:
   heating_hysteresis:
     address: 47
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: number
       name: Heizung Hysterese
@@ -131,7 +137,7 @@ holding:
       entity_category: config
   external_block_software:
     address: 5130
-    groups: [basic]
+    groups: [basic, operation]
     map:
       0: Hardwareeingang
       10: Sperre nicht aktiv
@@ -143,7 +149,7 @@ holding:
       entity_category: config
   hot_water_hysteresis:
     address: 5045
-    groups: [basic]
+    groups: [standard, hot_water]
     ha:
       platform: number
       name: Warmwasser Hysterese
@@ -158,7 +164,7 @@ holding:
     internal: true
   hot_water_min_fixed_target:
     address: 5145
-    groups: [basic]
+    groups: [standard, hot_water]
     ha:
       platform: number
       name: Warmwasser Solltemperatur Minimal
@@ -169,7 +175,7 @@ holding:
       entity_category: config
   hot_water_max_fixed_target:
     address: 5048
-    groups: [basic]
+    groups: [standard, hot_water]
     ha:
       platform: number
       name: Warmwasser Solltemperatur Maximal
@@ -317,7 +323,7 @@ holding:
       entity_category: config
   party_hours:
     address: 5016
-    groups: [advanced]
+    groups: [advanced, operation]
     ha:
       platform: number
       name: Anzahl Partystunden
@@ -326,7 +332,7 @@ holding:
       entity_category: config
   holiday_days:
     address: 5017
-    groups: [advanced]
+    groups: [advanced, operation]
     ha:
       platform: number
       name: Anzahl Urlaubstage
@@ -335,7 +341,7 @@ holding:
       entity_category: config
   stages:
     address: 5034
-    groups: [advanced]
+    groups: [advanced, operation]
     ha:
       platform: number
       name: Stufen
@@ -344,7 +350,7 @@ holding:
       entity_category: config
   burst_ventilation_time:
     address: 127
-    groups: [advanced]
+    groups: [ventilation]
     ha:
       platform: number
       name: Zeitwert Stoßlüften
@@ -651,7 +657,7 @@ input:
   test_temp_what_is_this:
     address: 8
     multiplier: 0.1
-    groups: [basic]
+    groups: [test]
     ha:
       platform: sensor
       name: TEST What is this
@@ -662,7 +668,7 @@ input:
   outside_temp:
     address: 1
     multiplier: 0.1
-    groups: [basic]
+    groups: [basic, heating]
     ha:
       platform: sensor
       name: Außentemperatur (R1)
@@ -673,7 +679,7 @@ input:
   heating_return_temp:
     address: 2
     multiplier: 0.1
-    groups: [basic]
+    groups: [basic, heating]
     ha:
       platform: sensor
       name: Heizung Rücklauftemperatur (R2)
@@ -684,7 +690,7 @@ input:
   heating_1st_loop_temp:
     address: 27
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: sensor
       name: "1. Heizkreis Temperatur"
@@ -717,7 +723,7 @@ input:
   heating_return_target:
     address: 53
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: sensor
       name: Heizung Rücklaufsolltemperatur
@@ -728,7 +734,7 @@ input:
   heating_1st_loop_return_target:
     address: 29
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: sensor
       name: "1. Heizkreis Rücklaufsolltemperatur"
@@ -761,7 +767,7 @@ input:
   hot_water_temp:
     address: 3
     multiplier: 0.1
-    groups: [basic]
+    groups: [basic, hot_water]
     ha:
       platform: sensor
       name: Warmwasser Temperatur (R3)
@@ -772,7 +778,7 @@ input:
   hot_water_target:
     address: 58
     multiplier: 0.1
-    groups: [basic]
+    groups: [basic, hot_water]
     ha:
       platform: sensor
       name: Warmwasser Solltemperatur
@@ -783,7 +789,7 @@ input:
   flow_temp:
     address: 5
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heating]
     ha:
       platform: sensor
       name: Vorlauftemperatur (R9)
@@ -794,7 +800,7 @@ input:
   source_input_temp:
     address: 6
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heat_source]
     ha:
       platform: sensor
       name: Wärmequelleneintrittstemperatur (R24)
@@ -805,7 +811,7 @@ input:
   source_output_temp:
     address: 7
     multiplier: 0.1
-    groups: [basic]
+    groups: [standard, heat_source]
     ha:
       platform: sensor
       name: Wärmequellenaustrittstemperatur (R6)
@@ -816,7 +822,7 @@ input:
   compressor1_hours:
     address: 72
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Verdichter 1 Laufzeit
@@ -828,7 +834,7 @@ input:
   primary_pump_hours:
     address: 74
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Primärpumpe / Ventilator (M11) Laufzeit
@@ -840,7 +846,7 @@ input:
   heating_pump_hours:
     address: 76
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Heizungspumpe (M13) Laufzeit
@@ -852,7 +858,7 @@ input:
   hot_water_pump_hours:
     address: 77
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Warmwasserpumpe (M18) Laufzeit
@@ -864,7 +870,7 @@ input:
   additional_pump_hours:
     address: 71
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Zusatzumwälzpumpe (M16) Laufzeit
@@ -877,7 +883,7 @@ input:
     address: 5096
     sum_scale: [1, 10000, 100000000]
     never_resets: true
-    groups: [basic]
+    groups: [standard, energy]
     ha:
       platform: sensor
       name: Wärmemenge Heizung
@@ -891,7 +897,7 @@ input:
     address: 5099
     sum_scale: [1, 10000, 100000000]
     never_resets: true
-    groups: [basic]
+    groups: [standard, energy]
     ha:
       platform: sensor
       name: Wärmemenge Warmwasser
@@ -905,7 +911,7 @@ input:
     address: 5102
     sum_scale: [1, 10000, 100000000]
     never_resets: true
-    groups: [pool]
+    groups: [pool, energy]
     ha:
       platform: sensor
       name: Wärmemenge Schwimmbad
@@ -917,7 +923,7 @@ input:
       entity_category: diagnostic
   operation_status:
     address: 103
-    groups: [basic]
+    groups: [basic, status]
     map:
       0: Aus
       1: Aus
@@ -936,7 +942,7 @@ input:
       entity_category: diagnostic
   blocking_status:
     address: 104
-    groups: [status]
+    groups: [standard, status]
     map:
       0: keine Meldung
       2: Volumenstrom
@@ -972,7 +978,7 @@ input:
       entity_category: diagnostic
   fault_status:
     address: 105
-    groups: [basic]
+    groups: [basic, status]
     map:
       0: kein Fehler
       1: Fehler N17.1
@@ -1005,7 +1011,7 @@ input:
       entity_category: diagnostic
   sensor_status:
     address: 106
-    groups: [status]
+    groups: [standard, status]
     map:
       0: keine Meldung
       1: Außenfühler (R1)
@@ -1083,7 +1089,7 @@ input:
   cooling_flow_temp:
     address: 19
     type: float16
-    groups: [advanced]
+    groups: [cooling]
     ha:
       platform: sensor
       name: Vorlauftemperatur (R11)
@@ -1093,7 +1099,7 @@ input:
   cooling_return_temp:
     address: 20
     type: float16
-    groups: [advanced]
+    groups: [cooling]
     ha:
       platform: sensor
       name: Rücklauftemperatur (R4)
@@ -1103,7 +1109,7 @@ input:
   primary_return_temp:
     address: 21
     type: float16
-    groups: [heat_source]
+    groups: [advanced, heat_source]
     ha:
       platform: sensor
       name: Rücklauftemp. gem. Primärkreis (R24)
@@ -1177,7 +1183,7 @@ input:
   verdichter_2:
     address: 73
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Verdichter 2 Laufzeit
@@ -1201,7 +1207,7 @@ input:
   flange_heater_hours:
     address: 78
     never_resets: true
-    groups: [energy]
+    groups: [advanced, energy]
     ha:
       platform: sensor
       name: Flanschheizung (E9) Laufzeit
@@ -1242,7 +1248,7 @@ coil:
 discrete:
   hot_water_thermostat:
     address: 3
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Warmwasserthermostat
@@ -1258,7 +1264,7 @@ discrete:
       entity_category: diagnostic
   external_block:
     address: 6
-    groups: [status]
+    groups: [standard, status]
     ha:
       platform: binary_sensor
       name: Sperre Extern
@@ -1266,7 +1272,7 @@ discrete:
       entity_category: diagnostic
   compressor1:
     address: 41
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Verdichter 1 Modus
@@ -1274,7 +1280,7 @@ discrete:
       entity_category: diagnostic
   primary_pump:
     address: 43
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Sole Primärpumpe (M11) / Ventilator (M2) Modus
@@ -1282,7 +1288,7 @@ discrete:
       entity_category: diagnostic
   heating_pump:
     address: 45
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M13) Modus
@@ -1290,7 +1296,7 @@ discrete:
       entity_category: diagnostic
   hot_water_pump:
     address: 46
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Warmwasserpumpe (M18) Modus
@@ -1306,7 +1312,7 @@ discrete:
       entity_category: diagnostic
   additional_pump:
     address: 49
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Zusatzumwälzpumpe (M16) Modus
@@ -1314,7 +1320,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m15:
     address: 51
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M15) Modus
@@ -1330,7 +1336,7 @@ discrete:
       entity_category: diagnostic
   pool_pump:
     address: 56
-    groups: [pool]
+    groups: [pool, status]
     ha:
       platform: binary_sensor
       name: Schwimmbadpumpe (M19) Modus
@@ -1338,7 +1344,7 @@ discrete:
       entity_category: diagnostic
   error_indicator:
     address: 57
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Sammelstörmeldung (H5) Modus
@@ -1346,7 +1352,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m14:
     address: 59
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M14) Modus
@@ -1354,7 +1360,7 @@ discrete:
       entity_category: diagnostic
   cooling_pump:
     address: 60
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Kühlpumpe (M17) Modus
@@ -1362,7 +1368,7 @@ discrete:
       entity_category: diagnostic
   heating_pump_m20:
     address: 61
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Heizungspumpe (M20) Modus
@@ -1370,14 +1376,14 @@ discrete:
       entity_category: diagnostic
   room_thermostat_mode:
     address: 66
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
       entity_category: diagnostic
   cooling_primary_pump:
     address: 68
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Primärpumpe Kühlen (M12) Modus
@@ -1385,7 +1391,7 @@ discrete:
       entity_category: diagnostic
   solar_pump:
     address: 71
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Solarpumpe (M23) Modus
@@ -1411,7 +1417,7 @@ discrete:
       name: Schwimmbadthermostat
   verdichter_2_2:
     address: 42
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Verdichter 2 Modus
@@ -1429,7 +1435,7 @@ discrete:
       name: "2. Heizkreis Mischer (M21) zu"
   flange_heater_mode:
     address: 50
-    groups: [status]
+    groups: [advanced, status]
     ha:
       platform: binary_sensor
       name: Flanschheizung (E9) Modus
@@ -1446,7 +1452,7 @@ template:
     ha:
       platform: climate
       name: Warmwasser
-    groups: [basic]
+    groups: [basic, hot_water]
     current_temperature: "{{ hot_water_temp }}"
     target_temperature: "{{ hot_water_fixed_target }}"
     hvac_mode: "{{ 'heat' }}"
@@ -1460,7 +1466,7 @@ template:
     ha:
       platform: climate
       name: Heizung
-    groups: [basic]
+    groups: [basic, heating]
     current_temperature: "{{ flow_temp }}"
     target_temperature: "{{ heating_fixed_target }}"
     hvac_mode: "{{ 'off' if key('operating_mode') == 0 else 'heat' }}"
@@ -1481,12 +1487,30 @@ translations:
   Sole/Wasser-Wärmepumpe SI 11TU:
     de: Sole/Wasser-Wärmepumpe SI 11TU
     en: Brine/water heat pump SI 11TU
-  Schedule / time program:
-    en: Schedule / time program
-    de: Zeitplan / Zeitprogramm
-  Clock:
-    en: Clock
-    de: Uhr
+  Standard:
+    en: Standard
+    de: Standard
+  Advanced:
+    en: Advanced
+    de: Erweitert
+  "Operation & mode":
+    en: "Operation & mode"
+    de: "Betrieb & Modus"
+  Heating circuit 1:
+    en: Heating circuit 1
+    de: Heizkreis 1
+  Hot water circuit:
+    en: Hot water circuit
+    de: Warmwasserkreis
+  Component status:
+    en: Component status
+    de: Komponentenstatus
+  "Energy & runtime":
+    en: "Energy & runtime"
+    de: "Energie & Laufzeit"
+  Heat source (brine):
+    en: Heat source (brine)
+    de: Wärmequelle (Sole)
   Heating circuit 2:
     en: Heating circuit 2
     de: Heizkreis 2
@@ -1514,15 +1538,15 @@ translations:
   Smart Grid:
     en: Smart Grid
     de: Smart Grid
-  "Energy & runtime":
-    en: "Energy & runtime"
-    de: "Energie & Laufzeit"
-  Heat source (brine):
-    en: Heat source (brine)
-    de: Wärmequelle (Sole)
-  Component status:
-    en: Component status
-    de: Komponentenstatus
+  Schedule / time program:
+    en: Schedule / time program
+    de: Zeitplan / Zeitprogramm
+  Clock:
+    en: Clock
+    de: Uhr
+  Test:
+    en: Test
+    de: Test
   Sommer:
     de: Sommer
     en: Summer

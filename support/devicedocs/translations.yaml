@@ -52,6 +52,13 @@
 - {en: "Energy & runtime", de: "Energie & Laufzeit"}
 - {en: "Heat source (brine)", de: "Wärmequelle (Sole)"}
 - {en: "Component status", de: Komponentenstatus}
+# tier switches + main functional groups (shared across devices)
+- {en: Standard, de: Standard}
+- {en: Advanced, de: Erweitert}
+- {en: "Operation & mode", de: "Betrieb & Modus"}
+- {en: Heating circuit 1, de: Heizkreis 1}
+- {en: Hot water circuit, de: Warmwasserkreis}
+- {en: Test, de: Test}
 # Pichler ventilation units
 - {en: "Modbus configuration", de: "Modbus-Konfiguration"}
 - {en: "CO2 control", de: "CO2-Regelung"}

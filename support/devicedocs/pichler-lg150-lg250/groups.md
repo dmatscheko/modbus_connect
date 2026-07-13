@@ -10,8 +10,8 @@ Entities are split into groups you can switch on/off on the integration's device
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 44 | Everyday sensors, main controls and composite climate/fan entities. |
-| `advanced` | tier | Enable Advanced entities | 62 | Miscellaneous extra settings that don't belong to a specific feature. |
+| `basic` | core | (always on) | 44 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
+| `advanced` | tier | Enable Advanced entities | 62 | The full detail — deep settings, per-component diagnostics and secondary readings. |
 | `modbus_config` | feature | Enable Modbus configuration entities | 4 | e.g. Modbus address, Modbus baud rate, Modbus parity, … |
 | `co2_control` | feature | Enable CO2 control entities | 4 | e.g. CO2 KP, CO2 TI, CO2 cycle, … |
 | `humidity_control` | feature | Enable Humidity control entities | 1 | e.g. Relative humidity maximum time in level 3 |
@@ -24,6 +24,6 @@ Entities are split into groups you can switch on/off on the integration's device
 | `firmware` | feature | Enable Firmware / model entities | 1 | e.g. Firmware Version Touch Display |
 | *(untagged)* | expert | Enable all entities | 25 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. ADC temperature T2, ADC temperature T1, ADC analog input S1 (0-10 V), … |
 
-**Tiers:** *core* = `basic`, always shown · *tier* = `advanced`, broad opt-in · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
+**Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 
 > Groups are OR-combined: an entity is shown when *any* of its groups is enabled. Hidden entities also drop out of the Modbus read plan (a shown template keeps its own source registers polled).
