@@ -123,6 +123,8 @@ duplication between the two trees.
 support/converter/                 # tooling only (no per-device folders)
 ├── convert_all.py                 # orchestrator: MLG import, then owned devices
 ├── modbus_local_gateway/…-convert.py   # MLG device_configs -> ~19 imported configs
+├── solax/…-convert.py             # wills106 solax-modbus plugin -> NEW SolaX configs
+│                                  #   (X3-Hybrid-G4 / X3-HAC are owned in-tree, so skipped)
 └── _common/
     ├── augment.py             # THE shared library + emitter + DSL (single writer; write_owned)
     ├── device_folders.json    # source basename -> devicedocs <slug> (for the MLG import)
