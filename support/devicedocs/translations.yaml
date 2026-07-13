@@ -321,3 +321,823 @@
 # reads pre-fix device values. ------------------------------------------------------
 - {de: CPU-Start, en: CPU Startup}
 - {de: Zeitprogramm Temperaturregelung, en: Time program temperature control}
+
+# =============================================================================
+# Per-device vocabulary relocated from each device.yaml (device.yaml now carries
+# only its model name and device-specific fault/status codes). Kept here so the
+# translate-once memory holds every localized string in one place.
+# --- Dimplex SI 11TU ---
+- {de: Hardwareeingang, en: Hardware input}
+- {de: Sperre nicht aktiv, en: Block not active}
+- {de: Sperre aktiv, en: Block active}
+- {de: 2. Heizkreis, en: 2nd heating circuit}
+- {de: 3. Heizkreis, en: 3rd heating circuit}
+- {de: 1. Heizkreis Absenkung, en: 1st heating circuit setback}
+- {de: 1. Heizkreis Anhebung, en: 1st heating circuit boost}
+- {de: 2. Heizkreis Absenkung, en: 2nd heating circuit setback}
+- {de: 2. Heizkreis Anhebung, en: 2nd heating circuit boost}
+- {de: 3. Heizkreis Absenkung, en: 3rd heating circuit setback}
+- {de: 3. Heizkreis Anhebung, en: 3rd heating circuit boost}
+- {de: Warmwasser Sperre, en: Hot water block}
+- {de: Thermische Desinfektion, en: Thermal disinfection}
+- {de: Zirkulationspumpe, en: Circulation pump}
+- {de: Heizung Parallelverschiebung, en: Heating parallel shift}
+- {de: Heizung Raumtemperatur, en: Heating room temperature}
+- {de: Heizung Heizkurvenendpunkt, en: Heating curve end point}
+- {de: Heizung Hysterese, en: Heating hysteresis}
+- {de: Softwaresperre Extern, en: External software block}
+- {de: Warmwasser Hysterese, en: Hot water hysteresis}
+- {de: Warmwasser Solltemperatur Minimal, en: Hot water setpoint minimum}
+- {de: Warmwasser Solltemperatur Maximal, en: Hot water setpoint maximum}
+- {de: Solltemp. dyn. Kühlung, en: Setpoint dyn. cooling}
+- {de: 2./3. Heizkreis Auswahl, en: 2nd/3rd heating circuit selection}
+- {de: 2./3. Heizkreis Heizkurvenendpunkt, en: 2nd/3rd heating circuit heating curve end point}
+- {de: 2./3. Heizkreis Festwertemperatur, en: 2nd/3rd heating circuit fixed value temperature}
+- {de: 2./3. Heizkreis Parallelverschiebung, en: 2nd/3rd heating circuit parallel shift}
+- {de: 2./3. Heizkreis Mischerlaufzeit, en: 2nd/3rd heating circuit mixer runtime}
+- {de: 2./3. Heizkreis Mischerhysterese, en: 2nd/3rd heating circuit mixer hysteresis}
+- {de: 2./3. Heizkreis Maximale Temperatur, en: 2nd/3rd heating circuit maximum temperature}
+- {de: 2./3. Heizkreis Kühlung Raumsolltemperatur, en: 2nd/3rd heating circuit cooling room setpoint temperature}
+- {de: Anzahl Partystunden, en: Number of party hours}
+- {de: Anzahl Urlaubstage, en: Number of holiday days}
+- {de: Stufen, en: Stages}
+- {de: Zeitwert Stoßlüften, en: Burst ventilation time value}
+- {de: Schwimmbad Hysterese, en: Pool hysteresis}
+- {de: Schwimmbad Solltemperatur, en: Pool setpoint temperature}
+- {de: 2.Wärmeerzeuger Mischerhysterese, en: 2nd heat generator mixer hysteresis}
+- {de: 2.Wärmeerzeuger Grenztemperatur parallel, en: 2nd heat generator parallel limit temperature}
+- {de: 2.Wärmeerzeuger Mischerlaufzeit, en: 2nd heat generator mixer runtime}
+- {de: Zeitfunktion Auswahl, en: Time function selection}
+- {de: Start Stunde 1, en: Start hour 1}
+- {de: Start Minute 1, en: Start minute 1}
+- {de: Ende Stunde 1, en: End hour 1}
+- {de: Ende Minute 1, en: End minute 1}
+- {de: Start Stunde 2, en: Start hour 2}
+- {de: Start Minute 2, en: Start minute 2}
+- {de: Ende Stunde 2, en: End hour 2}
+- {de: Ende Minute 2, en: End minute 2}
+- {de: Sonntag, en: Sunday}
+- {de: Montag, en: Monday}
+- {de: Dienstag, en: Tuesday}
+- {de: Mittwoch, en: Wednesday}
+- {de: Donnerstag, en: Thursday}
+- {de: Freitag, en: Friday}
+- {de: Samstag, en: Saturday}
+- {de: Absenk- / Anhebwert, en: Setback / boost value}
+- {de: Stunde, en: Hour}
+- {de: Monat, en: Month}
+- {de: Wochentag, en: Weekday}
+- {de: Tag, en: Day}
+- {de: Jahr, en: Year}
+- {de: Uhr synchronisieren, en: Sync clock}
+- {de: Außentemperatur (R1), en: Outside temperature (R1)}
+- {de: Heizung Rücklauftemperatur (R2), en: Heating return temperature (R2)}
+- {de: 1. Heizkreis Temperatur, en: 1st heating circuit temperature}
+- {de: 2. Heizkreis Temperatur (R5), en: 2nd heating circuit temperature (R5)}
+- {de: 3. Heizkreis Temperatur (R13), en: 3rd heating circuit temperature (R13)}
+- {de: Heizung Rücklaufsolltemperatur, en: Heating return setpoint temperature}
+- {de: 1. Heizkreis Rücklaufsolltemperatur, en: 1st heating circuit return setpoint temperature}
+- {de: 2. Heizkreis Rücklaufsolltemperatur, en: 2nd heating circuit return setpoint temperature}
+- {de: 3. Heizkreis Rücklaufsolltemperatur, en: 3rd heating circuit return setpoint temperature}
+- {de: Warmwasser Temperatur (R3), en: Hot water temperature (R3)}
+- {de: Warmwasser Solltemperatur, en: Hot water setpoint temperature}
+- {de: Vorlauftemperatur (R9), en: Flow temperature (R9)}
+- {de: Wärmequelleneintrittstemperatur (R24), en: Heat source inlet temperature (R24)}
+- {de: Wärmequellenaustrittstemperatur (R6), en: Heat source outlet temperature (R6)}
+- {de: Verdichter 1 Laufzeit, en: Compressor 1 runtime}
+- {de: Primärpumpe / Ventilator (M11) Laufzeit, en: Primary pump / fan (M11) runtime}
+- {de: Heizungspumpe (M13) Laufzeit, en: Heating pump (M13) runtime}
+- {de: Warmwasserpumpe (M18) Laufzeit, en: Hot water pump (M18) runtime}
+- {de: Zusatzumwälzpumpe (M16) Laufzeit, en: Additional circulation pump (M16) runtime}
+- {de: Wärmemenge Heizung, en: Heat quantity heating}
+- {de: Wärmemenge Warmwasser, en: Heat quantity hot water}
+- {de: Wärmemenge Schwimmbad, en: Heat quantity pool}
+- {de: Raumtemperatur 1 / RT-RTH Econ, en: Room temperature 1 / RT-RTH Econ}
+- {de: Raumtemperatur 2, en: Room temperature 2}
+- {de: Raumfeuchte 1 / RT-RTH Econ, en: Room humidity 1 / RT-RTH Econ}
+- {de: Vorlauftemperatur (R11), en: Flow temperature (R11)}
+- {de: Rücklauftemperatur (R4), en: Return temperature (R4)}
+- {de: Rücklauftemp. gem. Primärkreis (R24), en: Return temp. common primary circuit (R24)}
+- {de: Solarspeicher (R22), en: Solar storage (R22)}
+- {de: Außenlufttemperatur, en: Outside air temperature}
+- {de: Drehzahl Zuluftventilator, en: Supply air fan speed}
+- {de: Drehzahl Abluftventilator, en: Extract air fan speed}
+- {de: Verdichter 2 Laufzeit, en: Compressor 2 runtime}
+- {de: 2.Wärmeerzeuger (E10) Laufzeit, en: 2nd heat generator (E10) runtime}
+- {de: Flanschheizung (E9) Laufzeit, en: Flange heater (E9) runtime}
+- {de: Schwimmbadpumpe (M19) Laufzeit, en: Pool pump (M19) runtime}
+- {de: Warmwasserthermostat, en: Hot water thermostat}
+- {de: Verdichter 1 Modus, en: Compressor 1 mode}
+- {de: Sole Primärpumpe (M11) / Ventilator (M2) Modus, en: Brine primary pump (M11) / fan (M2) mode}
+- {de: Heizungspumpe (M13) Modus, en: Heating pump (M13) mode}
+- {de: Warmwasserpumpe (M18) Modus, en: Hot water pump (M18) mode}
+- {de: 2. Heizkreis Mischer (M21) auf, en: 2nd heating circuit mixer (M21) open}
+- {de: Zusatzumwälzpumpe (M16) Modus, en: Additional circulation pump (M16) mode}
+- {de: Heizungspumpe (M15) Modus, en: Heating pump (M15) mode}
+- {de: 3. Heizkreis Mischer (M22) auf, en: 3rd heating circuit mixer (M22) open}
+- {de: Schwimmbadpumpe (M19) Modus, en: Pool pump (M19) mode}
+- {de: Heizungspumpe (M14) Modus, en: Heating pump (M14) mode}
+- {de: Kühlpumpe (M17) Modus, en: Cooling pump (M17) mode}
+- {de: Heizungspumpe (M20) Modus, en: Heating pump (M20) mode}
+- {de: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus, en: Room thermostats heating/cooling switch-over (N9) mode}
+- {de: Primärpumpe Kühlen (M12) Modus, en: Primary pump cooling (M12) mode}
+- {de: Solarpumpe (M23) Modus, en: Solar pump (M23) mode}
+- {de: Aktiv Zeit 1, en: Active time 1}
+- {de: Aktiv Zeit 2, en: Active time 2}
+- {de: Schwimmbadthermostat, en: Pool thermostat}
+- {de: Verdichter 2 Modus, en: Compressor 2 mode}
+- {de: 2.Wärmeerzeuger (E10) Modus, en: 2nd heat generator (E10) mode}
+- {de: 2. Heizkreis Mischer (M21) zu, en: 2nd heating circuit mixer (M21) closed}
+- {de: Flanschheizung (E9) Modus, en: Flange heater (E9) mode}
+- {de: 3. Heizkreis Mischer (M22) zu, en: 3rd heating circuit mixer (M22) closed}
+- {de: Heizung, en: Space heating}
+# --- Pichler LG 150-250 ---
+- {de: Erdwärmetauscher, en: Geothermal heat exchanger}
+- {de: Vorheizung, en: Preheater}
+- {de: Abluftabtauung, en: Extract defrosting}
+- {de: Vorheizregister 0-100%, en: Preheater 0-100%}
+- {de: Wasser, en: Water}
+- {de: Elektrisch, en: Electrical}
+- {de: Frostschutz, en: Frost protection}
+- {de: Kein Sensor, en: No Sensor}
+- {de: Vorheizen, en: Preheat}
+- {de: Lüftungsstufe 3 Timer, en: Ventilation level 3 timer}
+- {de: Luftfeuchtigkeit Maximum, en: Humidity maximum}
+- {de: Erdwärmetauscher Umschaltpunkt Sommer, en: Geothermal heat exchanger switching point summer}
+- {de: Erdwärmetauscher Umschaltpunkt Winter, en: Geothermal heat exchanger switching point winter}
+- {de: Bypass-Umschaltpunkt, en: Bypass switching point}
+- {de: Konfiguration, en: Configuration}
+- {de: Nachheizregister, en: Post-heater}
+- {de: 'Luftvolumenstrom-Differenz, ETA-Balance', en: 'Air volume flow difference, ETA-Balance'}
+- {de: Abtauung Ein, en: Defrost_On}
+- {de: Abtauzeit, en: Defrost time}
+- {de: Abtau-Pause, en: Defrost pause}
+- {de: Abtau-Differenz, en: Defrost difference}
+- {de: Nachlaufzeit Zuluftventilator, en: Supply fan stopping time}
+- {de: Abtauung Drehzahlgrenze Fortluftventilator, en: Defrost_Speed limit exhaust fan}
+- {de: Maximale Zulufttemperatur, en: Maximum supply air temperature}
+- {de: Minimale Zulufttemperatur, en: Minimum supply air temperature}
+- {de: Mischventil-Taktzeit, en: Mixing valve cycle time}
+- {de: Mischventil-Laufzeit, en: Mixing valve running time}
+- {de: Filterzeit, en: Filter time}
+- {de: Externer digitaler Eingang E2, en: External digital input E2}
+- {de: Externer digitaler Eingang E2 - Nachlaufzeit Lüftungsstufe 3, en: External digital input E2 - Ventilation level 3 stopping time}
+- {de: Kondensat-Schwellwert, en: Condensate threshold}
+- {de: Energiesparen im Standby, en: Powersave at Standby}
+- {de: Zuluft-Sollwerttakt, en: Supply air setpoint cycle}
+- {de: Internes Nachheizregister, en: Internal post heater}
+- {de: Frischlufttemperatur, en: Fresh air temperature}
+- {de: CO2-Takt, en: CO2 cycle}
+- {de: Relative Luftfeuchtigkeit maximale Zeit in Stufe 3, en: Relative humidity maximum time in level 3}
+- {de: Sensorkonfiguration, en: Sensor configuration}
+- {de: Test Bypassklappe, en: Test Bypass damper}
+- {de: Test Zuluftventilator, en: Test supply air fan}
+- {de: Test Fortluftventilator, en: Test exhaust air fan}
+- {de: Betriebsstundenzähler zurücksetzen, en: Reset operating hours counter}
+- {de: Test SD-Karte, en: Test SD-Card}
+- {de: Niedriger Zulufttemperatur-Sollwert, en: Low supply air temperature setpoint}
+- {de: Niedriger Raumlufttemperatur-Sollwert, en: Low room air temperature setpoint}
+- {de: Niedriger Ablufttemperatur-Sollwert, en: Low extract air temperature setpoint}
+- {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 1, en: Maximum fanspeed difference ventilation level 1}
+- {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 2, en: Maximum fanspeed difference ventilation level 2}
+- {de: Maximale Ventilatordrehzahl-Differenz Lüftungsstufe 3, en: Maximum fanspeed difference ventilation level 3}
+- {de: Lüftungsgerätetyp, en: AHU Type}
+- {de: Vorheizregister Regeltemperatur, en: Preheater control temperature}
+- {de: Bypass-Klappentyp, en: Bypass damper type}
+- {de: Zähler Bypass-Stellung, en: Counter bypass position}
+- {de: Zähler Wärmerückgewinnungs-Stellung, en: Counter heat recovery position}
+- {de: Klappenzähler Vorheizregister, en: Damper counter preheater}
+- {de: Klappe M1 Zeit, en: Damper M1 time}
+- {de: Klappe M2 Zeit, en: Damper M2 time}
+- {de: Modbus-Baudrate, en: Modbus baud rate}
+- {de: Modbus-Schreiben, en: Modbus write}
+- {de: Bypass-Stromgrenze, en: Bypass current limit}
+- {de: Zeitprogramm Luftvolumenstrom, en: Time program air volume flow}
+- {de: T2 interne zu externe Kompensation, en: T2 internal to external compensation}
+- {de: Bildschirmschoner-Zeit, en: Screensaver time}
+- {de: Hauptbildschirm sperren, en: Lock main screen}
+- {de: Zeitüberschreitung Rückkehr zum Startbildschirm, en: Back to home screen timeout}
+- {de: Passwort, en: Password}
+- {de: Benutzerpasswort, en: User password}
+- {de: Temperatur Raum Display, en: Room temperature display}
+- {de: Abluft Temperatur, en: Extract air temperature}
+- {de: Zuluft Temperatur, en: Supply air temperature}
+- {de: Temperatur Nachheizregister Zuluft, en: Post-heater supply air temperature}
+- {de: Zuluft Ventilatorleistung, en: Supply air fan power}
+- {de: Abluft Ventilatorleistung, en: Extract air fan power}
+- {de: Zuluft Luftstrom, en: Supply air flow}
+- {de: Abluft Luftstrom, en: Extract air flow}
+- {de: Lüfter 1 Stunden, en: Fan 1 hours}
+- {de: Lüfter 2 Stunden, en: Fan 2 hours}
+- {de: Lüfter 3 Stunden, en: Fan 3 hours}
+- {de: Lüfter Grund Stunden, en: Fan basic hours}
+- {de: Heizelement Stunden, en: Heating element hours}
+- {de: Position Bypassklappe, en: Bypass damper position}
+- {de: SD-Karte vorhanden, en: SD card present}
+- {de: LG-Modell, en: LG model}
+- {de: Kondensat-Überwachung, en: Condensate watchdog}
+- {de: Aktuelle Abtauzeit, en: Current defrost time}
+- {de: Mischventil-Stellung, en: Mixing valve position}
+- {de: Berechneter Zulufttemperatur-Sollwert, en: SUP-T setpoint calculated}
+- {de: CO2-Regelsignal, en: CO2 control signal}
+- {de: Vorheizregister Regelsignal, en: Preheater control signal}
+- {de: Betriebsstunden Lüftungsstufe 1, en: Operating hours ventilation level 1}
+# --- Pichler LG 350-450 ---
+- {de: Automatisch, en: Automatically}
+- {de: Regelung arbeiten lassen, en: Let controller operate}
+- {de: Bypass geschlossen, en: Bypass closed}
+- {de: Bypass offen, en: Bypass open}
+- {de: Keine Aktion, en: No action}
+- {de: Filterprotokoll löschen, en: Clear filter log}
+- {de: Neustart, en: Restart}
+- {de: Aktiv, en: Active}
+- {de: Gerade, en: Even}
+- {de: Ungerade, en: Odd}
+- {de: Konstanter Volumenstrom, en: Constant air volume flow}
+- {de: Konstanter Druck, en: Constant pressure}
+- {de: Inaktiv, en: Inactive}
+- {de: Nur im Standby, en: Only in Standby}
+- {de: Alle Stufen, en: All levels}
+- {de: EWT Sommer Umschaltpunkt, en: Geothermal heat exchanger summer switching point}
+- {de: EWT Winter Umschaltpunkt, en: Geothermal heat exchanger winter switching point}
+- {de: Vorheizregister Relais Schwellwert, en: Preheater relay threshold}
+- {de: Lüftungsstufe 3 Nachlaufzeit (External Din2), en: Ventilation level 3 run-on time (External Din2)}
+- {de: Tauschintervall Filter, en: Filter replacement interval}
+- {de: Raumtemperaturfühler Quelle, en: Room temperature sensor source}
+- {de: CO2 Sollwert, en: CO2 setpoint}
+- {de: Luftfeuchte Sollwert, en: Humidity setpoint}
+- {de: Feuchte Regelung LS3 maximale Zeit, en: Humidity control level 3 maximum time}
+- {de: Soll Zulufttemperatur (Abgesenkt), en: Target supply air temperature (setback)}
+- {de: Soll Raumlufttemperatur (Abgesenkt), en: Target room air temperature (setback)}
+- {de: Soll Ablufttemperatur (Abgesenkt), en: Target extract air temperature (setback)}
+- {de: System Zurücksetzen, en: System reset}
+- {de: Vorheizregister Zieltemperatur, en: Preheater target temperature}
+- {de: Automatische Umschaltung Sommer/Winter, en: Automatic summer/winter switching}
+- {de: Lüftungsstufe 3 Maximale Zeit, en: Ventilation level 3 maximum time}
+- {de: Kanaldruck Zuluft Stufe 1, en: Duct pressure supply air level 1}
+- {de: Kanaldruck Zuluft Stufe 2, en: Duct pressure supply air level 2}
+- {de: Kanaldruck Zuluft Stufe 3, en: Duct pressure supply air level 3}
+- {de: Kanaldruck Zuluft Grundlüftung, en: Duct pressure supply air basic ventilation}
+- {de: Kanaldruck Abluft Stufe 1, en: Duct pressure extract air level 1}
+- {de: Kanaldruck Abluft Stufe 2, en: Duct pressure extract air level 2}
+- {de: Kanaldruck Abluft Stufe 3, en: Duct pressure extract air level 3}
+- {de: Kanaldruck Abluft Grundlüftung, en: Duct pressure extract air basic ventilation}
+- {de: Abluft-Balance Lüftungsstufe 1, en: Extract air balance ventilation level 1}
+- {de: Abluft-Balance Lüftungsstufe 2, en: Extract air balance ventilation level 2}
+- {de: Abluft-Balance Lüftungsstufe 3, en: Extract air balance ventilation level 3}
+- {de: Abluft-Balance Grundlüftung, en: Extract air balance basic ventilation}
+- {de: Freigabe Heizen, en: Heating enable}
+- {de: Freigabe Kühlen, en: Cooling enable}
+- {de: Zeitprogramm Lüftungsstufen, en: Time program ventilation levels}
+- {de: Modbus-Sensoren aktivieren, en: Activate modbus sensors}
+- {de: Ventilatorregelung, en: Fan regulation}
+- {de: Touchdisplay Luftqualität anzeigen, en: Touch Display Show Air Quality}
+- {de: Baudrate Modbus-Sensoren, en: Baudrate Modbus sensors}
+- {de: Relative Luftfeuchtigkeit Sollwert Winter, en: Relative humidity setpoint Winter}
+- {de: Anwesenheitsmodus aktivieren, en: Enable Presence mode}
+- {de: Sommernachtkühlung aktivieren, en: Enable Summernight cooling}
+- {de: Sommernachtkühlung Einschalttemperatur T, en: Summernight cooling enable T}
+- {de: Sommernachtkühlung Abschalttemperatur T, en: Summernight cooling disable T}
+- {de: Sommernachtkühlung Freigabetemperatur T, en: Summernight cooling release T}
+- {de: Sommernachtkühlung Startstunde, en: Summernight cooling start hour}
+- {de: Sommernachtkühlung Startminute, en: Summernight cooling start minute}
+- {de: Sommernachtkühlung Lüftungsstufe, en: Summernight cooling ventilation level}
+- {de: Sommernachtkühlung Freigabe Lüftungsstufe, en: Summernight cooling release ventilation level}
+- {de: Außentemperatur gedämpft, en: Damped outdoor temperature}
+- {de: L7/Ai4 Abluft externer Sensor, en: L7/Ai4 extract air external sensor}
+- {de: Zuluft Temperatur (extern), en: Supply air temperature (external)}
+- {de: Außenluft Temperatur (extern), en: Outdoor air temperature (external)}
+- {de: Raum Temperatur (extern), en: Room temperature (external)}
+- {de: Raumtemperatur TouchDisplay, en: Room temperature touch display}
+- {de: Heizmischer Steuersignal, en: Heating mixer control signal}
+- {de: Kühlmischer Steuersignal, en: Cooling mixer control signal}
+- {de: Kombiregister Mischer Steuersignal, en: Combi coil mixer control signal}
+- {de: Vorheizregister Relais, en: Preheater relay}
+- {de: Heizanforderung, en: Heat demand}
+- {de: Kühlanforderung, en: Cooling demand}
+- {de: Außenluft- & Fortluftklappen, en: Outdoor air & exhaust air dampers}
+- {de: Pumpe Nachheizregister, en: Pump post-heater}
+- {de: Pumpe Kühl-/Kombiregister, en: Pump cooling/combi coil}
+- {de: Filtermeldung, en: Filter alert}
+- {de: Temperatur Vorheizregister, en: Preheater temperature}
+- {de: Extern Aus / BMZ, en: External off / fire alarm panel}
+- {de: Extern Lüftungsstufe 3, en: External ventilation level 3}
+- {de: Sollwert Zuluftvolumenstrom, en: Setpoint supply air volume flow}
+- {de: Sollwert Abluftvolumenstrom, en: Setpoint extract air volume flow}
+- {de: Istwert Zuluftvolumenstrom, en: Actual supply air volume flow}
+- {de: Istwert Abluftvolumenstrom, en: Actual extract air volume flow}
+- {de: Berechnete Zuluftsolltemperatur, en: Calculated supply air setpoint temperature}
+- {de: CO2 Regelsignal Sollwert, en: CO2 control signal setpoint}
+- {de: Vorheizregister PWM, en: Preheater PWM}
+- {de: Lüftungsgerät Modell, en: Ventilation unit model}
+- {de: Extern Frostschutz, en: External frost protection}
+- {de: Betriebsstunden Stufe 2, en: Operating hours level 2}
+- {de: Betriebsstunden Stufe 3, en: Operating hours level 3}
+- {de: Betriebsstunden Grundlüftung, en: Operating hours basic ventilation}
+- {de: Betriebsstunden Heizregister, en: Operating hours heating coil}
+- {de: Betriebsstunden Stufe 1, en: Operating hours level 1}
+- {de: Relative Luftfeuchtigkeit Modbus-Sensor 3, en: Relative humidity modbus sensor 3}
+- {de: Relative Luftfeuchtigkeit Modbus-Sensor 4, en: Relative humidity modbus sensor 4}
+- {de: Relative Luftfeuchtigkeit Modbus-Sensor 5, en: Relative humidity modbus sensor 5}
+- {de: Relative Luftfeuchtigkeit Modbus-Sensor 6, en: Relative humidity modbus sensor 6}
+- {de: Abluft-Kanaldruck, en: Extract air duct pressure}
+- {de: Zuluft-Kanaldruck, en: Supply air duct pressure}
+- {de: Aktueller CO2-Regelwert, en: Current CO2 control value}
+- {de: Vorheizregister Luftreduktion, en: Pre-heater air reduction}
+- {de: Vorheizregister Volumenstromreduzierung, en: Pre-heater Volume flow reduction}
+- {de: Filterdruck Zuluft, en: Filterpressure SUP}
+- {de: Filterdruck Abluft, en: Filterpressure ETA}
+- {de: Aktueller rF-Wert, en: Current rH value}
+- {de: Sommernacht Kühlung Testzeit, en: Summer-night cooling test time}
+- {de: Sommernacht Kühlung Wiederholungszeit, en: Summer-night cooling repeat time}
+- {de: Din1 Extern Sommernacht Kühlung aktiviert, en: Din1 external summer-night cooling activated}
+# --- SolaX X3-Hybrid G4 ---
+- {de: Entsperrt - Erweitert, en: Unlocked - Advanced}
+- {de: Benutzerdefiniert, en: User-Defined}
+- {de: Eigenverbrauchsmodus, en: Self Use Mode}
+- {de: Einspeisevorrang, en: Feedin Priority}
+- {de: Backup-Modus, en: Back Up Mode}
+- {de: Manueller Modus, en: Manual Mode}
+- {de: Lastspitzenkappung, en: PeakShaving}
+- {de: Intelligenter Zeitplan, en: Smart Schedule}
+- {de: Laden und Entladen stoppen, en: Stop Charge and Discharge}
+- {de: Zwangsladung, en: Force Charge}
+- {de: Zwangsentladung, en: Force Discharge}
+- {de: Leistungsregelungsmodus aktivieren, en: Enable Power Control Mode}
+- {de: Energiemengen-Zielregelungsmodus aktivieren, en: Enable Electric Quantity Target Control Mode}
+- {de: SOC-Zielregelungsmodus aktivieren, en: Enable SOC Target Control Mode}
+- {de: Push-Leistung Positiv/Negativ-Modus, en: Push Power-Positive/Negative Mode}
+- {de: Push-Leistung - Null-Modus, en: Push Power - Zero Mode}
+- {de: Eigenverbrauch - Laden/Entladen-Modus, en: Self-Consume - Charge/Discharge Mode}
+- {de: Eigenverbrauch - Nur-Laden-Modus, en: Self-Consume - Charge Only Mode}
+- {de: Individuelle Einstellung - Dauer-Modus, en: Individual Setting - Duration Mode}
+- {de: Individuelle Einstellung - Ziel-SOC-Modus, en: Individual Setting - Target SOC Mode}
+- {de: Setzen, en: Set}
+- {de: Blei-Säure, en: Lead Acid}
+- {de: Positiv, en: Positive}
+- {de: Negativ, en: Negative}
+- {de: Ukrainisch, en: Ukrainian}
+- {de: Intelligentes Sparen, en: Smart Save}
+- {de: Lastmanagement, en: Load Management}
+- {de: Generatorsteuerung, en: Generator Control}
+- {de: Frei, en: Free}
+- {de: ATS-Steuerung, en: ATS Control}
+- {de: Potentialfreier Kontakt, en: Dry Contact}
+- {de: Referenz-SOC, en: Reference SOC}
+- {de: Sofort, en: Immediately}
+- {de: Zähler, en: Meter}
+- {de: Leistungsregelungsmodus, en: Power Control Mode}
+- {de: Energiemengen-Zielregelungsmodus, en: Electric Quantity Target Control Mode}
+- {de: SOC-Zielregelungsmodus, en: SOC Target Control Mode}
+- {de: Push-Leistung - Positiv/Negativ-Modus, en: Push Power - Positive/Negative Mode}
+- {de: PV und BAT individuelle Einstellung - Dauer-Modus, en: PV and BAT Individual Setting - Duration Mode}
+- {de: PV und BAT individuelle Einstellung - Ziel-SOC-Modus, en: PV and BAT Individual Setting - Target SOC Mode}
+- {de: Aktuellen VPP-Modus verlassen und in Benutzer-Arbeitsmodus wechseln, en: Exit current VPP mode and switch to user work mode}
+- {de: Aktuellen VPP-Modus verlassen und in VPP-Modus 6 wechseln, en: Exit current VPP mode and switch to VPP mode 6}
+- {de: Prüfung, en: Checking}
+- {de: Normalmodus, en: Normal Mode}
+- {de: Dauerfehler-Modus, en: Permanent Fault Mode}
+- {de: Aktualisierungsmodus, en: Update Mode}
+- {de: Inselbetrieb wartet, en: Off-Grid Waiting}
+- {de: Inselbetrieb, en: Off-Grid}
+- {de: Leerlaufmodus, en: Idle Mode}
+- {de: TOU Eigenverbrauch, en: TOU Self use}
+- {de: TOU Laden, en: TOU Charging}
+- {de: TOU Entladen, en: TOU Discharging}
+- {de: TOU Batterie halten, en: TOU Battery hold}
+- {de: TOU Lastspitzenkappung, en: TOU Peak Shaving}
+- {de: Normalmodus (Gen), en: Normal Mode (Gen)}
+- {de: Lade-Wartemodus, en: Waiting Charge Mode}
+- {de: Normalmodus SS, en: Normal Mode SS}
+- {de: Getrennt, en: Disconnected}
+- {de: Verbunden, en: Connected}
+- {de: Kommunikationsstörung, en: Communication Error}
+- {de: Leistungsregelung aktiviert, en: Enabled Power Control}
+- {de: Mengenregelung aktiviert, en: Enabled Quantity Control}
+- {de: SOC-Zielregelung aktiviert, en: Enabled SOC Target Control}
+- {de: Push-Leistung - P/N-Modus, en: Push Power - P/N Mode}
+- {de: Eigenverbrauch - C/D-Modus, en: Self Consume - C/D Mode}
+- {de: 'Eigenverbrauch, nur Laden', en: Self Consume - Charge Only Mode}
+- {de: Nicht abgeschlossen, en: Unfinished}
+- {de: Abgeschlossen, en: Finished}
+- {de: Hersteller, en: Manufacturer}
+- {de: Modellnummer, en: Model Number}
+- {de: Wechselrichter-ID-Nummer, en: Inverter ID Number}
+- {de: System Ein, en: System On}
+- {de: System Aus, en: System Off}
+- {de: Sicherheitscode, en: Safety code}
+- {de: MateBox aktiviert, en: MateBox enabled}
+- {de: Manuelle Modusauswahl, en: Manual Mode Select}
+- {de: Batterie max. Ladestrom, en: Battery Charge Max Current}
+- {de: Batterie max. Entladestrom, en: Battery Discharge Max Current}
+- {de: Einspeisebegrenzung Benutzer, en: Export Control User Limit}
+- {de: Gemessene Leistung, en: Measured power}
+- {de: Batterie aufwecken, en: Battery Awaken}
+- {de: Max. PV-Ausgangsleistung, en: Max PV Output Power}
+- {de: Eigenverbrauch min. Entlade-SOC, en: Selfuse Discharge Min SOC}
+- {de: Eigenverbrauch Nachtladung aktivieren, en: Selfuse Night Charge Enable}
+- {de: Eigenverbrauch Nachtladung oberer SOC, en: Selfuse Nightcharge Upper SOC}
+- {de: Einspeisung Nachtladung oberer SOC, en: Feedin Nightcharge Upper SOC}
+- {de: Einspeisung min. Entlade-SOC, en: Feedin Discharge Min SOC}
+- {de: Backup Nachtladung oberer SOC, en: Backup Nightcharge Upper SOC}
+- {de: Backup min. Entlade-SOC, en: Backup Discharge Min SOC}
+- {de: Ladebeginn 1, en: Charge Start 1}
+- {de: Ladeende 1, en: Charge End 1}
+- {de: Entladebeginn 1, en: Discharge Start 1}
+- {de: Entladeende 1, en: Discharge End 1}
+- {de: Lade- und Entladezeitraum 2 aktivieren, en: Charge and Discharge Period2 Enable}
+- {de: Ladebeginn 2, en: Charge Start 2}
+- {de: Ladeende 2, en: Charge End 2}
+- {de: Entladebeginn 2, en: Discharge Start 2}
+- {de: Entladeende 2, en: Discharge End 2}
+- {de: Hauptschalter Strombegrenzung, en: Main Breaker Current Limit}
+- {de: Modbus-Leistungssteuerung (direkt), en: Modbus Power Control (direct)}
+- {de: Fernsteuerung Zielsetzungstyp (Modus 8/9; direkt), en: RemoteControl Target Set Type (mode 8/9; direct)}
+- {de: Fernsteuerung Wirkleistung (Modus 1; direkt), en: Remotecontrol Active Power (mode 1; direct)}
+- {de: Wechselrichter DSP-Hardwareversion, en: Inverter DSP hardware version}
+- {de: Fernsteuerung Blindleistung (Modus 1; direkt), en: Remotecontrol Reactive Power (mode 1; direct)}
+- {de: Fernsteuerung Dauer (Modus 1; direkt), en: Remotecontrol Duration (mode 1; direct)}
+- {de: Modbus-Protokollversion, en: Modbus Protocol Version}
+- {de: Fernsteuerung Ziel-SOC (Modus 3; direkt), en: Remotecontrol Target SOC (mode 3; direct)}
+- {de: Fernsteuerung Zielenergie (Modus 2; direkt), en: Remotecontrol Target Energy (mode 2; direct)}
+- {de: Fernsteuerung Lade-/Entladeleistung (Modus 2/3; direkt), en: Remotecontrol Charge/Discharge Power (mode 2/3; direct)}
+- {de: Fernsteuerung Zeitüberschreitung (Modus 1-7; direkt), en: Remotecontrol TimeOut (mode 1-7; direct)}
+- {de: Fernsteuerung Push-Modus-Leistung (Modus 4; direkt), en: Remotecontrol Push Mode Power (mode 4; direct)}
+- {de: Batterietyp, en: Battery Type}
+- {de: EPS Neustart-SOC, en: EPS Restart SOC}
+- {de: Batterie Ladeerhaltungsspannung, en: Battery Charge Float Voltage}
+- {de: Batterie Entladeschlussspannung, en: Battery Discharge Cut Off Voltage}
+- {de: Schattenkorrektur-Funktionsstufe PV2 (GMPPT), en: Shadow Fix Function Level PV2 (GMPPT)}
+- {de: Erweiterte BMS-Einstellung, en: Extend BMS Setting}
+- {de: Schattenkorrektur-Funktionsstufe PV1 (GMPPT), en: Shadow Fix Function Level PV1 (GMPPT)}
+- {de: Phasenleistungsausgleich X3, en: Phase Power Balance X3}
+- {de: Fernsteuerung Leistungssteuerungsmodus (Modus 8/9; direkt), en: RemoteControl Power Control Mode (mode 8/9; direct)}
+- {de: Leistungssteuerungsmodus Zielsetzungstyp (Modus 8/9; direkt), en: Power Control Mode Target Set Type (mode 8/9; direct)}
+- {de: 'Fernsteuerung PV-Leistungsgrenze (Modus 8/9, direkt)', en: 'Remotecontrol PV Power Limit (mode 8/9, direct)'}
+- {de: Zähler 1 Richtung, en: Meter 1 Direction}
+- {de: Fernsteuerung Push-Modus-Leistung (Modus 8/9; direkt), en: Remotecontrol Push Mode Power (mode 8/9; direct)}
+- {de: Zähler 2 Richtung, en: Meter 2 Direction}
+- {de: Entladeschlusspunkt unterschiedlich, en: Discharge Cut Off Point Different}
+- {de: Fernsteuerung Dauer (Modus 8; direkt), en: Remotecontrol Duration (mode 8; direct)}
+- {de: Fernsteuerung Ziel-SOC (Modus 9; direkt), en: Remotecontrol Target SOC (mode 9; direct)}
+- {de: Fernsteuerung Zeitüberschreitung (Modus 8/9; direkt), en: Remotecontrol TimeOut (mode 8/9; direct)}
+- {de: Registrierungscode Pocket, en: Registration Code Pocket}
+- {de: Leasing-Modus, en: Lease Mode}
+- {de: Einspeisebegrenzung Werk, en: Export Control Factory Limit}
+- {de: Manuelle Modussteuerung, en: Manual Mode Control}
+- {de: Einspeisung Einschaltleistung, en: Feedin On Power}
+- {de: EPS Stummschaltung, en: EPS Mute}
+- {de: Einschalt-SOC, en: Switch On SOC}
+- {de: Verbrauch Ausschaltleistung, en: Consume Off Power}
+- {de: EPS Sollfrequenz, en: EPS Set Frequency}
+- {de: Ausschalt-SOC, en: Switch Off SOC}
+- {de: Wechselrichter Nennausgangsleistung, en: Inverter Rated Output Power}
+- {de: Mindestdauer pro Ein-Signal, en: Minimum Per On Signal}
+- {de: Maximale Ein-Dauer pro Tag, en: Maximum Per Day On}
+- {de: Zeitplan, en: Schedule}
+- {de: Arbeitszeit Start 1, en: Work Start Time 1}
+- {de: Arbeitszeit Ende 1, en: Work End Time 1}
+- {de: Arbeitszeit Start 2, en: Work Start Time 2}
+- {de: Arbeitszeit Ende 2, en: Work End Time 2}
+- {de: Arbeitsmodus, en: Work Mode}
+- {de: Trockenkontakt-Modus, en: Dry Contact Mode}
+- {de: Eigenverbrauchsmodus Backup, en: Selfuse Mode Backup}
+- {de: Eigenverbrauch Backup-SOC, en: Selfuse Backup SOC}
+- {de: Paralleleinstellung, en: Parallel Setting}
+- {de: Generator max. Ladung, en: Generator Max Charge}
+- {de: Batterieheizung, en: Battery Heating}
+- {de: Batterieheizung Startzeit 1, en: Battery Heating Start Time 1}
+- {de: Batterieheizung Endzeit 1, en: Battery Heating End Time 1}
+- {de: Batterieheizung Startzeit 2, en: Battery Heating Start Time 2}
+- {de: Batterieheizung Endzeit 2, en: Battery Heating End Time 2}
+- {de: Batterie oberer Lade-SOC, en: Battery Charge Upper SOC}
+- {de: Batterie zu EV-Ladegerät, en: Battery to EV Charger}
+- {de: Generator Startmethode, en: Generator Start Method}
+- {de: Generator Einschalt-SOC, en: Generator Switch On SOC}
+- {de: Generator Ausschalt-SOC, en: Generator Switch Off SOC}
+- {de: Generator max. Laufzeit, en: Generator Max Run Time}
+- {de: Generator min. Ruhezeit, en: Generator Min Rest Time}
+- {de: Generator Startzeit 1, en: Generator Start Time 1}
+- {de: Generator Stoppzeit 1, en: Generator Stop Time 1}
+- {de: Spitzenlastkappung Entlade-Startzeit 1, en: PeakShaving Discharge Start Time 1}
+- {de: Spitzenlastkappung Entlade-Stoppzeit 1, en: PeakShaving Discharge Stop Time 1}
+- {de: Spitzenlastkappung Entlade-Startzeit 2, en: PeakShaving Discharge Start Time 2}
+- {de: Spitzenlastkappung Entlade-Stoppzeit 2, en: PeakShaving Discharge Stop Time 2}
+- {de: Spitzenlastkappung Entladegrenze 1, en: PeakShaving Discharge Limit 1}
+- {de: Spitzenlastkappung Entladegrenze 2, en: PeakShaving Discharge Limit 2}
+- {de: Spitzenlastkappung Laden aus Netz, en: PeakShaving Charge from Grid}
+- {de: Spitzenlastkappung Ladegrenze, en: PeakShaving Charge Limit}
+- {de: Spitzenlastkappung max. SOC, en: PeakShaving Max SOC}
+- {de: Spitzenlastkappung reservierter SOC, en: PeakShaving Reserved SOC}
+- {de: VPP Leerlauf verlassen aktivieren, en: VPP Exit Idle Enable}
+- {de: Schnelle CT-Prüfung aktivieren, en: Fast CT Check Enable}
+- {de: EV-Ladegerät-Adresse, en: EV Charger Address}
+- {de: Adapt Box G2 Adresse, en: Adapt Box G2 Address}
+- {de: CT-Zykluserkennung, en: CT Cycle Detection}
+- {de: EPS-Modus ohne Batterie, en: EPS Mode without Battery}
+- {de: Generator Lade-Startzeit 1, en: Generator Charge Start Time 1}
+- {de: Generator Lade-Stoppzeit 1, en: Generator Charge Stop Time 1}
+- {de: Generator Entlade-Startzeit 1, en: Generator Discharge Start Time 1}
+- {de: DRM-Funktion aktivieren, en: DRM Function Enable}
+- {de: Generator Entlade-Stoppzeit 1, en: Generator Discharge Stop Time 1}
+- {de: CT-Typ, en: CT Type}
+- {de: Generatorzeit 2, en: Generator Time 2}
+- {de: Generator Lade-Startzeit 2, en: Generator Charge Start Time 2}
+- {de: Gerätetyp, en: Machine Type}
+- {de: Generator Lade-Stoppzeit 2, en: Generator Charge Stop Time 2}
+- {de: Generator Entlade-Startzeit 2, en: Generator Discharge Start Time 2}
+- {de: Geräteausführung, en: Machine Style}
+- {de: Generator Entlade-Stoppzeit 2, en: Generator Discharge Stop Time 2}
+- {de: Zählerfunktion, en: Meter Function}
+- {de: Generator Laden, en: Generator Charge}
+- {de: Zähler 1 ID, en: Meter 1 ID}
+- {de: Generator Lade-SOC, en: Generator Charge SOC}
+- {de: Zähler 2 ID, en: Meter 2 ID}
+- {de: Generator Mindestleistung, en: Generator Min Power}
+- {de: Entladeschlussspannung Netzbetrieb, en: Discharge Cut Off Voltage Grid Mode}
+- {de: CT-Zähler-Einstellung, en: CT Meter Setting}
+- {de: FVRT-Funktion, en: FVRT Function}
+- {de: PV-Anschlussmodus, en: PV Connection Mode}
+- {de: Herunterfahren, en: Shut Down}
+- {de: Mikronetz, en: Micro Grid}
+- {de: Fernsteuerung Rückmeldemodus, en: Remotecontrol Readback Mode}
+- {de: Fernsteuerung Modus 8 PV-Leistungsgrenze Rückmeldung, en: Remotecontrol Mode 8 PV Power Limit Readback}
+- {de: Fernsteuerung Modus 8 Batterie-Leistungsziel Rückmeldung, en: Remotecontrol Mode 8 Battery Power Target Readback}
+- {de: Fernsteuerung Modus 8 Zeitüberschreitung Rückmeldung, en: Remotecontrol Mode 8 Timeout Readback}
+- {de: Fernsteuerung Modus 8 Nächste Aktion Rückmeldung, en: Remotecontrol Mode 8 Next Motion Readback}
+- {de: Wechselrichter Spannung, en: Inverter Voltage}
+- {de: Wechselrichter Strom, en: Inverter Current}
+- {de: Wechselrichter Leistung, en: Inverter Power}
+- {de: PV-Spannung 1, en: PV Voltage 1}
+- {de: PV-Spannung 2, en: PV Voltage 2}
+- {de: PV-Strom 1, en: PV Current 1}
+- {de: PV-Strom 2, en: PV Current 2}
+- {de: Wechselrichter Frequenz, en: Inverter Frequency}
+- {de: Wechselrichter Temperatur, en: Inverter Temperature}
+- {de: PV-Leistung 1, en: PV Power 1}
+- {de: PV-Leistung 2, en: PV Power 2}
+- {de: Countdown-Zeit, en: Time Count Down}
+- {de: Batterie Ladespannung, en: Battery Voltage Charge}
+- {de: Batterie Ladestrom, en: Battery Current Charge}
+- {de: Batterie Ladeleistung, en: Battery Power Charge}
+- {de: BMS-Verbindungsstatus, en: BMS Connect State}
+- {de: Batterietemperatur, en: Battery Temperature}
+- {de: MPPT-Anzahl, en: MPPT Count}
+- {de: Batteriekapazität, en: Battery Capacity}
+- {de: Batterie Ausgangsenergie gesamt, en: Battery Output Energy Total}
+- {de: Batterie Ausgangsenergie heute, en: Battery Output Energy Today}
+- {de: Batterie Eingangsenergie gesamt, en: Battery Input Energy Total}
+- {de: Batterie Eingangsenergie heute, en: Battery Input Energy Today}
+- {de: BMS max. Ladestrom, en: BMS Charge Max Current}
+- {de: BMS max. Entladestrom, en: BMS Discharge Max Current}
+- {de: Batterie Gesamtenergie, en: Battery Total Energy}
+- {de: PV-Leistung gesamt, en: PV Power Total}
+- {de: On-Grid-Leistung gesamt, en: Total On-Grid Power}
+- {de: Off-Grid-Leistung gesamt, en: Total Off-Grid Power}
+- {de: Batteriesystem installierte Kapazität, en: Battery System Installed Capacity}
+- {de: Netzeinspeisung gesamt, en: Grid Export Total}
+- {de: Netzbezug gesamt, en: Grid Import Total}
+- {de: EPS-Frequenz, en: EPS Frequency}
+- {de: Ertrag heute, en: Today's Yield}
+- {de: Ertrag gesamt, en: Total Yield}
+- {de: Bus-Spannung, en: Bus Volt}
+- {de: Wechselrichter Spannung L1, en: Inverter Voltage L1}
+- {de: Wechselrichter Strom L1, en: Inverter Current L1}
+- {de: Wechselrichter Leistung L1, en: Inverter Power L1}
+- {de: Wechselrichter Frequenz L1, en: Inverter Frequency L1}
+- {de: Wechselrichter Spannung L2, en: Inverter Voltage L2}
+- {de: Wechselrichter Strom L2, en: Inverter Current L2}
+- {de: Wechselrichter Leistung L2, en: Inverter Power L2}
+- {de: Wechselrichter Frequenz L2, en: Inverter Frequency L2}
+- {de: Wechselrichter Spannung L3, en: Inverter Voltage L3}
+- {de: Wechselrichter Strom L3, en: Inverter Current L3}
+- {de: Wechselrichter Leistung L3, en: Inverter Power L3}
+- {de: Wechselrichter Frequenz L3, en: Inverter Frequency L3}
+- {de: EPS-Spannung L1, en: EPS Voltage L1}
+- {de: EPS-Strom L1, en: EPS Current L1}
+- {de: EPS-Wirkleistung L1, en: EPS Power Active L1}
+- {de: EPS-Leistung L1, en: EPS Power L1}
+- {de: EPS-Spannung L2, en: EPS Voltage L2}
+- {de: EPS-Strom L2, en: EPS Current L2}
+- {de: EPS-Wirkleistung L2, en: EPS Power Active L2}
+- {de: EPS-Leistung L2, en: EPS Power L2}
+- {de: EPS-Spannung L3, en: EPS Voltage L3}
+- {de: EPS-Strom L3, en: EPS Current L3}
+- {de: EPS-Wirkleistung L3, en: EPS Power Active L3}
+- {de: EPS-Leistung L3, en: EPS Power L3}
+- {de: Gemessene Leistung L1, en: Measured Power L1}
+- {de: Gemessene Leistung L2, en: Measured Power L2}
+- {de: Gemessene Leistung L3, en: Measured Power L3}
+- {de: Netzbetrieb Laufzeit, en: Grid Mode Runtime}
+- {de: EPS-Modus Laufzeit, en: EPS Mode Runtime}
+- {de: EPS-Ertrag gesamt, en: EPS Yield Total}
+- {de: EPS-Ertrag heute, en: EPS Yield Today}
+- {de: Solarenergie gesamt, en: Total Solar Energy}
+- {de: Solarenergie heute, en: Today's Solar Energy}
+- {de: Einspeiseenergie heute, en: Today's Export Energy}
+- {de: Bezugsenergie heute, en: Today's Import Energy}
+- {de: EV-Ladegerät-Kommunikationsstatus, en: EV Charger Communication State}
+- {de: Adapter-Box-Kommunikationsstatus, en: Adapter Box Communication State}
+- {de: Batterie max. Ladeleistung, en: Battery Max Charge Power}
+- {de: Batterie max. Entladeleistung, en: Battery Max Discharge Power}
+- {de: Zähler 2 gemessene Leistung, en: Meter 2 Measured Power}
+- {de: Zähler 2 Einspeisung gesamt, en: Meter 2 Export Total}
+- {de: Zähler 2 Bezug gesamt, en: Meter 2 Import Total}
+- {de: Zähler 2 Einspeisung heute, en: Meter 2 Export Today}
+- {de: Zähler 2 Bezug heute, en: Meter 2 Import Today}
+- {de: Zähler 2 gemessene Leistung L1, en: Meter 2 Measured Power L1}
+- {de: Zähler 2 gemessene Leistung L2, en: Meter 2 Measured Power L2}
+- {de: Zähler 2 gemessene Leistung L3, en: Meter 2 Measured Power L3}
+- {de: Zähler 1 Kommunikationsstatus, en: Meter 1 Communication State}
+- {de: Zähler 2 Kommunikationsstatus, en: Meter 2 Communication State}
+- {de: Batterietemperatur hoch, en: Battery Temp High}
+- {de: Batterietemperatur niedrig, en: Battery Temp Low}
+- {de: Zellspannung hoch, en: Cell Voltage High}
+- {de: Zellspannung niedrig, en: Cell Voltage Low}
+- {de: Batteriezustand, en: Battery State of Health}
+- {de: Netz-Leistungsfaktor gesamt, en: Grid Power Factor Total}
+- {de: Netz-Leistungsfaktor L1, en: Grid Power Factor L1}
+- {de: Netz-Leistungsfaktor L2, en: Grid Power Factor L2}
+- {de: Netz-Leistungsfaktor L3, en: Grid Power Factor L3}
+- {de: Netzspannung L1, en: Grid Voltage L1}
+- {de: Netzspannung L2, en: Grid Voltage L2}
+- {de: Netzspannung L3, en: Grid Voltage L3}
+- {de: Netzstrom gesamt, en: Grid Current Total}
+- {de: Netz-Blindleistung gesamt, en: Grid Reactive Power Total}
+- {de: Netz-Blindleistung L3, en: Grid Reactive Power L3}
+- {de: Netz-Blindleistung L1, en: Grid Reactive Power L1}
+- {de: Netz-Blindleistung L2, en: Grid Reactive Power L2}
+- {de: Modbus-Leistungssteuerung, en: Modbus Power Control}
+- {de: Zielerreichungs-Flag, en: Target Finish Flag}
+- {de: Wirkleistungsziel, en: Active Power Target}
+- {de: Blindleistungsziel, en: Reactive Power Target}
+- {de: Wirkleistung Ist, en: Active Power Real}
+- {de: Blindleistung Ist, en: Reactive Power Real}
+- {de: Wirkleistung Obergrenze, en: Active Power Upper}
+- {de: Wirkleistung Untergrenze, en: Active Power Lower}
+- {de: Blindleistung Obergrenze, en: Reactive Power Upper}
+- {de: Blindleistung Untergrenze, en: Reactive Power Lower}
+- {de: Lade-/Entladeleistung, en: Charge Discharge Power}
+- {de: Ladbare Batterieenergie, en: Chargeable Battery Energy}
+- {de: Verbleibende Batterieenergie, en: Remaining Battery Energy}
+- {de: PM Wechselrichter-Anzahl, en: PM Inverter Count}
+- {de: PM Wirkleistung L1, en: PM ActivePower L1}
+- {de: PM Wirkleistung L2, en: PM ActivePower L2}
+- {de: PM Wirkleistung L3, en: PM ActivePower L3}
+- {de: PM Blind- oder Scheinleistung L1, en: PM Reactive or ApparentPower L1}
+- {de: PM Blind- oder Scheinleistung L2, en: PM Reactive or ApparentPower L2}
+- {de: PM Blind- oder Scheinleistung L3, en: PM Reactive or ApparentPower L3}
+- {de: PM Wechselrichter Strom L1, en: PM Inverter Current L1}
+- {de: PM Wechselrichter Strom L2, en: PM Inverter Current L2}
+- {de: PM Wechselrichter Strom L3, en: PM Inverter Current L3}
+- {de: PM PV-Leistung 1, en: PM PV Power 1}
+- {de: PM PV-Leistung 2, en: PM PV Power 2}
+- {de: PM PV-Strom 1, en: PM PV Current 1}
+- {de: PM PV-Strom 2, en: PM PV Current 2}
+- {de: PM Batterie Ladeleistung, en: PM Battery Power Charge}
+- {de: PM Batterie Ladestrom, en: PM Battery Current Charge}
+- {de: PM I2 Wirkleistung L1, en: PM I2 ActivePower L1}
+- {de: PM I2 Wirkleistung L2, en: PM I2 ActivePower L2}
+- {de: PM I2 Wirkleistung L3, en: PM I2 ActivePower L3}
+- {de: PM I2 Blind- oder Scheinleistung L1, en: PM I2 Reactive or ApparentPower L1}
+- {de: PM I2 Blind- oder Scheinleistung L2, en: PM I2 Reactive or ApparentPower L2}
+- {de: PM I2 Blind- oder Scheinleistung L3, en: PM I2 Reactive or ApparentPower L3}
+- {de: PM I2 Wechselrichter Strom L1, en: PM I2 Inverter Current L1}
+- {de: PM I2 Wechselrichter Strom L2, en: PM I2 Inverter Current L2}
+- {de: PM I2 Wechselrichter Strom L3, en: PM I2 Inverter Current L3}
+- {de: PM I2 PV-Leistung 1, en: PM I2 PV Power 1}
+- {de: PM I2 PV-Leistung 2, en: PM I2 PV Power 2}
+- {de: PM I2 PV-Spannung 1, en: PM I2 PV Voltage 1}
+- {de: PM I2 PV-Spannung 2, en: PM I2 PV Voltage 2}
+- {de: PM I2 PV-Strom 1, en: PM I2 PV Current 1}
+- {de: PM I2 PV-Strom 2, en: PM I2 PV Current 2}
+- {de: PM I2 Batterie Ladeleistung, en: PM I2 Battery Power Charge}
+- {de: PM I2 Batterie Ladespannung, en: PM I2 Battery Voltage Charge}
+- {de: PM I2 Batterie Ladestrom, en: PM I2 Battery Current Charge}
+- {de: PM I2 Batteriekapazität, en: PM I2 Battery Capacity}
+- {de: PM I3 Wirkleistung L1, en: PM I3 ActivePower L1}
+- {de: PM I3 Wirkleistung L2, en: PM I3 ActivePower L2}
+- {de: PM I3 Wirkleistung L3, en: PM I3 ActivePower L3}
+- {de: PM I3 Blind- oder Scheinleistung L1, en: PM I3 Reactive or ApparentPower L1}
+- {de: PM I3 Blind- oder Scheinleistung L2, en: PM I3 Reactive or ApparentPower L2}
+- {de: PM I3 Blind- oder Scheinleistung L3, en: PM I3 Reactive or ApparentPower L3}
+- {de: PM I3 Wechselrichter Strom L1, en: PM I3 Inverter Current L1}
+- {de: PM I3 Wechselrichter Strom L2, en: PM I3 Inverter Current L2}
+- {de: PM I3 Wechselrichter Strom L3, en: PM I3 Inverter Current L3}
+- {de: PM I3 PV-Leistung 1, en: PM I3 PV Power 1}
+- {de: PM I3 PV-Leistung 2, en: PM I3 PV Power 2}
+- {de: PM I3 PV-Spannung 1, en: PM I3 PV Voltage 1}
+- {de: PM I3 PV-Spannung 2, en: PM I3 PV Voltage 2}
+- {de: PM I3 PV-Strom 1, en: PM I3 PV Current 1}
+- {de: PM I3 PV-Strom 2, en: PM I3 PV Current 2}
+- {de: PM I3 Batterie Ladeleistung, en: PM I3 Battery Power Charge}
+- {de: PM I3 Batterie Ladespannung, en: PM I3 Battery Voltage Charge}
+- {de: PM I3 Batterie Ladestrom, en: PM I3 Battery Current Charge}
+- {de: PM I3 Batteriekapazität, en: PM I3 Battery Capacity}
+- {de: Netzbezug, en: Grid import}
+- {de: Netzeinspeisung, en: Grid export}
+- {de: Hausverbrauch (alternativ), en: House load alt}
+- {de: Batterie-Ladeleistung, en: Battery charge power}
+- {de: Batterie-Entladeleistung, en: Battery discharge power}
+- {de: BMS max. Ladung, en: BMS max charge}
+- {de: Batterie Zellspannungsdifferenz, en: Battery voltage cell difference}
+- {de: PM Wechselrichterleistung gesamt, en: PM Total Inverter Power}
+- {de: PM PV-Leistung gesamt, en: PM Total PV Power}
+- {de: PM Hausverbrauch gesamt, en: PM Total House Load}
+- {de: PM Blind- oder Scheinleistung gesamt, en: PM Total Reactive or ApparentPower}
+- {de: PM Wechselrichterstrom gesamt, en: PM Total Inverter Current}
+- {de: PM PV-Strom gesamt, en: PM Total PV Current}
+- {de: Netz-zu-Batterie-Leistung, en: Grid to Battery Power}
+- {de: PV-Energie 1, en: PV Energy 1}
+- {de: PV-Energie 2, en: PV Energy 2}
+- {de: Hausverbrauchsenergie, en: Home Consumption Energy}
+- {de: Netzleistung, en: Grid Power}
+# --- SolaX X3-HAC ---
+- {de: Externer CT, en: External CT}
+- {de: Externer Zähler, en: External Meter}
+- {de: Schnell, en: Fast}
+- {de: Grün, en: Green}
+- {de: Einstecken und Laden, en: Plug and Charge}
+- {de: Karte zum Starten durchziehen, en: Swipe Card to Start}
+- {de: App-Start, en: App Start}
+- {de: Timer-Boost, en: Timer Boost}
+- {de: Smart-Boost, en: Smart Boost}
+- {de: PV-Modus, en: PV Mode}
+- {de: Standardmodus, en: Standard Mode}
+- {de: OCPP-Modus, en: OCPP Mode}
+- {de: Dreiphasig, en: Three Phase}
+- {de: Phase L1, en: L1 Phase}
+- {de: Phase L2, en: L2 Phase}
+- {de: Phase L3, en: L3 Phase}
+- {de: Kein Befehl, en: No Command}
+- {de: Laden stoppen, en: Stop Charging}
+- {de: Laden starten, en: Start Charging}
+- {de: Reservieren, en: Reserve}
+- {de: Reservierung stornieren, en: Cancel the Reservation}
+- {de: Einphasig, en: Single Phase}
+- {de: Nicht begrenzt, en: Not Limited}
+- {de: 'Begrenzt, lädt', en: 'Limited, Charging'}
+- {de: Laden gestoppt, en: Stopped Charging}
+- {de: Keine Verzögerung, en: Not in Delay}
+- {de: In Zufallsverzögerung, en: In Random Delay}
+- {de: Laden verboten, en: Charge Prohibited}
+- {de: Zählereinstellung, en: Meter Setting}
+- {de: ECO-Stufe, en: ECO Gear}
+- {de: Grün-Stufe, en: Green Gear}
+- {de: Lade-Startmodus, en: Start Charge Mode}
+- {de: Überlastgrenze, en: Overload Limit}
+- {de: Unterspannungsgrenze, en: Undervoltage Limit}
+- {de: Boost-Modus, en: Boost Mode}
+- {de: Hauptschalter-Grenze, en: Main Breaker Limit}
+- {de: RFID-Kartenaktivierung, en: RFID Card Activation}
+- {de: Geladene Energie gesamt, en: Charge Added Total}
+- {de: Lademodus, en: Charging Mode}
+- {de: Ladephase, en: Charge Phase}
+- {de: Steuerbefehl, en: Control Command}
+- {de: Ladestrom, en: Charge Current}
+- {de: Timer-Boost Startzeit, en: Timer Boost Start Time}
+- {de: Timer-Boost Endzeit, en: Timer Boost End Time}
+- {de: Smart-Boost Endzeit, en: Smart Boost End Time}
+- {de: Smart-Boost Energie, en: Smart Boost Energy}
+- {de: Ladephase (alt), en: Charge Phase Alt}
+- {de: Max. Ladestrom, en: Max Charge Current}
+- {de: EVSE-Modus, en: EVSE Mode}
+- {de: Ladespannung L1, en: Charge Voltage L1}
+- {de: Ladespannung L2, en: Charge Voltage L2}
+- {de: Ladespannung L3, en: Charge Voltage L3}
+- {de: Ladespannung PE, en: Charge PE Voltage}
+- {de: Ladestrom L1, en: Charge Current L1}
+- {de: Ladestrom L2, en: Charge Current L2}
+- {de: Ladestrom L3, en: Charge Current L3}
+- {de: Ladestrom PE, en: Charge PE Current}
+- {de: Ladeleistung L1, en: Charge Power L1}
+- {de: Ladeleistung L2, en: Charge Power L2}
+- {de: Ladeleistung L3, en: Charge Power L3}
+- {de: Ladeleistung gesamt, en: Charge Power Total}
+- {de: Ladefrequenz L1, en: Charge Frequency L1}
+- {de: Ladefrequenz L2, en: Charge Frequency L2}
+- {de: Ladefrequenz L3, en: Charge Frequency L3}
+- {de: Geladene Energie, en: Charge Added}
+- {de: Geladene Energie - kumuliert, en: Charge Added - Cumulative}
+- {de: Netzleistung gesamt, en: Grid Power Total}
+- {de: CC-Spannung, en: CC Voltage}
+- {de: CP-Spannung, en: CP Voltage}
+- {de: PWM-Tastverhältnis, en: PWM Duty Cycle}
+- {de: Ladegerät-Temperatur, en: Charger Temperature}
+- {de: Nennleistung, en: Power Rating}
+- {de: Phasentyp, en: Phase Type}
+- {de: Ladeszene, en: Charging Scene}
+- {de: Bildschirm vorhanden, en: Screen Fitted}
+- {de: Aktive Ladephase, en: Active Charge Phase}
+- {de: Unsymmetrische Leistungsgrenze, en: Unbalanced Power Limit}
+- {de: Phasenunsymmetrie, en: Phase Unbalance}
+- {de: Ladedauer, en: Charging Duration}
+- {de: Hauptschalter-Begrenzungsstatus, en: Main Breaker Limit State}
+- {de: Status Zufallsverzögerung, en: Random Delay State}
+- {de: Sperrstatus, en: Ban State}
+- {de: Ladeleistung L1 (alt), en: Charge Power L1 Alt}
+- {de: Ladeleistung L2 (alt), en: Charge Power L2 Alt}
+- {de: Ladeleistung L3 (alt), en: Charge Power L3 Alt}
+- {de: Laden mit maximaler Leistung, en: Max Power Charging}
+- {de: Aktiver Lademodus, en: Charge Mode Active}
+- {de: Grün-Modus Startleistung, en: Green Mode Start Power}
