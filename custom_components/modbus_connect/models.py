@@ -29,6 +29,12 @@ ALL_TABLES = frozenset(TABLES)
 PROTOCOL_MAX_REGISTERS = 125
 PROTOCOL_MAX_BITS = 2000
 
+# Device-level read-planning defaults, defined here (the HA-import-free module)
+# so the DeviceDef fields below and const.py agree on one value; const.py
+# re-exports them as Final (it can't be imported here — it pulls in Home Assistant).
+DEFAULT_MAX_READ = 8
+DEFAULT_MAX_GAP = 8
+
 # Value types for word tables ("bool" is implied for bit tables), in bits per
 # value. Sub-word values sit in the least significant bits of their register;
 # with sum_scale, elements are taken from each register least-significant-first
@@ -104,6 +110,22 @@ def derive_name(key: str) -> str:
     return (key[:1].upper() + key[1:]).replace("_", " ")
 
 
+def reverse_value_map(
+    value_map: dict[int, str], *, require_unique: bool = False
+) -> dict[str, int]:
+    """Invert a raw→label ``value_map`` to label→raw.
+
+    With ``require_unique`` (the write path), a non-injective map — two raw
+    values sharing a label — raises :class:`ValueError`, because a write can't
+    be reversed unambiguously. Without it (the template ``key()`` read helper),
+    later labels simply win: a best-effort lookup, never an error.
+    """
+    reversed_map = {label: raw for raw, label in value_map.items()}
+    if require_unique and len(reversed_map) != len(value_map):
+        raise ValueError("value_map is not injective")
+    return reversed_map
+
+
 @dataclass(frozen=True, order=True)
 class Span:
     """A contiguous range of addresses in one Modbus table."""
@@ -116,6 +138,10 @@ class Span:
     def end(self) -> int:
         """One past the last address."""
         return self.start + self.count
+
+    def __str__(self) -> str:
+        """Compact locator for logs and errors: ``table@start+count``."""
+        return f"{self.table}@{self.start}+{self.count}"
 
 
 @dataclass(frozen=True)
@@ -262,8 +288,8 @@ class DeviceDef:
     model: str
     entities: tuple[EntityDef, ...]
     templates: tuple[TemplateDef, ...] = ()
-    max_read: int = 8  # max registers/bits per read request
-    max_gap: int = 8  # bridge unused holes up to this many addresses
+    max_read: int = DEFAULT_MAX_READ  # max registers/bits per read request
+    max_gap: int = DEFAULT_MAX_GAP  # bridge unused holes up to this many addresses
     # (table, address) pairs the planner must never read or bridge across
     # (device-declared dead registers), and addresses that must always start a
     # new read block (a forced boundary between two otherwise-mergeable spans).

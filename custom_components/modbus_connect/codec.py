@@ -28,6 +28,7 @@ from .models import (
     TYPE_WIDTH,
     UNSIGNED_INT_TYPES,
     EntityDef,
+    reverse_value_map,
 )
 
 
@@ -208,9 +209,12 @@ def _encode_time(defn: EntityDef, value: object) -> list[int]:
 def _unmap(defn: EntityDef, value: object) -> int:
     """Reverse a ``map``: label -> register value."""
     assert defn.value_map is not None
-    reverse = {v: k for k, v in defn.value_map.items()}
-    if len(reverse) != len(defn.value_map):
-        raise NotWritableError(f"{defn.key}: map values are not unique, cannot write")
+    try:
+        reverse = reverse_value_map(defn.value_map, require_unique=True)
+    except ValueError as err:
+        raise NotWritableError(
+            f"{defn.key}: map values are not unique, cannot write"
+        ) from err
     if value not in reverse:
         raise CodecError(f"{defn.key}: {value!r} is not a mapped value")
     return reverse[value]

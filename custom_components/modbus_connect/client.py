@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from typing import Any, ClassVar
 
 from pymodbus import FramerType
@@ -23,6 +24,10 @@ _LOGGER = logging.getLogger(__name__)
 
 _ILLEGAL_DATA_ADDRESS = 2
 
+# The exceptions that mean a transient connection/transport failure — as opposed
+# to a protocol error *response*, which comes back as an ExceptionResponse.
+_CONN_ERRORS = (TimeoutError, ModbusException, OSError)
+
 # Connection defaults; device files may raise them (device: timeout / retries /
 # request_delay). Seconds per request, in-driver retransmits, and enforced
 # silence between two transactions.
@@ -33,8 +38,26 @@ DEFAULT_REQUEST_DELAY = 0.0
 # Serial line defaults (Modbus's own default is 19200 8E1, but nearly every
 # real device ships 9600 8N1)
 DEFAULT_BAUDRATE = 9600
+DEFAULT_BYTESIZE = 8
+DEFAULT_PARITY = "N"
+DEFAULT_STOPBITS = 1
 
 _InnerClient = AsyncModbusTcpClient | AsyncModbusSerialClient
+
+
+def _read_funcs(client: _InnerClient) -> dict[str, Callable[..., Any]]:
+    """The table → pymodbus read-method map for a client."""
+    return {
+        TABLE_HOLDING: client.read_holding_registers,
+        TABLE_INPUT: client.read_input_registers,
+        TABLE_COIL: client.read_coils,
+        TABLE_DISCRETE: client.read_discrete_inputs,
+    }
+
+
+def _exception_code(response: Any) -> int | None:
+    """The Modbus exception code if ``response`` is an ExceptionResponse, else None."""
+    return response.exception_code if isinstance(response, ExceptionResponse) else None
 
 
 def _serial_client(
@@ -93,26 +116,18 @@ async def _probe_read(client: _InnerClient, device_id: int, span: Span) -> str |
         try:
             if not await client.connect():
                 return "cannot_connect"
-        except (TimeoutError, ModbusException, OSError):
+        except _CONN_ERRORS:
             return "cannot_connect"
-        read = {
-            TABLE_HOLDING: client.read_holding_registers,
-            TABLE_INPUT: client.read_input_registers,
-            TABLE_COIL: client.read_coils,
-            TABLE_DISCRETE: client.read_discrete_inputs,
-        }[span.table]
+        read = _read_funcs(client)[span.table]
         try:
             response = await read(
                 address=span.start, count=span.count, device_id=device_id
             )
-        except (TimeoutError, ModbusException, OSError):
+        except _CONN_ERRORS:
             return "device_no_answer"
     finally:
         client.close()
-    if (
-        isinstance(response, ExceptionResponse)
-        and response.exception_code in _GATEWAY_EXCEPTIONS
-    ):
+    if _exception_code(response) in _GATEWAY_EXCEPTIONS:
         return "device_no_answer"
     return None
 
@@ -145,9 +160,9 @@ async def async_probe_serial(
     serial_port: str,
     *,
     baudrate: int = DEFAULT_BAUDRATE,
-    bytesize: int = 8,
-    parity: str = "N",
-    stopbits: int = 1,
+    bytesize: int = DEFAULT_BYTESIZE,
+    parity: str = DEFAULT_PARITY,
+    stopbits: int = DEFAULT_STOPBITS,
     timeout: float = 5.0,
 ) -> bool:
     """Try to open the serial port (config flow validation)."""
@@ -168,9 +183,9 @@ async def async_probe_serial_device(
     span: Span,
     *,
     baudrate: int = DEFAULT_BAUDRATE,
-    bytesize: int = 8,
-    parity: str = "N",
-    stopbits: int = 1,
+    bytesize: int = DEFAULT_BYTESIZE,
+    parity: str = DEFAULT_PARITY,
+    stopbits: int = DEFAULT_STOPBITS,
     timeout: float = 5.0,
 ) -> str | None:
     """Serial twin of :func:`async_probe_device`, same return values —
@@ -200,12 +215,7 @@ class ModbusBlockClient:
         self._line = line  # serial only: (baudrate, bytesize, parity, stopbits)
         self.lock = asyncio.Lock()
         self._client = inner
-        self._read_funcs = {
-            TABLE_HOLDING: self._client.read_holding_registers,
-            TABLE_INPUT: self._client.read_input_registers,
-            TABLE_COIL: self._client.read_coils,
-            TABLE_DISCRETE: self._client.read_discrete_inputs,
-        }
+        self._read_funcs = _read_funcs(self._client)
         self._refs: set[str] = set()
         # Per-entry (timeout, retries, request_delay) requests; the effective
         # values are the maxima — see _apply_settings.
@@ -259,9 +269,9 @@ class ModbusBlockClient:
         entry_id: str,
         *,
         baudrate: int = DEFAULT_BAUDRATE,
-        bytesize: int = 8,
-        parity: str = "N",
-        stopbits: int = 1,
+        bytesize: int = DEFAULT_BYTESIZE,
+        parity: str = DEFAULT_PARITY,
+        stopbits: int = DEFAULT_STOPBITS,
         timeout: float | None = None,
         retries: int | None = None,
         request_delay: float | None = None,
@@ -337,7 +347,7 @@ class ModbusBlockClient:
             return True
         try:
             return bool(await self._client.connect())
-        except (TimeoutError, ModbusException, OSError):
+        except _CONN_ERRORS:
             return False
 
     async def _transact(self, func: Any, **kwargs: Any) -> Any:
@@ -365,27 +375,18 @@ class ModbusBlockClient:
                 count=span.count,
                 device_id=device_id,
             )
-        except (TimeoutError, ModbusException, OSError) as exc:
-            raise ReadError(f"{span.table}@{span.start}+{span.count}: {exc}") from exc
+        except _CONN_ERRORS as exc:
+            raise ReadError(f"{span}: {exc}") from exc
 
         if response.isError():
-            illegal = (
-                isinstance(response, ExceptionResponse)
-                and response.exception_code == _ILLEGAL_DATA_ADDRESS
-            )
-            raise ReadError(
-                f"{span.table}@{span.start}+{span.count}: {response}",
-                illegal_address=illegal,
-            )
+            illegal = _exception_code(response) == _ILLEGAL_DATA_ADDRESS
+            raise ReadError(f"{span}: {response}", illegal_address=illegal)
 
         values: list[int] | list[bool] = (
             response.bits if span.table in BIT_TABLES else response.registers
         )
         if len(values) < span.count:
-            raise ReadError(
-                f"{span.table}@{span.start}+{span.count}: short response "
-                f"({len(values)} values)"
-            )
+            raise ReadError(f"{span}: short response ({len(values)} values)")
         # Bit responses are padded to full bytes; trim to what was asked for.
         return values[: span.count]
 
@@ -428,9 +429,9 @@ class ModbusBlockClient:
                         if response.isError():
                             break
             if response.isError():
-                raise WriteError(f"holding@{address}: {response}")
-        except (TimeoutError, ModbusException, OSError) as exc:
-            raise WriteError(f"holding@{address}: {exc}") from exc
+                raise WriteError(f"{Span(TABLE_HOLDING, address, len(words))}: {response}")
+        except _CONN_ERRORS as exc:
+            raise WriteError(f"{Span(TABLE_HOLDING, address, len(words))}: {exc}") from exc
 
     async def write_coil(self, device_id: int, address: int, value: bool) -> None:
         """Write one coil; caller holds ``self.lock``."""
@@ -442,6 +443,6 @@ class ModbusBlockClient:
                 device_id=device_id,
             )
             if response.isError():
-                raise WriteError(f"coil@{address}: {response}")
-        except (TimeoutError, ModbusException, OSError) as exc:
-            raise WriteError(f"coil@{address}: {exc}") from exc
+                raise WriteError(f"{Span(TABLE_COIL, address, 1)}: {response}")
+        except _CONN_ERRORS as exc:
+            raise WriteError(f"{Span(TABLE_COIL, address, 1)}: {exc}") from exc

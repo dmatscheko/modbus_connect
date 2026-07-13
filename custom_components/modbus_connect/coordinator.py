@@ -38,7 +38,15 @@ from .const import (
     QUARANTINE_AFTER,
     QUARANTINE_RETRY_SECONDS,
 )
-from .models import TABLE_COIL, DeviceDef, EntityDef, Span, SwitchTarget, TemplateDef
+from .models import (
+    TABLE_COIL,
+    DeviceDef,
+    EntityDef,
+    Span,
+    SwitchTarget,
+    TemplateDef,
+    reverse_value_map,
+)
 from .planner import bridged_addresses, plan_blocks, spans_in_block
 
 _LOGGER = logging.getLogger(__name__)
@@ -271,8 +279,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # value label -> raw map key, per mapped entity, for the template key()
         # helper. Built once (maps never change at runtime); a translated map
         # reverses just the same, so key() stays language-independent.
-        self._value_reverse: dict[str, dict[Any, int]] = {
-            e.key: {label: raw for raw, label in e.value_map.items()}
+        self._value_reverse: dict[str, dict[str, int]] = {
+            e.key: reverse_value_map(e.value_map)
             for e in device.entities
             if e.value_map is not None
         }
@@ -375,9 +383,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.failed_read_total += 1
         # Trim on write, not only on read: the window must stay bounded even
         # when nothing polls the health indicator (its entity can be disabled).
-        cutoff = time.monotonic() - HEALTH_WINDOW_SECONDS
-        while self._failure_times and self._failure_times[0] < cutoff:
-            self._failure_times.popleft()
+        self._trim_failure_window()
         if not probe:
             self._failure_times.append(time.monotonic())
         if span is None:
@@ -386,8 +392,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             e.key
             for e in self._readers
             if e.table == span.table
-            and e.address < span.end
-            and e.address + e.count > span.start
+            and e.span.start < span.end
+            and e.span.end > span.start
         )
         for key in keys:
             self.failed_reads_by_key[key] = self.failed_reads_by_key.get(key, 0) + 1
@@ -395,10 +401,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._cycle_illegal.update(keys)
         if keys:
             _LOGGER.debug(
-                "Unrecovered read failure %s %d..%d; affected entities: %s",
-                span.table,
-                span.start,
-                span.end - 1,
+                "Unrecovered read failure %s; affected entities: %s",
+                span,
                 ", ".join(keys),
             )
 
@@ -422,24 +426,26 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._fail_streak.pop(key, None)
         self.quarantined[key] = now + QUARANTINE_RETRY_SECONDS
         _LOGGER.warning(
-            "%s: %s (%s@%d+%d) %s while the device answers other reads; pausing "
+            "%s: %s (%s) %s while the device answers other reads; pausing "
             "it and re-probing every %d s. If it never recovers, fix or remove "
             "the entity in the device file",
             self.name,
             key,
-            defn.table,
-            defn.address,
-            defn.count,
+            defn.span,
             reason,
             QUARANTINE_RETRY_SECONDS,
         )
 
-    @property
-    def read_failures_in_window(self) -> int:
-        """Unrecovered read failures within the last HEALTH_WINDOW_SECONDS."""
+    def _trim_failure_window(self) -> None:
+        """Drop failure timestamps older than the health window from the deque."""
         cutoff = time.monotonic() - HEALTH_WINDOW_SECONDS
         while self._failure_times and self._failure_times[0] < cutoff:
             self._failure_times.popleft()
+
+    @property
+    def read_failures_in_window(self) -> int:
+        """Unrecovered read failures within the last HEALTH_WINDOW_SECONDS."""
+        self._trim_failure_window()
         return len(self._failure_times)
 
     @property
@@ -449,8 +455,10 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return {k: max(0, round(t - now)) for k, t in sorted(self.quarantined.items())}
 
     def monotonic_time(self) -> float:
-        """The clock integrating template sensors measure refresh intervals with
-        (here so tests drive it together with the scan-interval clock)."""
+        """The clock the integrating template sensors measure refresh intervals
+        with — a seam so a sensor shares the coordinator's clock. The coordinator's
+        own scheduling/health code calls ``time.monotonic()`` directly; tests patch
+        the whole ``coordinator.time`` module, so both resolve to one clock."""
         return time.monotonic()
 
     def entities_for(self, platform: str) -> Iterator[EntityDef]:
@@ -496,6 +504,21 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ids.add(f"{self.entry_id}_failed_reads")
         return ids
 
+    def _plan(self, spans: set[Span]) -> list[Span]:
+        """Plan read blocks with this device's read limits and current holes.
+
+        The two full-refresh planners; the unbridged per-span fallback in
+        ``_read_with_fallback`` deliberately calls ``plan_blocks`` with only
+        ``max_read`` (no gap bridging), so it is not routed through here.
+        """
+        return plan_blocks(
+            spans,
+            max_read=self.device_def.max_read,
+            max_gap=self.device_def.max_gap,
+            holes=self.holes,
+            boundaries=self.device_def.boundaries,
+        )
+
     @property
     def full_refresh_read_count(self) -> int:
         """Modbus block reads a complete refresh issues — every reader due at once.
@@ -511,13 +534,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # The plan only shifts when a hole is learned; cache on the hole count so
         # the sensor's state reads don't re-plan every cycle.
         if self._full_plan_cache is None or self._full_plan_cache[0] != len(self.holes):
-            blocks = plan_blocks(
-                {e.span for e in self._readers},
-                max_read=self.device_def.max_read,
-                max_gap=self.device_def.max_gap,
-                holes=self.holes,
-                boundaries=self.device_def.boundaries,
-            )
+            blocks = self._plan({e.span for e in self._readers})
             self._full_plan_cache = (len(self.holes), len(blocks))
         return self._full_plan_cache[1]
 
@@ -597,13 +614,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return data
 
         spans = {e.span for e in due}
-        blocks = plan_blocks(
-            spans,
-            max_read=self.device_def.max_read,
-            max_gap=self.device_def.max_gap,
-            holes=self.holes,
-            boundaries=self.device_def.boundaries,
-        )
+        blocks = self._plan(spans)
         async with self.client.lock:
             if not await self.client.ensure_connected():
                 self._record_read_failure()
@@ -676,7 +687,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         from an answered read whose value merely fails to decode or map."""
         return any(
             (defn.table, a) not in self._cache
-            for a in range(defn.address, defn.address + defn.count)
+            for a in range(defn.span.start, defn.span.end)
         )
 
     def key_lookup(self, data: dict[str, Any] | None) -> Callable[[str], Any]:
@@ -693,7 +704,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         def key(name: str) -> Any:
             entry = reverse.get(name)
             value = values.get(name)
-            return entry.get(value) if entry is not None else value
+            if entry is None or value is None:
+                return value
+            return entry.get(value)  # label -> raw register value
 
         return key
 
@@ -826,7 +839,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _decode(self, defn: EntityDef) -> Any:
         raw = [
             self._cache.get((defn.table, a))
-            for a in range(defn.address, defn.address + defn.count)
+            for a in range(defn.span.start, defn.span.end)
         ]
         if any(v is None for v in raw):
             return None
@@ -937,6 +950,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raw = await self.client.read_block(self.device_id, defn.span)
             current_raw = int(raw[0])
         payload = codec.encode(defn, value, current_raw=current_raw)
+        # `== TABLE_COIL`, not `in BIT_TABLES`: coil is the only writable bit table
+        # (discrete inputs are read-only), so the else-branch is always holding.
         if defn.table == TABLE_COIL:
             await self.client.write_coil(self.device_id, defn.address, bool(payload))
         else:

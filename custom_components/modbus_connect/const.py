@@ -75,9 +75,8 @@ DEFAULT_PORT: Final = 502
 DEFAULT_SLAVE_ID: Final = 1
 DEFAULT_SCAN_INTERVAL: Final = 30
 
-# Device-level YAML defaults
-DEFAULT_MAX_READ: Final = 8
-DEFAULT_MAX_GAP: Final = 8
+# (DEFAULT_MAX_READ / DEFAULT_MAX_GAP live in models — the HA-import-free module
+# whose DeviceDef defaults use them; schema.py imports them from there.)
 
 # Directory (relative to the HA config dir) where users can drop their own
 # device YAML files; they override built-in files with the same name.

@@ -42,9 +42,11 @@ from homeassistant.components.valve import ValveDeviceClass, ValveEntityDescript
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
-from .const import BASIC_GROUP, DEFAULT_MAX_GAP, DEFAULT_MAX_READ
+from .const import BASIC_GROUP
 from .models import (
     BIT_TABLES,
+    DEFAULT_MAX_GAP,
+    DEFAULT_MAX_READ,
     FLOAT_TYPES,
     PLATFORMS,
     SWAP_MODES,
