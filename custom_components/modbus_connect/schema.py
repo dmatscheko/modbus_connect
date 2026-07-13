@@ -10,7 +10,7 @@ and entity named.
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import cache
 from typing import Any
@@ -42,7 +42,7 @@ from homeassistant.components.valve import ValveDeviceClass, ValveEntityDescript
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
-from .const import BASIC_GROUP
+from .const import BASIC_GROUP, MODBUS_ID_MAX, MODBUS_ID_MIN
 from .models import (
     BIT_TABLES,
     DEFAULT_MAX_GAP,
@@ -341,22 +341,20 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         )
     timeout = device.get("timeout")
     if timeout is not None:
-        timeout = _number(ctx, "device.timeout", timeout)
-        if not 0 < timeout <= 60:
-            raise ctx.fail("device.timeout must be > 0 and <= 60 seconds")
+        timeout = _number_in_range(ctx, "device.timeout", timeout, 0, 60, lo_exclusive=True)
     retries = device.get("retries")
     if retries is not None:
         retries = _int_in_range(ctx, "device.retries", retries, 0, 10)
     request_delay = device.get("request_delay")
     if request_delay is not None:
-        request_delay = _number(ctx, "device.request_delay", request_delay)
-        if not 0 <= request_delay <= 5:
-            raise ctx.fail("device.request_delay must be between 0 and 5 seconds")
+        request_delay = _number_in_range(ctx, "device.request_delay", request_delay, 0, 5)
     bad_addresses = _parse_address_hints(ctx, device, "bad_addresses")
     boundaries = _parse_address_hints(ctx, device, "split_before")
     modbus_id = device.get("modbus_id")
     if modbus_id is not None:
-        modbus_id = _int_in_range(ctx, "device.modbus_id", modbus_id, 0, 255)
+        modbus_id = _int_in_range(
+            ctx, "device.modbus_id", modbus_id, MODBUS_ID_MIN, MODBUS_ID_MAX
+        )
     prefix = device.get("prefix")
     if prefix is not None and (not isinstance(prefix, str) or not prefix):
         raise ctx.fail("device.prefix must be a non-empty string")
@@ -503,6 +501,48 @@ def _number(ctx: _Ctx, name: str, value: Any) -> float:
     return value
 
 
+def _number_in_range(
+    ctx: _Ctx, name: str, value: Any, lo: float, hi: float, *, lo_exclusive: bool = False
+) -> float:
+    """The float twin of :func:`_int_in_range`: coerce to a number, then require
+    it in ``[lo, hi]`` (``lo_exclusive`` makes the lower bound strict)."""
+    number = _number(ctx, name, value)
+    too_low = number <= lo if lo_exclusive else number < lo
+    if too_low or number > hi:
+        low = f"> {lo}" if lo_exclusive else f">= {lo}"
+        raise ctx.fail(f"{name} must be {low} and <= {hi}, got {value!r}")
+    return number
+
+
+def _reject_yaml_bool_keys(
+    ctx: _Ctx, mapping: Iterable[Any], hint: str, *, also: tuple[str, ...] = ()
+) -> None:
+    """Reject a mapping key YAML 1.1 silently turned into ``True``/``False`` (an
+    unquoted ``on``/``off``/``yes``/``no``). ``also`` names extra string spellings
+    to reject too; ``hint`` is the fix shown for this specific mapping."""
+    if any(k is True or k is False or k in also for k in mapping):
+        raise ctx.fail(hint)
+
+
+def _require_min_max(ctx: _Ctx, ha: dict[str, Any], noun: str = "numbers") -> None:
+    """A number platform is unusable without a range (min and max)."""
+    for field in ("native_min_value", "native_max_value"):
+        if field not in ha:
+            raise ctx.fail(f"{noun} require ha.min and ha.max")
+
+
+def _display_value(ctx: _Ctx, raw: dict[str, Any], key: str, purpose: str) -> Any:
+    """Parse a value the entity shows so a writable control stays usable
+    (``static_value`` / ``optimistic_default``): a number, boolean, or string,
+    localized if a string (a map label must translate with the map values)."""
+    if key not in raw:
+        return None
+    value = raw[key]
+    if not isinstance(value, (int, float, bool, str)):
+        raise ctx.fail(f"{key} must be a number, boolean, or string ({purpose})")
+    return ctx.localize(value) if isinstance(value, str) else value
+
+
 def _parse_groups(ctx: _Ctx, name: str, raw: Any) -> tuple[str, ...]:
     """A list of group names (deduped, order preserved); () when absent."""
     if raw is None:
@@ -545,11 +585,13 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     # An unquoted `on:`/`off:` key is a YAML 1.1 *boolean*, not a string — the
     # reason these fields are named on_value/off_value. Catch both spellings of
     # the old name with a pointed hint instead of an "unknown key" puzzle.
-    if any(k is True or k is False or k in ("on", "off") for k in raw):
-        raise ctx.fail(
-            "'on'/'off' are named 'on_value'/'off_value' (unquoted on/off are "
-            "YAML booleans, so the short names would need quoting)"
-        )
+    _reject_yaml_bool_keys(
+        ctx,
+        raw,
+        "'on'/'off' are named 'on_value'/'off_value' (unquoted on/off are "
+        "YAML booleans, so the short names would need quoting)",
+        also=("on", "off"),
+    )
     unknown = set(raw) - _MODBUS_KEYS
     if unknown:
         raise ctx.fail(
@@ -598,29 +640,24 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     write_multiple = _bool(ctx, raw, "write_multiple")
     confirm_delay = raw.get("confirm_delay")
     if confirm_delay is not None:
-        confirm_delay = _number(ctx, "confirm_delay", confirm_delay)
-        if not 0 < confirm_delay <= 10:
-            raise ctx.fail("confirm_delay must be > 0 and <= 10 seconds")
+        confirm_delay = _number_in_range(
+            ctx, "confirm_delay", confirm_delay, 0, 10, lo_exclusive=True
+        )
     rectify_time = _bool(ctx, raw, "rectify_time")
-    static_value = raw.get("static_value")
-    if "static_value" in raw and not isinstance(static_value, (int, float, bool, str)):
-        raise ctx.fail(
-            "static_value must be a number, boolean, or string (the value the entity "
-            "shows; its presence marks the register write-only)"
-        )
-    optimistic_default = raw.get("optimistic_default")
-    if "optimistic_default" in raw and not isinstance(optimistic_default, (int, float, bool, str)):
-        raise ctx.fail(
-            "optimistic_default must be a number, boolean, or string (the fallback value "
-            "shown when the register decodes to nothing)"
-        )
-    # A string here is a map label the entity shows (e.g. a select's seed), so it
-    # must localize in lockstep with the map values — otherwise a translated
-    # file's select never matches its options and shows "unknown".
-    if isinstance(static_value, str):
-        static_value = ctx.localize(static_value)
-    if isinstance(optimistic_default, str):
-        optimistic_default = ctx.localize(optimistic_default)
+    # Values the entity shows so a writable control stays usable; a string here is
+    # a map label, so _display_value localizes it in lockstep with the map values.
+    static_value = _display_value(
+        ctx,
+        raw,
+        "static_value",
+        "the value the entity shows; its presence marks the register write-only",
+    )
+    optimistic_default = _display_value(
+        ctx,
+        raw,
+        "optimistic_default",
+        "the fallback value shown when the register decodes to nothing",
+    )
 
     duplicate_as_sensor = _bool(ctx, raw, "duplicate_as_sensor")
     groups = _parse_groups(ctx, "groups", raw.get("groups"))
@@ -1021,9 +1058,7 @@ def _check_value_semantics(ctx: _Ctx, defn: EntityDef) -> None:
     if platform == "number":
         if defn.type == TYPE_STRING:
             raise ctx.fail("numbers need a numeric type (use a text entity for strings)")
-        for field in ("native_min_value", "native_max_value"):
-            if field not in defn.ha:
-                raise ctx.fail("numbers require ha.min and ha.max")
+        _require_min_max(ctx, defn.ha)
         if defn.value_map or defn.flags:
             raise ctx.fail("numbers cannot use map/flags")
 
@@ -1249,11 +1284,12 @@ def _parse_switch_target(
         raise ctx.fail(f"'{name}.cases' must be a non-empty mapping of value -> target")
     # Same YAML 1.1 footgun as entity on/off keys: an unquoted on/off/yes/no
     # case key parses as a boolean and would silently become "True"/"False".
-    if any(isinstance(k, bool) for k in cases_raw):
-        raise ctx.fail(
-            f"'{name}.cases': unquoted on/off/yes/no/true/false keys are YAML "
-            'booleans — quote them (e.g. "off":)'
-        )
+    _reject_yaml_bool_keys(
+        ctx,
+        cases_raw,
+        f"'{name}.cases': unquoted on/off/yes/no/true/false keys are YAML "
+        'booleans — quote them (e.g. "off":)',
+    )
     cases = {
         str(key): _parse_single_target(ctx, f"{name}.cases.{key}", target, defs, kind)
         for key, target in cases_raw.items()
@@ -1300,11 +1336,12 @@ def _parse_single_target(
             raise ctx.fail(f"'{name}.map' must be a non-empty mapping")
         # Same YAML 1.1 footgun as entity on/off keys: an unquoted on/off/yes/no
         # key parses as a boolean and would silently become "True"/"False".
-        if any(isinstance(k, bool) for k in value_map):
-            raise ctx.fail(
-                f"'{name}.map': unquoted on/off/yes/no/true/false keys are YAML "
-                'booleans — quote them (e.g. "off":)'
-            )
+        _reject_yaml_bool_keys(
+            ctx,
+            value_map,
+            f"'{name}.map': unquoted on/off/yes/no/true/false keys are YAML "
+            'booleans — quote them (e.g. "off":)',
+        )
         # A string payload is an option label of the (possibly translated) target
         # entity, so localize it in lockstep; numbers/bools are written as-is.
         value_map = {
@@ -1475,9 +1512,7 @@ def _post_number(
     defs: dict[str, EntityDef],
     ha: dict[str, Any],
 ) -> None:
-    for field in ("native_min_value", "native_max_value"):
-        if field not in ha:
-            raise ctx.fail("template numbers require ha.min and ha.max")
+    _require_min_max(ctx, ha, "template numbers")
 
 
 INTEGRATE_METHODS = ("trapezoidal", "left", "right")

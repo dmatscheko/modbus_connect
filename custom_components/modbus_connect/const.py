@@ -75,6 +75,11 @@ DEFAULT_PORT: Final = 502
 DEFAULT_SLAVE_ID: Final = 1
 DEFAULT_SCAN_INTERVAL: Final = 30
 
+# Valid Modbus unit-address range — the one value the config flow calls slave_id,
+# the runtime device_id, and a device file its modbus_id (see the note up top).
+MODBUS_ID_MIN: Final = 0
+MODBUS_ID_MAX: Final = 255
+
 # (DEFAULT_MAX_READ / DEFAULT_MAX_GAP live in models — the HA-import-free module
 # whose DeviceDef defaults use them; schema.py imports them from there.)
 

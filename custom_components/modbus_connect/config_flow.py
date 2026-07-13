@@ -24,6 +24,9 @@ from homeassistant.helpers.selector import (
 
 from .client import (
     DEFAULT_BAUDRATE,
+    DEFAULT_BYTESIZE,
+    DEFAULT_PARITY,
+    DEFAULT_STOPBITS,
     async_probe,
     async_probe_device,
     async_probe_serial,
@@ -47,6 +50,8 @@ from .const import (
     DOMAIN,
     FRAMER_OPTIONS,
     FRAMER_SOCKET,
+    MODBUS_ID_MAX,
+    MODBUS_ID_MIN,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
     OPTION_SHOW_ALL,
@@ -81,6 +86,19 @@ def _device_schema(
     )
 
 
+def _modbus_id_selector() -> vol.All:
+    """The Modbus unit-address (slave id) field, 0-255 — shared by the TCP and
+    serial schemas so the range lives in one place (see const.MODBUS_ID_*)."""
+    return vol.All(
+        NumberSelector(
+            NumberSelectorConfig(
+                min=MODBUS_ID_MIN, max=MODBUS_ID_MAX, step=1, mode=NumberSelectorMode.BOX
+            )
+        ),
+        vol.Coerce(int),
+    )
+
+
 def _connection_schema(defaults: dict[str, Any]) -> vol.Schema:
     return vol.Schema(
         {
@@ -99,14 +117,7 @@ def _connection_schema(defaults: dict[str, Any]) -> vol.Schema:
             ),
             vol.Required(
                 CONF_SLAVE_ID, default=defaults.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID)
-            ): vol.All(
-                NumberSelector(
-                    NumberSelectorConfig(
-                        min=0, max=255, step=1, mode=NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Coerce(int),
-            ),
+            ): _modbus_id_selector(),
             vol.Optional(CONF_PREFIX, default=defaults.get(CONF_PREFIX, "")): str,
         }
     )
@@ -140,7 +151,7 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
                 vol.Range(min=50, max=4_000_000),
             ),
             vol.Required(
-                CONF_BYTESIZE, default=str(defaults.get(CONF_BYTESIZE, 8))
+                CONF_BYTESIZE, default=str(defaults.get(CONF_BYTESIZE, DEFAULT_BYTESIZE))
             ): vol.All(
                 SelectSelector(
                     SelectSelectorConfig(
@@ -153,7 +164,7 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
                 # Stored data keeps pymodbus's uppercase form; the option values
                 # are lowercase (valid translation keys), so map both ways.
                 CONF_PARITY,
-                default=str(defaults.get(CONF_PARITY, "N")).lower(),
+                default=str(defaults.get(CONF_PARITY, DEFAULT_PARITY)).lower(),
             ): vol.All(
                 SelectSelector(
                     SelectSelectorConfig(
@@ -165,7 +176,7 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
                 vol.Upper,
             ),
             vol.Required(
-                CONF_STOPBITS, default=str(defaults.get(CONF_STOPBITS, 1))
+                CONF_STOPBITS, default=str(defaults.get(CONF_STOPBITS, DEFAULT_STOPBITS))
             ): vol.All(
                 SelectSelector(
                     SelectSelectorConfig(
@@ -176,14 +187,7 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
             ),
             vol.Required(
                 CONF_SLAVE_ID, default=defaults.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID)
-            ): vol.All(
-                NumberSelector(
-                    NumberSelectorConfig(
-                        min=0, max=255, step=1, mode=NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Coerce(int),
-            ),
+            ): _modbus_id_selector(),
             vol.Optional(CONF_PREFIX, default=defaults.get(CONF_PREFIX, "")): str,
         }
     )
