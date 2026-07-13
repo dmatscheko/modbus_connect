@@ -51,7 +51,7 @@ def main() -> int:
     ], check=True)
 
     print(f"\n{'=' * 8} owned devices (device.yaml) {'=' * 8}")
-    for slug in augment.OWNED_DEVICES:
+    for slug in augment.owned_slugs():
         summary = augment.write_owned(slug, variant=__file__)
         print(f"  {slug}: {summary}")
 

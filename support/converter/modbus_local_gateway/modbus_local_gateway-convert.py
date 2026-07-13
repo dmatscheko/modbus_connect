@@ -13,8 +13,10 @@ NOT be overwritten blindly (diff against fresh output and re-apply):
     test.yaml (annotated example), salda-ris-mcb.yaml (fan+climate templates),
     froeling-bwp300-pv.yaml (repaired 0-indexed flags).
 
-Dimplex and Pichler are NOT produced here — they are owned in-tree (their source
-of truth is support/devicedocs/<slug>/device.yaml) and skipped below.
+Dimplex and Pichler are NOT produced here — they are owned in-tree (their source of
+truth is support/devicedocs/<slug>/device.yaml). Nothing device-specific is needed for
+that: write_augmented skips any device whose device.yaml exists, so an owned device is
+never overwritten by an import, whichever converter runs.
 """
 
 from __future__ import annotations
@@ -31,11 +33,6 @@ _COMMON = Path(__file__).resolve().parents[1] / "_common"
 _aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment.py")
 augment = importlib.util.module_from_spec(_aug_spec)
 _aug_spec.loader.exec_module(augment)
-
-# Owned in-tree (source of truth: support/devicedocs/<slug>/device.yaml) — the subset
-# of augment.OWNED_DEVICES whose base files also exist in the MLG upstream, which this
-# converter leaves to write_owned. (SolaX is owned too, but has no MLG upstream file.)
-OWNED_IN_TREE = {"Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"}
 
 SECTION_TO_TABLE = {
     "read_write_word": "holding",
@@ -392,13 +389,11 @@ def convert_file(path: Path, out_dir: Path) -> int:
         warn(path.name, "no old-format sections found (already converted?), skipped")
         return 0
     name = path.stem
-    if name in OWNED_IN_TREE:
-        print(f"  {path.name}: owned in-tree (device.yaml) — skipped")
-        return 0
     ir = to_intermediate(convert_device(doc, path.name))
-    augment.write_augmented(
+    if augment.write_augmented(
         ir, name, source=f"modbus_local_gateway '{path.name}'", variant=__file__, dest_dir=out_dir
-    )
+    ) is None:
+        return 0  # owned in-tree — write_augmented reported the skip
     count = sum(len(ir.get(s, ())) for s in augment.TABLES)
     # output is named after the devicedocs slug, not the upstream basename
     print(f"  {path.name}: {count} entities -> {out_dir / f'{augment.folder_for(name)}.yaml'}")

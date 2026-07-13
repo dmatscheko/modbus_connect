@@ -64,7 +64,7 @@ _DEVICE_FOLDERS = json.loads((_COMMON_DIR / "device_folders.json").read_text(enc
 _SLUGS = frozenset(_DEVICE_FOLDERS.values())
 
 
-def folder_for(source_name: str) -> str:
+def folder_for(source_name: str, augment_dir: str | Path | None = None) -> str:
     """The ``support/devicedocs/<slug>`` folder holding ``source_name``'s policy and docs.
 
     ``source_name`` may be a *source* basename (an upstream file the MLG converter
@@ -76,11 +76,37 @@ def folder_for(source_name: str) -> str:
         return slug
     if source_name in _SLUGS:
         return source_name
+    # A slug naming a devicedocs folder that carries a device.yaml — a brand-new owned
+    # device, not (yet) in device_folders.json — resolves to itself. So dropping in a
+    # support/devicedocs/<slug>/device.yaml is all it takes to own a device.
+    base = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
+    if (base / source_name / "device.yaml").is_file():
+        return source_name
     raise KeyError(
-        f"{source_name!r} is not in support/converter/_common/device_folders.json "
-        f"(neither a source basename nor a known slug) — add its "
-        f"config-basename -> devicedocs-folder mapping."
+        f"{source_name!r} is not in support/converter/_common/device_folders.json, "
+        f"is not a known slug, and support/devicedocs/{source_name}/device.yaml does "
+        f"not exist — add its config-basename -> devicedocs-folder mapping, or a device.yaml."
     )
+
+
+def is_owned(slug: str, augment_dir: str | Path | None = None) -> bool:
+    """Whether ``slug`` is an **owned** device — its hand-maintained source of truth
+    ``support/devicedocs/<slug>/device.yaml`` exists.
+
+    Ownership is filesystem state, not a hard-coded list: an import tool skips an owned
+    device (so a re-import never clobbers hand curation), and ``convert_all`` regenerates
+    it from that file via :func:`write_owned`. Drop a ``device.yaml`` into a device's
+    folder and it becomes owned; delete it and the device goes back to import-generated.
+    """
+    base = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
+    return (base / slug / "device.yaml").is_file()
+
+
+def owned_slugs(augment_dir: str | Path | None = None) -> tuple[str, ...]:
+    """Every owned device slug, sorted — the ``support/devicedocs/*`` folders that carry
+    a ``device.yaml``. ``convert_all`` regenerates exactly these through ``write_owned``."""
+    base = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
+    return tuple(sorted(p.parent.name for p in base.glob("*/device.yaml")))
 
 
 # The command that regenerates every bundled config (from convert_all.py's docs), shown in
@@ -821,7 +847,7 @@ def write_augmented(
     transform: Callable[[dict], None] | None = None,
     augment_dir: str | Path | None = None,
     dest_dir: str | Path | None = None,
-) -> dict:
+) -> dict | None:
     """THE single call converters make per device. Loads the device's policy from
     ``support/devicedocs/<slug>/augment.yaml`` (absent → strip-only), applies its ops,
     emits the canonical YAML, validates it, and writes ``device_configs/<slug>.yaml``
@@ -833,10 +859,19 @@ def write_augmented(
     ``transform`` is a final in-place tweak of the fully-applied intermediate (after ops,
     before emit) for device-family-wide adjustments a converter wants to make reversibly.
 
-    Returns a small ``{table: count}`` summary for logging."""
+    Returns a ``{table: count}`` summary — or ``None`` when the device is owned in-tree
+    (``support/devicedocs/<slug>/device.yaml`` exists) and this is an *import* (``owned``
+    is false): the import is skipped so it can never clobber the hand-maintained source.
+    ``write_owned`` passes ``owned=True`` to regenerate that same file, so it is not skipped."""
     augment_dir = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
     dest_dir = Path(dest_dir) if dest_dir else _DEST_DIR
-    folder = folder_for(source_name)
+    folder = folder_for(source_name, augment_dir)
+    if not owned and is_owned(folder, augment_dir):
+        print(
+            f"  {source_name}: owned in-tree "
+            f"(support/devicedocs/{folder}/device.yaml) — import skipped"
+        )
+        return None
 
     spec = load(augment_dir / folder / "augment.yaml")
     final = apply(ir, spec)
@@ -860,19 +895,6 @@ def write_augmented(
     dest_dir.mkdir(parents=True, exist_ok=True)
     (dest_dir / f"{folder}.yaml").write_text(text, encoding="utf-8")
     return {section: len(final.get(section, [])) for section in SECTIONS if final.get(section)}
-
-
-# Devices owned in-tree: their source of truth is a hand-maintained
-# support/devicedocs/<slug>/device.yaml, not an upstream import. convert_all
-# regenerates each straight from its device.yaml (through the same emit/validate
-# path as every other config), so they need no external checkout.
-OWNED_DEVICES = (
-    "dimplex-si-11tu",
-    "pichler-lg150-lg250",
-    "pichler-lg350-lg450",
-    "solax-x3-hybrid-g4",
-    "solax-x3-hac",
-)
 
 
 def write_owned(

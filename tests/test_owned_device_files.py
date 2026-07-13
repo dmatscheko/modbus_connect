@@ -33,7 +33,7 @@ def _load(name, rel):
 aug = _load("augment", "support/converter/_common/augment.py")
 
 
-@pytest.mark.parametrize("slug", aug.OWNED_DEVICES)
+@pytest.mark.parametrize("slug", aug.owned_slugs())
 def test_owned_config_regenerates_from_device_yaml(slug):
     doc = aug.load(_DOCS / slug / "device.yaml")
     assert doc is not None, f"missing support/devicedocs/{slug}/device.yaml"
@@ -59,7 +59,7 @@ def test_owned_config_regenerates_from_device_yaml(slug):
 def test_owned_devices_have_no_stale_augment_yaml():
     """Owned policy lives in device.yaml; a leftover augment.yaml would silently
     re-apply on top (and its add: ops would collide with device.yaml entities)."""
-    for slug in aug.OWNED_DEVICES:
+    for slug in aug.owned_slugs():
         assert not (_DOCS / slug / "augment.yaml").exists(), (
             f"{slug}: unexpected augment.yaml — fold its policy into device.yaml"
         )
