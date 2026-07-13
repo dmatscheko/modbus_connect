@@ -2,8 +2,9 @@
 """Generate ``support/devicedocs/<device>/groups.md`` for every bundled device
 config that uses entity groups (Dimplex, Pichler, SolaX).
 
-The table lists every group, its tier/kind, the switch shown on the device page,
-how many entities it holds, and what it covers — same format for all devices.
+The table lists every group, its kind, the switch shown on the companion
+Configuration device, how many entities it holds, and what it covers — same
+format for all devices.
 
 Run:  python3 build_groups_md.py            # all grouped devices
 """
@@ -66,8 +67,8 @@ def _scan(cfg: dict):
     return counts, untagged, total, examples
 
 
-def gen_one(cfg_name: str, folder: str) -> str | None:
-    cfg = yaml.safe_load((R.CFG_DIR / cfg_name).read_text())
+def gen_one(cfg_path: Path, folder: str) -> str | None:
+    cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
     dev = cfg.get("device", {})
     labels = dev.get("group_labels", {}) or {}
     default = dev.get("default_groups")
@@ -105,22 +106,24 @@ def gen_one(cfg_name: str, folder: str) -> str | None:
     default_txt = ", ".join(f"`{g}`" for g in default) if default else "*(unset — every group shown)*"
     out = [
         f"# {manuf} {model} — entity groups", "",
-        f"**Device file:** `custom_components/modbus_connect/device_configs/{cfg_name}`", "",
+        f"**Device file:** `custom_components/modbus_connect/device_configs/{cfg_path.name}`", "",
         "Entities are split into groups you can switch on/off on the integration's "
-        "device page. `basic` is always on and never gets a switch; every other group "
-        "gets an *Enable … entities* toggle. The **Enable all entities** master switch "
-        "reveals everything, including untagged (expert) registers.", "",
+        "companion **Configuration** device. `basic` is always on and never gets a "
+        "switch; every other group gets an *Enable … entities* toggle. The **Enable "
+        "all entities** master switch reveals everything, including untagged (expert) "
+        "registers.", "",
         f"**Default groups (fresh install):** {default_txt}", "",
         f"**Total register + template entities:** {total}", "",
-        "| Group | Tier | Switch on device page | Entities | Covers |",
+        "| Group | Kind | Switch on Configuration device | Entities | Covers |",
         "| --- | --- | --- | --- | --- |",
     ]
     for name, kind, switch, n, desc in rows:
         out.append(f"| {name} | {kind} | {switch} | {n} | {desc} |")
     out += [
-        "", "**Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by "
-        "default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, "
-        "toggle independently · *expert* = untagged, only via **Enable all entities**.", "",
+        "", "**Kinds:** *core* = `basic`, always shown · *tier* = `standard` (on by "
+        "default) and `advanced`, broad opt-in detail levels · *feature* = one functional "
+        "group (subsystem), toggle independently · *expert* = untagged, only via **Enable "
+        "all entities**.", "",
         "> Groups are OR-combined: an entity is shown when *any* of its groups is enabled. "
         "Hidden entities also drop out of the Modbus read plan (a shown template keeps its "
         "own source registers polled).", "",
@@ -133,7 +136,7 @@ def main() -> None:
     for cfg_name, folder in R.config_folders():
         if only and folder not in only:
             continue
-        md = gen_one(cfg_name, folder)
+        md = gen_one(R.CFG_DIR / cfg_name, folder)
         if md is None:
             continue
         dest = R.OUT_DIR / folder

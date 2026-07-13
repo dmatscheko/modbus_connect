@@ -32,9 +32,10 @@ _aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment
 augment = importlib.util.module_from_spec(_aug_spec)
 _aug_spec.loader.exec_module(augment)
 
-# Owned in-tree (source of truth: support/devicedocs/<slug>/device.yaml); their base
-# files exist in the MLG upstream, but this converter leaves them to write_owned.
-SPECIALIZED = {"Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"}
+# Owned in-tree (source of truth: support/devicedocs/<slug>/device.yaml) — the subset
+# of augment.OWNED_DEVICES whose base files also exist in the MLG upstream, which this
+# converter leaves to write_owned. (SolaX is owned too, but has no MLG upstream file.)
+OWNED_IN_TREE = {"Dimplex-SI-11TU", "Pichler-LG150-LG250", "Pichler-LG350-LG450"}
 
 SECTION_TO_TABLE = {
     "read_write_word": "holding",
@@ -391,7 +392,7 @@ def convert_file(path: Path, out_dir: Path) -> int:
         warn(path.name, "no old-format sections found (already converted?), skipped")
         return 0
     name = path.stem
-    if name in SPECIALIZED:
+    if name in OWNED_IN_TREE:
         print(f"  {path.name}: owned in-tree (device.yaml) — skipped")
         return 0
     ir = to_intermediate(convert_device(doc, path.name))

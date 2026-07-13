@@ -64,20 +64,20 @@ _DEVICE_FOLDERS = json.loads((_COMMON_DIR / "device_folders.json").read_text(enc
 _SLUGS = frozenset(_DEVICE_FOLDERS.values())
 
 
-def folder_for(device_name: str) -> str:
-    """The ``support/devicedocs/<slug>`` folder holding ``device_name``'s policy and docs.
+def folder_for(source_name: str) -> str:
+    """The ``support/devicedocs/<slug>`` folder holding ``source_name``'s policy and docs.
 
-    ``device_name`` may be a *source* basename (an upstream file the MLG converter
+    ``source_name`` may be a *source* basename (an upstream file the MLG converter
     imports, e.g. ``SDM630``) or the ``<slug>`` itself (owned devices are identified
     by their devicedocs folder, which is also the output filename). Both resolve to
     the slug; the emitted config is always ``device_configs/<slug>.yaml``."""
-    slug = _DEVICE_FOLDERS.get(f"{device_name}.yaml")
+    slug = _DEVICE_FOLDERS.get(f"{source_name}.yaml")
     if slug is not None:
         return slug
-    if device_name in _SLUGS:
-        return device_name
+    if source_name in _SLUGS:
+        return source_name
     raise KeyError(
-        f"{device_name!r} is not in support/converter/_common/device_folders.json "
+        f"{source_name!r} is not in support/converter/_common/device_folders.json "
         f"(neither a source basename nor a known slug) — add its "
         f"config-basename -> devicedocs-folder mapping."
     )
@@ -763,11 +763,11 @@ def label_comparisons_in_templates(ir: dict, resolved: dict) -> dict[str, set[st
     return hits
 
 
-def _warn_label_comparisons(device_name: str, ir: dict) -> None:
+def _warn_label_comparisons(source_name: str, ir: dict) -> None:
     for key, labels in label_comparisons_in_templates(ir, ir.get("translations") or {}).items():
         for label in sorted(labels):
             print(
-                f"  WARNING {device_name}: template '{key}' compares the translated label "
+                f"  WARNING {source_name}: template '{key}' compares the translated label "
                 f"{label!r} as a literal — use key('<entity>') == <map key> instead, "
                 f"or it will break in other languages",
                 file=sys.stderr,
@@ -775,7 +775,7 @@ def _warn_label_comparisons(device_name: str, ir: dict) -> None:
 
 
 def _report_translation_coverage(
-    device_name: str, resolved: dict, untranslated_enum: list[str], untranslated_names: list[str]
+    source_name: str, resolved: dict, untranslated_enum: list[str], untranslated_names: list[str]
 ) -> None:
     """One-line coverage summary per translated device, plus the untranslated
     enum/label strings (the ones that matter for states and templates). A device
@@ -783,7 +783,7 @@ def _report_translation_coverage(
     if not resolved:
         return
     print(
-        f"  {device_name}: translations — {len(resolved)} applied; untranslated: "
+        f"  {source_name}: translations — {len(resolved)} applied; untranslated: "
         f"{len(untranslated_enum)} enum/label, {len(untranslated_names)} name(s)",
         file=sys.stderr,
     )
@@ -811,7 +811,7 @@ def strip_disabled_by_default(ir: dict) -> None:
 
 def write_augmented(
     ir: dict,
-    device_name: str,
+    source_name: str,
     *,
     source: str | None = None,
     variant: str | Path | None = None,
@@ -824,7 +824,8 @@ def write_augmented(
 ) -> dict:
     """THE single call converters make per device. Loads the device's policy from
     ``support/devicedocs/<slug>/augment.yaml`` (absent → strip-only), applies its ops,
-    emits the canonical YAML, validates it, and writes ``device_configs/<device_name>.yaml``.
+    emits the canonical YAML, validates it, and writes ``device_configs/<slug>.yaml``
+    (the slug from ``folder_for(source_name)`` — never the raw ``source_name``).
 
     The file header is composed here (one canonical format): pass ``source`` (what upstream
     this device came from) and ``variant`` (the converter script's ``__file__``); an optional
@@ -835,7 +836,7 @@ def write_augmented(
     Returns a small ``{table: count}`` summary for logging."""
     augment_dir = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
     dest_dir = Path(dest_dir) if dest_dir else _DEST_DIR
-    folder = folder_for(device_name)
+    folder = folder_for(source_name)
 
     spec = load(augment_dir / folder / "augment.yaml")
     final = apply(ir, spec)
@@ -844,8 +845,8 @@ def write_augmented(
     # Fold the shared translate-once memory (overridden by the device's own
     # translations:) into the per-device catalog, and report untranslated strings.
     untranslated = resolve_translations(final, load_shared_translations())
-    _report_translation_coverage(device_name, final.get("translations") or {}, *untranslated)
-    _warn_label_comparisons(device_name, final)
+    _report_translation_coverage(source_name, final.get("translations") or {}, *untranslated)
+    _warn_label_comparisons(source_name, final)
     if header is None:
         header = _compose_header(
             source or "(source unspecified)", variant or __file__, folder, note, owned=owned

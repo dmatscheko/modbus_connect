@@ -47,7 +47,7 @@ def test_registers_md_is_current(cfg_name, folder):
 
 @pytest.mark.parametrize(("cfg_name", "folder"), _DEVICES, ids=_IDS)
 def test_groups_md_is_current(cfg_name, folder):
-    generated = groups_md.gen_one(cfg_name, folder)
+    generated = groups_md.gen_one(registers_md.CFG_DIR / cfg_name, folder)
     path = _DOCS / folder / "groups.md"
     if generated is None:  # config uses no entity groups -> there must be no page
         assert not path.exists(), f"{folder}/groups.md exists but {cfg_name} has no groups"

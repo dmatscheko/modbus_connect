@@ -6,7 +6,7 @@ reads and writes (register · table · Modbus function code · data type / conve
 
 | Device | Registers | Primary source | Authority | Addresses |
 | --- | --- | --- | --- | --- |
-| Dimplex Sole/Wasser-Wärmepumpe SI 11TU | [`dimplex-si-11tu`](./dimplex-si-11tu/registers.md) (134) | [Dimplex — NWPM Modbus TCP Datenpunktliste (Wärmepumpenmanager)](https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP) | official | verified |
+| Dimplex Sole/Wasser-Wärmepumpe SI 11TU | [`dimplex-si-11tu`](./dimplex-si-11tu/registers.md) (128) | [Dimplex — NWPM Modbus TCP Datenpunktliste (Wärmepumpenmanager)](https://dimplex.atlassian.net/wiki/spaces/DW/pages/2873393288/NWPM+Modbus+TCP) | official | verified |
 | Eastron SDM-230 | [`eastron-sdm230`](./eastron-sdm230/registers.md) (25) | [Eastron SDM230-Modbus — Modbus Protocol Implementation](https://downloads.innon.com/hubfs/downloads.innon.com/Power%20Meters/SDM230-MOD-MID/Manuals/SDM230-PROTOCOL.pdf) | official | verified |
 | Eastron SDM-630 | [`eastron-sdm630`](./eastron-sdm630/registers.md) (85) | [Eastron SDM630-Modbus — Modbus Protocol Implementation](https://www.eastroneurope.com/images/uploads/products/protocol/SDM630_MODBUS_Protocol.pdf) | official | verified |
 | ebyte ME31-AXAX404 | [`ebyte-me31-axax404`](./ebyte-me31-axax404/registers.md) (8) | [EBYTE — ME31-AXAX4040 User Manual (EN)](https://www.cdebyte.com/products/ME31-AXAX4040/4) | official | verified |

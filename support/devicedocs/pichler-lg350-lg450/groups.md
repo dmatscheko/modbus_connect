@@ -2,13 +2,13 @@
 
 **Device file:** `custom_components/modbus_connect/device_configs/pichler-lg350-lg450.yaml`
 
-Entities are split into groups you can switch on/off on the integration's device page. `basic` is always on and never gets a switch; every other group gets an *Enable … entities* toggle. The **Enable all entities** master switch reveals everything, including untagged (expert) registers.
+Entities are split into groups you can switch on/off on the integration's companion **Configuration** device. `basic` is always on and never gets a switch; every other group gets an *Enable … entities* toggle. The **Enable all entities** master switch reveals everything, including untagged (expert) registers.
 
 **Default groups (fresh install):** `basic`, `standard`
 
 **Total register + template entities:** 187
 
-| Group | Tier | Switch on device page | Entities | Covers |
+| Group | Kind | Switch on Configuration device | Entities | Covers |
 | --- | --- | --- | --- | --- |
 | `basic` | core | (always on) | 11 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
 | `standard` | tier | Enable Standard entities | 24 | The everyday set beyond the basics: common setpoints, secondary readings and totals. On by default. |
@@ -29,6 +29,6 @@ Entities are split into groups you can switch on/off on the integration's device
 | `firmware` | feature | Enable Firmware / model entities | 6 | e.g. Sommer/Winter Zeitumstellung, Firmware Version Touch Display, Touch Display Show Air Quality, … |
 | `system` | feature | Enable System & maintenance entities | 2 | e.g. System Zurücksetzen, Automatische Umschaltung Sommer/Winter |
 
-**Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
+**Kinds:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one functional group (subsystem), toggle independently · *expert* = untagged, only via **Enable all entities**.
 
 > Groups are OR-combined: an entity is shown when *any* of its groups is enabled. Hidden entities also drop out of the Modbus read plan (a shown template keeps its own source registers polled).

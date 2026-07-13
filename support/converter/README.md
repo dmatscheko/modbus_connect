@@ -47,7 +47,7 @@ device is identified by its slug directly.
 ### `_common/augment.py` — the shared library (the single writer)
 
 The only code that writes a `device_configs/*.yaml`. Two entry points:
-`write_augmented(ir, device_name, source=…, variant=…)` for imported devices, and
+`write_augmented(ir, source_name, source=…, variant=…)` for imported devices, and
 `write_owned("<slug>")` for owned ones (it loads `device.yaml`, turns it into an
 intermediate via `intermediate_from_device_file`, and calls `write_augmented(..., owned=True)`).
 It owns emit → validate → write, so no converter formats YAML itself — including the file

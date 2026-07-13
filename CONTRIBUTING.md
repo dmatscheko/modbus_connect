@@ -30,14 +30,17 @@ Workflow that has worked well:
    bundled file is parsed and schema-validated by CI), and mention what
    hardware/firmware it was tested against.
 
-Files converted from another integration's format belong with their
-converter under `support/converter/`:
-`support/converter/modbus_local_gateway/modbus_local_gateway-convert.py` and
-`support/converter/solax/homeassistant_solax_modbus-convert.py` regenerate most
-bundled files — if your file is derived from one of those sources, prefer fixing
-the converter over hand-editing the output (hand-edited files are the exception
-and are listed in the converters' headers). See `support/converter/README.md`
-for the full tooling (config expansion, doc generation).
+Bundled files come in two kinds (see `support/converter/README.md`):
+
+* **Imported** files are converted from another integration's format by
+  `support/converter/modbus_local_gateway/modbus_local_gateway-convert.py`. If your
+  file derives from that source, prefer fixing the converter (or the device's
+  `support/devicedocs/<slug>/augment.yaml` policy) over hand-editing the output.
+* **Owned** files (Dimplex, Pichler, SolaX) are hand-maintained in
+  `support/devicedocs/<slug>/device.yaml` and regenerated from it — edit the
+  `device.yaml`, never the generated `device_configs/` output.
+
+See `support/converter/README.md` for the full tooling (config and doc generation).
 
 ## Code changes
 
