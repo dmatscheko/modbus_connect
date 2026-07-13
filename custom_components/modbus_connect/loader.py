@@ -85,19 +85,60 @@ def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
         raise DeviceSchemaError(f"{filename}: cannot read: {err}") from err
 
 
-def _load_all(hass: HomeAssistant) -> tuple[dict[str, DeviceDef], dict[str, str]]:
-    """Discover and load every device file. Runs entirely in one executor job."""
-    devices: dict[str, DeviceDef] = {}
+def _read_device_head(path: Path) -> str:
+    """The YAML text from the top of a device file down to (excluding) the first
+    section key after ``device:`` — the header comments plus the ``device:`` block,
+    which is valid YAML on its own.
+
+    Read lazily and stopped early: the picker needs only manufacturer/model, so a
+    6000-line device file yields ~15 lines and its (large) entity map is never
+    touched. Listing every device stays roughly O(number of files), not O(bytes).
+    """
+    lines: list[str] = []
+    seen_device = False
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            # A section key sits in column 0 (entities/translations are indented,
+            # comments start with '#'); the first one after device: ends the block.
+            top_level_key = line[:1].isalpha() or line[:1] == "_"
+            if seen_device and top_level_key and not line.startswith("device:"):
+                break
+            if line.startswith("device:"):
+                seen_device = True
+            lines.append(line)
+    return "".join(lines)
+
+
+def _device_label(path: Path, filename: str) -> tuple[str, str]:
+    """``(manufacturer, model)`` read from just the ``device:`` block — no entity
+    parse, no schema validation (that happens on selection via async_load_device).
+    Raises DeviceSchemaError if the block is unreadable or lacks either field.
+    """
+    try:
+        data = yaml.load(_read_device_head(path), Loader=_UniqueKeyLoader) or {}
+    except yaml.YAMLError as err:
+        raise DeviceSchemaError(f"{filename}: invalid YAML: {' '.join(str(err).split())}") from err
+    except OSError as err:
+        raise DeviceSchemaError(f"{filename}: cannot read: {err}") from err
+    device = data.get("device")
+    if not isinstance(device, dict) or not device.get("manufacturer") or not device.get("model"):
+        raise DeviceSchemaError(f"{filename}: device.manufacturer and device.model are required")
+    return str(device["manufacturer"]), str(device["model"])
+
+
+def _list_all(hass: HomeAssistant) -> tuple[dict[str, tuple[str, str]], dict[str, str]]:
+    """Discover every device file and read just its manufacturer/model, in one
+    executor job. Returns filename -> (manufacturer, model), plus filename -> reason
+    for files whose ``device:`` block is missing/unreadable (kept out of the picker).
+    """
+    devices: dict[str, tuple[str, str]] = {}
     errors: dict[str, str] = {}
-    language = hass.config.language
     for name, path in _discover(hass).items():
         try:
-            devices[name] = _load_file(path, name, language)
-        except (DeviceSchemaError, yaml.YAMLError, OSError) as err:
+            devices[name] = _device_label(path, name)
+        except DeviceSchemaError as err:
             _LOGGER.warning("Skipping device file %s: %s", path, err)
-            # One line per file; schema errors already lead with the filename
-            message = " ".join(str(err).split())
-            errors[name] = message if message.startswith(name) else f"{name}: {message}"
+            errors[name] = str(err)
     return devices, errors
 
 
@@ -106,13 +147,15 @@ async def async_load_device(hass: HomeAssistant, filename: str) -> DeviceDef:
     return await hass.async_add_executor_job(_load_one, hass, filename)
 
 
-async def async_load_all(
+async def async_list_devices(
     hass: HomeAssistant,
-) -> tuple[dict[str, DeviceDef], dict[str, str]]:
-    """Load every discoverable device definition, skipping invalid files.
+) -> tuple[dict[str, tuple[str, str]], dict[str, str]]:
+    """Fast picker data: filename -> (manufacturer, model), read from each file's
+    ``device:`` block only — never its entity map. The full parse + validation of
+    the chosen file happens on selection via :func:`async_load_device`.
 
-    Returns the loaded definitions plus filename -> reason for every skipped
-    file, so the config flow can say *why* a file is missing from the picker
-    instead of leaving the author to dig through the log.
+    Also returns filename -> reason for files whose ``device:`` block could not be
+    read, so the config flow can list them instead of dropping them silently. An
+    entity-level error in an otherwise-listable file surfaces on selection instead.
     """
-    return await hass.async_add_executor_job(_load_all, hass)
+    return await hass.async_add_executor_job(_list_all, hass)

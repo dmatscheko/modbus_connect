@@ -120,7 +120,8 @@
     },
     "error": {
       "cannot_connect": "Failed to connect. Check host and port (or the serial port path), and make sure the gateway or adapter is reachable.",
-      "device_no_answer": "The connection works, but no device answered under this Modbus device ID. Check the ID (and that the device is powered and wired)."
+      "device_no_answer": "The connection works, but no device answered under this Modbus device ID. Check the ID (and that the device is powered and wired).",
+      "invalid_device_file": "This device file could not be loaded — it has an error below its manufacturer/model. See the note under the device list (or the logs) for the reason."
     },
     "abort": {
       "already_configured": "A device with this connection and Modbus device ID is already configured.",

@@ -219,7 +219,7 @@ async def test_duplicate_aborts(hass: HomeAssistant) -> None:
 
 async def test_no_device_files_aborts(hass: HomeAssistant) -> None:
     with patch(
-        "custom_components.modbus_connect.config_flow.async_load_all",
+        "custom_components.modbus_connect.config_flow.async_list_devices",
         AsyncMock(return_value=({}, {})),
     ):
         result = await hass.config_entries.flow.async_init(
@@ -240,6 +240,28 @@ async def test_invalid_device_file_reported_in_flow(hass: HomeAssistant) -> None
     note = result["description_placeholders"]["failed"]
     assert "broken.yaml" in note
     assert "device.model" in note  # the actual reason, not just the name
+
+
+async def test_selecting_invalid_device_file_shows_error(hass: HomeAssistant) -> None:
+    # A file with a valid device: block but a broken entity lists in the picker
+    # (the fast list reads only the head) — selecting it fails loudly, not silently.
+    write_device_file(hass)
+    write_device_file(
+        hass,
+        "bad_entity.yaml",
+        "device:\n  manufacturer: Bad\n  model: Y\n"
+        "holding:\n  t:\n    address: 0\n    ha: {platform: number}\n",  # number needs min/max
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_FILENAME: "bad_entity.yaml", CONF_NAME: ""}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"]["base"] == "invalid_device_file"
+    assert "bad_entity.yaml" in result["description_placeholders"]["failed"]
 
 
 async def test_all_files_valid_shows_no_note(hass: HomeAssistant) -> None:
@@ -412,7 +434,7 @@ async def test_reconfigure_no_device_files_aborts(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
 
     with patch(
-        "custom_components.modbus_connect.config_flow.async_load_all",
+        "custom_components.modbus_connect.config_flow.async_list_devices",
         AsyncMock(return_value=({}, {})),
     ):
         result = await start_reconfigure(hass, entry)

@@ -120,7 +120,8 @@
     },
     "error": {
       "cannot_connect": "Verbindung fehlgeschlagen. Prüfe Host und Port (bzw. den seriellen Gerätepfad) und ob Gateway oder Adapter erreichbar sind.",
-      "device_no_answer": "Die Verbindung steht, aber unter dieser Modbus-Geräte-ID hat kein Gerät geantwortet. Prüfe die ID (und ob das Gerät eingeschaltet und verkabelt ist)."
+      "device_no_answer": "Die Verbindung steht, aber unter dieser Modbus-Geräte-ID hat kein Gerät geantwortet. Prüfe die ID (und ob das Gerät eingeschaltet und verkabelt ist).",
+      "invalid_device_file": "Diese Gerätedatei konnte nicht geladen werden – sie enthält unterhalb von Hersteller/Modell einen Fehler. Der Grund steht im Hinweis unter der Geräteliste (oder im Log)."
     },
     "abort": {
       "already_configured": "Ein Gerät mit dieser Verbindung und dieser Modbus-Geräte-ID ist bereits konfiguriert.",

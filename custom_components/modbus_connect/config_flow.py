@@ -59,19 +59,19 @@ from .const import (
     STOPBITS_OPTIONS,
 )
 from .coordinator import resolve_scan_intervals
-from .loader import async_load_all, async_load_device
+from .loader import async_list_devices, async_load_device
 from .models import DeviceDef, Span
 from .schema import DeviceSchemaError
 
 
 def _device_schema(
-    devices: dict[str, DeviceDef], defaults: dict[str, Any] | None = None
+    devices: dict[str, tuple[str, str]], defaults: dict[str, Any] | None = None
 ) -> vol.Schema:
     defaults = defaults or {}
     choices = {
-        name: f"{d.manufacturer} {d.model}"
-        for name, d in sorted(
-            devices.items(), key=lambda kv: (kv[1].manufacturer, kv[1].model)
+        name: f"{manufacturer} {model}".strip()
+        for name, (manufacturer, model) in sorted(
+            devices.items(), key=lambda kv: (kv[1][0], kv[1][1])
         )
     }
     default_file = defaults.get(CONF_FILENAME)
@@ -234,13 +234,16 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         self._filename: str = ""
         self._name: str = ""
         self._device: DeviceDef | None = None
-        self._devices: dict[str, DeviceDef] | None = None
+        self._devices: dict[str, tuple[str, str]] | None = None
         self._load_errors: dict[str, str] = {}
 
-    async def _load_devices(self) -> dict[str, DeviceDef]:
-        """Load device definitions once and reuse them across this flow's steps."""
+    async def _list_devices(self) -> dict[str, tuple[str, str]]:
+        """Manufacturer/model per device file for the picker, read fast (the
+        ``device:`` block only, not the entity map — see async_list_devices). The
+        chosen file is loaded in full on selection. Cached across this flow's steps.
+        """
         if self._devices is None:
-            self._devices, self._load_errors = await async_load_all(self.hass)
+            self._devices, self._load_errors = await async_list_devices(self.hass)
         return self._devices
 
     @property
@@ -256,12 +259,23 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         assert self._device is not None
         return self._name or f"{self._device.manufacturer} {self._device.model}"
 
-    def _store_device_choice(
-        self, devices: dict[str, DeviceDef], user_input: dict[str, Any]
-    ) -> None:
+    async def _store_device_choice(self, user_input: dict[str, Any]) -> str | None:
+        """Record the picked file and load it **in full** (the picker read only its
+        manufacturer/model). Returns None on success, or an error key to re-show the
+        picker with — a file can be valid down to its ``device:`` block yet invalid
+        below it (only built-in files are guaranteed valid; user files may not be).
+        """
         self._filename = user_input[CONF_FILENAME]
         self._name = (user_input.get(CONF_NAME) or "").strip()
-        self._device = devices[self._filename]
+        try:
+            self._device = await async_load_device(self.hass, self._filename)
+        except DeviceSchemaError as err:
+            message = " ".join(str(err).split())
+            self._load_errors[self._filename] = (
+                message if message.startswith(self._filename) else f"{self._filename}: {message}"
+            )
+            return "invalid_device_file"
+        return None
 
     def _connection_defaults(self) -> dict[str, Any]:
         """Prefill for a fresh connection form from the chosen device file."""
@@ -319,18 +333,22 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        devices = await self._load_devices()
+        devices = await self._list_devices()
         if not devices:
             return self.async_abort(reason="no_device_files")
 
+        errors: dict[str, str] = {}
         if user_input is not None:
-            self._store_device_choice(devices, user_input)
-            return await self.async_step_connection_type()
+            error = await self._store_device_choice(user_input)
+            if error is None:
+                return await self.async_step_connection_type()
+            errors["base"] = error
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_device_schema(devices),
+            data_schema=_device_schema(devices, user_input),
             description_placeholders={"failed": self._failed_note},
+            errors=errors,
         )
 
     async def async_step_connection_type(
@@ -391,13 +409,16 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Change device file, name, and/or connection of an existing entry."""
         entry = self._get_reconfigure_entry()
-        devices = await self._load_devices()
+        devices = await self._list_devices()
         if not devices:
             return self.async_abort(reason="no_device_files")
 
+        errors: dict[str, str] = {}
         if user_input is not None:
-            self._store_device_choice(devices, user_input)
-            return await self.async_step_reconfigure_connection_type()
+            error = await self._store_device_choice(user_input)
+            if error is None:
+                return await self.async_step_reconfigure_connection_type()
+            errors["base"] = error
 
         defaults = {
             CONF_FILENAME: entry.data.get(CONF_FILENAME),
@@ -406,8 +427,9 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         }
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=_device_schema(devices, defaults),
+            data_schema=_device_schema(devices, user_input or defaults),
             description_placeholders={"failed": self._failed_note},
+            errors=errors,
         )
 
     async def async_step_reconfigure_connection_type(

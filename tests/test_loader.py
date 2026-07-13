@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.modbus_connect.loader import (
     BUILTIN_DIR,
     _load_file,
-    async_load_all,
+    async_list_devices,
     async_load_device,
 )
 from custom_components.modbus_connect.schema import DeviceSchemaError
@@ -52,7 +52,7 @@ async def test_invalid_yaml_reported(hass: HomeAssistant) -> None:
         await async_load_device(hass, "broken.yaml")
 
 
-async def test_load_all_skips_invalid_files_and_reports_them(
+async def test_list_devices_skips_invalid_files_and_reports_them(
     hass: HomeAssistant,
 ) -> None:
     directory = user_dir(hass)
@@ -60,15 +60,31 @@ async def test_load_all_skips_invalid_files_and_reports_them(
     (directory / "broken.yaml").write_text("{:", encoding="utf-8")
     (directory / "bad_schema.yaml").write_text("device: {}", encoding="utf-8")
 
-    devices, errors = await async_load_all(hass)
-    assert "good.yaml" in devices
+    devices, errors = await async_list_devices(hass)
+    assert devices["good.yaml"] == ("Acme", "X1")  # read from the device: block only
     assert "broken.yaml" not in devices
-    assert "bad_schema.yaml" not in devices
+    assert "bad_schema.yaml" not in devices  # device: block lacks manufacturer/model
     # every skipped file gets a one-line reason, always led by its name
     assert set(errors) == {"broken.yaml", "bad_schema.yaml"}
     assert errors["bad_schema.yaml"].startswith("bad_schema.yaml: ")
     assert errors["broken.yaml"].startswith("broken.yaml: ")
     assert "\n" not in errors["broken.yaml"]  # YAML errors are multi-line
+
+
+async def test_list_devices_reads_only_the_head(hass: HomeAssistant) -> None:
+    """The picker must not need a valid entity map — a file whose device: block is
+    fine but whose entities are broken still lists (it fails later, on selection)."""
+    bad_entities = (
+        "device: {manufacturer: Acme, model: X9}\n"
+        "holding:\n  t: {address: 0, ha: {platform: not_a_real_platform}}\n"
+    )
+    (user_dir(hass) / "listable.yaml").write_text(bad_entities, encoding="utf-8")
+    devices, errors = await async_list_devices(hass)
+    assert devices["listable.yaml"] == ("Acme", "X9")
+    assert "listable.yaml" not in errors
+    # ...but a full load rejects it
+    with pytest.raises(DeviceSchemaError):
+        await async_load_device(hass, "listable.yaml")
 
 
 async def test_user_file_overrides_builtin(hass: HomeAssistant) -> None:
