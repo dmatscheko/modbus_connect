@@ -4,15 +4,20 @@
 
 Entities are split into groups you can switch on/off on the integration's device page. `basic` is always on and never gets a switch; every other group gets an *Enable … entities* toggle. The **Enable all entities** master switch reveals everything, including untagged (expert) registers.
 
-**Default groups (fresh install):** `basic`
+**Default groups (fresh install):** `basic`, `standard`
 
 **Total register + template entities:** 77
 
 | Group | Tier | Switch on device page | Entities | Covers |
 | --- | --- | --- | --- | --- |
-| `basic` | core | (always on) | 9 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
-| `advanced` | tier | Enable Advanced entities | 37 | The full detail — deep settings, per-component diagnostics and secondary readings. |
-| *(untagged)* | expert | Enable all entities | 31 | Raw internal / diagnostic registers (rail & ADC readings, etc.). e.g. Charge Phase Alt, Charge PE Voltage, Charge PE Current, … |
+| `basic` | core | (always on) | 4 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
+| `standard` | tier | Enable Standard entities | 14 | The everyday set beyond the basics: common setpoints, secondary readings and totals. On by default. |
+| `advanced` | tier | Enable Advanced entities | 59 | The full detail — deep settings, per-component diagnostics and secondary readings. |
+| `charging` | feature | Enable Charging entities | 37 | e.g. Charger Use Mode, Start Charge Mode, Boost Mode, … |
+| `grid` | feature | Enable Grid entities | 10 | e.g. Grid Current L1, Grid Current L2, Grid Current L3, … |
+| `settings` | feature | Enable System settings entities | 13 | e.g. Meter Setting, ECO Gear, Green Gear, … |
+| `diagnostics` | feature | Enable Diagnostics & identity entities | 14 | e.g. Device Lock, CC Voltage, CP Voltage, … |
+| `modbus_config` | feature | Enable Modbus & comms entities | 3 | e.g. Sync RTC, Modbus Address, RTC |
 
 **Tiers:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one subsystem, toggle independently · *expert* = untagged, only via **Enable all entities**.
 

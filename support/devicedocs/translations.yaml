@@ -298,6 +298,24 @@
 - {de: Betriebsmodus, en: Work mode}
 - {de: Gesamtbetriebszeit, en: Work time total}
 
+# SolaX group-switch labels (English source <-> German). Inverter/Grid reuse the
+# shared entity-name units above.
+- {en: Solar PV, de: Solar-PV}
+- {en: Battery, de: Batterie}
+- {en: "Meter & CT", de: "Zähler & CT"}
+- {en: House load, de: Hausverbrauch}
+- {en: "Work mode & schedule", de: "Betriebsmodus & Zeitplan"}
+- {en: "Remote control (VPP)", de: "Fernsteuerung (VPP)"}
+- {en: System settings, de: Systemeinstellungen}
+- {en: "Diagnostics & identity", de: "Diagnose & Identität"}
+- {en: "Modbus & comms", de: "Modbus & Kommunikation"}
+- {en: Charging, de: Ladevorgang}
+- {en: "EPS / backup", de: "EPS / Notstrom"}
+- {en: Generator, de: Generator}
+- {en: Parallel mode Inverter 1, de: Parallelbetrieb Wechselrichter 1}
+- {en: Parallel mode Inverter 2, de: Parallelbetrieb Wechselrichter 2}
+- {en: Parallel mode Inverter 3, de: Parallelbetrieb Wechselrichter 3}
+
 # --- post-fix shared units: values a source-string fix normalized to match a sibling
 # device (so both Pichler units now share them); attributed here since consolidation
 # reads pre-fix device values. ------------------------------------------------------
