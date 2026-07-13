@@ -25,7 +25,7 @@ Entities are split into groups you can switch on/off on the integration's compan
 | `humidity_control` | feature | Enable Humidity control entities | 14 | e.g. Feuchte Regelung, Luftfeuchte Sollwert, Feuchte Regelung LS3 maximale Zeit, … |
 | `external_sensors` | feature | Enable External sensors entities | 6 | e.g. Lüftungsstufe 3 Nachlaufzeit (External Din2), EnableExtractSmoke 0=off 1=NO 2=NC, Enable Presence mode, … |
 | `summer_night_cooling` | feature | Enable Summer-night cooling entities | 14 | e.g. Enable Summernight cooling, Summernight cooling enable T, Summernight cooling disable T, … |
-| `modbus_config` | feature | Enable Modbus configuration entities | 5 | e.g. Modbus address, Modbus baudrate, Modbus parity, … |
+| `modbus_config` | feature | Enable Modbus & comms entities | 5 | e.g. Modbus address, Modbus baudrate, Modbus parity, … |
 | `firmware` | feature | Enable Firmware / model entities | 6 | e.g. Sommer/Winter Zeitumstellung, Firmware Version Touch Display, Touch Display Show Air Quality, … |
 | `system` | feature | Enable System & maintenance entities | 2 | e.g. System Zurücksetzen, Automatische Umschaltung Sommer/Winter |
 

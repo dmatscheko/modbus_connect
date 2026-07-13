@@ -25,7 +25,7 @@ Entities are split into groups you can switch on/off on the integration's compan
 | `humidity_control` | feature | Enable Humidity control entities | 5 | e.g. Luftfeuchtigkeit Regelung, Luftfeuchtigkeit Maximum, Relative humidity maximum time in level 3, … |
 | `external_sensors` | feature | Enable External sensors entities | 3 | e.g. External digital input E2, External digital input E2 - Ventilation level 3 stopping time, T2 internal to external compensation |
 | `controller` | feature | Enable Controller I/O (raw) entities | 36 | e.g. Configuration, Sensor configuration, Test mode, … |
-| `modbus_config` | feature | Enable Modbus configuration entities | 4 | e.g. Modbus address, Modbus baud rate, Modbus parity, … |
+| `modbus_config` | feature | Enable Modbus & comms entities | 4 | e.g. Modbus address, Modbus baud rate, Modbus parity, … |
 | `firmware` | feature | Enable Firmware / model entities | 12 | e.g. Summer/Winter Time change, AHU Type, Firmware Version Touch Display, … |
 | `system` | feature | Enable System & maintenance entities | 3 | e.g. Powersave at Standby, Reset to factory settings, Reset operating hours counter |
 

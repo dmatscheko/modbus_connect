@@ -15,8 +15,10 @@ Entities are split into groups you can switch on/off on the integration's compan
 | `advanced` | tier | Enable Advanced entities | 199 | The full detail — deep settings, per-component diagnostics and secondary readings. |
 | `inverter` | feature | Enable Inverter entities | 22 | e.g. System On, System Off, Shut Down, … |
 | `pv` | feature | Enable Solar PV entities | 17 | e.g. MPPT, Max PV Output Power, Shadow Fix Function Level PV2 (GMPPT), … |
+| `solar_details` | feature | Enable Solar details entities | 2 | e.g. PV Energy 1, PV Energy 2 |
 | `battery` | feature | Enable Battery entities | 46 | e.g. Battery Charge Max Current, Battery Discharge Max Current, Battery Awaken, … |
 | `grid` | feature | Enable Grid entities | 31 | e.g. Export Control User Limit, Pgrid Bias, Export Control Factory Limit, … |
+| `grid_to_battery` | feature | Enable Grid to battery entities | 2 | e.g. E Charge Today, Grid to Battery Power |
 | `meter` | feature | Enable Meter & CT entities | 22 | e.g. Measured power, Meter 1 Direction, Meter 2 Direction, … |
 | `home_consumption` | feature | Enable House load entities | 3 | e.g. House load, House load alt, Home Consumption Energy |
 | `eps` | feature | Enable EPS / backup entities | 22 | e.g. EPS Min SOC, EPS Restart SOC, EPS Mute, … |
@@ -29,8 +31,6 @@ Entities are split into groups you can switch on/off on the integration's compan
 | `pm_i1` | feature | Enable Parallel mode Inverter 1 entities | 22 | e.g. PM Inverter Count, PM ActivePower L1, PM ActivePower L2, … |
 | `pm_i2` | feature | Enable Parallel mode Inverter 2 entities | 26 | e.g. PM Inverter Count, PM I2 ActivePower L1, PM I2 ActivePower L2, … |
 | `pm_i3` | feature | Enable Parallel mode Inverter 3 entities | 26 | e.g. PM Inverter Count, PM I3 ActivePower L1, PM I3 ActivePower L2, … |
-| `grid_to_battery` | feature | Enable Grid to battery entities | 2 | e.g. E Charge Today, Grid to Battery Power |
-| `solar_details` | feature | Enable Solar details entities | 2 | e.g. PV Energy 1, PV Energy 2 |
 
 **Kinds:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one functional group (subsystem), toggle independently · *expert* = untagged, only via **Enable all entities**.
 

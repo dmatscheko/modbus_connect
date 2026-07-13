@@ -26,8 +26,10 @@ device:
     advanced: Advanced
     inverter: Inverter
     pv: Solar PV
+    solar_details: Solar details
     battery: Battery
     grid: Grid
+    grid_to_battery: Grid to battery
     meter: "Meter & CT"
     home_consumption: House load
     eps: "EPS / backup"

@@ -26,7 +26,7 @@ device:
     humidity_control: Humidity control
     external_sensors: External sensors
     summer_night_cooling: Summer-night cooling
-    modbus_config: Modbus configuration
+    modbus_config: "Modbus & comms"
     firmware: Firmware / model
     system: "System & maintenance"
 
@@ -2040,9 +2040,9 @@ translations:
   Summer-night cooling:
     en: Summer-night cooling
     de: Sommernachtkühlung
-  Modbus configuration:
-    en: Modbus configuration
-    de: Modbus-Konfiguration
+  "Modbus & comms":
+    en: "Modbus & comms"
+    de: "Modbus & Kommunikation"
   Firmware / model:
     en: Firmware / model
     de: Firmware / Modell

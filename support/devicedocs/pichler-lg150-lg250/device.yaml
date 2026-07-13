@@ -31,7 +31,7 @@ device:
     humidity_control: Humidity control
     external_sensors: External sensors
     controller: "Controller I/O (raw)"
-    modbus_config: Modbus configuration
+    modbus_config: Modbus & comms
     firmware: "Firmware / model"
     system: System & maintenance
 

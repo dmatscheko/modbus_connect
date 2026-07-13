@@ -28,7 +28,7 @@ device:
     humidity_control: Humidity control
     external_sensors: External sensors
     controller: Controller I/O (raw)
-    modbus_config: Modbus configuration
+    modbus_config: "Modbus & comms"
     firmware: Firmware / model
     system: "System & maintenance"
 
@@ -1846,9 +1846,9 @@ translations:
   Controller I/O (raw):
     en: Controller I/O (raw)
     de: Controller-E/A (roh)
-  Modbus configuration:
-    en: Modbus configuration
-    de: Modbus-Konfiguration
+  "Modbus & comms":
+    en: "Modbus & comms"
+    de: "Modbus & Kommunikation"
   Firmware / model:
     en: Firmware / model
     de: Firmware / Modell

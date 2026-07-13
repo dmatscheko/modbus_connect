@@ -60,7 +60,6 @@
 - {en: Hot water circuit, de: Warmwasserkreis}
 - {en: Test, de: Test}
 # Pichler ventilation units
-- {en: "Modbus configuration", de: "Modbus-Konfiguration"}
 - {en: "CO2 control", de: "CO2-Regelung"}
 - {en: "Humidity control", de: Feuchteregelung}
 - {en: "Heat exchanger / bypass", de: "Wärmetauscher / Bypass"}
@@ -301,7 +300,9 @@
 # SolaX group-switch labels (English source <-> German). Inverter/Grid reuse the
 # shared entity-name units above.
 - {en: Solar PV, de: Solar-PV}
+- {en: "Solar details", de: "Solar-Details"}
 - {en: Battery, de: Batterie}
+- {en: "Grid to battery", de: "Netz zu Batterie"}
 - {en: "Meter & CT", de: "Zähler & CT"}
 - {en: House load, de: Hausverbrauch}
 - {en: "Work mode & schedule", de: "Betriebsmodus & Zeitplan"}

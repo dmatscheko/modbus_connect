@@ -19,8 +19,10 @@ device:
     advanced: Advanced
     inverter: Inverter
     pv: Solar PV
+    solar_details: Solar details
     battery: Battery
     grid: Grid
+    grid_to_battery: Grid to battery
     meter: "Meter & CT"
     home_consumption: House load
     eps: EPS / backup
@@ -4753,12 +4755,18 @@ translations:
   Solar PV:
     en: Solar PV
     de: Solar-PV
+  Solar details:
+    en: Solar details
+    de: Solar-Details
   Battery:
     en: Battery
     de: Batterie
   Grid:
     de: Netz
     en: Grid
+  Grid to battery:
+    en: Grid to battery
+    de: Netz zu Batterie
   "Meter & CT":
     en: "Meter & CT"
     de: "Zähler & CT"
