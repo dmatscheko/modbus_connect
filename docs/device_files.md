@@ -204,16 +204,19 @@ sets on and off from the device page:
 
 ```yaml
 device:
-  default_groups: [basic]        # what a fresh install (and existing ones) start with
+  default_groups: [basic, standard]  # what a fresh install (and existing ones) start with
 holding:
   battery_soc:
     address: 0
-    groups: [basic]              # everyday view (always enabled)
+    groups: [basic]              # everyday view (always enabled, no switch)
+  charge_current:
+    address: 5
+    groups: [standard]           # on by default; the Standard switch can hide it
   inverter_frequency:
     address: 10
-    groups: [advanced]           # shown when the Advanced switch is on
+    groups: [advanced]           # off by default; shown when the Advanced switch is on
   cell_voltage_16:
-    address: 20                  # untagged: expert tier, shown by "Enable all entities"
+    address: 20                  # untagged: expert, shown only by "Enable all entities"
 ```
 
 An entity is shown when **any** of its groups is enabled. `default_groups`
@@ -223,6 +226,13 @@ picks which groups start enabled; leave it out and everything shows.
 entity `groups: [basic]` means "part of the always-visible baseline" — it
 keeps the entity out of the other groups without ever letting it be hidden, so
 a user cannot lock themselves out by disabling the group everything lives in.
+
+The bundled devices follow a **tier convention** on top of this mechanism, from
+least to most detail: `basic` (always on), `standard` (on by default — listed in
+`default_groups`), then `advanced` (opt-in). Groups are just names, so this is
+convention rather than schema; most entities *also* carry a **functional group**
+(e.g. `battery`, `grid`), letting a user switch a whole subsystem on across every
+tier.
 
 Each group gets an *Enable ⟨group⟩ entities* switch, the name shown with
 underscores as spaces and the first letter capitalized (`parallel_mode` →

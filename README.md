@@ -155,11 +155,13 @@ them as a starting point and please report corrections.
 ## Entity groups
 
 Big devices expose far more settings and sensors than most people want, so a
-device file can tag its entities into named groups — `basic`, `advanced`, …
-(how, is in the [device file reference](docs/device_files.md#entity-groups)).
+device file can tag its entities into named groups — a `basic` / `standard` /
+`advanced` detail tier, plus per-subsystem groups (how, is in the
+[device file reference](docs/device_files.md#entity-groups)).
 Switches on the device's companion **Configuration** device turn whole groups
-on and off; the `basic` group is the always-visible baseline and has no
-switch. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
+on and off; `basic` is the always-visible baseline and has no switch, while
+`standard` is enabled by default — so a fresh install shows the everyday set
+and leaves the deeper detail one switch away. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
 parallel-mode, EPS, and generator register blocks in groups of their own —
 the same opt-ins the solax-modbus integration offers as config checkboxes,
 except a switch flip materializes the entities (and their register reads) at
