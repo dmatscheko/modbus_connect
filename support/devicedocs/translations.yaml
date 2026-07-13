@@ -71,6 +71,13 @@
 - {en: "Fan & flow", de: "Ventilator & Luftmenge"}
 - {en: "Firmware / model", de: "Firmware / Modell"}
 - {en: "Summer-night cooling", de: Sommernachtkühlung}
+- {en: "Ventilation & airflow", de: "Lüftung & Luftmenge"}
+- {en: Fans, de: Ventilatoren}
+- {en: Air temperatures, de: Lufttemperaturen}
+- {en: "Heating & cooling", de: "Heizen & Kühlen"}
+- {en: "Faults & alerts", de: "Fehler & Meldungen"}
+- {en: "Controller I/O (raw)", de: "Controller-E/A (roh)"}
+- {en: "System & maintenance", de: "System & Wartung"}
 
 # =============================================================================
 # Cross-device vocabulary shared by >=2 device configs (auto-consolidated, en/de).

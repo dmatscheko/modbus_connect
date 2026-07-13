@@ -11,22 +11,33 @@ device:
   prefix: Pichler LG
   modbus_id: 20
   max_read_gap: 64
-  default_groups: [basic]
+  # basic is always on; standard is the everyday set (on by default); advanced and
+  # the subsystem groups are opt-in. Every entity also carries a functional group.
+  default_groups: [basic, standard]
   group_labels:
-    modbus_config: Modbus configuration
+    standard: Standard
+    advanced: Advanced
+    ventilation: Ventilation & airflow
+    fan_control: Fans
+    temperatures: Air temperatures
+    heat_exchanger: "Heat exchanger / bypass"
+    preheater: "Pre/post-heater"
+    heating_cooling: Heating & cooling
+    faults: Faults & alerts
+    filter: Filter
     co2_control: CO2 control
     humidity_control: Humidity control
+    external_sensors: External sensors
     summer_night_cooling: Summer-night cooling
-    preheater: Pre/post-heater
-    filter: Filter
-    fan_control: "Fan & flow"
-    firmware: Firmware / model
+    modbus_config: Modbus configuration
+    firmware: "Firmware / model"
+    system: System & maintenance
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
   summer_winter_mode_select:
     address: 1
-    groups: [basic]
+    groups: [basic, ventilation]
     map:
       1: Sommer
       2: Winter
@@ -36,7 +47,7 @@ holding:
       icon: "mdi:weather-sunny"
   ventilation_level_select:
     address: 2
-    groups: [basic]
+    groups: [basic, ventilation]
     map:
       0: Standby
       1: Stufe 1
@@ -55,7 +66,7 @@ holding:
     address: 3
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, heat_exchanger]
     ha:
       platform: number
       name: EWT Sommer Umschaltpunkt
@@ -70,7 +81,7 @@ holding:
     address: 4
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, heat_exchanger]
     ha:
       platform: number
       name: EWT Winter Umschaltpunkt
@@ -83,7 +94,7 @@ holding:
       entity_category: config
   temperature_control_mode_select:
     address: 7
-    groups: [basic]
+    groups: [standard, temperatures]
     map:
       1: Abluft
       2: Zuluft
@@ -95,7 +106,7 @@ holding:
       entity_category: config
   airflow_level_1:
     address: 9
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Luftstrom Lüftungsstufe 1
@@ -109,7 +120,7 @@ holding:
       entity_category: config
   airflow_level_2:
     address: 10
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Luftstrom Lüftungsstufe 2
@@ -123,7 +134,7 @@ holding:
       entity_category: config
   airflow_level_3:
     address: 11
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Luftstrom Lüftungsstufe 3
@@ -137,7 +148,7 @@ holding:
       entity_category: config
   airflow_basic:
     address: 12
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Luftstrom Grundlüftung
@@ -153,7 +164,7 @@ holding:
     address: 13
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: number
       name: Vorheizregister Relais Schwellwert
@@ -168,7 +179,7 @@ holding:
     address: 22
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, temperatures]
     ha:
       platform: number
       name: Soll Zulufttemperatur
@@ -183,7 +194,7 @@ holding:
     address: 23
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, temperatures]
     ha:
       platform: number
       name: Soll Raumlufttemperatur
@@ -198,7 +209,7 @@ holding:
     address: 24
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, temperatures]
     ha:
       platform: number
       name: Soll Ablufttemperatur
@@ -211,7 +222,7 @@ holding:
       entity_category: config
   ext_e2_level_3_stop_time:
     address: 31
-    groups: [basic]
+    groups: [advanced, external_sensors]
     ha:
       platform: number
       name: Lüftungsstufe 3 Nachlaufzeit (External Din2)
@@ -222,7 +233,7 @@ holding:
       entity_category: config
   filter_tauschintervall_stunden_number:
     address: 29
-    groups: [basic]
+    groups: [advanced, filter]
     ha:
       platform: number
       name: Tauschintervall Filter
@@ -233,7 +244,7 @@ holding:
       entity_category: config
   room_temp_sensor_source:
     address: 32
-    groups: [basic]
+    groups: [advanced, temperatures]
     map:
       1: T8 extern
       2: TouchDisplay
@@ -245,7 +256,7 @@ holding:
   filter_reset_button:
     address: 33
     write_value: 1
-    groups: [basic]
+    groups: [standard, filter]
     ha:
       platform: button
       name: Filter zurücksetzen
@@ -254,7 +265,7 @@ holding:
   filter_snooze_button:
     address: 33
     write_value: 2
-    groups: [basic]
+    groups: [standard, filter]
     ha:
       platform: button
       name: Filter später erinnern
@@ -262,7 +273,7 @@ holding:
       entity_category: config
   ventilation_level_config:
     address: 34
-    groups: [basic]
+    groups: [advanced, ventilation]
     map:
       0: Standby
       1: Grundlüftung
@@ -273,7 +284,7 @@ holding:
       entity_category: config
   panel_error_output:
     address: 35
-    groups: [basic]
+    groups: [advanced, faults]
     map:
       0: Nein
       1: Ja
@@ -284,7 +295,7 @@ holding:
       entity_category: config
   co2_control_select:
     address: 39
-    groups: [basic]
+    groups: [standard, co2_control]
     map:
       0: Aus
       1: Ein
@@ -295,7 +306,7 @@ holding:
       entity_category: config
   co2_setpoint:
     address: 40
-    groups: [basic]
+    groups: [advanced, co2_control]
     ha:
       platform: number
       name: CO2 Sollwert
@@ -307,7 +318,7 @@ holding:
       entity_category: config
   humidity_control_select:
     address: 44
-    groups: [basic]
+    groups: [standard, humidity_control]
     map:
       0: Aus
       1: Ein
@@ -318,7 +329,7 @@ holding:
       entity_category: config
   humidity_setpoint:
     address: 45
-    groups: [basic]
+    groups: [advanced, humidity_control]
     ha:
       platform: number
       name: Luftfeuchte Sollwert
@@ -330,7 +341,7 @@ holding:
       entity_category: config
   humidity_level_3_max_time:
     address: 46
-    groups: [basic]
+    groups: [advanced, humidity_control]
     ha:
       platform: number
       name: Feuchte Regelung LS3 maximale Zeit
@@ -341,7 +352,7 @@ holding:
       entity_category: config
   dst_mode:
     address: 48
-    groups: [basic]
+    groups: [advanced, firmware]
     map:
       0: Aus
       1: Automatisch
@@ -352,7 +363,7 @@ holding:
       entity_category: config
   bypass_damper_select:
     address: 49
-    groups: [basic]
+    groups: [standard, heat_exchanger]
     map:
       0: Regelung arbeiten lassen
       1: Bypass geschlossen
@@ -366,7 +377,7 @@ holding:
     address: 56
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: number
       name: Soll Zulufttemperatur (Abgesenkt)
@@ -381,7 +392,7 @@ holding:
     address: 57
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: number
       name: Soll Raumlufttemperatur (Abgesenkt)
@@ -396,7 +407,7 @@ holding:
     address: 58
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: number
       name: Soll Ablufttemperatur (Abgesenkt)
@@ -409,7 +420,7 @@ holding:
       entity_category: config
   system_reset_select:
     address: 63
-    groups: [basic]
+    groups: [advanced, system]
     map:
       0: Keine Aktion
       1: Fehlerprotokoll löschen
@@ -424,7 +435,7 @@ holding:
     address: 65
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: number
       name: Vorheizregister Zieltemperatur
@@ -437,7 +448,7 @@ holding:
       entity_category: config
   auto_summer_winter_switch:
     address: 69
-    groups: [basic]
+    groups: [advanced, system]
     map:
       0: Aus
       1: Ein
@@ -448,7 +459,7 @@ holding:
       entity_category: config
   level_3_max_time:
     address: 70
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Lüftungsstufe 3 Maximale Zeit
@@ -459,7 +470,7 @@ holding:
       entity_category: config
   supply_duct_pressure_1:
     address: 95
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Zuluft Stufe 1
@@ -471,7 +482,7 @@ holding:
       entity_category: config
   supply_duct_pressure_2:
     address: 96
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Zuluft Stufe 2
@@ -483,7 +494,7 @@ holding:
       entity_category: config
   supply_duct_pressure_3:
     address: 97
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Zuluft Stufe 3
@@ -495,7 +506,7 @@ holding:
       entity_category: config
   supply_duct_pressure_basic:
     address: 98
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Zuluft Grundlüftung
@@ -507,7 +518,7 @@ holding:
       entity_category: config
   extract_duct_pressure_1:
     address: 99
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Abluft Stufe 1
@@ -519,7 +530,7 @@ holding:
       entity_category: config
   extract_duct_pressure_2:
     address: 100
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Abluft Stufe 2
@@ -531,7 +542,7 @@ holding:
       entity_category: config
   extract_duct_pressure_3:
     address: 101
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Abluft Stufe 3
@@ -543,7 +554,7 @@ holding:
       entity_category: config
   extract_duct_pressure_basic:
     address: 102
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Kanaldruck Abluft Grundlüftung
@@ -556,7 +567,7 @@ holding:
   extract_balance_1:
     address: 83
     offset: -500
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Abluft-Balance Lüftungsstufe 1
@@ -569,7 +580,7 @@ holding:
   extract_balance_2:
     address: 84
     offset: -500
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Abluft-Balance Lüftungsstufe 2
@@ -582,7 +593,7 @@ holding:
   extract_balance_3:
     address: 85
     offset: -500
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Abluft-Balance Lüftungsstufe 3
@@ -595,7 +606,7 @@ holding:
   extract_balance_basic:
     address: 86
     offset: -500
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: number
       name: Abluft-Balance Grundlüftung
@@ -607,7 +618,7 @@ holding:
       entity_category: config
   heating_enable:
     address: 89
-    groups: [basic]
+    groups: [standard, heating_cooling]
     map:
       0: Deaktivieren
       1: Aktivieren
@@ -618,7 +629,7 @@ holding:
       entity_category: config
   cooling_enable:
     address: 90
-    groups: [basic]
+    groups: [standard, heating_cooling]
     map:
       0: Deaktivieren
       1: Aktivieren
@@ -629,7 +640,7 @@ holding:
       entity_category: config
   time_program_ventilation:
     address: 103
-    groups: [basic]
+    groups: [advanced, ventilation]
     map:
       0: Inaktiv
       1: Aktiv
@@ -640,7 +651,7 @@ holding:
       entity_category: config
   time_program_temp_control:
     address: 104
-    groups: [basic]
+    groups: [advanced, ventilation]
     map:
       0: Inaktiv
       1: Aktiv
@@ -651,13 +662,13 @@ holding:
       entity_category: config
   firmwareversion_touchdisplay:
     address: 105
-    groups: [firmware]
+    groups: [advanced, firmware]
     ha:
       platform: sensor
       name: Firmware Version Touch Display
   modbusadresse:
     address: 208
-    groups: [modbus_config]
+    groups: [advanced, modbus_config]
     ha:
       platform: number
       name: Modbus address
@@ -666,7 +677,7 @@ holding:
       entity_category: config
   modbusbaudrate:
     address: 209
-    groups: [modbus_config]
+    groups: [advanced, modbus_config]
     map:
       0: "9600"
       1: "19200"
@@ -675,7 +686,7 @@ holding:
       name: Modbus baudrate
   modbusparitaet:
     address: 210
-    groups: [modbus_config]
+    groups: [advanced, modbus_config]
     map:
       0: None
       1: Even
@@ -685,7 +696,7 @@ holding:
       name: Modbus parity
   modbussensorsenabled:
     address: 59
-    groups: [modbus_config]
+    groups: [advanced, modbus_config]
     ha:
       platform: number
       name: Activate modbus sensors
@@ -694,7 +705,7 @@ holding:
       entity_category: config
   fagregtype:
     address: 80
-    groups: [fan_control]
+    groups: [advanced, fan_control]
     map:
       0: Constant air volume flow
       1: Constant pressure
@@ -703,7 +714,7 @@ holding:
       name: Fan regulation
   epb_activate:
     address: 82
-    groups: [co2_control]
+    groups: [advanced, co2_control]
     map:
       0: Inactive
       1: Active
@@ -712,7 +723,7 @@ holding:
       name: EPB CO2
   epb_co2control:
     address: 108
-    groups: [co2_control]
+    groups: [advanced, co2_control]
     map:
       0: Inactive
       1: Active
@@ -721,7 +732,7 @@ holding:
       name: EPB CO2 Regulation
   displayshowairqulity:
     address: 135
-    groups: [advanced]
+    groups: [advanced, firmware]
     map:
       0: Inactive
       1: Active
@@ -730,7 +741,7 @@ holding:
       name: Touch Display Show Air Quality
   baudratesensorbus:
     address: 136
-    groups: [modbus_config]
+    groups: [advanced, modbus_config]
     map:
       0: "9600"
       1: "19200"
@@ -741,7 +752,7 @@ holding:
     address: 147
     multiplier: 0.1
     offset: -100.0
-    groups: [preheater]
+    groups: [advanced, preheater]
     ha:
       platform: number
       name: Pre-heater max temperature
@@ -751,7 +762,7 @@ holding:
       entity_category: config
   enableairfilteralarm:
     address: 157
-    groups: [filter]
+    groups: [advanced, faults]
     ha:
       platform: number
       name: EnableAirfilterAlarm
@@ -760,7 +771,7 @@ holding:
       entity_category: config
   enableextractsmoke:
     address: 158
-    groups: [advanced]
+    groups: [advanced, external_sensors]
     map:
       0: aus
       1: "NO"
@@ -770,7 +781,7 @@ holding:
       name: EnableExtractSmoke 0=off 1=NO 2=NC
   humidity_setpoint_winter:
     address: 2202
-    groups: [humidity_control]
+    groups: [advanced, humidity_control]
     ha:
       platform: number
       name: Relative humidity setpoint Winter
@@ -780,7 +791,7 @@ holding:
       entity_category: config
   userenablepresence:
     address: 2203
-    groups: [advanced]
+    groups: [advanced, external_sensors]
     ha:
       platform: number
       name: Enable Presence mode
@@ -789,7 +800,7 @@ holding:
       entity_category: config
   summernightcool_enable:
     address: 2204
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Enable Summernight cooling
@@ -798,7 +809,7 @@ holding:
       entity_category: config
   summernightcool_temp_on:
     address: 2205
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling enable T
@@ -808,7 +819,7 @@ holding:
   summernightcool_temp_off:
     address: 2206
     multiplier: 0.1
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling disable T
@@ -819,7 +830,7 @@ holding:
   summernightcool_activation:
     address: 2207
     multiplier: 0.1
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling release T
@@ -830,7 +841,7 @@ holding:
   summernightcool_starttime_hour:
     address: 2208
     multiplier: 0.1
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling start hour
@@ -842,7 +853,7 @@ holding:
       entity_category: config
   summernightcool_starttime_min:
     address: 2209
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling start minute
@@ -851,7 +862,7 @@ holding:
       entity_category: config
   summernightcool_stoptime_hour:
     address: 2210
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling stop hour
@@ -862,7 +873,7 @@ holding:
       entity_category: config
   summernightcool_stoptime_min:
     address: 2211
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling stop minute
@@ -871,7 +882,7 @@ holding:
       entity_category: config
   summernightcool_fanlevel:
     address: 2212
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: number
       name: Summernight cooling ventilation level
@@ -880,7 +891,7 @@ holding:
       entity_category: config
   summernightcool_enable_level:
     address: 2213
-    groups: [advanced]
+    groups: [advanced, summer_night_cooling]
     map:
       0: Only in Standby
       1: All levels
@@ -893,7 +904,7 @@ input:
   l5_ai1_co2_sensor:
     address: 2
     multiplier: 0.4884
-    groups: [basic]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: L5/Ai1 CO2 Sensor
@@ -905,7 +916,7 @@ input:
   l7_ai2_rf_sensor:
     address: 3
     multiplier: 0.02442
-    groups: [basic]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: L7/Ai2 rF Sensor
@@ -918,7 +929,7 @@ input:
     address: 13
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, temperatures]
     ha:
       platform: sensor
       name: Außentemperatur gedämpft
@@ -930,7 +941,7 @@ input:
   extract_temp_external:
     address: 103
     multiplier: 0.01221
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: L7/Ai4 Abluft externer Sensor
@@ -943,7 +954,7 @@ input:
     address: 4
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: Zuluft Temperatur (extern)
@@ -956,7 +967,7 @@ input:
     address: 5
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: Außenluft Temperatur (extern)
@@ -969,7 +980,7 @@ input:
     address: 9
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: Raum Temperatur (extern)
@@ -982,7 +993,7 @@ input:
     address: 10
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: Raumtemperatur TouchDisplay
@@ -994,7 +1005,7 @@ input:
   heating_mixer_signal:
     address: 11
     multiplier: 0.01
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: sensor
       name: Heizmischer Steuersignal
@@ -1004,7 +1015,7 @@ input:
   cooling_mixer_signal:
     address: 12
     multiplier: 0.01
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: sensor
       name: Kühlmischer Steuersignal
@@ -1014,7 +1025,7 @@ input:
   combi_mixer_signal:
     address: 26
     multiplier: 0.01
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: sensor
       name: Kombiregister Mischer Steuersignal
@@ -1024,7 +1035,7 @@ input:
   relay_h2_preheater:
     address: 16
     on_value: 1
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: binary_sensor
       name: Vorheizregister Relais
@@ -1033,7 +1044,7 @@ input:
   relay_h3_heat_demand:
     address: 17
     on_value: 1
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: binary_sensor
       name: Heizanforderung
@@ -1042,7 +1053,7 @@ input:
   relay_h5_cool_demand:
     address: 18
     on_value: 1
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: binary_sensor
       name: Kühlanforderung
@@ -1051,7 +1062,7 @@ input:
   relay_h67_fans:
     address: 19
     on_value: 1
-    groups: [basic]
+    groups: [advanced, fan_control]
     ha:
       platform: binary_sensor
       name: Ventilatoren
@@ -1060,7 +1071,7 @@ input:
   bypass_damper_status:
     address: 20
     on_value: 1
-    groups: [basic]
+    groups: [standard, heat_exchanger]
     ha:
       platform: binary_sensor
       name: Bypassklappe Status
@@ -1069,7 +1080,7 @@ input:
   relay_h9_air_dampers:
     address: 21
     on_value: 1
-    groups: [basic]
+    groups: [advanced, fan_control]
     ha:
       platform: binary_sensor
       name: "Außenluft- & Fortluftklappen"
@@ -1078,7 +1089,7 @@ input:
   relay_h10_heating_pump:
     address: 27
     on_value: 1
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: binary_sensor
       name: Pumpe Nachheizregister
@@ -1087,7 +1098,7 @@ input:
   relay_h11_cooling_pump:
     address: 28
     on_value: 1
-    groups: [basic]
+    groups: [advanced, heating_cooling]
     ha:
       platform: binary_sensor
       name: Pumpe Kühl-/Kombiregister
@@ -1096,7 +1107,7 @@ input:
   collective_fault:
     address: 29
     on_value: 1
-    groups: [basic]
+    groups: [basic, faults]
     ha:
       platform: binary_sensor
       name: Summenstörmeldung
@@ -1106,7 +1117,7 @@ input:
   relay_h12b_filter_signal:
     address: 41
     on_value: 1
-    groups: [basic]
+    groups: [advanced, filter]
     ha:
       platform: binary_sensor
       name: Filtermeldung
@@ -1117,7 +1128,7 @@ input:
     address: 30
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [basic, temperatures]
     ha:
       platform: sensor
       name: Temperatur Außenluft
@@ -1130,7 +1141,7 @@ input:
     address: 31
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, temperatures]
     ha:
       platform: sensor
       name: Temperatur Fortluft
@@ -1143,7 +1154,7 @@ input:
     address: 32
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [basic, temperatures]
     ha:
       platform: sensor
       name: Temperatur Abluft
@@ -1156,7 +1167,7 @@ input:
     address: 33
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [basic, temperatures]
     ha:
       platform: sensor
       name: Temperatur Zuluft
@@ -1169,7 +1180,7 @@ input:
     address: 34
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [standard, preheater]
     ha:
       platform: sensor
       name: Temperatur Vorheizregister
@@ -1181,7 +1192,7 @@ input:
   e1_din_extern_aus_bmz:
     address: 37
     on_value: 1
-    groups: [basic]
+    groups: [advanced, external_sensors]
     ha:
       platform: binary_sensor
       name: Extern Aus / BMZ
@@ -1189,7 +1200,7 @@ input:
   ext_din_level_3:
     address: 38
     on_value: 1
-    groups: [basic]
+    groups: [advanced, external_sensors]
     ha:
       platform: binary_sensor
       name: Extern Lüftungsstufe 3
@@ -1197,7 +1208,7 @@ input:
       icon: "mdi:fan"
   supply_fan_speed:
     address: 39
-    groups: [basic]
+    groups: [standard, fan_control]
     ha:
       platform: sensor
       name: Drehzahl Zuluft
@@ -1205,7 +1216,7 @@ input:
       icon: "mdi:fan"
   exhaust_fan_speed:
     address: 40
-    groups: [basic]
+    groups: [standard, fan_control]
     ha:
       platform: sensor
       name: Drehzahl Abluft
@@ -1213,7 +1224,7 @@ input:
       icon: "mdi:fan"
   supply_airflow_setpoint:
     address: 42
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Sollwert Zuluftvolumenstrom
@@ -1223,7 +1234,7 @@ input:
       icon: "mdi:air-filter"
   extract_airflow_setpoint:
     address: 43
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Sollwert Abluftvolumenstrom
@@ -1233,7 +1244,7 @@ input:
       icon: "mdi:air-filter"
   msensor1_co2:
     address: 44
-    groups: [basic]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 Modbus Sensor 1
@@ -1243,7 +1254,7 @@ input:
       icon: "mdi:molecule-co2"
   msensor1_rf:
     address: 45
-    groups: [basic]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Luftfeuchte Modbus Sensor 1
@@ -1253,7 +1264,7 @@ input:
       icon: "mdi:water-percent"
   supply_airflow_actual:
     address: 46
-    groups: [basic]
+    groups: [standard, ventilation]
     ha:
       platform: sensor
       name: Istwert Zuluftvolumenstrom
@@ -1263,7 +1274,7 @@ input:
       icon: "mdi:air-filter"
   extract_airflow_actual:
     address: 47
-    groups: [basic]
+    groups: [standard, ventilation]
     ha:
       platform: sensor
       name: Istwert Abluftvolumenstrom
@@ -1273,7 +1284,7 @@ input:
       icon: "mdi:air-filter"
   operating_status:
     address: 48
-    groups: [basic]
+    groups: [basic, ventilation]
     map:
       0: CPU Startup
       1: Standby
@@ -1288,7 +1299,7 @@ input:
       icon: "mdi:state-machine"
   filter_reststandzeit:
     address: 50
-    groups: [basic]
+    groups: [basic, filter]
     ha:
       platform: sensor
       name: Filter Reststandzeit
@@ -1298,7 +1309,7 @@ input:
     address: 55
     multiplier: 0.1
     offset: -100
-    groups: [basic]
+    groups: [advanced, temperatures]
     ha:
       platform: sensor
       name: Berechnete Zuluftsolltemperatur
@@ -1309,7 +1320,7 @@ input:
       icon: "mdi:thermometer"
   co2_regelsignal:
     address: 56
-    groups: [basic]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 Regelsignal Sollwert
@@ -1320,7 +1331,7 @@ input:
   preheater_pwm:
     address: 58
     multiplier: 0.01
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: sensor
       name: Vorheizregister PWM
@@ -1329,7 +1340,7 @@ input:
       icon: "mdi:fire-alert"
   current_ventilation_level:
     address: 59
-    groups: [basic]
+    groups: [basic, ventilation]
     map:
       0: Standby
       1: Stufe 1
@@ -1345,7 +1356,7 @@ input:
   fault_ghx:
     address: 60
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Erdwärmetauscher
@@ -1355,7 +1366,7 @@ input:
   fault_panel:
     address: 61
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Bedieneinheit
@@ -1365,7 +1376,7 @@ input:
   fault_postheater_frost:
     address: 62
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Frostschutz NHR (Din3)
@@ -1375,7 +1386,7 @@ input:
   fault_exhaust_fan:
     address: 63
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Fortluftventilator
@@ -1385,7 +1396,7 @@ input:
   fault_supply_fan:
     address: 64
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Zuluftventilator
@@ -1395,7 +1406,7 @@ input:
   fault_t1_outdoor:
     address: 65
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T1 (Außenluft)
@@ -1405,7 +1416,7 @@ input:
   fault_t2_exhaust:
     address: 66
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T2 (Fortluft)
@@ -1415,7 +1426,7 @@ input:
   fault_t3_extract:
     address: 67
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T3 (Abluft)
@@ -1425,7 +1436,7 @@ input:
   fault_t4_supply:
     address: 68
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T4 (Zuluft)
@@ -1435,7 +1446,7 @@ input:
   fault_t5_preheater:
     address: 69
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T5 (Vorheizregister)
@@ -1445,7 +1456,7 @@ input:
   fault_t6_supply_external:
     address: 70
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T6 (Zuluft extern)
@@ -1455,7 +1466,7 @@ input:
   fault_t7_outdoor_external:
     address: 71
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T7 (Außenluft extern)
@@ -1465,7 +1476,7 @@ input:
   fault_t8_room_external:
     address: 72
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Temperatur T8 (Raum extern)
@@ -1475,7 +1486,7 @@ input:
   fault_fan_communication:
     address: 73
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Ventilatoren Kommunikation
@@ -1485,7 +1496,7 @@ input:
   fault_low_supply_temp:
     address: 74
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Zulufttemperatur
@@ -1495,7 +1506,7 @@ input:
   fault_filter:
     address: 75
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Filtermeldung
@@ -1505,7 +1516,7 @@ input:
   fault_low_preheater_temp:
     address: 76
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Niedrige Vorheizregister Temperatur
@@ -1515,7 +1526,7 @@ input:
   fault_postheater_frost_protection:
     address: 80
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler NHR Frostschutz
@@ -1525,7 +1536,7 @@ input:
   fault_modbus_sensors:
     address: 88
     on_value: 1
-    groups: [basic]
+    groups: [advanced, faults]
     ha:
       platform: binary_sensor
       name: Fehler Modbus Sensoren
@@ -1534,7 +1545,7 @@ input:
       entity_category: diagnostic
   co2_sensor_1:
     address: 89
-    groups: [basic]
+    groups: [standard, co2_control]
     ha:
       platform: sensor
       name: CO2 Sensor 1
@@ -1544,7 +1555,7 @@ input:
       icon: "mdi:molecule-co2"
   co2_sensor_2:
     address: 90
-    groups: [basic]
+    groups: [standard, co2_control]
     ha:
       platform: sensor
       name: CO2 Sensor 2
@@ -1554,7 +1565,7 @@ input:
       icon: "mdi:molecule-co2"
   humidity_sensor_1:
     address: 91
-    groups: [basic]
+    groups: [standard, humidity_control]
     ha:
       platform: sensor
       name: Feuchtesensor 1
@@ -1564,7 +1575,7 @@ input:
       icon: "mdi:water-percent"
   humidity_sensor_2:
     address: 92
-    groups: [basic]
+    groups: [standard, humidity_control]
     ha:
       platform: sensor
       name: Feuchtesensor 2
@@ -1574,7 +1585,7 @@ input:
       icon: "mdi:water-percent"
   msensor2_co2:
     address: 97
-    groups: [basic]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 Modbus Sensor 2
@@ -1584,7 +1595,7 @@ input:
       icon: "mdi:molecule-co2"
   msensor2_rf:
     address: 98
-    groups: [basic]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Luftfeuchte Modbus Sensor 2
@@ -1594,7 +1605,7 @@ input:
       icon: "mdi:water-percent"
   firmware_version:
     address: 23
-    groups: [basic]
+    groups: [advanced, firmware]
     ha:
       platform: sensor
       name: Firmware Version
@@ -1603,7 +1614,7 @@ input:
       entity_category: diagnostic
   lg_modell:
     address: 25
-    groups: [basic]
+    groups: [advanced, firmware]
     map:
       0: LG350
       1: LG450
@@ -1615,7 +1626,7 @@ input:
       entity_category: diagnostic
   firmware_version_touch_display:
     address: 105
-    groups: [basic]
+    groups: [advanced, firmware]
     ha:
       platform: sensor
       name: Firmware Version TouchDisplay
@@ -1625,7 +1636,7 @@ input:
   ext_din_frost_protection:
     address: 108
     on_value: 1
-    groups: [basic]
+    groups: [advanced, external_sensors]
     ha:
       platform: binary_sensor
       name: Extern Frostschutz
@@ -1634,7 +1645,7 @@ input:
   room_setpoint_time_program_status:
     address: 118
     on_value: 1
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: binary_sensor
       name: Zeitprogramm Raumtemperatur Status
@@ -1642,7 +1653,7 @@ input:
       icon: "mdi:calendar-clock"
   ventilation_time_program_status:
     address: 119
-    groups: [basic]
+    groups: [advanced, ventilation]
     map:
       0: Inaktiv
       1: Stufe 1
@@ -1656,7 +1667,7 @@ input:
       icon: "mdi:calendar-clock"
   level_2_hours:
     address: 81
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 2
@@ -1665,7 +1676,7 @@ input:
       entity_category: diagnostic
   level_3_hours:
     address: 82
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 3
@@ -1674,7 +1685,7 @@ input:
       entity_category: diagnostic
   basic_ventilation_hours:
     address: 83
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Betriebsstunden Grundlüftung
@@ -1683,7 +1694,7 @@ input:
       entity_category: diagnostic
   total_ventilation_hours:
     address: 84
-    groups: [basic]
+    groups: [standard, ventilation]
     ha:
       platform: sensor
       name: Betriebsstunden Gesamt
@@ -1692,7 +1703,7 @@ input:
       entity_category: diagnostic
   heater_hours:
     address: 85
-    groups: [basic]
+    groups: [advanced, preheater]
     ha:
       platform: sensor
       name: Betriebsstunden Heizregister
@@ -1701,7 +1712,7 @@ input:
       entity_category: diagnostic
   bypass_hours:
     address: 86
-    groups: [basic]
+    groups: [advanced, heat_exchanger]
     ha:
       platform: sensor
       name: Betriebsstunden Bypass
@@ -1710,7 +1721,7 @@ input:
       entity_category: diagnostic
   level_1_hours:
     address: 87
-    groups: [basic]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Betriebsstunden Stufe 1
@@ -1719,7 +1730,7 @@ input:
       entity_category: diagnostic
   msensor3_co2_id_104:
     address: 5200
-    groups: [modbus_config]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 air quality modbus sensor 3
@@ -1728,7 +1739,7 @@ input:
       state_class: measurement
   msensor3_rf_id_104:
     address: 5201
-    groups: [modbus_config]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Relative humidity modbus sensor 3
@@ -1736,7 +1747,7 @@ input:
       state_class: measurement
   msensor4_co2_id_105:
     address: 5202
-    groups: [modbus_config]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 air quality modbus sensor 4
@@ -1745,7 +1756,7 @@ input:
       state_class: measurement
   msensor4_rf_id_105:
     address: 5203
-    groups: [modbus_config]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Relative humidity modbus sensor 4
@@ -1753,7 +1764,7 @@ input:
       state_class: measurement
   msensor5_co2_id_106:
     address: 5204
-    groups: [modbus_config]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 air quality modbus sensor 5
@@ -1762,7 +1773,7 @@ input:
       state_class: measurement
   msensor5_rf_id_106:
     address: 5205
-    groups: [modbus_config]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Relative humidity modbus sensor 5
@@ -1770,7 +1781,7 @@ input:
       state_class: measurement
   msensor6_co2_id_4:
     address: 5206
-    groups: [modbus_config]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: CO2 air quality modbus sensor 6
@@ -1779,7 +1790,7 @@ input:
       state_class: measurement
   msensor6_rf_id_4:
     address: 5207
-    groups: [modbus_config]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Relative humidity modbus sensor 6
@@ -1787,7 +1798,7 @@ input:
       state_class: measurement
   extract_duct_pressure:
     address: 5208
-    groups: [advanced]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Extract air duct pressure
@@ -1795,7 +1806,7 @@ input:
       state_class: measurement
   supply_duct_pressure:
     address: 5210
-    groups: [advanced]
+    groups: [advanced, ventilation]
     ha:
       platform: sensor
       name: Supply air duct pressure
@@ -1803,7 +1814,7 @@ input:
       state_class: measurement
   aktueller_co2_wert:
     address: 5212
-    groups: [co2_control]
+    groups: [advanced, co2_control]
     ha:
       platform: sensor
       name: Current CO2 control value
@@ -1812,115 +1823,115 @@ input:
       state_class: measurement
   fault_z23_pressure_sensor_comm:
     address: 5213
-    groups: [modbus_config]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Error modbus communication to external pressure sensor
   fault_z24_low_supply_duct_pressure:
     address: 5214
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Low supply air duct pressure
   fault_z25_high_supply_duct_pressure:
     address: 5215
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: High supply air duct pressure
   fault_z26_low_extract_duct_pressure:
     address: 5216
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Low extract air duct pressure
   fault_z27_high_extract_duct_pressure:
     address: 5217
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: High extract air duct pressure
   preheater_air_reduction:
     address: 5218
-    groups: [preheater]
+    groups: [advanced, preheater]
     ha:
       platform: sensor
       name: Pre-heater air reduction
   preheater_airflow_reduction:
     address: 5219
-    groups: [preheater]
+    groups: [advanced, preheater]
     ha:
       platform: sensor
       name: Pre-heater Volume flow reduction
   z28_danger_condensation:
     address: 5226
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Z28 danger condensation
   z29_airfilter_sup:
     address: 5227
-    groups: [filter]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Z29 Airfilter SUP
   z30_airfilter_eta:
     address: 5228
-    groups: [filter]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Z30 Airfilter ETA
   z31_external_preheater_alarm:
     address: 5229
-    groups: [preheater]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Z31 External Preheater alarm
   z32_door_contact:
     address: 5230
-    groups: [advanced]
+    groups: [advanced, faults]
     ha:
       platform: sensor
       name: Z32 Door contact
   sensorfilterpress_sup:
     address: 5231
-    groups: [filter]
+    groups: [advanced, filter]
     ha:
       platform: sensor
       name: Filterpressure SUP
   sensorfilterpress_eta:
     address: 5232
-    groups: [filter]
+    groups: [advanced, filter]
     ha:
       platform: sensor
       name: Filterpressure ETA
   currentrhvalue:
     address: 5233
-    groups: [advanced]
+    groups: [advanced, humidity_control]
     ha:
       platform: sensor
       name: Current rH value
   summernightcooling_status:
     address: 5248
-    groups: [summer_night_cooling]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: sensor
       name: Sommernacht Kühlung Status
   summernightcooling_time:
     address: 5249
-    groups: [summer_night_cooling]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: sensor
       name: Sommernacht Kühlung Testzeit
   summernightcooling_time_check:
     address: 5250
-    groups: [summer_night_cooling]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: sensor
       name: Sommernacht Kühlung Wiederholungszeit
   din1_externalsummernightcoolingenabled:
     address: 5251
-    groups: [summer_night_cooling]
+    groups: [advanced, summer_night_cooling]
     ha:
       platform: sensor
       name: Din1 Extern Sommernacht Kühlung aktiviert
@@ -1931,7 +1942,7 @@ template:
     ha:
       platform: fan
       name: Lüftung
-    groups: [basic]
+    groups: [basic, ventilation]
     state: "{{ ventilation_level_raw is not none and ventilation_level_raw > 0 }}"
     preset_mode: "{{ {1: 'Stufe 1', 2: 'Stufe 2', 3: 'Stufe 3', 4: 'Grundlüftung'}.get(ventilation_level_raw) }}"
     preset_modes: [Grundlüftung, Stufe 1, Stufe 2, Stufe 3]
@@ -1952,7 +1963,7 @@ template:
     ha:
       platform: climate
       name: Klima
-    groups: [basic]
+    groups: [basic, temperatures]
     current_temperature: |-
       {{ {'Zuluft': supply_air_temp,
           'Raum': extract_air_temp,
