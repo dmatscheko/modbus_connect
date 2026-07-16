@@ -109,6 +109,14 @@ def owned_slugs(augment_dir: str | Path | None = None) -> tuple[str, ...]:
     return tuple(sorted(p.parent.name for p in base.glob("*/device.yaml")))
 
 
+# Editor autocomplete + validation: the yaml-language-server modeline must be the file's
+# very first line (see CONTRIBUTING.md). ``emit`` writes it verbatim above the header.
+SCHEMA_DIRECTIVE = (
+    "# yaml-language-server: $schema=https://raw.githubusercontent.com/"
+    "dmatscheko/modbus_connect/main/docs/device_files.schema.json"
+)
+
+
 # The command that regenerates every bundled config (from convert_all.py's docs), shown in
 # each file's header so a reader knows exactly how to reproduce it.
 _REGEN_CMD = (
@@ -609,8 +617,12 @@ def _check_unique_keys(section: str, rows: list[dict]) -> None:
 
 
 def emit(ir: dict, header: str | None = None) -> str:
-    """Serialize the intermediate to canonical YAML (strips ``_``-prefixed metadata)."""
+    """Serialize the intermediate to canonical YAML (strips ``_``-prefixed metadata).
+
+    The first line is always the ``yaml-language-server`` schema directive, so editors
+    offer autocomplete + validation on every generated config (see ``SCHEMA_DIRECTIVE``)."""
     buf = io.StringIO()
+    buf.write(f"{SCHEMA_DIRECTIVE}\n")
     if header:
         for line in header.split("\n"):
             buf.write(f"# {line}\n" if line else "#\n")

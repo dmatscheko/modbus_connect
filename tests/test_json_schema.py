@@ -59,6 +59,22 @@ def test_bundled_files_validate(validator, path: Path):
     assert not errors, "\n".join(errors)
 
 
+# The editor modeline every generated config opens with (see CONTRIBUTING.md); it points
+# editors at the very schema this test file validates against.
+SCHEMA_DIRECTIVE = (
+    "# yaml-language-server: $schema=https://raw.githubusercontent.com/"
+    "dmatscheko/modbus_connect/main/docs/device_files.schema.json"
+)
+
+
+@pytest.mark.parametrize("path", BUNDLED, ids=[p.name for p in BUNDLED])
+def test_bundled_files_declare_the_schema(path: Path):
+    """Every generated config's first line is the yaml-language-server modeline, so an
+    editor validates + autocompletes it against docs/device_files.schema.json."""
+    first_line = path.read_text(encoding="utf-8").splitlines()[0]
+    assert first_line == SCHEMA_DIRECTIVE
+
+
 BAD_DOCS = {
     "modbus_typo": {
         "device": {"manufacturer": "A", "model": "X"},

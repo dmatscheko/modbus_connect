@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modbus register scanner</title>
+<style>
+  :root { color-scheme: dark; --bg:#14171c; --panel:#1c2027; --line:#2c313b; --fg:#e6e9ef;
+          --muted:#8a93a3; --accent:#4a9eff; --divider:#49525f; }
+  * { box-sizing: border-box; }
+  html, body { height:100%; }
+  /* flex column filling the viewport: header + settings + table (grows) + generate */
+  body { margin:0; font:14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--fg);
+         display:flex; flex-direction:column; overflow:hidden; }
+  body.busy { cursor:progress; }
+
+  header { padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line);
+           display:flex; gap:12px; align-items:center; flex-wrap:wrap; flex:0 0 auto; z-index:3; }
+  h1 { font-size:15px; margin:0; font-weight:600; white-space:nowrap; }
+  .status { color:var(--muted); }
+  header .status { white-space:nowrap; }
+  header .status b { color:var(--fg); }
+  header .spacer { flex:1 1 auto; }
+  header label { color:var(--muted); font-size:12px; display:flex; align-items:center; gap:4px; }
+  .err { color:#ff6b6b; }
+  #activity { color:var(--accent); opacity:0; transition:opacity .1s; }   /* lit while a request is in flight */
+  body.busy #activity { opacity:1; }
+  .burger { background:transparent; border:1px solid var(--line); color:var(--fg);
+            border-radius:6px; padding:5px 9px; cursor:pointer; font-size:15px; line-height:1; }
+  .pager { display:flex; align-items:center; gap:6px; }
+  .pager button { padding:5px 10px; line-height:1; }
+  #pageInfo { min-width:74px; text-align:center; font-variant-numeric:tabular-nums; }
+
+  main { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:12px 14px; overflow:hidden; }
+
+  /* the settings block — boxed like every other panel, hidden by the burger */
+  #topPanel { flex:0 0 auto; background:var(--panel); border:1px solid var(--line);
+              border-radius:8px; padding:12px 14px 0; margin-bottom:12px; }
+  #topPanel.collapsed { display:none; }
+
+  .controls { display:flex; gap:14px; align-items:end; flex-wrap:wrap; margin-bottom:12px; }
+  .controls label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
+  input, select { background:var(--bg); color:var(--fg); border:1px solid var(--line);
+                  border-radius:6px; padding:6px 8px; font:inherit; }
+  input[type=number] { width:88px; }
+  header input[type=number] { width:60px; padding:4px 6px; }
+  header input[type=search] { width:160px; padding:4px 6px; }
+  header select { padding:4px 6px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:7px 12px;
+           font:inherit; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--fg); }
+  button:disabled { opacity:.5; cursor:default; }
+  button.active { filter:brightness(1.25); }   /* brief press feedback */
+
+  .legend { display:flex; gap:14px; align-items:center; color:var(--muted); font-size:12px;
+            margin:4px 2px 12px; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:30px; height:12px; border-radius:3px; vertical-align:middle;
+            background:linear-gradient(90deg, #2a2e36, #f2d03c, #e23b3b); }
+
+  /* the table area and the history side panel sit in a row; the table grows, the panel is fixed-width */
+  .midrow { flex:1 1 auto; min-height:0; display:flex; gap:12px; }
+  /* one scroll container; the register list is split across COLS side-by-side tables */
+  .tablewrap { flex:1 1 auto; min-width:0; min-height:0; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .grid { display:flex; align-items:flex-start; }
+  .grid > table { flex:1 1 0; min-width:0; }
+  .grid > table + table { border-left:2px solid var(--divider); }   /* clear separator between columns */
+  table { border-collapse:collapse; width:100%; }
+  th, td { padding:5px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line);
+           font-variant-numeric:tabular-nums; }
+  th { position:sticky; top:0; background:var(--panel); color:var(--muted); font-weight:500;
+       text-align:right; z-index:1; }
+  th:first-child, td:first-child { text-align:center; }
+  td.addr { color:var(--muted); cursor:pointer; }   /* data cells select the row + drive the Details tab */
+  td.addr:hover { background:#232833; color:var(--fg); }
+  td.peek { cursor:pointer; }                        /* mapped/decoded cells drive the Mapping tab instead */
+  td.peek:hover { background:#232833; }
+  tr.row { transition:background-color .45s ease; }
+  tr.err td { color:#6b7280; font-style:italic; }
+  tr.err { background:#20242b !important; }
+  /* THE selected row — single, ↑/↓-navigable, the side panel follows it: a crisp outline,
+     never a fill (the change-heat background must stay readable) */
+  tr.sel { outline:1px solid var(--accent); outline-offset:-1px; }
+  /* rows ticked for the generated YAML: a prominent accent bar at the row's left edge */
+  tr.ticked td:first-child { box-shadow:inset 4px 0 0 var(--accent); }
+  td.tick { cursor:pointer; }                        /* the whole cell ticks the register */
+  td.tick:hover { background:#232833; }
+  td.mapped { text-align:left; }
+  td.mapped .name { color:var(--fg); } td.mapped .type { color:var(--muted); font-size:12px; }
+  .badge { font-size:11px; padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap; }
+  .badge.bad { background:#3a1e22; color:#ff8080; } .badge.gap { background:#38321c; color:#e6c14d; }
+  #deviceInfo { color:var(--muted); } #deviceInfo b { color:var(--fg); }
+  #deviceInfo button { margin-left:6px; padding:3px 8px; font-size:12px; }
+
+  .row1 { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+  #editor:not(:empty) + .maphint { display:none; }   /* the Mapping tab hints until a row is selected */
+  textarea { width:100%; height:230px; margin-top:10px; background:var(--bg); color:var(--fg);
+             border:1px solid var(--line); border-radius:6px; padding:10px; font:12px/1.5 ui-monospace, monospace; }
+  #paneGenerate textarea { height:46vh; }            /* the tall panel fits the YAML much better */
+  #paneGenerate .download { display:inline-block; margin-top:8px; }
+
+  /* interactive mapping: the "mapped as" column is always shown; click a cell to map/edit it */
+  td.mapped { cursor:pointer; position:relative; }
+  td.mapped:hover { background:#232833; }
+  /* x-ray views: a sibling-table mapping shown muted as if it were local; the tiny top-right
+     corner tag lists what else maps here without changing the cell's size */
+  .xforeign { opacity:.55; }
+  .xcorner { position:absolute; top:1px; right:3px; font-size:9px; line-height:1; opacity:.55;
+             max-width:48%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
+  /* small in-cell action chips: ⧉ copy (adopt a sibling mapping shown by x-ray on an
+     unmapped register) and ↻ retry (re-probe a dead register — the one-register Clear all) */
+  .xcopy, .retry { margin-left:6px; padding:0 5px; font-size:10px; line-height:16px; cursor:pointer;
+                   color:var(--muted); background:#262b35; border:1px solid #3a4150; border-radius:4px; }
+  .xcopy:hover, .retry:hover { color:var(--fg); border-color:#5661d6; }
+  .addmap { color:var(--muted); opacity:.5; font-size:12px; }
+  .editform { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:end; text-align:left; }
+  .editform .ttl { align-self:center; color:var(--fg); font-weight:600; }
+  .editform label { display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--muted); }
+  .editform input, .editform select { padding:4px 6px; text-align:left; }
+  .editform input { width:80px; } .editform input[name=name] { width:150px; }
+  .editform input[name=map], .editform input[name=flags] { width:170px; }
+  .editform label.wide { flex:1 1 100%; }
+  .editform textarea { width:100%; height:54px; margin:0; padding:6px 8px; text-align:left;
+                       font:12px/1.4 ui-monospace, monospace; }
+  .editbtns { display:flex; gap:8px; align-items:center; margin-left:auto; }
+  .editerr { font-size:12px; }
+
+  /* THE side panel — Details (value + history) · Mapping (the editor) · Generate (device
+     file), one tab bar, one ✕. Its content always follows the selected row. */
+  .sidepanel { flex:0 0 380px; min-height:0; overflow:auto; background:var(--panel);
+               border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .sidepanel.hide { display:none; }
+  .sidebar { display:flex; gap:6px; align-items:center; margin-bottom:10px; }
+  .sidetab { background:transparent; border:1px solid transparent; color:var(--muted);
+             padding:4px 11px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; }
+  .sidetab:hover { color:var(--fg); }
+  .sidetab.on { color:var(--fg); background:var(--bg); border-color:var(--line); }
+  .sidebar .x { margin-left:auto; cursor:pointer; border:1px solid var(--line); background:transparent;
+                color:var(--fg); border-radius:6px; padding:2px 9px; line-height:1; }
+  .sidepane { display:none; }
+  .sidepane.on { display:block; }
+  .histttl { font-weight:600; margin-bottom:6px; }
+  .valblock { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); line-height:1.5; }
+  .valblock .big { font-size:18px; font-weight:600; color:var(--fg); }
+  .valviews { margin-top:5px; color:var(--muted); font-family:ui-monospace, monospace; font-size:12px;
+              line-height:1.7; word-break:break-word; }
+  .valviews b { color:var(--fg); font-weight:600; }
+  .spark { font-family:ui-monospace, monospace; font-size:19px; line-height:1; letter-spacing:1px;
+           color:var(--accent); margin:8px 0 6px; word-break:break-all; }
+  table.histtable { width:100%; margin-top:4px; }
+  table.histtable th, table.histtable td { padding:3px 8px; }
+  table.histtable td.hv { color:var(--fg); font-weight:600; }
+  table.histtable td.hd.up { color:#5ad17a; } table.histtable td.hd.dn { color:#ff8080; }
+  table.histtable td.ht, table.histtable td.hs { color:var(--muted); }
+
+  .hide { display:none; }
+  a.download { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <button class="burger" id="burger" title="Show / hide settings">☰</button>
+  <h1>Modbus scanner</h1>
+  <span class="status" id="connStatus">○ not connected</span>
+  <span class="status">· scan <b id="scanIndex">0</b></span>
+  <span id="activity" title="working…">◍</span>
+  <label>show <select id="filter" title="filter the view (paging walks the matches)">
+    <option value="none">all</option>
+    <option value="served">served</option>
+    <option value="mapped">mapped</option>
+    <option value="nonzero">non-zero</option>
+    <option value="changed">changed</option>
+    <option value="mappedchanged">mapped + changed</option>
+    <option value="xray">x-ray</option>
+    <option value="xraychanged">x-ray + changed</option>
+  </select></label>
+  <label>find <input type="search" id="search" placeholder="name or 40, 0x28, 10-20"
+    title="show only matching registers, on top of the show filter — comma-separated terms: a mapping-name part (x-ray views search every table's names), an exact address (40 or 0x28), or an address range (10-20); a register matches if any term does"></label>
+  <span class="pager">
+    <button class="ghost" id="pagePrev" title="previous page">◀</button>
+    <span class="status" id="pageInfo" title="registers shown">—</span>
+    <button class="ghost" id="pageNext" title="next page">▶</button>
+  </span>
+  <span class="spacer"></span>
+  <label title="Each scan advances to the next page and wraps around at the end — walk the whole table unattended and see what changed"><input type="checkbox" id="autoPage"> auto-page</label>
+  <label title="When a table is fully paged, carry on with the next table (cycles holding → input → coil → discrete)"><input type="checkbox" id="autoTables" disabled> ＋ tables</label>
+  <button id="toggle" disabled>Start</button>
+  <button class="ghost" id="once" disabled>Scan once</button>
+  <label>every <input type="number" id="interval" value="1" min="0.1" step="1"> s</label>
+  <span class="status err hide" id="connErr"></span>
+</header>
+
+<main>
+  <div id="topPanel">
+    <div class="controls">
+      <label>Connection
+        <select id="mode">
+          <option value="tcp">TCP gateway</option>
+          <option value="demo">Demo (no hardware)</option>
+        </select></label>
+      <label>Host <input id="host" placeholder="192.168.1.50" style="width:150px"></label>
+      <label>Port <input type="number" id="cport" value="502"></label>
+      <label>Device ID <input type="number" id="devid" value="1" min="0" max="255"></label>
+      <label>Timeout (s) <input type="number" id="ctimeout" value="2" step="0.5" min="0.1"></label>
+      <label>Retries <input type="number" id="cretries" value="0" min="0"></label>
+      <button id="connect">Connect</button>
+    </div>
+
+    <div class="controls">
+      <label>Table
+        <select id="table">
+          <option>holding</option><option>input</option><option>coil</option><option>discrete</option>
+        </select></label>
+      <label>Start <input type="number" id="start" value="0" min="0" max="65535"></label>
+      <label>Count <input type="number" id="count" value="64" min="1" max="65536"></label>
+      <label>Per read <input type="number" id="maxRead" value="64" min="1" max="125"></label>
+      <button class="ghost" id="apply">Apply range</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="export">Export</button>
+      <button class="ghost" id="importBtn">Import</button>
+      <button class="ghost" id="genOpen" title="open the Generate tab of the side panel">Generate file…</button>
+      <input type="file" id="importFile" accept="application/json" class="hide">
+    </div>
+
+    <div class="controls" style="margin-top:-4px">
+      <label>Load a device file
+        <select id="deviceSel"><option value="">— none —</option></select></label>
+      <button class="ghost" id="uploadDevice">Upload…</button>
+      <input type="file" id="deviceFile" accept=".yaml,.yml" class="hide">
+      <button class="ghost" id="clearAll" title="Start over — clear the mapping, all statistics/history and the dead-register list (so dead registers get re-probed)">Clear all</button>
+      <span id="deviceInfo"></span>
+    </div>
+
+    <div class="legend">
+      <span>Change heat: <span class="swatch"></span> static → occasional → constant</span>
+      <span>· all shows every register (refused ones greyed, e.g. write-only); the other views show only their matches · flashes brighter on each change</span>
+    </div>
+  </div>
+
+  <div class="midrow">
+    <div class="tablewrap">
+      <div class="grid" id="grid"></div>
+    </div>
+    <aside id="side" class="sidepanel hide">
+      <div class="sidebar">
+        <button class="sidetab" id="tabDetails" title="the selected register's value interpretations + history">Details</button>
+        <button class="sidetab" id="tabMapping" title="map / edit the selected register">Mapping</button>
+        <button class="sidetab" id="tabGenerate" title="generate a device-file skeleton from the mapping">Generate</button>
+        <button class="x" id="sideClose" title="close">✕</button>
+      </div>
+      <div class="sidepane" id="paneDetails">
+        <div class="histttl"></div>
+        <div class="histbody"></div>
+      </div>
+      <div class="sidepane" id="paneMapping">
+        <div id="editor"></div>
+        <div class="maphint status">select a register row to map or edit it — click its
+          <b>mapped as</b> / <b>decoded</b> cell, or move with ↑ / ↓</div>
+      </div>
+      <div class="sidepane" id="paneGenerate">
+        <div class="row1">
+          <label>Manufacturer <input id="mfr" placeholder="Acme"></label>
+          <label>Model <input id="model" placeholder="X1"></label>
+          <button id="genBtn">Generate device file</button>
+        </div>
+        <div class="status" style="margin-top:8px">every mapped entity, plus any ticked (unmapped) registers as bare sensors</div>
+        <a id="dlYaml" class="download hide" download="device.yaml">download device.yaml</a>
+        <textarea id="yaml" class="hide" spellcheck="false"></textarea>
+      </div>
+    </aside>
+  </div>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let timer = null, running = false, snapshot = null, scanToken = 0;
+let rowEntries = [], builtSig = '';   // reused row cells, rebuilt only when the range/layout changes
+const selected = new Set();           // addresses ticked for YAML generation
+const COLS = 2;                       // the register list is laid out across this many side-by-side tables
+let selAddr = null, selTable = null;  // THE selected row — single, ↑/↓-navigable; the side panel follows it
+let histInFlight = false;             // a Details fetch is running (avoid overlapping refreshes)
+
+// Every API call runs through one FIFO chain, so a scan tick and a button press never
+// overlap: their responses land in request order and can't clobber each other out of turn
+// (which looked like "the button didn't do anything"). The header dot lights up while busy.
+let apiChain = Promise.resolve(), inFlight = 0;
+function api(path, body) {
+  const run = async () => {
+    inFlight++; document.body.classList.add('busy');
+    try {
+      const r = await fetch(path, body ? { method:'POST',
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) } : {});
+      return await r.json();
+    } finally { if (--inFlight === 0) document.body.classList.remove('busy'); }
+  };
+  const result = apiChain.then(run, run);   // wait for the previous call to settle, then run
+  apiChain = result.catch(() => {});        // keep the chain alive even if one call rejects
+  return result;
+}
+
+// wrap a button so a click gives visible feedback and a second click is ignored while the
+// first is still running — no silently-dropped or double-fired commands
+function action(id, fn) {
+  const btn = $(id);
+  btn.addEventListener('click', async () => {
+    if (btn.disabled || btn.dataset.busy) return;
+    btn.dataset.busy = '1'; btn.classList.add('active');
+    try { await fn(); } finally { delete btn.dataset.busy; btn.classList.remove('active'); }
+  });
+}
+
+const MAX_ADDR = 0xFFFF;   // Modbus 16-bit address space: registers 0..65535
+const MAX_READ = { holding: 125, input: 125, coil: 2000, discrete: 2000 };  // per-request protocol limit
+// clamp the start/count inputs into the address space (start+count stays within 0..65535) and
+// write the clamped values back, so an over-large entry is corrected in place, not silently used
+function clampRange() {
+  const start = Math.max(0, Math.min(MAX_ADDR, Math.floor(+$('start').value || 0)));
+  const count = Math.max(1, Math.min(MAX_ADDR + 1 - start, Math.floor(+$('count').value || 1)));
+  $('start').value = start; $('count').value = count;
+  return { start, count };
+}
+// clamp per-read to the protocol limit for the selected table, updating the input's own max too
+function clampMaxRead() {
+  const cap = MAX_READ[$('table').value] || 125;
+  const v = Math.max(1, Math.min(cap, Math.floor(+$('maxRead').value || 1)));
+  $('maxRead').value = v; $('maxRead').max = cap;
+  return v;
+}
+function cfg() {
+  const { start, count } = clampRange();
+  // page size = rows shown: Count (the user's choice), in every view — plain or filtered
+  return { table: $('table').value, start, count, max_read: clampMaxRead(),
+           filter: $('filter').value, search: $('search').value, page_size: count };
+}
+const isConnected = () => !!(snapshot && snapshot.connection && snapshot.connection.connected);
+
+// keep the view position across a table switch / (re)connect: anchor the next fill at the first
+// register currently shown — the start field can be stale (◀ / ▶ page without touching it) —
+// then reflect where the view actually landed (the server falls back to the first page when
+// nothing shows at that position)
+function anchorAtView() {
+  const pos = snapshot?.rows?.[0]?.address;
+  if (pos != null) $('start').value = pos;
+}
+function syncStartField() { if (snapshot?.config) $('start').value = snapshot.config.start; }
+
+// connection state: header status, field enabling, and gating the scan buttons
+const SCAN_BTNS = ['toggle', 'once'];   // need a live link (apply just presets the range, so it stays live)
+function toggleConnFields() {
+  const demo = $('mode').value === 'demo';
+  ['host', 'cport', 'devid', 'ctimeout', 'cretries'].forEach(id => $(id).disabled = demo);
+}
+function applyConnection(conn) {   // per-render: status + button gating only (never the inputs —
+  const st = $('connStatus'), connected = !!(conn && conn.connected);   // typing must survive scans)
+  if (connected) {
+    st.textContent = conn.mode === 'demo' ? '● connected — demo device'
+      : `● connected — ${conn.host}:${conn.port} (id ${conn.device_id})`;
+    st.style.color = '#5ad17a';
+  } else { st.textContent = '○ not connected'; st.style.color = ''; }
+  SCAN_BTNS.forEach(id => $(id).disabled = !connected);
+  if (!connected && running) setRunning(false);   // stop polling if the link drops
+}
+// populate the connection inputs from the server's state — on boot and after an import,
+// so a browser refresh loses nothing (timeout and retries included)
+function fillConnectionFields(conn) {
+  const c = conn || {};
+  if (c.mode) $('mode').value = c.mode;
+  if (c.host) $('host').value = c.host;
+  if (c.port) $('cport').value = c.port;
+  if (c.device_id != null) $('devid').value = c.device_id;
+  if (c.timeout != null) $('ctimeout').value = c.timeout;
+  if (c.retries != null) $('cretries').value = c.retries;
+  toggleConnFields();
+}
+
+// change heat -> a background colour. freq = share of this register's own reads it
+// changed in (how *fast* it moves — reads, not scan index, since scans skip other
+// tables); recency brightens the cell right after a change, then fades.
+function heatColor(row, scanIndex) {
+  if (row.error) return '#20242b';
+  if (!row.changes) return 'transparent';
+  const freq = Math.min(1, row.changes / Math.max(1, row.reads) * 1.6);
+  const yellow = [242, 208, 60], red = [226, 59, 59];   // occasional -> constant
+  const c = yellow.map((y, i) => Math.round(y + (red[i] - y) * freq));
+  const recency = row.last_changed >= 0 ? Math.pow(0.7, scanIndex - row.last_changed) : 0;
+  const alpha = 0.18 + 0.62 * recency;      // persistent tint + flash-and-fade on change
+  return `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(3)})`;
+}
+
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+const hex4 = v => '0x' + v.toString(16).toUpperCase().padStart(4, '0');   // addresses + word values
+const int16 = v => v >= 0x8000 ? v - 0x10000 : v;                         // two's-complement view
+
+// the two overlay cells for a register [mapped, decoded, xrayTitle] — the column is always shown,
+// and every cell opens the editor on click. A mapped cell shows its entity; once a mapping exists,
+// a served-but-unmapped register shows the amber gap badge; otherwise a faint "＋ map". The x-ray
+// views add the sibling table's mapping: muted as if it were local when this register is unmapped,
+// a tiny corner tag when it already has its own mapping; non-compatible tables hover-only (title).
+function devCellsContent(row) {
+  const e = row.entity, x = row.xmap;
+  let mapped = '', decoded = '';
+  if (e && e.continuation) {
+    mapped = `<span class="type">↑ ${esc(e.name)}</span>`;
+  } else if (e) {
+    mapped = `<span class="name">${esc(e.name)}</span> ` +
+             `<span class="type">${esc(e.type)}${e.count > 1 ? '×' + e.count : ''}</span>`;
+    if (row.error) mapped += `<span class="badge bad">refused ✕</span>`; // maps a dead address
+    decoded = (e.decode_error && e.decode_error !== 'unread') ? `<span class="type">${esc(e.decode_error)}</span>`
+            : (e.decoded == null ? '' : esc(e.decoded));
+  } else if (x && x.continuation) {                         // the sibling table's entity, as if local
+    mapped = `<span class="xforeign type">↑ ${esc(x.name)}</span>`;
+  } else if (x) {
+    mapped = `<span class="xforeign"><span class="name">${esc(x.name)}</span> ` +
+             `<span class="type">${esc(x.type)}${x.count > 1 ? '×' + x.count : ''} · ${esc(x.table)}</span></span>` +
+             `<button class="xcopy" title="copy this ${esc(x.table)} mapping onto ` +
+             `${esc(snapshot?.config?.table || 'this table')} at this address">⧉ copy</button>`;
+    decoded = (x.decode_error && x.decode_error !== 'unread') ? `<span class="xforeign type">${esc(x.decode_error)}</span>`
+            : (x.decoded == null ? '' : `<span class="xforeign">${esc(x.decoded)}</span>`);
+  } else if (row.value != null && !row.error && snapshot?.device) {
+    mapped = `<span class="badge gap">unmapped</span>`;    // a mapping exists: served-but-unmapped is a gap
+  } else {
+    mapped = `<span class="addmap">＋ map</span>`;          // otherwise a calm "map me" affordance
+  }
+  const corner = [];
+  if (e && x) corner.push(esc(x.name));                        // locally mapped too -> sibling in the corner
+  for (const o of row.xother || []) corner.push(esc(o.table)); // non-compatible: just the table's name
+  if (corner.length) mapped += `<span class="xcorner">${corner.join(' · ')}</span>`;
+  const also = [];
+  if (x) also.push(`${x.table}: ${x.name}${x.decoded != null ? ' = ' + x.decoded : ''}`);
+  for (const o of row.xother || []) also.push(`${o.table}: ${o.name}`);
+  return [mapped, decoded, also.length ? 'also mapped — ' + also.join(' · ') : ''];
+}
+
+// x-ray: adopt a compatible sibling mapping — copy it onto this table at the same address
+async function copyXmap(address) {
+  const snap = await api('/api/copymap', { table: $('table').value, address });
+  if (snap.error) { alert('Could not copy the mapping:\n' + snap.error); return; }
+  render(snap);
+}
+
+// probe one given-up-on register again (the per-register Clear all)
+async function retryAddr(address) {
+  render(await api('/api/retry', { table: $('table').value, address }));
+}
+
+// one title per column: hovering a header explains what it shows
+const THEAD = `<thead><tr>
+  <th title="tick served registers to include them as bare sensors in the generated device file — mapped entities are always included, no tick needed"><input type="checkbox" class="selAll" title="select every served register on this page for the generated YAML — mapped entities are always included, no tick needed"></th>
+  <th title="register address, decimal">addr</th>
+  <th title="register address, hex">hex</th>
+  <th title="raw value from the last read, decimal (bit tables read 0/1); a read error is shown instead — dead rows offer a ↻ retry">value</th>
+  <th title="raw value, hex">hex</th>
+  <th title="raw value read as a signed 16-bit integer">int16</th>
+  <th title="how many reads changed the value (differing from the read before)">Δ changes</th>
+  <th title="share of this register's own reads that changed it — 0 static, 1.00 changes on every read">rate</th>
+  <th title="the entity mapped at this register (↑ = continuation register of a multi-word entity) — click a cell to map or edit; the x-ray views also show sibling-table mappings, muted">mapped as</th>
+  <th title="the value the mapped entity would decode from the raw register(s), through the integration's own codec — exactly what the running integration would show">decoded</th>
+</tr></thead>`;
+
+// build the row elements once (addr/hex are fixed) and hand each to one of COLS side-by-side
+// tables (fill the left column top-to-bottom, then the next). Reused across scans so only the
+// changing cells are touched and the CSS background-colour transition can animate.
+function ensureRows(rows) {
+  const sig = `${COLS}:${rows.length}:${rows[0]?.address ?? ''}:${rows[rows.length - 1]?.address ?? ''}`;
+  if (sig === builtSig && rowEntries.length === rows.length) return;
+  builtSig = sig;
+  const per = Math.ceil(rows.length / COLS) || 1;
+  const gridFrag = document.createDocumentFragment();
+  const bodies = [];
+  for (let c = 0; c < COLS; c++) {
+    const table = document.createElement('table');
+    table.innerHTML = THEAD;
+    bodies.push(table.appendChild(document.createElement('tbody')));
+    gridFrag.appendChild(table);
+  }
+  rowEntries = rows.map((row, i) => {
+    const tr = document.createElement('tr');
+    const tds = Array.from({ length: 10 }, () => tr.appendChild(document.createElement('td')));
+    tds[1].className = tds[2].className = 'addr';
+    for (let c = 3; c <= 7; c++) tds[c].className = 'peek';
+    tds[8].className = 'mapped'; tds[9].className = 'peek';
+    tds[1].textContent = row.address;
+    tds[2].textContent = hex4(row.address);
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.title = 'include this register in the generated device file as a bare sensor — a mapped register needs no tick, its entity is always included';
+    cb.onchange = () => {      // the ONE tick path (cell clicks forward here via cb.click())
+      cb.checked ? selected.add(row.address) : selected.delete(row.address);
+      selectRow(row.address);  // ticking a row also selects it (the panel, if open, follows)
+      render(snapshot);
+    };
+    tds[0].appendChild(cb);
+    tds[0].className = 'tick';
+    tds[0].title = cb.title;
+    tds[0].onclick = ev => {   // the whole cell is the tick target, not just the tiny box —
+      // only forward the click; rendering here would race the checkbox's change event
+      if (ev.target !== cb && cb.style.visibility !== 'hidden') cb.click();
+    };
+    // the data columns drive the Details tab, the two overlay cells the Mapping tab —
+    // click to open, click a wrong tab's cell to switch, re-click the same to close
+    for (let c = 1; c <= 7; c++) tds[c].onclick = () => cellClick(row.address, 'details');
+    tds[8].onclick = tds[9].onclick = () => cellClick(row.address, 'mapping');
+    tds[8].title = tds[9].title = 'click to map / edit this register';
+    bodies[Math.min(COLS - 1, Math.floor(i / per))].appendChild(tr);
+    return { tr, tds, cb };
+  });
+  $('grid').replaceChildren(gridFrag);
+  wireSelAll();
+}
+
+// each column's header has its own "select all" box; keep them in sync. Page-scoped, like
+// its tooltip says: ticking adds this page's served registers, unticking removes exactly
+// them — selections accumulated on other pages survive (you page through a device ticking
+// registers, then generate).
+function wireSelAll() {
+  const boxes = document.querySelectorAll('.selAll');
+  boxes.forEach(box => box.onchange = () => {
+    for (const r of (snapshot?.rows || [])) {
+      if (r.error) continue;
+      box.checked ? selected.add(r.address) : selected.delete(r.address);
+    }
+    boxes.forEach(o => o.checked = box.checked);
+    render(snapshot);
+  });
+}
+
+function renderDeviceInfo(dev, meta) {
+  const el = $('deviceInfo');
+  if (!dev) { el.textContent = ''; return; }
+  const fits = Object.entries(dev.tables).map(([t, r]) =>
+    `<button data-t="${t}" data-min="${r.min}" data-max="${r.max}">${t} ${r.min}–${r.max}</button>`).join('');
+  // show the CURRENT stamp (the editable Manufacturer/Model) and the live mapping ranges,
+  // not what the loaded file once said
+  const who = `${(meta && meta.manufacturer) || ''} ${(meta && meta.model) || ''}`.trim() || 'unnamed device';
+  el.innerHTML = `mapping <b>${esc(who)}</b> — fit range: ${fits}`;
+  el.querySelectorAll('button').forEach(b => b.onclick = () => {
+    $('table').value = b.dataset.t; $('start').value = b.dataset.min;
+    $('count').value = +b.dataset.max - +b.dataset.min + 1;
+    applyRange();
+  });
+}
+
+// reflect the shown registers in the header readout and disable a page button at each edge — every
+// view is a packed page now, so paging always walks the registers it actually shows
+function updatePager() {
+  if (!snapshot) return;
+  const rows = snapshot.rows;
+  $('pageInfo').textContent = rows.length ? `${rows[0].address}–${rows[rows.length - 1].address}` : 'no registers';
+  $('pagePrev').disabled = !!snapshot.at_start;
+  $('pageNext').disabled = !!snapshot.at_end;
+}
+
+function render(snap) {
+  snapshot = snap;
+  $('scanIndex').textContent = snap.scan_index;
+  updatePager();
+  applyConnection(snap.connection);
+  const err = (snap.connection && snap.connection.error) || snap.last_error;
+  const errEl = $('connErr');
+  if (err) { errEl.textContent = '⚠ ' + err; errEl.classList.remove('hide'); }
+  else errEl.classList.add('hide');
+  renderDeviceInfo(snap.device, snap.meta);
+  syncImportedOption(snap);
+
+  ensureRows(snap.rows);
+  snap.rows.forEach((row, i) => {
+    const { tr, tds, cb } = rowEntries[i];
+    // two independent, always-recomputed marks: ticked-for-YAML (left bar) and THE
+    // selected row (outline) — render is the single source of truth, nothing can go stale
+    tr.className = 'row' + (row.error ? ' err' : '')
+                 + (selected.has(row.address) ? ' ticked' : '')
+                 + (selAddr === row.address && selTable === snap.config.table ? ' sel' : '');
+    tr.style.backgroundColor = heatColor(row, snap.scan_index);
+    const v = row.value;
+    cb.style.visibility = row.error ? 'hidden' : 'visible';
+    cb.checked = selected.has(row.address);
+    if (row.dead) {   // a given-up-on register: offer a one-register retry next to the error
+      tds[3].innerHTML = `${esc(row.error || 'not served')}<button class="retry" ` +
+        `title="probe this one register again (it is on the dead-register list; a write-only register will refuse again)">↻</button>`;
+      tds[3].querySelector('.retry').onclick = ev => { ev.stopPropagation(); retryAddr(row.address); };
+    } else {
+      tds[3].textContent = row.error ? row.error : (v == null ? '—' : v);
+    }
+    tds[4].textContent = v == null ? '' : hex4(v);
+    tds[5].textContent = v == null ? '' : int16(v);
+    tds[6].textContent = row.changes || '';
+    tds[7].textContent = (row.changes && row.reads) ? (row.changes / row.reads).toFixed(2) : '';
+    const [mapped, decoded, xtitle] = devCellsContent(row);
+    tds[8].innerHTML = mapped;
+    tds[9].innerHTML = decoded;
+    tds[8].title = xtitle ? `${xtitle} — click to map / edit` : 'click to map / edit this register';
+    const cbtn = tds[8].querySelector('.xcopy');   // the cell itself opens the editor; the button copies
+    if (cbtn) cbtn.onclick = ev => { ev.stopPropagation(); copyXmap(row.address); };
+    const hist = row.hist || [], n = row.hist_len || 0;   // hover hint on every data cell: recent value history
+    const tip = n > 1
+      ? `history (${n}): ${n > hist.length ? '… → ' : ''}${hist.join(' → ')} — click for details`
+      : n === 1 ? `first read: ${hist[0]} — click for value + history` : 'click for value + history';
+    for (let c = 1; c <= 7; c++) tds[c].title = tip;
+  });
+  // a table switch orphans the selection (its data belongs to the old table)
+  if (selTable != null && snap.config.table !== selTable) {
+    selAddr = selTable = null;
+    syncPanes();
+  }
+  // keep an open Details tab live when the selected register was just rescanned on this page
+  if (paneOn('details') && selAddr != null && snap.rows.some(r => r.address === selAddr)) refreshHistory();
+}
+
+// --- value + history panel: click any data cell to see the register's type interpretations (top)
+// and how its value moved over time (below). The two overlay cells (mapped/decoded) open the editor. ---
+const SPARK = '▁▂▃▄▅▆▇█';
+function sparkline(vals) {
+  if (!vals || vals.length < 2) return '';
+  const min = Math.min(...vals), max = Math.max(...vals), span = (max - min) || 1;
+  return vals.map(v => SPARK[Math.min(7, Math.floor((v - min) / span * 8))]).join('');
+}
+function relTime(sec) {
+  sec = Math.max(0, Math.round(sec));
+  if (sec < 60) return sec + 's ago';
+  if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+  return Math.floor(sec / 86400) + 'd ago';
+}
+// --- THE side panel: Details · Mapping · Generate — one tab bar, one ✕, and its content
+// always follows the selected row (click a row, or move the selection with ↑ / ↓) ---
+const SIDE_PANES = { details: 'paneDetails', mapping: 'paneMapping', generate: 'paneGenerate' };
+const SIDE_TABS = { details: 'tabDetails', mapping: 'tabMapping', generate: 'tabGenerate' };
+const sideVisible = () => !$('side').classList.contains('hide');
+function activeSideTab() {
+  for (const t in SIDE_TABS) if ($(SIDE_TABS[t]).classList.contains('on')) return t;
+  return null;
+}
+const paneOn = tab => sideVisible() && activeSideTab() === tab;
+function sideShow(tab) {
+  $('side').classList.remove('hide');
+  for (const t in SIDE_TABS) {
+    $(SIDE_TABS[t]).classList.toggle('on', t === tab);
+    $(SIDE_PANES[t]).classList.toggle('on', t === tab);
+  }
+  syncGenBtn();
+  syncPanes();
+}
+function sideHide() {
+  $('side').classList.add('hide');
+  syncGenBtn();
+}
+function syncGenBtn() { $('genOpen').disabled = paneOn('generate'); }
+
+// select a row (the one selection there is) and make an open side panel follow it
+function selectRow(addr) {
+  selAddr = addr;
+  selTable = snapshot && snapshot.config && snapshot.config.table;
+  syncPanes();
+}
+
+// a cell click: select the row and drive the panel — open it with the cell's tab, switch
+// a wrong tab over, and only a re-click on the SAME row's correct tab closes the panel
+function cellClick(addr, tab) {
+  const same = selAddr === addr && selTable === (snapshot && snapshot.config && snapshot.config.table);
+  const toggleOff = same && paneOn(tab);
+  selectRow(addr);
+  if (toggleOff) sideHide();
+  else {
+    sideShow(tab);
+    if (tab === 'mapping') { const n = $('editor').querySelector('[name=name]'); if (n) n.focus(); }
+  }
+  render(snapshot);
+}
+
+// ↑ / ↓ move the row selection within the page; the open side panel follows along
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') return;
+  const tag = ev.target && ev.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;  // form fields keep their arrows
+  const rows = snapshot && snapshot.rows;
+  if (!rows || !rows.length) return;
+  ev.preventDefault();
+  const cur = selTable === snapshot.config.table ? rows.findIndex(r => r.address === selAddr) : -1;
+  const i = cur < 0 ? (ev.key === 'ArrowDown' ? 0 : rows.length - 1)
+                    : Math.max(0, Math.min(rows.length - 1, cur + (ev.key === 'ArrowDown' ? 1 : -1)));
+  selectRow(rows[i].address);
+  render(snapshot);
+  const entry = rowEntries[i];
+  if (entry && entry.tr) entry.tr.scrollIntoView({ block: 'nearest' });
+});
+
+// make the visible tab reflect the selected row (Generate is row-independent)
+function syncPanes() {
+  if (!sideVisible()) return;
+  const tab = activeSideTab();
+  if (tab === 'details') refreshHistory();
+  else if (tab === 'mapping') buildMappingPane(false);
+}
+
+async function refreshHistory() {
+  if (histInFlight) return;
+  if (selAddr == null) {
+    $('side').querySelector('.histttl').textContent = 'no register selected';
+    $('side').querySelector('.histbody').innerHTML =
+      '<p class="status">click a register row, or move the selection with ↑ / ↓.</p>';
+    return;
+  }
+  histInFlight = true;
+  const want = `${selTable}:${selAddr}`;
+  try {
+    const data = await api('/api/history', { table: selTable, address: selAddr });
+    // "what type is this?" views for the register + up to 3 *contiguous* following ones on this page
+    // (a packed page can skip refused addresses, so only adjacent registers may be decoded together)
+    let views = [];
+    if (snapshot && snapshot.config && snapshot.config.table === selTable) {
+      const byAddr = new Map((snapshot.rows || []).filter(r => r.value != null).map(r => [r.address, r.value]));
+      const vals = [];
+      for (let a = selAddr; a < selAddr + 4 && byAddr.has(a); a++) vals.push(byAddr.get(a));
+      if (vals.length >= 2) ({ views } = await api('/api/decode', { registers: vals }));
+    }
+    if (want === `${selTable}:${selAddr}`) renderHistory(data, views);  // drop a stale answer
+  } finally {
+    histInFlight = false;
+    if (want !== `${selTable}:${selAddr}`) refreshHistory();  // the selection moved on — refetch
+  }
+}
+function renderHistory(data, views) {
+  const hex = hex4(data.address);
+  const name = data.entity ? ` — ${esc(data.entity.name)}` : '';
+  $('side').querySelector('.histttl').innerHTML =
+    `${data.table} ${hex} <span class="status">(#${data.address})${name}</span>`;
+  const body = $('side').querySelector('.histbody');
+
+  // --- value view (top): the current value plus the "what type is this?" interpretations ---
+  const v = data.value;
+  let valBlock = '<div class="valblock">';
+  if (v == null) {
+    valBlock += '<span class="status">Not read yet — no value to interpret.</span>';
+  } else {
+    valBlock += `<span class="big">${v}</span> <span class="status">= ${hex4(v)} · int16 ${int16(v)}</span>`;
+    if (views && views.length)
+      valBlock += `<div class="valviews">${views.map(x => `${esc(x.type)} = <b>${esc(x.value)}</b>`).join(' · ')}</div>`;
+  }
+  valBlock += '</div>';
+
+  // --- value history (below) ---
+  const h = data.history || [];
+  let histBlock;
+  if (!h.length) {
+    histBlock = '<p class="status">No reads yet — scan this register (it must be in the shown range) to build its history.</p>';
+  } else {
+    const now = Date.now() / 1000;
+    const rows = h.slice().reverse().map((e, i, arr) => {   // newest first
+      const older = arr[i + 1], d = older ? e.value - older.value : null;
+      const cls = d == null ? '' : d > 0 ? 'up' : d < 0 ? 'dn' : '';
+      const ds = d == null ? '' : d > 0 ? '+' + d : '' + d;
+      return `<tr><td class="hv">${e.value}</td><td class="hd ${cls}">${ds}</td>` +
+             `<td class="ht">${relTime(now - e.t)}</td><td class="hs">#${e.scan}</td></tr>`;
+    }).join('');
+    histBlock =
+      `<div class="spark" title="oldest → newest">${sparkline(h.map(e => e.value))}</div>` +
+      `<div class="status">${h.length} distinct value${h.length > 1 ? 's' : ''}` +
+      `${data.changes ? ' · ' + data.changes + ' changes' : ''} · newest first</div>` +
+      `<table class="histtable"><thead><tr><th>value</th><th>Δ</th><th>when</th><th>scan</th></tr></thead>` +
+      `<tbody>${rows}</tbody></table>`;
+  }
+  body.innerHTML = valBlock + histBlock;
+}
+
+// --- interactive mapping: click a register's "mapped as" cell to map / edit it ---
+// which editor fields matter per platform (name + platform always show; bit tables are
+// bool, so they get neither type nor conversions). The schema validates the rest.
+const FIELD_SETS = {
+  sensor:        ['type', 'swap', 'scale', 'offset', 'sum_scale', 'mask', 'unit', 'map', 'flags', 'device_class', 'state_class', 'precision'],
+  binary_sensor: ['mask', 'on_value', 'off_value', 'device_class'],
+  switch:        ['mask', 'on_value', 'off_value', 'device_class'],
+  valve:         ['mask', 'on_value', 'off_value', 'device_class'],
+  number:        ['type', 'swap', 'scale', 'offset', 'sum_scale', 'mask', 'unit', 'min', 'max', 'step', 'device_class', 'precision'],
+  select:        ['type', 'swap', 'map'],
+  text:          [],   // type is forced to string
+  time:          [],   // type is forced to time
+  button:        ['write_value'],
+};
+// name/platform/entity_category/icon/advanced apply to every platform; the rest by set above
+function editorFields(form) {
+  const bit = BIT_TABLES.has(form.dataset.table);
+  let fields = bit ? [] : (FIELD_SETS[form.elements.platform.value] || []);
+  if (fields.includes('type') && form.elements.type.value === 'string') fields = [...fields, 'count'];
+  const show = new Set(['name', 'platform', 'entity_category', 'icon', 'advanced', ...fields]);
+  form.querySelectorAll('[data-fld]').forEach(el => el.style.display = show.has(el.dataset.fld) ? '' : 'none');
+}
+
+// keys the dedicated editor fields cover; everything else round-trips through the free-form
+// "advanced" block, so editing an entity never silently drops a key an existing file set
+const MANAGED = new Set(['address', 'type', 'count', 'swap', 'multiplier', 'offset', 'sum_scale',
+  'mask', 'map', 'flags', 'on_value', 'off_value', 'write_value']);
+const MANAGED_HA = new Set(['platform', 'name', 'unit', 'unit_of_measurement', 'native_unit_of_measurement',
+  'device_class', 'state_class', 'precision', 'suggested_display_precision', 'entity_category', 'icon',
+  'min', 'native_min_value', 'max', 'native_max_value', 'step', 'native_step']);
+function advancedFromSpec(spec) {
+  const extra = {};
+  for (const [k, v] of Object.entries(spec)) if (k !== 'ha' && !MANAGED.has(k)) extra[k] = v;
+  const haExtra = {};
+  for (const [k, v] of Object.entries(spec.ha || {})) if (!MANAGED_HA.has(k)) haExtra[k] = v;
+  if (Object.keys(haExtra).length) extra.ha = haExtra;
+  return Object.keys(extra).length ? JSON.stringify(extra, null, 2) : '';   // JSON is valid YAML
+}
+
+function prefillForm(form, spec) {
+  const ha = spec.ha || {};
+  const set = (name, val) => { if (val != null && form.elements[name]) form.elements[name].value = val; };
+  set('platform', ha.platform); set('name', ha.name);
+  set('type', spec.type); set('swap', spec.swap); set('count', spec.count);
+  set('scale', spec.multiplier); set('offset', spec.offset);
+  if (spec.mask != null) set('mask', '0x' + Number(spec.mask).toString(16).toUpperCase());
+  set('write_value', spec.write_value);
+  set('unit', ha.unit ?? ha.unit_of_measurement ?? ha.native_unit_of_measurement);
+  set('device_class', ha.device_class); set('state_class', ha.state_class);
+  set('precision', ha.precision ?? ha.suggested_display_precision);
+  set('entity_category', ha.entity_category); set('icon', ha.icon);
+  set('min', ha.min ?? ha.native_min_value);
+  set('max', ha.max ?? ha.native_max_value);
+  set('step', ha.step ?? ha.native_step);
+  set('on_value', spec.on_value); set('off_value', spec.off_value);
+  if (spec.map) form.elements.map.value = Object.entries(spec.map).map(([k, v]) => `${k}: ${v}`).join(', ');
+  if (spec.flags) form.elements.flags.value = Object.entries(spec.flags).map(([k, v]) => `${k}: ${v}`).join(', ');
+  if (spec.sum_scale) form.elements.sum_scale.value = spec.sum_scale.join(', ');
+  form.elements.advanced.value = advancedFromSpec(spec);
+}
+
+function buildEditorForm(table, address, spec) {
+  const bit = BIT_TABLES.has(table);
+  const plats = bit ? ['binary_sensor', 'switch']
+                    : ['sensor', 'binary_sensor', 'switch', 'valve', 'number', 'select', 'text', 'time', 'button'];
+  const types = ['uint16', 'int16', 'uint32', 'int32', 'uint64', 'int64', 'float16', 'float32', 'float64', 'string'];
+  const scs = ['', 'measurement', 'total', 'total_increasing'];
+  const swaps = ['', 'byte', 'word', 'word_byte'];
+  const ecats = ['', 'config', 'diagnostic'];
+  const opts = (arr) => arr.map(s => `<option value="${s}">${s || '—'}</option>`).join('');
+  const hex = hex4(address);
+  const form = document.createElement('form');
+  form.className = 'editform';
+  form.dataset.table = table; form.dataset.address = address;
+  form.innerHTML = `
+    <span class="ttl">${spec ? 'Edit' : 'Map'} ${table} ${hex} <span class="status">(#${address})</span></span>
+    <label data-fld="name">name<input name="name" autocomplete="off"></label>
+    <label data-fld="platform">platform<select name="platform">${plats.map(p => `<option>${p}</option>`).join('')}</select></label>
+    <label data-fld="type">type<select name="type">${types.map(t => `<option>${t}</option>`).join('')}</select></label>
+    <label data-fld="swap">swap<select name="swap">${opts(swaps)}</select></label>
+    <label data-fld="count">length<input name="count" type="number" min="1" value="2"></label>
+    <label data-fld="scale">scale<input name="scale" type="number" step="any"></label>
+    <label data-fld="offset">offset<input name="offset" type="number" step="any"></label>
+    <label data-fld="sum_scale">sum_scale<input name="sum_scale" placeholder="1, 0.1"></label>
+    <label data-fld="mask">mask<input name="mask" autocomplete="off" placeholder="0xFF"></label>
+    <label data-fld="unit">unit<input name="unit" autocomplete="off"></label>
+    <label data-fld="map">map (value: label)<input name="map" placeholder="0: Off, 1: On"></label>
+    <label data-fld="flags">flags (bit: name)<input name="flags" placeholder="0: fault, 1: warn"></label>
+    <label data-fld="write_value">write value<input name="write_value" autocomplete="off"></label>
+    <label data-fld="device_class">device class<input name="device_class" autocomplete="off" placeholder="voltage"></label>
+    <label data-fld="state_class">state class<select name="state_class">${opts(scs)}</select></label>
+    <label data-fld="precision">precision<input name="precision" type="number" min="0" max="9"></label>
+    <label data-fld="entity_category">category<select name="entity_category">${opts(ecats)}</select></label>
+    <label data-fld="icon">icon<input name="icon" autocomplete="off" placeholder="mdi:flash"></label>
+    <label data-fld="min">min<input name="min" type="number" step="any"></label>
+    <label data-fld="max">max<input name="max" type="number" step="any"></label>
+    <label data-fld="step">step<input name="step" type="number" step="any"></label>
+    <label data-fld="on_value">on value<input name="on_value" type="number"></label>
+    <label data-fld="off_value">off value<input name="off_value" type="number"></label>
+    <label data-fld="advanced" class="wide">advanced — any other device-file keys (YAML)<textarea name="advanced" spellcheck="false" placeholder="never_resets: true&#10;groups: [advanced]&#10;ha: {mode: slider}"></textarea></label>
+    <span class="editbtns">
+      <span class="editerr err"></span>
+      <button type="submit">Save</button>
+      ${spec ? '<button type="button" class="ghost" data-act="unmap">Unmap</button>' : ''}
+      <button type="button" class="ghost" data-act="cancel">Cancel</button>
+    </span>`;
+  if (spec) prefillForm(form, spec);
+  form.elements.platform.onchange = () => editorFields(form);
+  form.elements.type.onchange = () => editorFields(form);
+  editorFields(form);
+  form.onsubmit = ev => { ev.preventDefault(); saveMapping(form); };
+  form.querySelector('[data-act=cancel]').onclick = () => buildMappingPane(true);   // revert edits
+  const un = form.querySelector('[data-act=unmap]');
+  if (un) un.onclick = () => unmapEntity(table, address);
+  return form;
+}
+
+// (re)build the Mapping tab's editor form for the selected row. A live re-render never
+// clobbers typing: without `force` the form is only rebuilt when the selection moved to
+// a different entity (a continuation row resolves to the entity it belongs to).
+let editorFor = null;   // "<table>:<entity start>" the current form was built for
+function buildMappingPane(force) {
+  const box = $('editor');
+  if (selAddr == null) { editorFor = null; box.replaceChildren(); return; }
+  const row = snapshot && snapshot.rows.find(r => r.address === selAddr);
+  const ent = row && row.entity;
+  const target = (ent && ent.address != null) ? ent.address : selAddr;
+  const key = `${selTable}:${target}`;
+  if (!force && editorFor === key) return;
+  editorFor = key;
+  const trow = (snapshot && snapshot.rows.find(r => r.address === target)) || row;
+  const spec = (trow && trow.entity && trow.entity.spec) || null;
+  box.replaceChildren(buildEditorForm(selTable, target, spec));
+}
+
+async function saveMapping(form) {
+  const data = { table: form.dataset.table, address: +form.dataset.address };
+  form.querySelectorAll('[data-fld]').forEach(lbl => {
+    if (lbl.style.display === 'none') return;    // don't send fields hidden for this platform
+    const inp = lbl.querySelector('[name]');
+    if (inp && inp.value !== '') data[inp.name] = inp.value;
+  });
+  const snap = await api('/api/map', data);
+  if (snap.error) { form.querySelector('.editerr').textContent = '⚠ ' + snap.error; return; }
+  render(snap);
+  buildMappingPane(true);   // rebuilt from the saved spec — the form heading turns to Edit
+}
+
+async function unmapEntity(table, address) {
+  const snap = await api('/api/unmap', { table, address });
+  render(snap);
+  buildMappingPane(true);   // back to a fresh Map form for the still-selected row
+}
+
+async function scanOnce() { render(await api('/api/scan', {})); }
+
+const TABLES = ['holding', 'input', 'coil', 'discrete'];
+const BIT_TABLES = new Set(['coil', 'discrete']);   // bool registers — no type/conversions (mirrors models.BIT_TABLES)
+// is the current page the last one (so the next auto-page step wraps / switches table)?
+function atLastPage() { return !snapshot || !!snapshot.at_end; }   // no further registers ahead
+async function goToFirstPage() { $('start').value = 0; await loadRange(); }   // wrap to the top of this table
+async function goToNextTable() {                                              // …or on to the next table
+  $('table').value = TABLES[(TABLES.indexOf($('table').value) + 1) % TABLES.length];
+  clampMaxRead();          // the per-read cap depends on the table
+  $('start').value = 0;
+  await loadRange();
+}
+
+// one scan tick. Normally re-read the current page. In auto-page mode, advance to the next page
+// instead — wrapping to the first page at the end, and (with "＋ tables" on) moving to the next
+// Modbus table when one is fully paged — so an unattended run covers the whole device over time.
+async function scanTick() {
+  if (!$('autoPage').checked) { await scanOnce(); return; }
+  if (!atLastPage()) { await stepPage(1); return; }
+  if ($('autoTables').checked) await goToNextTable();
+  else await goToFirstPage();
+}
+
+function setRunning(on) {
+  if (timer) { clearTimeout(timer); timer = null; }
+  running = on; $('toggle').textContent = on ? 'Stop' : 'Start';
+  if (!on) { scanToken++; return; }
+  // self-scheduling loop: never start a scan while the previous one is still in flight
+  // (a slow device would otherwise stack up polls and land stale responses out of order)
+  const myToken = ++scanToken;
+  const tick = async () => {
+    if (myToken !== scanToken) return;
+    try { await scanTick(); }
+    catch (e) { /* a dropped poll (server/device blip) must not kill the loop — retry next tick */ }
+    if (myToken === scanToken) timer = setTimeout(tick, Math.max(100, +$('interval').value * 1000));
+  };
+  tick();
+}
+
+// load the current inputs as the shown page — /api/config fills the page (every view is packed),
+// so no extra scan is needed. The auto-page loop calls loadRange directly; Apply / the filter menu /
+// a table switch call applyRange, which pauses the live scan around the load so the new view
+// fully populates without the poll contending.
+async function loadRange() {
+  selected.clear();
+  render(await api('/api/config', cfg()));
+}
+// A full scan of a very large unfiltered range is slow, so make the user accept it once. A filtered
+// fill scans a bounded window and stops at dead runs, so Count doesn't drive its cost — no warning there.
+const COUNT_WARN = 2000;
+let bigCountOk = false;   // the user has accepted the slow-scan warning for the current large count
+function confirmBigCount() {
+  const count = +$('count').value;
+  if (count <= COUNT_WARN) { bigCountOk = false; return true; }   // small again -> re-arm the warning
+  if ($('filter').value !== 'none' || bigCountOk) return true;
+  if (confirm(`Scanning ${count} registers can take a long time on each pass.\n\nContinue with this range?`)) {
+    bigCountOk = true;
+    return true;
+  }
+  return false;
+}
+async function applyRange() {
+  if (!confirmBigCount()) { $('count').value = COUNT_WARN; clampRange(); }   // declined -> cap at the safe max
+  return withScanPaused(loadRange);
+}
+
+// run fn with live scanning paused, then resume it afterwards — so a page fully loads
+// (its registers scanned) without the running poll loop contending or landing stale ticks
+async function withScanPaused(fn) {
+  const wasRunning = running;
+  if (wasRunning) setRunning(false);
+  try { await fn(); } finally { if (wasRunning) setRunning(true); }
+}
+
+// advance/retreat one page (dir = ±1) and load it — every view is a packed page, so ask the backend
+// to scan on and fill the next/previous page from its anchor (null once that direction is exhausted,
+// so we never page past the registers that exist). The auto-page loop calls stepPage directly; the
+// ◀ / ▶ buttons call pageBy, which pauses any live scan around the load.
+async function stepPage(dir) {
+  const anchor = snapshot && (dir > 0 ? snapshot.next_anchor : snapshot.prev_anchor);
+  if (anchor == null) return false;   // that direction is exhausted
+  render(await api('/api/page', { forward: dir > 0, anchor }));
+  return true;
+}
+function pageBy(dir) { return withScanPaused(() => stepPage(dir)); }
+
+action('toggle', () => setRunning(!running));
+action('once', scanOnce);
+action('apply', applyRange);
+action('pagePrev', () => pageBy(-1));
+action('pageNext', () => pageBy(1));
+$('sideClose').onclick = sideHide;
+$('tabDetails').onclick = () => sideShow('details');
+$('tabMapping').onclick = () => sideShow('mapping');
+$('tabGenerate').onclick = () => sideShow('generate');
+$('genOpen').onclick = () => sideShow('generate');
+// the generate stamp is server state (it survives refreshes and rides in exports);
+// push edits debounced — the response re-renders #deviceInfo with the new name
+let metaT = null;
+const pushMeta = () => {
+  clearTimeout(metaT);
+  metaT = setTimeout(async () => {
+    render(await api('/api/meta', { manufacturer: $('mfr').value, model: $('model').value }));
+  }, 400);
+};
+$('mfr').addEventListener('input', pushMeta);
+$('model').addEventListener('input', pushMeta);
+// auto-page walks the pages each scan (the running loop reads these live — no restart needed);
+// "＋ tables" only applies while auto-page is on. Both are remembered across reloads.
+$('autoPage').onchange = () => {
+  $('autoTables').disabled = !$('autoPage').checked;
+  try { localStorage.setItem('mbscan.autoPage', $('autoPage').checked ? '1' : '0'); } catch {}
+};
+$('autoTables').onchange = () => {
+  try { localStorage.setItem('mbscan.autoTables', $('autoTables').checked ? '1' : '0'); } catch {}
+};
+// interval stepping. At/below 1 s the step is 0.1 s; above 1 s it snaps to whole seconds. Setting
+// the step (and min, so the native spinner grid lines up) to 0.1 at/below 1 s, and rounding any
+// value over 1 s UP to the next whole second, gives the asked-for feel: from 1 s, ▼ -> 0.9 s, ▲ -> 2 s.
+// This works the same for the spinner buttons and the arrow keys, so no custom key handling is needed.
+const ivEl = $('interval');
+function tuneInterval() {
+  if (+ivEl.value <= 1) { ivEl.min = 0.1; ivEl.step = 0.1; }   // 0.1-second steps at/below 1 s
+  else { ivEl.min = 1; ivEl.step = 1; }                        // whole-second steps above 1 s
+}
+function commitInterval() {
+  let v = +ivEl.value;
+  if (Number.isNaN(v)) v = 1;
+  v = Math.round(v * 10) / 10;                             // snap to 0.1 (also kills spinner float drift)
+  ivEl.value = v > 1 ? Math.ceil(v) : Math.max(0.1, v);    // above 1 s -> next whole second; else floor at 0.1 s
+  tuneInterval();
+  if (running) setRunning(true);   // re-pace the running loop at the new cadence
+}
+ivEl.addEventListener('input', tuneInterval);
+ivEl.addEventListener('change', commitInterval);
+tuneInterval();
+$('filter').onchange = () => { $('start').value = 0; applyRange(); };   // jump to the first match
+// the find box narrows any view; debounced so typing doesn't fire a request per key
+let searchT = null;
+$('search').addEventListener('input', () => {
+  clearTimeout(searchT);
+  searchT = setTimeout(() => { $('start').value = 0; applyRange(); }, 300);   // jump to the first match
+});
+$('table').onchange = async () => {   // switch tables live — no Apply-range click needed
+  anchorAtView();                     // keep the view position across the switch
+  await applyRange();
+  syncStartField();
+};
+$('start').onchange = clampRange;   // correct an over-large entry in place
+$('count').onchange = () => {       // clamp, then warn (must accept) if it's a very large scan range
+  clampRange();
+  if (!confirmBigCount()) { $('count').value = COUNT_WARN; clampRange(); }
+};
+$('maxRead').onchange = clampMaxRead;
+
+action('export', async () => {
+  const snap = await api('/api/export');   // full state: every table's cells + the mapping
+  const blob = new Blob([JSON.stringify(snap, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'modbus-scan.json'; a.click();
+});
+action('importBtn', () => $('importFile').click());
+$('importFile').onchange = async e => {
+  const file = e.target.files[0]; if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); }
+  catch (err) { alert('Could not import the project:\nnot a JSON file (' + err.message + ')'); e.target.value = ''; return; }
+  const snap = await api('/api/import', data);
+  if (snap.error) { alert('Could not import the project:\n' + snap.error); e.target.value = ''; return; }
+  // import restores the project's Count / Per-read, connection settings, and the generate
+  // stamp — not the table, view position, or filter (those stay as they are). Connect is yours.
+  $('count').value = snap.config.count; $('maxRead').value = snap.config.max_read;
+  clampMaxRead();
+  fillConnectionFields(snap.connection);
+  $('mfr').value = (snap.meta && snap.meta.manufacturer) || '';
+  $('model').value = (snap.meta && snap.meta.model) || '';
+  selected.clear(); render(snap); e.target.value = '';
+  selectDeviceOption(snap.device && snap.device.name);   // the fresh 'imported · …' entry
+};
+
+action('genBtn', async () => {
+  const addrs = [...selected].sort((a, b) => a - b);
+  const { yaml } = await api('/api/generate',
+    { manufacturer: $('mfr').value, model: $('model').value, addresses: addrs });
+  const ta = $('yaml'); ta.value = yaml; ta.classList.remove('hide');
+  const dl = $('dlYaml');
+  dl.href = URL.createObjectURL(new Blob([yaml], { type:'text/yaml' }));
+  dl.classList.remove('hide');
+});
+
+// --- device-file overlay (load a config and test it live) ---
+async function refreshDevices() {
+  const { devices } = await api('/api/devices');
+  $('deviceSel').innerHTML = '<option value="">— none —</option>' +
+    devices.map(d => `<option value="${d.file}">${esc(d.label)}  ·  ${d.file}</option>`).join('');
+}
+// the session's imported mapping gets its own dropdown entry, right after — none — : you can
+// switch to a bundled file (or none, which keeps your stats) and back to it, edits included
+function syncImportedOption(snap) {
+  const sel = $('deviceSel');
+  let opt = sel.querySelector('option[value="__imported__"]');
+  if (!snap.imported) { if (opt) opt.remove(); return; }
+  const label = 'imported  ·  '
+    + (`${snap.imported.manufacturer || ''} ${snap.imported.model || ''}`.trim() || 'unnamed device');
+  if (!opt) {
+    opt = document.createElement('option');
+    opt.value = '__imported__';
+    sel.insertBefore(opt, sel.options[1] || null);
+  }
+  if (opt.textContent !== label) opt.textContent = label;
+}
+// point the dropdown at a mapping by its server-side name; anything without an entry
+// (an upload, or a cleared mapping) honestly shows — none —
+function selectDeviceOption(name) {
+  const sel = $('deviceSel');
+  sel.value = name === 'imported.yaml' ? '__imported__' : (name || '');
+  if (sel.selectedIndex < 0) sel.value = '';
+}
+async function loadDevice(body) {
+  const snap = await api('/api/device', body);
+  if (snap.error) { alert('Could not load device file:\n' + snap.error); return; }
+  $('table').value = snap.config.table; $('start').value = snap.config.start;
+  $('count').value = snap.config.count;
+  // the server seeded the generate stamp from the file; mirror it (editable afterwards)
+  $('mfr').value = (snap.meta && snap.meta.manufacturer) || '';
+  $('model').value = (snap.meta && snap.meta.model) || '';
+  selected.clear(); render(snap);
+  // keep the dropdown honest — after render, which maintains the imported entry
+  selectDeviceOption(snap.device && snap.device.name);
+  if (isConnected()) await withScanPaused(loadRange);   // fill the page for the device's range, decoding it live
+}
+// picking "— none —" just drops the mapping overlay; the stats, history and dead-list stay
+async function clearMapping() { $('deviceSel').value = ''; render(await api('/api/device/clear', {})); }
+$('deviceSel').onchange = () => {
+  const v = $('deviceSel').value;
+  if (v === '__imported__') loadDevice({ imported: true });
+  else if (v) loadDevice({ file: v });
+  else clearMapping();
+};
+action('uploadDevice', () => $('deviceFile').click());
+$('deviceFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  await loadDevice({ yaml: await f.text(), name: f.name }); e.target.value = '';
+};
+// "Clear all" is the deliberate reset — mapping, every register's stats and history, and the
+// dead-register list — so a device whose registers you'd given up on gets fully re-probed on
+// the next scan. Reconnecting no longer wipes anything, so this button is the way to start fresh.
+async function clearAll() {
+  await withScanPaused(async () => {
+    anchorAtView();   // keep the view position across the wipe — the re-probe starts here
+    $('deviceSel').value = '';
+    $('mfr').value = $('model').value = '';   // the server clears its generate stamp too
+    selected.clear();
+    render(await api('/api/clear', {}));
+    if (isConnected()) {
+      render(await api('/api/config', cfg()));   // refill the emptied page from a live probe
+      syncStartField();
+    }
+  });
+}
+action('clearAll', clearAll);
+
+// --- connection ---
+$('mode').onchange = toggleConnFields;
+action('connect', async () => {
+  anchorAtView();   // keep the view position across a (re)connect — captured before the page clears
+  const snap = await api('/api/connect', {
+    mode: $('mode').value, host: $('host').value.trim(), port: +$('cport').value,
+    device_id: +$('devid').value, timeout: +$('ctimeout').value, retries: +$('cretries').value });
+  render(snap);
+  if (snap.connection && snap.connection.connected) {
+    render(await api('/api/config', cfg()));   // fill the page at the kept position
+    syncStartField();
+  }
+});
+
+// --- the settings block (burger): always starts open, hidden per-session only ---
+$('burger').onclick = () => $('topPanel').classList.toggle('collapsed');
+try {
+  $('autoPage').checked = localStorage.getItem('mbscan.autoPage') === '1';
+  $('autoTables').checked = localStorage.getItem('mbscan.autoTables') === '1';
+  $('autoTables').disabled = !$('autoPage').checked;
+} catch {}
+syncGenBtn();
+
+// initial paint from whatever the server already has
+api('/api/state').then(async snap => {
+  // a refresh restores EVERYTHING the server knows: the view (table, position, tuning,
+  // filter, find), the connection settings, the generate stamp, and the picked device file
+  $('table').value = snap.config.table; $('start').value = snap.config.start;
+  $('count').value = snap.config.count; $('maxRead').value = snap.config.max_read;
+  $('filter').value = snap.config.filter || 'none';
+  $('search').value = snap.config.search || '';
+  clampMaxRead();   // set the per-read cap for the loaded table
+  fillConnectionFields(snap.connection);
+  $('mfr').value = (snap.meta && snap.meta.manufacturer) || '';
+  $('model').value = (snap.meta && snap.meta.model) || '';
+  await refreshDevices();   // the dropdown needs its options before the pick is restored
+  render(snap);             // (this also creates the 'imported · …' entry when one exists)
+  selectDeviceOption(snap.device && snap.device.name);
+  // every view is a packed page that must be filled; if we're already connected (e.g. --demo), do it now
+  if (isConnected()) render(await api('/api/config', cfg()));
+});
+</script>
+</body>
+</html>

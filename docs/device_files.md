@@ -501,6 +501,15 @@ connection, `read` registers with every common decoding shown next to the raw
 words (so the right `type`/`swap` can be read straight off), `write` via FC6,
 FC16, or FC5, and `scan` an address range — the scan prints unreadable
 registers and forced block boundaries as ready-to-paste `bad_addresses:` /
-`split_before:` device keys. `--debug` logs every Modbus frame on the wire. Pull requests with
-new device files are welcome — see the [bundled
+`split_before:` device keys. `--debug` logs every Modbus frame on the wire.
+
+For a live, visual version — a web UI that rescans on an interval, colours
+registers by how fast they change, greys out the ones the device refuses,
+generates a device-file skeleton from the scan, and can **overlay an existing
+device file to test it** (decoded values, plus flags for a mapped-but-refused
+address or a served-but-unmapped register) — run
+`python3 support/modbus_scanner/scanner.py --host <gateway>` (or `--demo` to try
+it with no hardware); see [its README](../support/modbus_scanner/README.md).
+
+Pull requests with new device files are welcome — see the [bundled
 files](../README.md#bundled-device-files).

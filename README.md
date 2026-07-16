@@ -345,7 +345,11 @@ Brand assets live in `support/` (SVG sources and `build_brand.py` to
 regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
 which Home Assistant ≥ 2026.3 serves locally), next to
 `support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
-with decoded views, write, register scan; see its `--help`) — and
+with decoded views, write, register scan; see its `--help`),
+`support/modbus_scanner/` — a live web-UI register scanner that colours
+registers by change rate, generates a device-file skeleton, and overlays an
+existing device file to test it against the device (`--demo` needs no
+hardware) — and
 `support/build_json_schema.py`, which regenerates the editor schema for
 device files ([docs/device_files.schema.json](docs/device_files.schema.json));
 a test fails when the committed schema is stale.

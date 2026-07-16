@@ -20,13 +20,21 @@ Workflow that has worked well:
    # yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
    ```
 
-3. Poke the real device with the standalone CLI while writing —
-   `python3 support/modbus_cli.py --host <gateway> --help` (probe, read with
+3. Before using any `.venv/bin/*` commands, prepare the .venv with
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements_test.txt
+```
+
+4. Poke the real device with the standalone CLI while writing —
+   `.venv/bin/python support/modbus_cli.py --host <gateway> --help` (probe, read with
    decoded views, write, scan; needs only pymodbus). `scan` prints
-   `bad_addresses:`/`split_before:` hints ready to paste.
-4. Drop the file into `<ha_config>/modbus_connect/` and add the integration —
+   `bad_addresses:`/`split_before:` hints ready to paste. For a live web UI that
+   colours registers by change rate and generates a skeleton file, use
+   `.venv/bin/python support/modbus_scanner/scanner.py --host <gateway>` (or `--demo`).
+5. Drop the file into `<ha_config>/modbus_connect/` and add the integration —
    schema errors name the entity and reason, right in the config flow.
-5. For the PR: place the file in `device_configs/`, run the test suite (every
+6. For the PR: place the file in `device_configs/`, run the test suite (every
    bundled file is parsed and schema-validated by CI), and mention what
    hardware/firmware it was tested against.
 

@@ -188,7 +188,18 @@ def test_emit_strips_tags_and_metadata():
     ir = _ir()
     text = aug.emit(ir, header="hdr")
     assert "_tags" not in text and "raw-name" not in text and "doc:extra" not in text
-    assert text.startswith("# hdr\n")
+    # the schema directive is always the first line; the provenance header follows it
+    assert text.startswith(aug.SCHEMA_DIRECTIVE + "\n")
+    assert "\n# hdr\n" in text
+
+
+def test_emit_opens_with_the_schema_directive():
+    """Every generated config's first line is the yaml-language-server modeline
+    (CONTRIBUTING.md), so editors validate + autocomplete it — even with no header."""
+    text = aug.emit(aug.intermediate({"manufacturer": "A", "model": "B"}))
+    assert text.splitlines()[0] == aug.SCHEMA_DIRECTIVE
+    assert aug.SCHEMA_DIRECTIVE.startswith("# yaml-language-server: $schema=https://")
+    assert aug.SCHEMA_DIRECTIVE.endswith("/docs/device_files.schema.json")
 
 
 def test_emit_mask_as_hex_and_groups_inline():
