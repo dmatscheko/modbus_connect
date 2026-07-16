@@ -3,6 +3,10 @@
   <img alt="Modbus Connect" src="custom_components/modbus_connect/brand/logo@2x.png" width="480">
 </picture>
 
+[![HACS: custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
+[![Tests](https://github.com/dmatscheko/modbus_connect/actions/workflows/test.yml/badge.svg)](https://github.com/dmatscheko/modbus_connect/actions/workflows/test.yml)
+[![Validate](https://github.com/dmatscheko/modbus_connect/actions/workflows/validate.yml/badge.svg)](https://github.com/dmatscheko/modbus_connect/actions/workflows/validate.yml)
+
 A Home Assistant custom integration for Modbus devices — over TCP gateways,
 transparent RTU-over-TCP bridges, or directly attached serial adapters — a
 ground-up rewrite of
