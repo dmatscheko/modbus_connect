@@ -341,9 +341,9 @@ standalone; `tests/test_e2e_server.py` proves the transaction counts against
 a real TCP server. The device-file YAML format is documented in
 [docs/device_files.md](docs/device_files.md).
 
-Brand assets live in `support/` (SVG sources and `build_brand.py` to
+Brand assets live in `support/brand/` (SVG sources and `build_brand.py` to
 regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
-which Home Assistant ≥ 2026.3 serves locally), next to
+which Home Assistant ≥ 2026.3 serves locally), alongside
 `support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
 with decoded views, write, register scan; see its `--help`),
 `support/modbus_scanner/` — a live web-UI register scanner that colours

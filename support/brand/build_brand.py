@@ -10,11 +10,11 @@ Usage:
     curl -sL -o figtree.ttf \
         "https://github.com/google/fonts/raw/main/ofl/figtree/Figtree%5Bwght%5D.ttf"
     pip install fonttools
-    python3 support/build_brand.py figtree.ttf
+    python3 support/brand/build_brand.py figtree.ttf
 
 PNG rendering (needs rsvg-convert and imagemagick):
-    cd support
-    B=../custom_components/modbus_connect/brand
+    cd support/brand
+    B=../../custom_components/modbus_connect/brand
     rsvg-convert -w 256  -h 256 icon.svg      -o /tmp/x.png && magick /tmp/x.png -strip -interlace PNG $B/icon.png
     rsvg-convert -w 512  -h 512 icon.svg      -o /tmp/x.png && magick /tmp/x.png -strip -interlace PNG $B/icon@2x.png
     rsvg-convert -h 128         logo.svg      -o /tmp/x.png && magick /tmp/x.png -strip -interlace PNG $B/logo.png
