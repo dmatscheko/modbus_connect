@@ -28,9 +28,11 @@ just shortcuts for that. **Demo** fakes a device (static config, a fast + slow c
 sine, a float32 ramp, and a couple of refused addresses) so you can try the whole UI with no
 gateway.
 
-Reconnecting **keeps** everything you've gathered — the per-register stats and history, the mapping,
-and the dead-register list all survive a reconnect, so you can import a project and then connect
-to watch it live without losing your work. **Clear all** (top row) is the one deliberate reset: it
+Once connected the button turns into **Disconnect** (and the connection fields lock until you
+drop the link — so what's shown is always what's connected). Disconnecting — like reconnecting —
+**keeps** everything you've gathered: the per-register stats and history, the mapping, and the
+dead-register list all survive, so you can import a project and then connect to watch it live
+without losing your work (or drop the link and keep working with the frozen values). **Clear all** (top row) is the one deliberate reset: it
 drops the mapping, wipes every register's stats and history, and empties the dead-register list —
 so registers earlier given up on as dead get re-probed from scratch on the next scan.
 

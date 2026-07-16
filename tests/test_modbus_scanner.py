@@ -1044,6 +1044,30 @@ def test_reconnect_keeps_state_and_only_clear_all_wipes_it():
     assert sc.scan_index == 0 and sc.map_doc is None and sc.device is None
 
 
+def test_disconnect_drops_the_link_but_keeps_everything():
+    # the Connect button's other half: a deliberate drop, not a failure — so no error is
+    # shown, the settings stay for the next Connect, and nothing gathered is lost
+    doc = ("device: {manufacturer: Acme, model: X1}\n"
+           "holding: {temp: {address: 0, ha: {platform: sensor, name: Temp}}}\n")
+    sc = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
+    sc.connect(mode="demo")
+    sc.load_device(doc, "acme.yaml")
+    sc.scan()
+    assert sc.connected and sc.cells and sc.scan_index == 1
+
+    sc.disconnect()
+    snap = sc.snapshot()
+    assert not sc.connected and snap["connection"]["connected"] is False
+    assert snap["connection"]["error"] is None
+    assert snap["connection"]["mode"] == "demo"
+    assert sc.cells and sc.scan_index == 1 and sc.map_doc is not None
+    sc.scan()  # back to the disconnected guard
+    assert sc.snapshot()["last_error"] == "not connected"
+
+    sc.connect(mode="demo")  # and Connect brings the link straight back
+    assert sc.connected and sc.cells and sc.snapshot()["last_error"] is None
+
+
 def test_lists_bundled_device_files():
     devices = {d["file"] for d in scanner.list_device_files()}
     assert "solax-x3-hac.yaml" in devices

@@ -321,6 +321,14 @@ class Scanner:
         self.last_error = None
         self._clear_page()  # refill the view from the current inputs; the stats behind it survive
 
+    def disconnect(self) -> None:
+        """Deliberately drop the connection (the Connect button's other half). Everything
+        gathered stays — stats, history, mapping, dead list, and the settings for the next
+        Connect — and the view keeps showing the remembered values, just frozen."""
+        self._teardown()
+        self.conn_error = None  # a chosen state, not a failure
+        self.last_error = None
+
     def _clear_page(self) -> None:
         self._page_addrs, self._page_next_anchor, self._page_prev_anchor = [], None, None
 
@@ -1440,6 +1448,9 @@ class _Handler(BaseHTTPRequestHandler):
                     timeout=float(body.get("timeout") or 2.0),
                     retries=int(body.get("retries") or 0),
                 )
+                self._json(self._scanner.snapshot())
+            elif self.path == "/api/disconnect":
+                self._scanner.disconnect()
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/config":
                 self._scanner.reconfigure(

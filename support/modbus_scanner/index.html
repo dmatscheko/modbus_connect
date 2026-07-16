@@ -346,17 +346,23 @@ function syncStartField() { if (snapshot?.config) $('start').value = snapshot.co
 
 // connection state: header status, field enabling, and gating the scan buttons
 const SCAN_BTNS = ['toggle', 'once'];   // need a live link (apply just presets the range, so it stays live)
-function toggleConnFields() {
-  const demo = $('mode').value === 'demo';
-  ['host', 'cport', 'devid', 'ctimeout', 'cretries'].forEach(id => $(id).disabled = demo);
+function toggleConnFields() {   // demo needs no gateway fields; a live link locks them all (Disconnect to edit)
+  const demo = $('mode').value === 'demo', locked = isConnected();
+  $('mode').disabled = locked;
+  ['host', 'cport', 'devid', 'ctimeout', 'cretries'].forEach(id => $(id).disabled = locked || demo);
 }
-function applyConnection(conn) {   // per-render: status + button gating only (never the inputs —
-  const st = $('connStatus'), connected = !!(conn && conn.connected);   // typing must survive scans)
+function applyConnection(conn) {   // per-render: status + button gating only (never the input
+  const st = $('connStatus'), connected = !!(conn && conn.connected);   // values — typing must survive scans)
   if (connected) {
     st.textContent = conn.mode === 'demo' ? '● connected — demo device'
       : `● connected — ${conn.host}:${conn.port} (id ${conn.device_id})`;
     st.style.color = '#5ad17a';
   } else { st.textContent = '○ not connected'; st.style.color = ''; }
+  const btn = $('connect');   // one button, two roles — it toggles the link
+  btn.textContent = connected ? 'Disconnect' : 'Connect';
+  btn.title = connected ? 'drop the connection — everything gathered is kept'
+                        : 'connect with these settings';
+  toggleConnFields();
   SCAN_BTNS.forEach(id => $(id).disabled = !connected);
   if (!connected && running) setRunning(false);   // stop polling if the link drops
 }
@@ -1182,6 +1188,9 @@ action('clearAll', clearAll);
 // --- connection ---
 $('mode').onchange = toggleConnFields;
 action('connect', async () => {
+  // the toggle's other half: a live link makes this button Disconnect — a deliberate drop
+  // that keeps everything gathered (the view stays, frozen) and unlocks the settings
+  if (isConnected()) { render(await api('/api/disconnect', {})); return; }
   anchorAtView();   // keep the view position across a (re)connect — captured before the page clears
   const snap = await api('/api/connect', {
     mode: $('mode').value, host: $('host').value.trim(), port: +$('cport').value,
