@@ -116,21 +116,22 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   the current value plus the uint/int/float/string interpretations of that register and the next few
   contiguous ones. **Below**, the last 50 *distinct* values it has taken — each with the Δ from the
   value before, the **Δt** to the *previous* change (a cadence like "every 60s" reads straight down
-  the column; hover for how long ago it was — the summary line names the last change's age), the
-  scan it appeared in, and a sparkline — hover a bar or a row and its partner lights up, linking
-  *when* to *what* — so a steadily-climbing energy meter reads differently from
-  a noisy measurement at a glance. When the register decodes *on its own* — a mapped entity that
-  starts here and spans one register — the value column becomes a **decoded** column, through the
-  integration's real codec (a multi-word entity can't decode from one register's history, so raw
-  stays). And the **Decode as…** button between value and history sets ONE global *decode
-  override* for the whole Details view: it opens the **Mapping** tab in a Details-view-only mode —
-  the familiar editor with just the decode fields (type / swap / scale / offset / mask / enum map,
-  single-word, validated by the real schema) — whose **Save**, **Unmap** and **Cancel** all return
-  to Details. Saved, *every* word-table register you select decodes through it — replacing a
-  mapped entity's decode, giving unmapped registers one, its summary next to the button (bit
-  tables read 0/1 and are left alone) — until **Unmap** drops it: try an interpretation across
-  many registers while reverse-engineering without touching the mapping; the main table's decoded
-  column stays the mapping's truth. Floats in the Details view show with strictly at most 3
+  the column; hover for how long ago it was — the summary line ends with the newest change's age in
+  parentheses), the scan it appeared in, and a sparkline — hover a bar or a row and its partner
+  lights up, linking *when* to *what* — so a steadily-climbing energy meter reads differently from
+  a noisy measurement at a glance. The history's value column is **headed by its type**: when the
+  register decodes *on its own* — a single-word mapping (its `uint16 ×0.1`-style type), or the
+  Decode-as override (below) — the column shows the decoded value and the type says so; otherwise
+  it shows the raw register value headed `uint16` (`bool` on bit tables). A multi-word entity can't
+  decode from one register's history, so raw stays. And the **Decode as…** chip on the title line
+  (accent-lit while active) sets ONE global *decode override* for the whole Details view: it opens
+  the **Mapping** tab in a Details-view-only mode — the familiar editor with just the decode fields
+  (type / swap / scale / offset / mask / enum map, single-word, validated by the real schema) —
+  whose **Save**, **Unmap** and **Cancel** all return to Details. Saved, *every* word-table register
+  you select decodes through it — replacing a mapped entity's decode, giving unmapped registers one,
+  its type shown as the column header (bit tables read 0/1 and are left alone) — until **Unmap**
+  drops it: try an interpretation across many registers while reverse-engineering without touching
+  the mapping; the main table's decoded column stays the mapping's truth. Floats in the Details view show with strictly at most 3
   decimal places everywhere — a tiny magnitude reads 0 on screen, never a long tail or
   scientific notation — and **display-only**: the underlying data is never rounded, and
   wherever rounding changed the text, hovering the number shows the exact value. Hover any history cell for a quick

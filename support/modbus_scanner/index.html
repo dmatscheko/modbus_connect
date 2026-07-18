@@ -155,8 +155,8 @@
   .sidepane.on { display:block; }
   .histttl { font-weight:600; margin-bottom:6px; }
   .valblock { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); line-height:1.5; }
-  /* the Details tab's "decode as" override form sits between the value block and the history */
-  .ovrbox:not(:empty) { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); }
+  /* the "Decode as…" chip rides on the Details title line; .chip.on (accent) marks it active */
+  .histttl .chip { margin-left:8px; vertical-align:middle; font-weight:400; }
   .valblock .big { font-size:18px; font-weight:600; color:var(--fg); }
   .valblock .status b { color:var(--fg); font-weight:600; }   /* the hex / int16 values pop like .big */
   .valviews { margin-top:5px; color:var(--muted); font-family:ui-monospace, monospace; font-size:12px;
@@ -272,7 +272,6 @@
       <div class="sidepane" id="paneDetails">
         <div class="histttl"></div>
         <div class="valbox"></div>
-        <div class="ovrbox"></div>
         <div class="histbox"></div>
       </div>
       <div class="sidepane" id="paneMapping">
@@ -516,7 +515,7 @@ const THEAD = `<thead><tr>
   <th title="tick served registers to include them as bare sensors in the generated device file — mapped entities are always included, no tick needed"><input type="checkbox" class="selAll" title="select every served register on this page for the generated YAML — mapped entities are always included, no tick needed"></th>
   <th title="register address, decimal">addr</th>
   <th title="register address, hex">hex</th>
-  <th title="raw value from the last read, decimal (bit tables read 0/1); a read error is shown instead — dead rows offer a ↻ retry">value</th>
+  <th class="valTh" title="raw value from the last read, decimal (bit tables read 0/1); a read error is shown instead — dead rows offer a ↻ retry">value</th>
   <th title="raw value, hex">hex</th>
   <th title="raw value read as a signed 16-bit integer">int16</th>
   <th title="how many reads changed the value (differing from the read before)">Δ changes</th>
@@ -639,6 +638,9 @@ function render(snap) {
   syncImportedOption(snap);
 
   ensureRows(snap.rows);
+  // the value column's header shows the current table's raw register type
+  const rawType = BIT_TABLES.has(snap.config.table) ? 'bool' : 'uint16';
+  document.querySelectorAll('.valTh').forEach(th => th.textContent = rawType);
   snap.rows.forEach((row, i) => {
     const { tr, tds, cb } = rowEntries[i];
     // two independent, always-recomputed marks: ticked-for-YAML (left bar) and THE
@@ -790,7 +792,6 @@ async function refreshHistory() {
     $('side').querySelector('.histttl').textContent = 'no register selected';
     $('side').querySelector('.valbox').innerHTML =
       '<p class="status">click a register row, or move the selection with ↑ / ↓.</p>';
-    $('side').querySelector('.ovrbox').replaceChildren();
     $('side').querySelector('.histbox').replaceChildren();
     return;
   }
@@ -816,8 +817,19 @@ async function refreshHistory() {
 function renderHistory(data, views) {
   const hex = hex4(data.address);
   const name = data.entity ? ` — ${esc(data.entity.name)}` : '';
+  const rt = BIT_TABLES.has(data.table) ? 'bool' : 'uint16';   // the raw register's own type
+  // the "Decode as…" chip rides on the title line (bit tables read 0/1 — no re-decode);
+  // it lights up (.on) while an override is active
+  const chip = BIT_TABLES.has(data.table) ? '' :
+    `<button class="chip${data.override ? ' on' : ''}" id="ovrOpen" title="ONE Details-view-only ` +
+    `decode mapping for every register shown here — override how the value and history decode ` +
+    `(the device mapping stays untouched); opens the Mapping tab, Save / Unmap / Cancel come back">Decode as…</button>`;
   $('side').querySelector('.histttl').innerHTML =
-    `${data.table} ${hex} <span class="status">(#${data.address})${name}</span>`;
+    `${data.table} ${hex} <span class="status">(#${data.address})${name}</span>${chip}`;
+  const ovrBtn = $('ovrOpen');
+  if (ovrBtn) ovrBtn.onclick = () => {   // entering always rebuilds — the stored override may have changed
+    mapPaneMode = 'override'; editorFor = null; sideShow('mapping');
+  };
 
   // --- value view (top): the current value plus the "what type is this?" interpretations ---
   const v = data.value;
@@ -825,19 +837,17 @@ function renderHistory(data, views) {
   if (v == null) {
     valBlock += '<span class="status">Not read yet — no value to interpret.</span>';
   } else {
-    valBlock += `<span class="big">${v}</span> <span class="status">= <b>${hex4(v)}</b> · int16 <b>${int16(v)}</b></span>`;
+    valBlock += `<span class="status">${rt}: <b class="big">${v}</b> · hex: <b>${hex4(v)}</b> · int16: <b>${int16(v)}</b></span>`;
     if (views && views.length)
       valBlock += `<div class="valviews">${views.map(x => {
         // floats arrive FULL precision and are rounded here, display-only — hover for exact
         const flt = x.type.startsWith('float'), shown = flt ? fmtVal(parseFloat(x.value)) : x.value;
         const tip = flt && shown !== x.value ? ` title="${esc(x.value)}"` : '';
-        return `${esc(x.type)} = <b${tip}>${esc(shown)}</b>`;
+        return `${esc(x.type)}: <b${tip}>${esc(shown)}</b>`;
       }).join(' · ')}</div>`;
   }
   valBlock += '</div>';
   $('side').querySelector('.valbox').innerHTML = valBlock;
-
-  renderOvrBox(data);   // the "Decode as…" button + the active override's summary
 
   // --- value history (below): the value (decoded when the register decodes on its own),
   // its change per entry, and Δt — the gap to the PREVIOUS change, so a cadence ("every
@@ -869,15 +879,20 @@ function renderHistory(data, views) {
              `<td class="ht" title="first seen ${relTime(now - e.t)}">${gap}</td>` +
              `<td class="hs">#${e.scan}</td></tr>`;
     }).join('');
-    const decTitle = dec && (dec.source === 'override'
-      ? 'decoded through the Details-view override (Decode as…)' : `decoded through ${esc(dec.name)}`);
+    // the value column's header IS its type: the override (wins), else a single-word mapping's
+    // type, else the raw register type — so you always know what the column shows
+    const colType = dec && dec.source === 'override' ? typeSummary(data.override || {})
+                  : dec && dec.source === 'entity' ? typeSummary(dec.spec || {}) : rt;
+    const colTitle = dec ? (dec.source === 'override'
+      ? 'decoded through the Details-view override (Decode as…)' : `decoded through ${esc(dec.name)}`)
+      : 'the raw register value';
     histBlock =
       `<div class="spark" title="oldest → newest (raw values)">${sparkline(h.map(e => e.value))}</div>` +
       `<div class="status">${h.length} distinct value${h.length > 1 ? 's' : ''}` +
       `${data.changes ? ' · ' + data.changes + ' changes' : ''}` +
-      ` · last ${relTime(now - h[h.length - 1].t)} · newest first</div>` +
+      ` · newest first (${relTime(now - h[h.length - 1].t)})</div>` +
       `<table class="histtable"><thead><tr>` +
-      `<th${dec ? ` title="${decTitle}"` : ''}>${dec ? 'decoded' : 'value'}</th>` +
+      `<th title="${colTitle}"><span class="status">${esc(colType)}</span></th>` +
       `<th title="change in the shown value since the previous entry">Δ</th>` +
       `<th title="time between this change and the previous one — a cadence reads straight down; hover for how long ago">Δt</th>` +
       `<th>scan</th></tr></thead>` +
@@ -900,7 +915,9 @@ function renderHistory(data, views) {
 // it (bit tables read 0/1 and are left alone), never touching the device mapping. The button
 // opens the Mapping tab in override mode (a custom title, decode fields only, the familiar
 // Save / Unmap / Cancel) and all three return here to Details. ---
-function ovrSummary(o) {   // the compact "current override" text next to the button
+// a spec's compact type label (used for the history column header) — the type plus any
+// conversions, the same shape for the Details-view override and a single-word mapping
+function typeSummary(o) {
   const bits = [o.type || 'uint16'];
   if (o.swap) bits.push('swap ' + o.swap);
   if (o.multiplier != null) bits.push('×' + o.multiplier);
@@ -908,17 +925,6 @@ function ovrSummary(o) {   // the compact "current override" text next to the bu
   if (o.mask != null) bits.push('& 0x' + Number(o.mask).toString(16).toUpperCase());
   if (o.map) bits.push(`map(${Object.keys(o.map).length})`);
   return bits.join(' ');
-}
-function renderOvrBox(data) {
-  const box = $('side').querySelector('.ovrbox');
-  if (BIT_TABLES.has(data.table)) { box.replaceChildren(); return; }  // 0/1 reads — the override skips these
-  const cur = data.override ? ` <span class="status">${esc(ovrSummary(data.override))}</span>` : '';
-  box.innerHTML = `<button class="ghost" id="ovrOpen" title="ONE Details-view-only mapping for every ` +
-    `register shown here: override how the value and history decode, whichever register is selected ` +
-    `(the device mapping stays untouched) — Save / Unmap / Cancel all come back to this tab">Decode as…</button>${cur}`;
-  $('ovrOpen').onclick = () => {   // entering always rebuilds — the stored override may have changed
-    mapPaneMode = 'override'; editorFor = null; sideShow('mapping');
-  };
 }
 
 // the Mapping tab's override mode: the same editor look, but only the decode fields — the

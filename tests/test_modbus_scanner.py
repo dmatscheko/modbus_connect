@@ -580,7 +580,8 @@ def test_history_decodes_through_a_single_word_mapping():
     dev.values[0] = 253
     sc.scan()
     h = sc.history("holding", 0)
-    assert h["decode"] == {"source": "entity", "name": "Temp"}
+    assert h["decode"]["source"] == "entity" and h["decode"]["name"] == "Temp"
+    assert h["decode"]["spec"]["multiplier"] == 0.1   # the UI builds its "uint16 x0.1" column label from this
     assert [e["decoded"] for e in h["history"]] == [25.0, 25.3]
     assert [e["value"] for e in h["history"]] == [250, 253]     # the raw words stay alongside
     hw = sc.history("holding", 1)
@@ -613,7 +614,8 @@ def test_history_decode_override_is_global_wins_and_clears():
 
     sc.clear_override()
     h = sc.history("holding", 0)
-    assert h["decode"] == {"source": "entity", "name": "Temp"} and h["override"] is None
+    assert h["decode"]["source"] == "entity" and h["decode"]["name"] == "Temp"
+    assert h["override"] is None
     assert sc.snapshot()["override"] is None
 
     # refused where it cannot work: a multi-word type — nothing changes

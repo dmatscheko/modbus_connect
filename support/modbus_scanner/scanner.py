@@ -882,7 +882,10 @@ class Scanner:
             start = self._starts.get((table, address))
             if start is not None and start.span.end - start.span.start == 1:
                 dec_defn = start
-                decode = {"source": "entity", "name": start.ha.get("name") or start.key}
+                # the raw spec rides along so the UI can label the column with its type
+                # (e.g. "uint16 x0.1") exactly as it does for the override
+                decode = {"source": "entity", "name": start.ha.get("name") or start.key,
+                          "spec": (self.map_doc or {}).get(start.table, {}).get(start.key)}
         if dec_defn is not None:
             for e in entries:
                 raw = [bool(e["value"])] if table in BIT_TABLES else [e["value"]]
