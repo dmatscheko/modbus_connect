@@ -47,7 +47,11 @@
 
   .controls { display:flex; gap:14px; align-items:end; flex-wrap:wrap; margin-bottom:12px; }
   .controls label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
-  .controls label.chk { flex-direction:row; align-items:center; gap:4px; }
+  .controls label.chk { flex-direction:row; align-items:baseline; gap:4px; }
+  /* a zero-width strut with the fit-range buttons' metrics (their 12px text + 3px pad): the
+     label's box then extends below its baseline exactly like #deviceInfo's does, so the row's
+     bottom-alignment puts "additive" and the "mapping … fit range" text on one baseline */
+  .controls label.chk::after { content:'\200B'; padding:3px 0; }
   input, select { background:var(--bg); color:var(--fg); border:1px solid var(--line);
                   border-radius:6px; padding:6px 8px; font:inherit; }
   input[type=number] { width:88px; }
