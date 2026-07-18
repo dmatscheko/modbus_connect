@@ -27,6 +27,13 @@
   body.busy #activity { opacity:1; }
   .burger { background:transparent; border:1px solid var(--line); color:var(--fg);
             border-radius:6px; padding:5px 9px; cursor:pointer; font-size:15px; line-height:1; }
+  /* the view-filter chips: each lit chip ADDS its register set to the view (union);
+     none lit = the plain view of every known register */
+  .chips { display:flex; gap:4px; align-items:center; }
+  .chip { background:transparent; border:1px solid var(--line); color:var(--muted);
+          border-radius:10px; padding:2px 9px; font-size:12px; line-height:1.4; cursor:pointer; }
+  .chip:hover { color:var(--fg); }
+  .chip.on { color:var(--fg); border-color:var(--accent); background:rgba(74,158,255,.14); }
   .pager { display:flex; align-items:center; gap:6px; }
   .pager button { padding:5px 10px; line-height:1; }
   #pageInfo { min-width:74px; text-align:center; font-variant-numeric:tabular-nums; }
@@ -167,18 +174,17 @@
   <span class="status" id="connStatus">○ not connected</span>
   <span class="status">· scan <b id="scanIndex">0</b></span>
   <span id="activity" title="working…">◍</span>
-  <label>show <select id="filter" title="filter the view (paging walks the matches)">
-    <option value="none">all</option>
-    <option value="served">served</option>
-    <option value="mapped">mapped</option>
-    <option value="nonzero">non-zero</option>
-    <option value="changed">changed</option>
-    <option value="mappedchanged">mapped + changed</option>
-    <option value="xray">x-ray</option>
-    <option value="xraychanged">x-ray + changed</option>
-  </select></label>
+  <span class="chips" id="filterChips" title="each lit chip adds its registers to the view (paging walks the union; the find box narrows on top) — with no chip lit every known register shows">
+    <span class="status">show</span>
+    <button class="chip" data-f="served" title="registers the device answers">served</button>
+    <button class="chip" data-f="refused" title="registers the device refuses or gave up on — write-only registers live here">refused</button>
+    <button class="chip" data-f="nonzero" title="served registers with a non-zero value">non-zero</button>
+    <button class="chip" data-f="changed" title="registers whose value moved at least once">changed</button>
+    <button class="chip" data-f="mapped" title="every register the mapping and the additive overlays cover — probed or not, dead or alive">mapped</button>
+    <button class="chip" data-f="xray" title="every register any table maps — and shows sibling-table mappings muted in the cells">x-ray</button>
+  </span>
   <label>find <input type="search" id="search" placeholder="name or 40, 0x28, 10-20"
-    title="show only matching registers, on top of the show filter — comma-separated terms: a mapping-name part (x-ray views search every table's names), an exact address (40 or 0x28), or an address range (10-20); a register matches if any term does"></label>
+    title="show only matching registers, on top of the show chips — comma-separated terms: a mapping-name part (with the x-ray chip lit, every table's names), an exact address (40 or 0x28), or an address range (10-20); a register matches if any term does"></label>
   <span class="pager">
     <button class="ghost" id="pagePrev" title="previous page">◀</button>
     <span class="status" id="pageInfo" title="registers shown">—</span>
@@ -237,7 +243,7 @@
 
     <div class="legend">
       <span>Change heat: <span class="swatch"></span> static → occasional → constant</span>
-      <span>· all shows every register (refused ones greyed, e.g. write-only); the other views show only their matches · flashes brighter on each change</span>
+      <span>· with no show chip lit every known register shows (refused ones greyed, e.g. write-only); each lit chip adds its matches · flashes brighter on each change</span>
     </div>
   </div>
 
@@ -331,11 +337,17 @@ function clampMaxRead() {
   $('maxRead').value = v; $('maxRead').max = cap;
   return v;
 }
+// the view filter: the set of lit chips — each adds its register set to the view (union);
+// empty = the plain view. Server state (config.filter), restored on boot like the rest.
+let viewFilter = new Set();
+const chipEls = () => document.querySelectorAll('#filterChips .chip');
+function syncChips() { chipEls().forEach(b => b.classList.toggle('on', viewFilter.has(b.dataset.f))); }
+function setFilters(list) { viewFilter = new Set(list || []); syncChips(); }
 function cfg() {
   const { start, count } = clampRange();
   // page size = rows shown: Count (the user's choice), in every view — plain or filtered
   return { table: $('table').value, start, count, max_read: clampMaxRead(),
-           filter: $('filter').value, search: $('search').value, page_size: count };
+           filter: [...viewFilter], search: $('search').value, page_size: count };
 }
 const isConnected = () => !!(snapshot && snapshot.connection && snapshot.connection.connected);
 
@@ -1010,7 +1022,7 @@ function setRunning(on) {
 }
 
 // load the current inputs as the shown page — /api/config fills the page (every view is packed),
-// so no extra scan is needed. The auto-page loop calls loadRange directly; Apply / the filter menu /
+// so no extra scan is needed. The auto-page loop calls loadRange directly; Apply / the show chips /
 // a table switch call applyRange, which pauses the live scan around the load so the new view
 // fully populates without the poll contending.
 async function loadRange() {
@@ -1024,7 +1036,7 @@ let bigCountOk = false;   // the user has accepted the slow-scan warning for the
 function confirmBigCount() {
   const count = +$('count').value;
   if (count <= COUNT_WARN) { bigCountOk = false; return true; }   // small again -> re-arm the warning
-  if ($('filter').value !== 'none' || bigCountOk) return true;
+  if (viewFilter.size || bigCountOk) return true;
   if (confirm(`Scanning ${count} registers can take a long time on each pass.\n\nContinue with this range?`)) {
     bigCountOk = true;
     return true;
@@ -1110,7 +1122,12 @@ function commitInterval() {
 ivEl.addEventListener('input', tuneInterval);
 ivEl.addEventListener('change', commitInterval);
 tuneInterval();
-$('filter').onchange = () => { $('start').value = 0; applyRange(); };   // jump to the first match
+chipEls().forEach(b => b.onclick = () => {   // toggle a chip; jump to the first match
+  viewFilter.has(b.dataset.f) ? viewFilter.delete(b.dataset.f) : viewFilter.add(b.dataset.f);
+  syncChips();
+  $('start').value = 0;
+  applyRange();
+});
 // the find box narrows any view; debounced so typing doesn't fire a request per key
 let searchT = null;
 $('search').addEventListener('input', () => {
@@ -1285,7 +1302,7 @@ api('/api/state').then(async snap => {
   // filter, find), the connection settings, the generate stamp, and the picked device file
   $('table').value = snap.config.table; $('start').value = snap.config.start;
   $('count').value = snap.config.count; $('maxRead').value = snap.config.max_read;
-  $('filter').value = snap.config.filter || 'none';
+  setFilters(snap.config.filter);
   $('search').value = snap.config.search || '';
   clampMaxRead();   // set the per-read cap for the loaded table
   fillConnectionFields(snap.connection);

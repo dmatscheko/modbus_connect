@@ -384,7 +384,7 @@ def test_export_restores_connection_and_tuning_but_not_the_view():
     assert restored.page_size == 7   # ...and Count is actually APPLIED (rows per page, every view)
     assert restored.connection["host"] == "10.0.0.60" and restored.connection["device_id"] == 3
     assert restored.connection["timeout"] == 1.5 and restored.connection["retries"] == 2
-    assert restored.table == "holding" and restored.filter == "none"  # the view is left untouched
+    assert restored.table == "holding" and restored.filter == frozenset()  # the view is left untouched
 
     filtered = scanner.Scanner(table="holding", start=0, count=64, max_read=64)
     filtered.reconfigure(table="holding", start=0, count=64, max_read=64, filter_mode="mapped")
@@ -702,7 +702,7 @@ def test_filter_mapped_packs_and_pages():
     sc.reconfigure(table="holding", start=0, count=20, max_read=8, filter_mode="mapped", page_size=2)
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
-    assert snap["config"]["filter"] == "mapped"
+    assert snap["config"]["filter"] == ["mapped"]
     assert [r["address"] for r in snap["rows"]] == [2, 10]
     assert all(r["value"] is not None for r in snap["rows"])   # the page was read
     assert snap["at_start"] is True and snap["at_end"] is False
@@ -752,7 +752,7 @@ def test_filter_changed_shows_only_registers_that_moved():
     sc.reconfigure(table="holding", start=0, count=6, max_read=8, filter_mode="changed", page_size=6)
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
-    assert snap["config"]["filter"] == "changed"
+    assert snap["config"]["filter"] == ["changed"]
     assert [r["address"] for r in snap["rows"]] == [1, 4]
     assert all(r["changes"] >= 1 for r in snap["rows"])
 
@@ -774,7 +774,7 @@ def test_filter_mapped_changed_unions_mapped_and_moved_registers():
     sc.reconfigure(table="holding", start=0, count=6, max_read=8, filter_mode="mappedchanged", page_size=6)
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
-    assert snap["config"]["filter"] == "mappedchanged"
+    assert snap["config"]["filter"] == ["changed", "mapped"]  # the legacy union name maps to the chips
     # union: 2, 3 (mapped) + 4 (moved) + 10 (mapped, even though refused — the set-based view never
     # drops a mapped register); 0, 1, 5 (static and unmapped) are excluded
     assert [r["address"] for r in snap["rows"]] == [2, 3, 4, 10]
@@ -1034,6 +1034,52 @@ def test_additive_overlays_ride_in_exports():
     del state["additional"]
     restored.load_state(state)
     assert restored.additional == []
+
+
+def test_filter_chips_union_any_atom_combination():
+    # the chip model: the filter is a SET of additive atoms — here "everything mapped plus
+    # anything non-zero", a view the old single-value dropdown could not express
+    dev = FakeDevice({1: 5, 3: 0, 8: 9})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=10, max_read=8)
+    sc.set_mapping("holding", 3, {"name": "Mine reads zero", "platform": "sensor"})
+    sc.reconfigure(table="holding", start=0, count=10, max_read=8,
+                   filter_mode=["mapped", "nonzero", "bogus"], page_size=10)  # unknown atoms drop
+    sc.page(forward=True, anchor=0)
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [1, 3, 8]   # non-zero walk plus mapped member
+    assert snap["config"]["filter"] == ["nonzero", "mapped"]   # canonical chip order, no 'bogus'
+
+
+def test_filter_chip_refused_lists_only_dead_registers():
+    # refused as its own atom: the rows the plain view greys, on their own page
+    dev = FakeDevice({0: 1, 2: 3}, illegal={1, 4})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=5, max_read=8)
+    sc.page(forward=True, anchor=0)
+    sc.page(forward=True, anchor=0)                    # second refusal in a row -> dead
+    sc.reconfigure(table="holding", start=0, count=5, max_read=8,
+                   filter_mode=["refused"], page_size=5)
+    sc.page(forward=True, anchor=0)
+    rows = sc.snapshot()["rows"]
+    assert [r["address"] for r in rows] == [1, 4]
+    assert all(r["error"] for r in rows)
+
+
+def test_filter_members_keep_far_known_matches_beyond_the_walk_stop():
+    # a changed register far past a long refused run: the walk stops at the dead run, but the
+    # atom's already-known members still bring it in — a match you have seen is never lost
+    dev = FakeDevice({0: 10, 500: 7}, illegal=set(range(2, 400)))
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=2, max_read=64)
+    sc.page(forward=True, anchor=0)                    # baseline read around 0
+    sc.reconfigure(table="holding", start=500, count=2, max_read=64)
+    sc.page(forward=True, anchor=500)                  # baseline read around 500
+    dev.values[0], dev.values[500] = 11, 8
+    sc.page(forward=True, anchor=500)                  # 500 moves...
+    sc.reconfigure(table="holding", start=0, count=2, max_read=64)
+    sc.page(forward=True, anchor=0)                    # ...and 0 moves
+    sc.reconfigure(table="holding", start=0, count=4, max_read=64,
+                   filter_mode=["changed"], page_size=4)
+    sc.page(forward=True, anchor=0)
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [0, 500]
 
 
 def test_search_finds_overlay_names_on_the_current_table():

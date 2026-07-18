@@ -3,8 +3,8 @@
 
 Point it at a gateway, pick a table + start address, and it rescans on an interval and shows a
 packed page of registers: every known one for the plain view — dead/refused registers included as
-greyed rows (write-only registers refuse reads but exist) — or a filtered subset (``served`` is the
-answers-only view; mapped / non-zero / changed / x-ray narrow further). Registers that *change*
+greyed rows (write-only registers refuse reads but exist) — or the union of the selected filter
+chips (served / refused / non-zero / changed / mapped / x-ray). Registers that *change*
 light up (yellow → red the more/faster they change), making the map legible at a glance:
 fast-changing = live measurements, static = config/identity. Values are remembered per
 (table, address), so their read/change counts and history survive switching table or paging away
@@ -86,14 +86,31 @@ _ILLEGAL_DATA_ADDRESS = 2  # Modbus exception code: "the device does not serve t
 _FILTER_DEAD_RUN = 128
 _FILTER_FILL_CAP = 4096
 
-# The view filters: the scanned views (none / served / non-zero / changed) walk the table for
-# matches; the set-based views window over a known membership set (see Scanner._filter_members).
-# "none" is the plain view: every known register, dead/refused ones included (write-only
-# registers refuse reads but exist); "served" hides the dead ones — a packed page of answers.
-_SET_FILTERS = ("mapped", "mappedchanged", "xray", "xraychanged")
-_FILTERS = ("none", "served", "nonzero", "changed", *_SET_FILTERS)
-_XRAY_FILTERS = ("xray", "xraychanged")
-_CHANGED_UNIONS = ("mappedchanged", "xraychanged")  # the set views that add every moved register
+# The view filter is a SET of additive atoms — the UI's toggle chips. Each selected atom adds
+# its registers to the view (union; the find box still ANDs on top); no atom selected is the
+# plain view: every known register, dead/refused ones included (write-only registers refuse
+# reads but exist). The scan atoms (served / refused / non-zero / changed) walk the table to
+# *discover* matches; every atom also contributes its already-known registers as members (see
+# _filter_members), so a far match is never lost to the walk's dead-run stop — and the set
+# atoms (mapped / x-ray) are members-only, which keeps far or refused mapped registers visible.
+_SCAN_ATOMS = ("served", "refused", "nonzero", "changed")
+_SET_ATOMS = ("mapped", "xray")
+_ATOMS = (*_SCAN_ATOMS, *_SET_ATOMS)   # canonical (serialisation) order
+_SCAN_SET = frozenset(_SCAN_ATOMS)
+# the pre-chip single-value filters, accepted for compatibility (imports/older callers)
+_LEGACY_FILTERS = {"none": (), "served": ("served",), "nonzero": ("nonzero",),
+                   "changed": ("changed",), "mapped": ("mapped",), "xray": ("xray",),
+                   "mappedchanged": ("mapped", "changed"), "xraychanged": ("xray", "changed")}
+
+
+def _parse_filters(value: Any) -> frozenset[str]:
+    """Normalise a filter selection — a list/set of atoms (the chips) or a legacy
+    single-value string — into the atom set; unknown names are dropped."""
+    if isinstance(value, str):
+        value = _LEGACY_FILTERS.get(value, (value,))
+    if not isinstance(value, (list, tuple, set, frozenset)):
+        return frozenset()
+    return frozenset(v for v in value if v in _ATOMS)
 
 # The find box: comma-separated terms, each an exact address ('40' / '0x28'), an address
 # range ('10-20', hex ok), or a case-insensitive mapping-name/key substring. A register
@@ -290,7 +307,8 @@ class Scanner:
         self.table = table
         self.start, self.count = _clamp_range(start, count)
         self.max_read = _clamp_max_read(table, max_read)
-        self.filter = "none"   # registers a page shows — one of _FILTERS ("none" = every known register)
+        self.filter: frozenset[str] = frozenset()   # the selected filter atoms (the UI's chips) —
+        # each adds its registers to the view; empty = the plain view, every known register
         self.search = ""       # the find box: narrows any view further (see _parse_search)
         self._search_terms: list[tuple[Any, ...]] = []
         self.page_size = self.count   # rows per page (the UI keeps this equal to Count, in every view)
@@ -372,13 +390,15 @@ class Scanner:
         self._read, self._close, self.connected = None, None, False
 
     def reconfigure(self, *, table: str, start: int, count: int, max_read: int,
-                    filter_mode: str = "none", page_size: int | None = None,
+                    filter_mode: Any = None, page_size: int | None = None,
                     search: str | None = None) -> None:
         # Keep the per-(table, address) memory so switching table/range and coming back
         # still shows the last values (and marks what changed meanwhile). Clamp the range
         # into the address space so an oversized request can't drive scans past the last register.
+        # ``filter_mode`` is the atom selection — a list of chips, a legacy single-value
+        # string, or None to keep the current one.
         start, count = _clamp_range(start, count)
-        new_filter = filter_mode if filter_mode in _FILTERS else "none"
+        new_filter = self.filter if filter_mode is None else _parse_filters(filter_mode)
         new_search = self.search if search is None else search  # None = keep the current search
         if table != self.table or new_filter != self.filter or new_search != self.search:
             self._clear_page()  # a table/filter/search switch fills a fresh page
@@ -393,8 +413,8 @@ class Scanner:
     def scan(self) -> None:
         """One tick: re-read the current page's registers (membership unchanged) so a live scan
         keeps their values fresh; the first tick fills the page. Every view is a packed page —
-        every known register for the plain view (dead ones included), or a filtered subset (served /
-        mapped / non-zero / changed / their unions / the x-ray projection of every table's mappings)."""
+        every known register for the plain view (dead ones included), or the union of the
+        selected filter atoms (served / refused / non-zero / changed / mapped / x-ray)."""
         if not self.connected or self._read is None:
             self.last_error = "not connected"
             return
@@ -529,11 +549,34 @@ class Scanner:
             self.start = 0
             self.page(forward=True, anchor=0)
 
+    def _walking(self) -> bool:
+        """Whether the page fill scans the address space to *discover* matches: the plain
+        view (no atom selected) always walks, and so does any selected scan atom. The set
+        atoms (mapped / x-ray) are members-only — their registers are known without probing."""
+        return not self.filter or bool(self.filter & _SCAN_SET)
+
+    def _scan_match(self, addr: int) -> bool:
+        """Does this (already recorded) register match the plain view (anything known) or
+        any selected scan atom? The set atoms are handled as members, not here."""
+        cell = self.cells.get((self.table, addr))
+        served = cell is not None and cell.error is None
+        known = cell is not None or (self.table, addr) in self._bad
+        f = self.filter
+        if not f:  # plain view: everything known, dead/refused rows included
+            return known
+        return (("served" in f and served)
+                or ("refused" in f and known and not served)
+                or ("nonzero" in f and served and cell.value != 0)
+                or ("changed" in f and served and bool(cell.changes)))
+
     def _scan_run(self, forward: bool, anchor: int, limit: int) -> list[int]:
-        """Scan in one direction from ``anchor``, returning up to ``limit`` matching addresses,
-        sorted ascending: every *known* register for the plain view (dead/refused ones included —
-        write-only registers refuse reads but exist), or the served / non-zero / changed subset.
-        Stops at the table edge, a long unmatched run (the map ended), or the fill cap."""
+        """Scan in one direction from ``anchor``, returning up to ``limit`` addresses matching
+        the selected scan atoms (see _scan_match), sorted ascending. Stops at the table edge,
+        a long unmatched run, or the fill cap. The unmatched-run stop counts addresses with no
+        evidence of device presence — anything *known* keeps a plain / refused-listing walk
+        alive, anything *served* the other filtered walks — so a served-but-zero stretch never
+        ends a non-zero walk, while a genuinely mapped-out area does."""
+        walk_known = not self.filter or "refused" in self.filter
         matched: list[int] = []
         pos, dead, scanned = anchor, 0, 0
         while len(matched) < limit and scanned < _FILTER_FILL_CAP:
@@ -547,17 +590,13 @@ class Scanner:
             block = range(start, start + count) if forward else reversed(range(start, start + count))
             for a in block:
                 cell = self.cells.get((self.table, a))
-                # the plain view lists everything known: a recorded cell (value or refusal) or a
-                # seeded known-dead address; the filtered views list served registers only
                 known = cell is not None or (self.table, a) in self._bad
                 served = cell is not None and cell.error is None
-                if not (known if self.filter == "none" else served):
+                if not (known if walk_known else served):
                     dead += 1
                     continue
                 dead = 0
-                if self.filter == "nonzero" and cell.value == 0:  # non-zero view also hides served zeros
-                    continue
-                if self.filter == "changed" and not cell.changes:  # changed view: only registers that moved
+                if not self._scan_match(a):
                     continue
                 matched.append(a)
                 if len(matched) >= limit:
@@ -571,11 +610,11 @@ class Scanner:
     def _search_candidates(self) -> list[int]:
         """Every address the active search could match — computable outright, no scanning:
         address and range terms name their addresses; name terms contribute the covered
-        addresses (every table's in the x-ray views, else this table's) whose entity
+        addresses (every table's with the x-ray atom on, else this table's) whose entity
         name/key contains the term. The search fill probes only these candidates, so a
         fresh session finds a far register as fast as an already-scanned one."""
         out: set[int] = set()
-        tables = TABLES if self.filter in _XRAY_FILTERS else (self.table,)
+        tables = TABLES if "xray" in self.filter else (self.table,)
         indexes = [self._covered] + [ov.covered for ov in self.additional]
         for term in self._search_terms:
             if term[0] == "addr":
@@ -591,27 +630,28 @@ class Scanner:
                             out.add(a)
         return sorted(out)
 
+    def _covered_here(self, addr: int) -> bool:
+        """Any layer (the mapping or an additive overlay) covers this current-table address."""
+        return ((self.table, addr) in self._covered
+                or any((self.table, addr) in ov.covered for ov in self.additional))
+
+    def _covered_anywhere(self, addr: int) -> bool:
+        """Any layer covers this address on *any* table — the x-ray atom's membership."""
+        return (any((t, addr) in self._covered for t in TABLES)
+                or any((t, addr) in ov.covered for ov in self.additional for t in TABLES))
+
     def _row_shows(self, addr: int) -> bool:
-        """Whether the current view lists this (already probed) register — the predicate
-        _scan_run applies while walking, restated for the candidate-driven search fill.
-        The set views vetted membership already, so everything passes there. The plain
-        view also counts a *mapped* register as known even with no cell behind it (an
-        imported project may carry the mapping but not that register's reads; offline,
-        a name match must still show its row)."""
-        if self.filter in _SET_FILTERS:
-            return True
-        cell = self.cells.get((self.table, addr))
-        if self.filter == "none":
-            return (cell is not None or (self.table, addr) in self._bad
-                    or (self.table, addr) in self._covered
-                    or any((self.table, addr) in ov.covered for ov in self.additional))
-        if cell is None or cell.error is not None:
-            return False
-        if self.filter == "nonzero":
-            return cell.value != 0
-        if self.filter == "changed":
-            return bool(cell.changes)
-        return True  # served
+        """Whether the current view lists this (already probed) register — the walk's
+        predicate restated for the candidate-driven search fill, extended with the set
+        atoms' membership. The plain view also counts a *mapped* register as known even
+        with no cell behind it (an imported project may carry the mapping but not that
+        register's reads; offline, a name match must still show its row)."""
+        if not self.filter:
+            return (self.cells.get((self.table, addr)) is not None
+                    or (self.table, addr) in self._bad or self._covered_here(addr))
+        return (self._scan_match(addr)
+                or ("mapped" in self.filter and self._covered_here(addr))
+                or ("xray" in self.filter and self._covered_anywhere(addr)))
 
     def _search_run(self, cands: list[int], forward: bool, anchor: int, limit: int) -> list[int]:
         """Probe search candidates from ``anchor`` in one direction and keep those the
@@ -647,12 +687,10 @@ class Scanner:
     def _collect_search_page(self, forward: bool, anchor: int,
                              want: int) -> tuple[list[int], int | None, int | None]:
         """The page fill while a search is active: window over the candidate set instead
-        of walking the address space (set views intersect their membership first), then
-        top up the other way when short at an edge, like the scanned fills do."""
+        of walking the address space (each candidate is probed and kept if any selected
+        atom shows it — _row_shows), then top up the other way when short at an edge,
+        like the scanned fills do."""
         cands = self._search_candidates()
-        if self.filter in _SET_FILTERS:
-            members = self._filter_members()
-            cands = [a for a in cands if a in members]
         if not cands:
             return [], None, None
         page = self._search_run(cands, forward, anchor, want)
@@ -668,37 +706,45 @@ class Scanner:
         return page, nxt, prv
 
     def _filter_members(self) -> set[int]:
-        """Addresses the set-based views select on the current table: the mapped registers
-        (every address any entity occupies, additive overlays included) — for the x-ray
-        views *every* table's mapped addresses, projected onto this table — plus, for the
-        *+ changed* variants, every served register that has moved at least once. A
-        set-based view windows over this *known* set, so (unlike the scanned plain /
-        non-zero / changed views) it never misses a mapped register that sits far away or
-        that the device refuses."""
-        if self.filter in _XRAY_FILTERS:  # a mapping in any table puts its address on this view
-            members = {a for (_t, a) in self._covered}
-            members.update(a for ov in self.additional for (_t, a) in ov.covered)
-        else:
-            members = {a for (t, a) in self._covered if t == self.table}
-            members.update(a for ov in self.additional for (t, a) in ov.covered if t == self.table)
-        if self.filter in _CHANGED_UNIONS:
-            members |= {a for (t, a), cell in self.cells.items()
-                        if t == self.table and cell.error is None and cell.changes}
+        """Every selected atom's already-KNOWN current-table addresses — the page fill
+        unions these with the walk's discoveries (see _collect_page), so a far match (a
+        mapped register beyond a dead run, a changed one seen long ago) is never lost to
+        the walk's stop conditions. ``mapped`` contributes every address any layer's
+        entity occupies, ``xray`` every table's, projected onto this table; the scan
+        atoms contribute their matching recorded cells. The plain view (no atom) needs
+        no members — its walk lists everything known as it goes."""
+        f = self.filter
+        members: set[int] = set()
+        if "mapped" in f or "xray" in f:
+            table = None if "xray" in f else self.table   # None = every table's addresses
+            for index in [self._covered, *(ov.covered for ov in self.additional)]:
+                members.update(a for (t, a) in index if table is None or t == table)
+        if f & _SCAN_SET:
+            for (t, a), cell in self.cells.items():
+                if t != self.table:
+                    continue
+                served = cell.error is None
+                if (("served" in f and served)
+                        or ("refused" in f and not served)
+                        or ("nonzero" in f and served and cell.value != 0)
+                        or ("changed" in f and served and cell.changes)):
+                    members.add(a)
+            if "refused" in f:  # known dead from a device file's hint — never probed, no cell
+                members.update(a for (t, a) in self._bad if t == self.table)
         return members
 
     def _row_read_addrs(self, addr: int) -> set[int]:
-        """The current-table addresses to read for one page row. In the set-based views a
-        locally mapped register expands to its entity's whole span (so split entities still
-        decode); the x-ray views also expand a sibling-table entity's span, since that entity
+        """The current-table addresses to read for one page row. With the mapped / x-ray
+        atoms on, a covered register expands to its entity's whole span (so split entities
+        still decode); x-ray also expands a sibling-table entity's span, since that entity
         is decoded against *this* table's registers — both for the editable mapping and for
         every additive overlay. Everything else is just the address."""
         out = {addr}
-        if self.filter in _SET_FILTERS:
-            xray = self.filter in _XRAY_FILTERS
+        if "mapped" in self.filter or "xray" in self.filter:
             indexes = [self._covered] + [ov.covered for ov in self.additional]
             for index in indexes:
                 defns = [index.get((self.table, addr))]
-                if xray:
+                if "xray" in self.filter:
                     defns.append(index.get((_SIBLING[self.table], addr)))
                 for defn in defns:
                     if defn is not None:
@@ -708,55 +754,67 @@ class Scanner:
     def _collect_page(self, forward: bool, anchor: int) -> tuple[list[int], int | None, int | None]:
         """Collect a full window of page_size registers around ``anchor`` and return (page,
         next_anchor, prev_anchor). Every page is filled to page_size when that many registers
-        exist: it scans the paging direction, and if it comes up short at an edge it slides the
-        window the other way to top it up — so paging never leaves a half-empty screen. The
-        anchors are the next / previous register just beyond the page (None at the true ends, so
-        ▶ / ◀ disable there — no paging past the registers that exist)."""
+        exist: it collects the paging direction, and if it comes up short at an edge it slides
+        the window the other way to top it up — so paging never leaves a half-empty screen.
+        The page is the union of two sources: a scanning walk that *discovers* matches (the
+        plain view and the scan atoms — see _scan_run) and the selected atoms' already-known
+        members (see _filter_members), read afterwards so unprobed mapped registers and split
+        entity spans decode. The anchors are the next / previous register just beyond the page
+        from either source (None at the true ends, so ▶ / ◀ disable there)."""
         want = max(1, self.page_size)
         if self._search_terms:  # the find box ANDs with the view filter (candidate-driven)
             return self._collect_search_page(forward, anchor, want)
-        if self.filter in _SET_FILTERS:
-            # window of `want` addresses over the filter's known set (see _filter_members),
-            # sliding to fill
-            members = sorted(self._filter_members())
-            if not members:
-                return [], None, None
-            if forward:
-                page = [a for a in members if a >= anchor][:want]
-                if len(page) < want:
-                    page = members[-want:]   # near the end -> slide back to keep the window full
-            else:
-                page = [a for a in members if a <= anchor][-want:]
-                if len(page) < want:
-                    page = members[:want]    # near the start -> slide forward
-            spans: set[Span] = set()
-            for a in page:
-                spans |= {Span(self.table, x, 1) for x in self._row_read_addrs(a)}
-            if spans:
-                self._read_spans(spans)      # read whole entity spans so split entities still decode
-            nxt = min((a for a in members if a > page[-1]), default=None)
-            prv = max((a for a in members if a < page[0]), default=None)
-            return page, nxt, prv
+        members = sorted(self._filter_members())
+        walking = self._walking()
+        walked: set[int] = set()
 
-        # scan the paging direction; if short at an edge, slide the window the other way to fill it
-        if forward:
-            page = self._scan_run(True, anchor, want)
-            if 0 < len(page) < want:
-                page = sorted(self._scan_run(False, page[0] - 1, want - len(page)) + page)
-        else:
-            page = self._scan_run(False, anchor, want)
-            if 0 < len(page) < want:
-                page = sorted(page + self._scan_run(True, page[-1] + 1, want - len(page)))
+        def run(fwd: bool, from_: int, need: int) -> list[int]:
+            """One direction's matches: walk discoveries unioned with the known members."""
+            got: set[int] = set()
+            if walking:
+                found = self._scan_run(fwd, from_, need)
+                walked.update(found)
+                got.update(found)
+            if fwd:
+                got.update(a for a in members if a >= from_)
+                return sorted(got)[:need]
+            got.update(a for a in members if a <= from_)
+            return sorted(got)[-need:]
+
+        page = run(forward, anchor, want)
+        if not page and not walking and members:
+            # a members-only view with nothing in the paging direction slides to the far
+            # window (e.g. a table switch landing past everything mapped), never an empty page
+            page = members[-want:] if forward else members[:want]
+        if 0 < len(page) < want:  # short at an edge: slide the window the other way to fill
+            if forward:
+                page = sorted(set(run(False, page[0] - 1, want - len(page))) | set(page))
+            else:
+                page = sorted(set(page) | set(run(True, page[-1] + 1, want - len(page))))
         if not page:
             return [], None, None
-        after = self._scan_run(True, page[-1] + 1, 1)   # a one-register look-ahead each way sets the anchors
-        before = self._scan_run(False, page[0] - 1, 1)
-        return page, (after[0] if after else None), (before[0] if before else None)
+        # read the rows the walk didn't just read — member rows (probing unprobed mapped
+        # registers) and their entity spans — skipping known-dead addresses
+        spans = {Span(self.table, x, 1) for a in page if a not in walked
+                 for x in self._row_read_addrs(a) if (self.table, x) not in self._bad}
+        if spans:
+            self._read_spans(spans)
+        nxt = min((a for a in members if a > page[-1]), default=None)
+        prv = max((a for a in members if a < page[0]), default=None)
+        if walking:  # a one-register look-ahead each way extends the anchors past the page
+            after = self._scan_run(True, page[-1] + 1, 1)
+            before = self._scan_run(False, page[0] - 1, 1)
+            if after:
+                nxt = after[0] if nxt is None else min(nxt, after[0])
+            if before:
+                prv = before[0] if prv is None else max(prv, before[0])
+        return page, nxt, prv
 
     # --- serialisation -------------------------------------------------------
     def config(self) -> dict[str, Any]:
         return {"table": self.table, "start": self.start, "count": self.count,
-                "max_read": self.max_read, "filter": self.filter, "search": self.search}
+                "max_read": self.max_read, "search": self.search,
+                "filter": [a for a in _ATOMS if a in self.filter]}  # chips, canonical order
 
     def _row(self, addr: int) -> dict[str, Any]:
         cell = self.cells.get((self.table, addr))
@@ -773,7 +831,7 @@ class Scanner:
                 row["error"] = "not served"  # known dead (a device file's hint), never probed
         if self.device is not None or self.additional:
             row["entity"] = self._entity_overlay(addr)
-            if self.filter in _XRAY_FILTERS:
+            if "xray" in self.filter:
                 self._xray_overlay(row, addr)
         if self.additional:
             self._additional_overlay(row, addr)
@@ -797,9 +855,9 @@ class Scanner:
     def snapshot(self) -> dict[str, Any]:
         """The current view as rows, for rendering (see full_state for export). Every view is a
         packed page that page() fills and ◀ / ▶ walk: every known register for the plain view —
-        refused/dead ones included (write-only registers refuse reads but exist) — or a filtered
-        subset (served / mapped / non-zero / changed / their unions / the x-ray projection of every
-        table's mappings). The filtered views read past dead registers so the page always fills."""
+        refused/dead ones included (write-only registers refuse reads but exist) — or the union
+        of the selected filter atoms (served / refused / non-zero / changed / mapped / x-ray).
+        The filtered views read past dead registers so the page always fills."""
         base = {"config": self.config(), "scan_index": self.scan_index,
                 "last_error": self.last_error, "device": self.device_summary(),
                 "meta": dict(self.meta),
@@ -1201,15 +1259,15 @@ class Scanner:
 
     def _additional_overlay(self, row: dict[str, Any], addr: int) -> None:
         """The additive overlays' hits at this address, in priority (load) order, as
-        ``amaps``. Outside the x-ray views only the current table's entities appear; the
-        x-ray views treat each overlay exactly like the mapping's own x-ray — its
-        same-width sibling entities decoded against the *current* table's registers, its
+        ``amaps``. Without the x-ray atom only the current table's entities appear; with
+        it each overlay is treated exactly like the mapping's own x-ray — its same-width
+        sibling entities decoded against the *current* table's registers, its
         non-compatible tables' entities named for the hover title (``other``). The UI
         fills a still-empty cell with the first hit — grey, tagged with this register's
         own address (it maps HERE, unlike a sibling projection) — and corners the rest
         after any x-ray entries."""
         sib = _SIBLING[self.table]
-        xray = self.filter in _XRAY_FILTERS
+        xray = "xray" in self.filter
         hits: list[dict[str, Any]] = []
         for overlay in self.additional:
             for t in (self.table, sib) if xray else (self.table,):
@@ -1628,7 +1686,7 @@ class _Handler(BaseHTTPRequestHandler):
                     start=int(body.get("start", self._scanner.start)),
                     count=int(body.get("count", self._scanner.count)),
                     max_read=int(body.get("max_read", self._scanner.max_read)),
-                    filter_mode=str(body.get("filter", self._scanner.filter)),
+                    filter_mode=body.get("filter"),  # a chip list or a legacy string; None keeps
                     page_size=int(body.get("page_size") or self._scanner.page_size),
                     search=str(body.get("search", self._scanner.search)),
                 )

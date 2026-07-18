@@ -59,10 +59,10 @@ address space a screen at a time.
 Tick **auto-page** and each scan steps to the *next* page on its own, wrapping back to the first at the
 end of the table — so you can leave a scan running unattended and come back to a change map of the whole
 table. Tick **＋ tables** as well and it carries on into the next table when one is done, cycling
-holding → input → coil → discrete forever. (A wider **Count** sweeps faster; a **show** filter keeps the
-sweep to just its matched registers — pick **served** for an unattended walk, since `all` pages through
-the entire address space, dead registers included. A **Count** over 2000 asks for confirmation first — a
-full unfiltered pass of that many registers is slow.)
+holding → input → coil → discrete forever. (A wider **Count** sweeps faster; a lit **show** chip keeps
+the sweep to just its matched registers — light **served** for an unattended walk, since the plain
+no-chip view pages through the entire address space, dead registers included. A **Count** over 2000
+asks for confirmation first — a full unfiltered pass of that many registers is slow.)
 
 ## What you see
 
@@ -70,12 +70,13 @@ full unfiltered pass of that many registers is slow.)
   the redder it stays (and it flashes brighter on each change), so fast-changing
   live measurements stand out from static config/identity registers at a glance.
   The `rate` column is the share of that register's own reads in which it changed.
-- **Dead registers stay visible** — `all` lists every known register, the refused ones included as
-  greyed "not served" rows (write-only registers refuse every read, but they exist — and a device
-  file's `bad_addresses:` show up the same way). A refused address (Modbus illegal-data-address) is
+- **Dead registers stay visible** — the plain view lists every known register, the refused ones
+  included as greyed "not served" rows (write-only registers refuse every read, but they exist —
+  and a device file's `bad_addresses:` show up the same way); the **refused** chip shows exactly
+  those rows on their own. A refused address (Modbus illegal-data-address) is
   retried once, then — after a **second** refusal in a row — given up on: dropped from the read plan
   for good; it stays *listed*, just never re-probed — each dead row has a small **↻** button to probe
-  exactly that one register again (**Clear all** re-arms them all at once). The **served** view
+  exactly that one register again (**Clear all** re-arms them all at once). The **served** chip
   hides the dead ones instead — a **packed page** of only the registers the device answers, reading
   past the refused ones so the page always fills. Every view fills its page: **◀ / ▶** page through
   the matches and stop at the real ends, and near an edge the window slides the other way to top up
@@ -84,28 +85,32 @@ full unfiltered pass of that many registers is slow.)
   read/change counts and history survive switching table or paging away and back (and rescanning
   then flags anything that moved while you were elsewhere). Switching tables keeps your view
   **position** too, falling back to the first page when the switched-to table serves nothing there.
-- **Filter the view** — the **show** menu narrows the page: **served**, only the registers the
-  device answers (`all` minus the dead rows); just the *mapped* registers; just the
-  *non-zero* ones; just the ones that have *changed* at least once (registers that moved between reads,
-  once a sweep or two has run); or **mapped + changed**, the union of the two — everything you've mapped
-  plus every register that's moving, a handy working set while you build the file. **x-ray** shows every
-  register that *any* table maps: a same-width sibling's mapping (holding ↔ input, coil ↔ discrete)
-  appears muted as if it were mapped here — decoded against *this* table's registers — and as a tiny
-  top-right corner tag when the register also has its own mapping; the non-compatible tables' mappings
-  show on hover. An unmapped register showing a sibling mapping also gets a small **⧉ copy** button —
-  one click copies that mapping onto this table at this address (renamed with a table suffix, since
-  display names must stay unique). Handy for spotting — and fixing — entities written against the
-  wrong table. **x-ray + changed** adds every register that moved. **Count** sets how many rows a page
-  shows in every view — `all` packs that many known registers, a filter that many matches. The scanned
-  views (*served* / *non-zero* / *changed*) read forward or back as far as needed to fill the screen
-  and stop where the device's map ends (`all` pages the whole address space); the *mapped* / *x-ray*
-  views list a known set, so a mapped register is never missed — even one that sits far off or that
-  the device refuses. The **find** box narrows any view further: comma-separated terms, each a
-  mapping-name part (`heat`), an exact address (`40`, `0x28`), or an address range (`10-20`) — a
-  register shows if *any* term matches, on top of the selected filter. Name terms search this
-  table's mappings (in the x-ray views: *every* table's), and the fill probes only the matching
-  candidates — a fresh or imported session finds a far register without scanning up to it. A fast way to find what
-  matters in a big address space.
+- **Filter the view** — the **show** chips. Each chip is an additive toggle: a lit chip *adds* its
+  register set to the page, and the view is the union of everything lit — any combination, one
+  click each. **No chip lit is the plain view**: every known register, dead/refused rows included
+  (write-only registers refuse reads but exist). The six chips: **served**, the registers the
+  device answers; **refused**, the ones it refuses or that were given up on; **non-zero**, served
+  registers with a non-zero value; **changed**, registers that moved at least once (once a sweep
+  or two has run); **mapped**, everything the mapping — and any additive overlays — covers, probed
+  or not, dead or alive; **x-ray**, every register that *any* table maps: a same-width sibling's
+  mapping (holding ↔ input, coil ↔ discrete) appears muted as if it were mapped here — decoded
+  against *this* table's registers — and as a tiny top-right corner tag when the register also has
+  its own mapping; the non-compatible tables' mappings show on hover. An unmapped register showing
+  a sibling mapping also gets a small **⧉ copy** button — one click copies that mapping onto this
+  table at this address (renamed with a table suffix, since display names must stay unique). Handy
+  for spotting — and fixing — entities written against the wrong table. Classic combinations are
+  just chips: the old *mapped + changed* is `mapped` + `changed`; new ones like `mapped` +
+  `non-zero` (your mapping plus anything alive it misses) come for free. **Count** sets how many
+  rows a page shows in every view. Under the hood a page fill unions two sources: the scan chips
+  *walk* the address space to discover matches (stopping where the device's map ends; the plain
+  view pages the whole address space), while `mapped` / `x-ray` — and every chip's already-known
+  matches — arrive as a *known set*, so a mapped register far off or refused, or a changed one you
+  saw long ago beyond a dead stretch, is never missed. The **find** box narrows any view further:
+  comma-separated terms, each a mapping-name part (`heat`), an exact address (`40`, `0x28`), or an
+  address range (`10-20`) — a register shows if *any* term matches, on top of the lit chips. Name
+  terms search this table's mappings (with `x-ray` lit: *every* table's), and the fill probes only
+  the matching candidates — a fresh or imported session finds a far register without scanning up
+  to it. A fast way to find what matters in a big address space.
 - **The Details tab** — click **any** of a register's data cells (address, value, hex, int16,
   Δ, rate) to open the side panel on **Details**. At the **top**, the "what type is this?" helper:
   the current value plus the uint/int/float/string interpretations of that register and the next few
@@ -142,8 +147,8 @@ Two mistakes stand out while you work (or when testing a loaded file):
 - a register the device **serves but nothing maps** → an amber `unmapped` badge (a gap to fill),
   right there in the plain view;
 - a register a mapping points at but the device **refuses** → a red `refused ✕` badge (a wrong
-  address — or a write-only register, which is fine). These show right in the `all` view; the
-  *mapped* / *x-ray* views also list every mapped entity, dead addresses included (a multi-register
+  address — or a write-only register, which is fine). These show right in the plain view; the
+  `mapped` / `x-ray` chips also list every mapped entity, dead addresses included (a multi-register
   entity keeps all its `↑` rows), so a mapping never disappears just because its register won't read.
 
 ### Load a device file
@@ -165,10 +170,10 @@ spot registers a sibling model documents that your file doesn't. Overlays rank b
 the current table: on a register nothing else maps, the overlay's entity fills the cell greyed,
 tagged with the register's own address in plain text (it maps *here*, unlike a muted x-ray table
 tag) and a **⧉ copy** that adopts it into your mapping; on an already-mapped register it joins
-the tiny top-right corner tag, after any x-ray entries. In the x-ray views each overlay projects
-exactly like the mapping's own x-ray (sibling-table entities decoded against the current table's
-registers), and the *mapped* / *x-ray* views and name search cover overlay registers too — so an
-overlay-only register is never missed. Overlays stay out of everything the mapping owns: the
+the tiny top-right corner tag, after any x-ray entries. With the `x-ray` chip lit each overlay
+projects exactly like the mapping's own x-ray (sibling-table entities decoded against the current
+table's registers), and the `mapped` / `x-ray` chips and name search cover overlay registers too —
+so an overlay-only register is never missed. Overlays stay out of everything the mapping owns: the
 generated file, the Manufacturer/Model stamp, and the dead-register seeding (`bad_addresses` of
 another model may be alive here). They ride along in **Export**/**Import**; re-loading the same
 file refreshes its overlay in place. Only **— none —** (or **Clear all**) drops them; a plain
