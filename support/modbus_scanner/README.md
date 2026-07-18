@@ -158,6 +158,22 @@ edits included — so you can switch to a bundled file (or none) and back to it 
 the scan to exactly what it maps on each table, and the file's `bad_addresses:` list is applied
 up front, so registers you already know are dead are skipped instead of re-probed.
 
+With the **additive** checkbox ticked, loading a further file *keeps* the current mapping and
+stacks the new one underneath as a read-only **comparison overlay** — compare device models, or
+spot registers a sibling model documents that your file doesn't. Overlays rank below the mapping
+(and below earlier overlays — load order is priority order) and show like the x-ray does, but for
+the current table: on a register nothing else maps, the overlay's entity fills the cell greyed,
+tagged with the register's own address in plain text (it maps *here*, unlike a muted x-ray table
+tag) and a **⧉ copy** that adopts it into your mapping; on an already-mapped register it joins
+the tiny top-right corner tag, after any x-ray entries. In the x-ray views each overlay projects
+exactly like the mapping's own x-ray (sibling-table entities decoded against the current table's
+registers), and the *mapped* / *x-ray* views and name search cover overlay registers too — so an
+overlay-only register is never missed. Overlays stay out of everything the mapping owns: the
+generated file, the Manufacturer/Model stamp, and the dead-register seeding (`bad_addresses` of
+another model may be alive here). They ride along in **Export**/**Import**; re-loading the same
+file refreshes its overlay in place. Only **— none —** (or **Clear all**) drops them; a plain
+(non-additive) load replaces mapping and overlays alike.
+
 ## Export · import · generate
 
 - **Export / Import** — save the whole **project** to JSON and reload it later to pick up where you

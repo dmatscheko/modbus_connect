@@ -15,7 +15,10 @@ From there you build a device file interactively: click an unmapped register to 
 mapping is validated by the integration's own ``schema`` the moment you make it and
 decoded by its ``codec`` (so the overlay is exactly what the running integration would
 show), and every mapping is included when you generate the device-file skeleton. You can
-also load an existing device file to test/adjust it — it becomes the editable mapping.
+also load an existing device file to test/adjust it — it becomes the editable mapping —
+and, with the UI's *additive* checkbox, stack further files under it as read-only
+comparison overlays (grey in the UI), e.g. a sibling model's file to spot what it
+documents that yours doesn't.
 
 Unlike the standalone ``support/modbus_cli.py`` (which imports nothing, to stay copyable),
 this tool **reuses the integration's own code** so its verdicts match runtime exactly:
@@ -225,6 +228,32 @@ class Cell:
     history: list[dict[str, Any]] = field(default_factory=list)
 
 
+def _index_entities(device: DeviceDef) -> tuple[dict[tuple[str, int], EntityDef],
+                                                dict[tuple[str, int], EntityDef]]:
+    """Index a parsed device's entities: by their first (table, address), and by every
+    (table, address) any of them occupies — the mapping's and each overlay's lookups."""
+    starts: dict[tuple[str, int], EntityDef] = {}
+    covered: dict[tuple[str, int], EntityDef] = {}
+    for e in device.entities:
+        starts[(e.table, e.address)] = e
+        for a in range(e.span.start, e.span.end):
+            covered[(e.table, a)] = e
+    return starts, covered
+
+
+@dataclass
+class Overlay:
+    """An additively loaded device file: a read-only comparison layer *under* the editable
+    mapping (and under earlier overlays — load order is priority order). Its entities fill
+    only where nothing higher-priority maps (the UI greys them), so loading a sibling
+    model's file shows what *it* documents without touching your work."""
+    name: str
+    doc: dict[str, Any]
+    device: DeviceDef
+    starts: dict[tuple[str, int], EntityDef]
+    covered: dict[tuple[str, int], EntityDef]
+
+
 def _clamp_range(start: int, count: int) -> tuple[int, int]:
     """Clamp a [start, count) range into the Modbus 16-bit address space (registers
     0..65535), so start+count never runs past the last address."""
@@ -288,6 +317,10 @@ class Scanner:
         # none) and back without losing it. Kept in sync with edits while it is the active
         # mapping; only Clear all forgets it.
         self.imported: dict[str, Any] | None = None
+        # Additively loaded device files (the UI's "additive" checkbox): read-only comparison
+        # overlays under the editable mapping, in load order (earlier = higher priority).
+        # A plain (non-additive) load replaces them; — none — / Clear all drop them.
+        self.additional: list[Overlay] = []
         self._starts: dict[tuple[str, int], EntityDef] = {}   # entity's first address
         self._covered: dict[tuple[str, int], EntityDef] = {}  # every address any entity occupies
         # The current filtered page: its matched addresses, and where paging continues in
@@ -543,6 +576,7 @@ class Scanner:
         fresh session finds a far register as fast as an already-scanned one."""
         out: set[int] = set()
         tables = TABLES if self.filter in _XRAY_FILTERS else (self.table,)
+        indexes = [self._covered] + [ov.covered for ov in self.additional]
         for term in self._search_terms:
             if term[0] == "addr":
                 if 0 <= term[1] <= 0xFFFF:
@@ -550,10 +584,11 @@ class Scanner:
             elif term[0] == "range":
                 out.update(range(max(0, term[1]), min(term[2], 0xFFFF) + 1))
             else:
-                for (t, a), defn in self._covered.items():
-                    if t in tables and (term[1] in (defn.ha.get("name") or "").casefold()
-                                        or term[1] in defn.key.casefold()):
-                        out.add(a)
+                for index in indexes:
+                    for (t, a), defn in index.items():
+                        if t in tables and (term[1] in (defn.ha.get("name") or "").casefold()
+                                            or term[1] in defn.key.casefold()):
+                            out.add(a)
         return sorted(out)
 
     def _row_shows(self, addr: int) -> bool:
@@ -568,7 +603,8 @@ class Scanner:
         cell = self.cells.get((self.table, addr))
         if self.filter == "none":
             return (cell is not None or (self.table, addr) in self._bad
-                    or (self.table, addr) in self._covered)
+                    or (self.table, addr) in self._covered
+                    or any((self.table, addr) in ov.covered for ov in self.additional))
         if cell is None or cell.error is not None:
             return False
         if self.filter == "nonzero":
@@ -633,15 +669,18 @@ class Scanner:
 
     def _filter_members(self) -> set[int]:
         """Addresses the set-based views select on the current table: the mapped registers
-        (every address any entity occupies) — for the x-ray views *every* table's mapped
-        addresses, projected onto this table — plus, for the *+ changed* variants, every
-        served register that has moved at least once. A set-based view windows over this
-        *known* set, so (unlike the scanned plain / non-zero / changed views) it never misses
-        a mapped register that sits far away or that the device refuses."""
+        (every address any entity occupies, additive overlays included) — for the x-ray
+        views *every* table's mapped addresses, projected onto this table — plus, for the
+        *+ changed* variants, every served register that has moved at least once. A
+        set-based view windows over this *known* set, so (unlike the scanned plain /
+        non-zero / changed views) it never misses a mapped register that sits far away or
+        that the device refuses."""
         if self.filter in _XRAY_FILTERS:  # a mapping in any table puts its address on this view
             members = {a for (_t, a) in self._covered}
+            members.update(a for ov in self.additional for (_t, a) in ov.covered)
         else:
             members = {a for (t, a) in self._covered if t == self.table}
+            members.update(a for ov in self.additional for (t, a) in ov.covered if t == self.table)
         if self.filter in _CHANGED_UNIONS:
             members |= {a for (t, a), cell in self.cells.items()
                         if t == self.table and cell.error is None and cell.changes}
@@ -651,15 +690,19 @@ class Scanner:
         """The current-table addresses to read for one page row. In the set-based views a
         locally mapped register expands to its entity's whole span (so split entities still
         decode); the x-ray views also expand a sibling-table entity's span, since that entity
-        is decoded against *this* table's registers. Everything else is just the address."""
+        is decoded against *this* table's registers — both for the editable mapping and for
+        every additive overlay. Everything else is just the address."""
         out = {addr}
         if self.filter in _SET_FILTERS:
-            defns = [self._covered.get((self.table, addr))]
-            if self.filter in _XRAY_FILTERS:
-                defns.append(self._covered.get((_SIBLING[self.table], addr)))
-            for defn in defns:
-                if defn is not None:
-                    out.update(range(defn.span.start, defn.span.end))
+            xray = self.filter in _XRAY_FILTERS
+            indexes = [self._covered] + [ov.covered for ov in self.additional]
+            for index in indexes:
+                defns = [index.get((self.table, addr))]
+                if xray:
+                    defns.append(index.get((_SIBLING[self.table], addr)))
+                for defn in defns:
+                    if defn is not None:
+                        out.update(range(defn.span.start, defn.span.end))
         return out
 
     def _collect_page(self, forward: bool, anchor: int) -> tuple[list[int], int | None, int | None]:
@@ -728,10 +771,12 @@ class Scanner:
             row["dead"] = True  # given up on (skipped from reads) — the UI offers a ↻ retry
             if row["error"] is None:
                 row["error"] = "not served"  # known dead (a device file's hint), never probed
-        if self.device is not None:
+        if self.device is not None or self.additional:
             row["entity"] = self._entity_overlay(addr)
             if self.filter in _XRAY_FILTERS:
                 self._xray_overlay(row, addr)
+        if self.additional:
+            self._additional_overlay(row, addr)
         return row
 
     def history(self, table: str, address: int) -> dict[str, Any]:
@@ -759,6 +804,8 @@ class Scanner:
                 "last_error": self.last_error, "device": self.device_summary(),
                 "meta": dict(self.meta),
                 "imported": dict(self.imported["meta"]) if self.imported else None,
+                "additional": [{"name": ov.name, "manufacturer": ov.device.manufacturer,
+                                "model": ov.device.model} for ov in self.additional],
                 "connection": {**self.connection, "connected": self.connected,
                                "error": self.conn_error}}
         return {**base, "rows": [self._row(a) for a in self._page_addrs],
@@ -768,9 +815,9 @@ class Scanner:
 
     def full_state(self) -> dict[str, Any]:
         """Everything worth saving as a *project*: every remembered cell (all tables), the mapping,
-        the connection, and just the Count / Per-read tuning — NOT the table, view position, or
-        filter (those are per-session, so an import doesn't yank you off what you're looking at).
-        Round-trips through load_state."""
+        any additive overlays, the connection, and just the Count / Per-read tuning — NOT the
+        table, view position, or filter (those are per-session, so an import doesn't yank you off
+        what you're looking at). Round-trips through load_state."""
         cells = [
             {"table": table, "address": cell.address, "value": cell.value,
              "changes": cell.changes, "reads": cell.reads, "last_changed": cell.last_changed,
@@ -779,7 +826,9 @@ class Scanner:
         ]
         return {"config": {"count": self.count, "max_read": self.max_read},
                 "connection": dict(self.connection), "scan_index": self.scan_index,
-                "meta": dict(self.meta), "mapping": self.map_doc, "cells": cells}
+                "meta": dict(self.meta), "mapping": self.map_doc,
+                "additional": [{"name": ov.name, "mapping": ov.doc} for ov in self.additional],
+                "cells": cells}
 
     def load_state(self, data: dict[str, Any]) -> None:
         cfg = data.get("config", {})
@@ -827,6 +876,17 @@ class Scanner:
                 self.last_error = f"imported mapping could not be parsed: {' '.join(str(exc).split())}"
         else:
             self.clear_device()
+        # additive overlays ride in exports too; one that no longer parses is dropped, but said so
+        self.additional = []
+        for item in data.get("additional") or []:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name") or "overlay.yaml")
+            try:
+                self._add_overlay(name, _restore_int_keys(item["mapping"]))
+            except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError, TypeError) as exc:
+                self.last_error = (f"additional mapping {name} could not be parsed: "
+                                   f"{' '.join(str(exc).split())}")
         meta = data.get("meta")
         if isinstance(meta, dict):
             self.set_meta(meta.get("manufacturer"), meta.get("model"))
@@ -845,12 +905,17 @@ class Scanner:
         return generate_device_yaml(self, manufacturer, model, addresses)
 
     # --- editable mapping (a device-file document) ---------------------------
-    def load_device(self, yaml_text: str, name: str) -> dict[str, Any] | None:
-        """Load a device file as the editable mapping, replacing any current one.
-        Raises DeviceSchemaError / yaml.YAMLError on a bad file (the old mapping is kept)."""
+    def load_device(self, yaml_text: str, name: str, *, additive: bool = False) -> dict[str, Any] | None:
+        """Load a device file as the editable mapping, replacing any current one — or, with
+        ``additive`` while anything is loaded, keep everything and stack the file underneath
+        as a read-only comparison overlay (with nothing loaded yet, additive is a plain load).
+        Raises DeviceSchemaError / yaml.YAMLError on a bad file (the current state is kept)."""
         doc = yaml.safe_load(yaml_text)
         if not isinstance(doc, dict):
             raise DeviceSchemaError("device file must be a YAML mapping")
+        if additive and (self.device is not None or self.additional):
+            self._add_overlay(name, doc)
+            return self.device_summary()
         prev, prev_name = self.map_doc, self.device_name
         self.map_doc, self.device_name = doc, name
         try:
@@ -859,9 +924,23 @@ class Scanner:
             self.map_doc, self.device_name = prev, prev_name
             self._reindex()
             raise
+        self.additional = []  # a plain load replaces the comparison overlays too
         if self.device is not None:  # seed the generate stamp from the file (editable after)
             self.set_meta(self.device.manufacturer, self.device.model)
         return self.device_summary()
+
+    def _add_overlay(self, name: str, doc: dict[str, Any]) -> None:
+        """Parse and slot in an additive overlay: re-loading a name refreshes it in place
+        (same priority), a new name joins at the end (lowest priority). Deliberately NOT
+        applied from an overlay: the generate stamp (it stays the editable mapping's) and
+        the file's bad_addresses — another model's dead registers may be alive here."""
+        device = parse_device(doc, name)  # raises on a bad file; nothing touched yet
+        overlay = Overlay(name, doc, device, *_index_entities(device))
+        for i, present in enumerate(self.additional):
+            if present.name == name:
+                self.additional[i] = overlay
+                return
+        self.additional.append(overlay)
 
     def set_meta(self, manufacturer: Any, model: Any) -> None:
         """The manufacturer/model the UI shows and a generated file gets stamped with."""
@@ -875,11 +954,15 @@ class Scanner:
         if self.device_name == "imported.yaml" and self.imported is not None:
             self.imported = {"mapping": copy.deepcopy(self.map_doc), "meta": dict(self.meta)}
 
-    def load_imported(self) -> dict[str, Any] | None:
+    def load_imported(self, *, additive: bool = False) -> dict[str, Any] | None:
         """Re-activate the remembered imported mapping (the dropdown's 'imported' entry),
-        with the stamp it carried; raises when nothing was imported this session."""
+        with the stamp it carried — or, with ``additive`` while anything is loaded, stack
+        it underneath as an overlay; raises when nothing was imported this session."""
         if not self.imported:
             raise DeviceSchemaError("no imported mapping to switch back to")
+        if additive and (self.device is not None or self.additional):
+            self._add_overlay("imported.yaml", copy.deepcopy(self.imported["mapping"]))
+            return self.device_summary()
         prev, prev_name = self.map_doc, self.device_name
         self.map_doc, self.device_name = copy.deepcopy(self.imported["mapping"]), "imported.yaml"
         try:
@@ -888,6 +971,7 @@ class Scanner:
             self.map_doc, self.device_name = prev, prev_name
             self._reindex()
             raise
+        self.additional = []  # a plain load replaces the comparison overlays too
         self.set_meta(self.imported["meta"].get("manufacturer"), self.imported["meta"].get("model"))
         return self.device_summary()
 
@@ -957,6 +1041,54 @@ class Scanner:
         self._sync_imported()
         return self.device_summary()
 
+    def adopt_mapping(self, table: str, address: int) -> dict[str, Any] | None:
+        """Copy an additive overlay's entity that starts at ``address`` on ``table`` into
+        the editable mapping — the overlays' twin of copy_mapping (the grey cells' ⧉).
+        The first overlay (in priority order) with an entity starting there provides the
+        raw spec; the copy keeps its display name unless that name is taken (then it gets
+        a numbered suffix, since the schema refuses duplicates), and is validated like any
+        edit, restoring the previous mapping on failure."""
+        if table not in TABLES:
+            raise DeviceSchemaError(f"unknown table {table!r}")
+        src = spec = None
+        for overlay in self.additional:
+            src = overlay.starts.get((table, address))
+            if src is not None:
+                spec = copy.deepcopy(overlay.doc.get(table, {}).get(src.key))
+                break
+        if src is None:
+            raise DeviceSchemaError(f"no additional mapping starts at {table} address {address}")
+        if not isinstance(spec, dict):  # defensive: the indexes always mirror the doc
+            raise DeviceSchemaError(f"no raw mapping for {table} address {address}")
+        if any((table, a) in self._covered for a in range(src.span.start, src.span.end)):
+            raise DeviceSchemaError(
+                f"{table} already maps a register in {src.span.start}..{src.span.end - 1}")
+        prev = copy.deepcopy(self.map_doc)
+        doc: dict[str, Any] = copy.deepcopy(self.map_doc) if self.map_doc else {
+            "device": {"manufacturer": self.meta["manufacturer"] or "TODO",
+                       "model": self.meta["model"] or "TODO"}}
+        # taken display names, exactly as the schema's uniqueness rule computes them
+        used = (list(self.device.entities) + list(getattr(self.device, "templates", ()) or ())
+                if self.device is not None else [])
+        names = {i.ha.get("name") or derive_name(i.key) for i in used}
+        base = (spec.get("ha") or {}).get("name") or derive_name(src.key)
+        if base in names:
+            name, n = f"{base} (2)", 3
+            while name in names:
+                name, n = f"{base} ({n})", n + 1
+            spec.setdefault("ha", {})["name"] = name
+        spec["address"] = address
+        doc.setdefault(table, {})[_unique_key(doc, table, address)] = spec
+        self.map_doc = doc
+        try:
+            self._reindex()
+        except (DeviceSchemaError, yaml.YAMLError, ValueError) as exc:
+            self.map_doc = prev
+            self._reindex()
+            raise DeviceSchemaError(" ".join(str(exc).split())) from exc
+        self._sync_imported()
+        return self.device_summary()
+
     def remove_mapping(self, table: str, address: int) -> dict[str, Any] | None:
         """Unmap the entity that starts at ``address`` on ``table``."""
         if not self.map_doc:
@@ -979,12 +1111,18 @@ class Scanner:
         self.map_doc, self.device, self.device_name = None, None, ""
         self._starts, self._covered = {}, {}
 
+    def clear_devices(self) -> None:
+        """The dropdown's — none —: drop the editable mapping AND every additive overlay
+        (everything mapping-shaped), keeping the stats, history and the dead list."""
+        self.clear_device()
+        self.additional = []
+
     def clear_all(self) -> None:
         """Start over: drop the mapping, every table's per-register stats and value history,
         and the given-up-on (dead) register list. This is the *only* thing that wipes the stats
         and the dead list — a reconnect keeps them — so it's also how you re-probe registers you
         earlier marked dead (they stay skipped for good until cleared here)."""
-        self.clear_device()
+        self.clear_devices()
         self.cells.clear()
         self._bad.clear()
         self._misses.clear()
@@ -1006,10 +1144,7 @@ class Scanner:
         # + hidden), so loading a project you were working on doesn't re-probe what you already know
         # the device refuses. Newly-found dead ones join _bad and are written back on generate.
         self._bad |= device.bad_addresses
-        for e in device.entities:
-            self._starts[(e.table, e.address)] = e
-            for a in range(e.span.start, e.span.end):
-                self._covered[(e.table, a)] = e
+        self._starts, self._covered = _index_entities(device)
 
     def device_summary(self) -> dict[str, Any] | None:
         if self.device is None:
@@ -1063,6 +1198,41 @@ class Scanner:
                   and (d := self._covered.get((t, addr))) is not None]
         if others:
             row["xother"] = others
+
+    def _additional_overlay(self, row: dict[str, Any], addr: int) -> None:
+        """The additive overlays' hits at this address, in priority (load) order, as
+        ``amaps``. Outside the x-ray views only the current table's entities appear; the
+        x-ray views treat each overlay exactly like the mapping's own x-ray — its
+        same-width sibling entities decoded against the *current* table's registers, its
+        non-compatible tables' entities named for the hover title (``other``). The UI
+        fills a still-empty cell with the first hit — grey, tagged with this register's
+        own address (it maps HERE, unlike a sibling projection) — and corners the rest
+        after any x-ray entries."""
+        sib = _SIBLING[self.table]
+        xray = self.filter in _XRAY_FILTERS
+        hits: list[dict[str, Any]] = []
+        for overlay in self.additional:
+            for t in (self.table, sib) if xray else (self.table,):
+                start = overlay.starts.get((t, addr))
+                if start is not None:
+                    decoded, err = self._decode_entity(start, value_table=self.table)
+                    hits.append({"src": overlay.name, "table": t,
+                                 "name": start.ha.get("name") or start.key,
+                                 "type": start.type, "count": start.count,
+                                 "decoded": _jsonable(decoded), "decode_error": err})
+                    continue
+                cover = overlay.covered.get((t, addr))
+                if cover is not None:
+                    hits.append({"src": overlay.name, "table": t, "continuation": True,
+                                 "name": cover.ha.get("name") or cover.key})
+            if xray:
+                hits.extend({"src": overlay.name, "table": t, "other": True,
+                             "name": d.ha.get("name") or d.key}
+                            for t in TABLES
+                            if t not in (self.table, sib)
+                            and (d := overlay.covered.get((t, addr))) is not None)
+        if hits:
+            row["amaps"] = hits
 
     def _decode_entity(self, defn: EntityDef, value_table: str | None = None) -> tuple[Any, str | None]:
         """Decode an entity through the integration's codec from the scanned raw words
@@ -1498,7 +1668,7 @@ class _Handler(BaseHTTPRequestHandler):
                     return
                 self._scanner.open_page()  # fill the page (offline too), recovering if the saved start is too high
                 self._json(self._scanner.snapshot())
-            elif self.path in ("/api/map", "/api/unmap", "/api/copymap"):
+            elif self.path in ("/api/map", "/api/unmap", "/api/copymap", "/api/adopt"):
                 try:
                     table = str(body.get("table", self._scanner.table))
                     address = int(body["address"])
@@ -1506,6 +1676,8 @@ class _Handler(BaseHTTPRequestHandler):
                         self._scanner.set_mapping(table, address, body)
                     elif self.path == "/api/copymap":
                         self._scanner.copy_mapping(table, address)
+                    elif self.path == "/api/adopt":
+                        self._scanner.adopt_mapping(table, address)
                     else:
                         self._scanner.remove_mapping(table, address)
                 except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
@@ -1514,23 +1686,26 @@ class _Handler(BaseHTTPRequestHandler):
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/device":
                 try:
+                    additive = bool(body.get("additive"))
                     if body.get("imported"):
-                        self._scanner.load_imported()
+                        self._scanner.load_imported(additive=additive)
                     elif body.get("yaml") is not None:
-                        self._scanner.load_device(body["yaml"], body.get("name", "uploaded.yaml"))
+                        self._scanner.load_device(body["yaml"], body.get("name", "uploaded.yaml"),
+                                                  additive=additive)
                     else:
                         file = str(body.get("file", ""))
                         path = CONFIG_DIR / file
                         if Path(file).name != file or not path.is_file():
                             self._json({"error": "no such device file"}, 404)
                             return
-                        self._scanner.load_device(path.read_text(encoding="utf-8"), path.name)
+                        self._scanner.load_device(path.read_text(encoding="utf-8"), path.name,
+                                                  additive=additive)
                 except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
                     self._json({"error": " ".join(str(exc).split())}, 400)
                     return
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/device/clear":
-                self._scanner.clear_device()
+                self._scanner.clear_devices()
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/clear":
                 self._scanner.clear_all()

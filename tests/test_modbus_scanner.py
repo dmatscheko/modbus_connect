@@ -455,7 +455,9 @@ def test_generate_stamp_is_server_state_and_rides_in_exports():
     state = sc.full_state()
     assert state["meta"] == {"manufacturer": "ACME Corp", "model": "X1 rev B"}
     # the export's whole surface — no key carries the picked bundled-file name
-    assert set(state) == {"config", "connection", "scan_index", "meta", "mapping", "cells"}
+    # (additive overlays ride along with theirs: the name is the overlay's identity)
+    assert set(state) == {"config", "connection", "scan_index", "meta", "mapping",
+                          "additional", "cells"}
 
     restored = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
     restored.load_state(state)
@@ -875,6 +877,174 @@ def test_xray_copy_adopts_the_sibling_mapping_locally():
         sc.copy_mapping("holding", 2)
     with pytest.raises(scanner.DeviceSchemaError):
         sc.copy_mapping("holding", 3)
+
+
+ALT_DEVICE_YAML = """
+device: {manufacturer: Other, model: Y2}
+holding:
+  temp_b: {address: 0, multiplier: 0.5, ha: {platform: sensor, name: Temp B}}
+  flow_b: {address: 2, ha: {platform: sensor, name: Flow B}}
+  wide_b: {address: 5, type: uint32, ha: {platform: sensor, name: Wide B}}
+input:
+  volt_b: {address: 2, ha: {platform: sensor, name: Volt B}}
+"""
+
+
+def test_additive_load_overlays_below_the_mapping():
+    # the additive checkbox: a second device file stacks under the editable mapping as a
+    # read-only comparison layer — the mapping, its stamp and its registers stay untouched
+    dev = FakeDevice({0: 250, 1: 1, 2: 42, 3: 0, 4: 1000, 5: 2, 6: 3})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=8, max_read=8)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    sc.scan()
+    snap = sc.snapshot()
+    assert snap["device"]["name"] == "widget.yaml"                  # still THE mapping
+    assert sc.meta == {"manufacturer": "Acme", "model": "Widget"}   # stamp untouched
+    assert snap["additional"] == [{"name": "other.yaml", "manufacturer": "Other", "model": "Y2"}]
+
+    # where the mapping already maps, the overlay hit rides along (the UI corners it)
+    r0 = _cell(snap, 0)
+    assert r0["entity"]["name"] == "Temperature" and r0["entity"]["decoded"] == 25.0
+    a0 = r0["amaps"][0]
+    assert (a0["src"], a0["table"], a0["name"]) == ("other.yaml", "holding", "Temp B")
+    assert a0["decoded"] == 125.0                                   # 250 * 0.5, the real codec
+    # where nothing maps, the overlay's entity fills (the UI greys it, tagged with the address)
+    r2 = _cell(snap, 2)
+    assert r2["entity"] is None
+    assert r2["amaps"][0]["name"] == "Flow B" and r2["amaps"][0]["decoded"] == 42
+    # multi-word overlay entities decode whole and carry ↑ continuations
+    assert _cell(snap, 5)["amaps"][0]["decoded"] == (2 << 16) + 3
+    assert _cell(snap, 6)["amaps"][0]["continuation"] is True
+    # outside the x-ray views only the current table's overlay entities appear (input stays out)
+    assert all(a["table"] == "holding" for r in snap["rows"] for a in r.get("amaps", []))
+
+
+def test_additive_overlays_stack_in_load_order_and_join_the_set_views():
+    dev = FakeDevice({0: 10, 1: 20, 30: 5})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=8)
+    sc.load_device(DEVICE_YAML, "widget.yaml")                      # holding 0, 1, 3-4, 8
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)    # holding 0, 2, 5-6 + input 2
+    third = ("device: {manufacturer: Third, model: Z3}\n"
+             "holding: {alt_flow: {address: 2, ha: {platform: sensor, name: Flow C}}}\n"
+             "input: {far: {address: 30, ha: {platform: sensor, name: Far C}}}\n")
+    sc.load_device(third, "third.yaml", additive=True)
+
+    # the mapped view's membership now includes every overlay's current-table registers
+    sc.reconfigure(table="holding", start=0, count=4, max_read=8, filter_mode="mapped", page_size=20)
+    sc.page(forward=True, anchor=0)
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3, 4, 5, 6, 8]
+    rows = {r["address"]: r for r in snap["rows"]}
+    # two overlays map holding 2 — hits stay in load order (the UI fills with the first)
+    assert [a["src"] for a in rows[2]["amaps"]] == ["other.yaml", "third.yaml"]
+    assert all(a["table"] == "holding" for r in snap["rows"] for a in r.get("amaps", []))
+
+    # the x-ray views treat each overlay like the mapping's own x-ray: sibling entities
+    # project in (decoded against THIS table's registers) and join the membership
+    sc.reconfigure(table="holding", start=0, count=4, max_read=8, filter_mode="xray", page_size=20)
+    sc.page(forward=True, anchor=0)
+    snap = sc.snapshot()
+    rows = {r["address"]: r for r in snap["rows"]}
+    assert 30 in rows                                               # third.yaml's input 30
+    assert [(a["src"], a["table"]) for a in rows[2]["amaps"]] == [
+        ("other.yaml", "holding"), ("other.yaml", "input"), ("third.yaml", "holding")]
+    a30 = rows[30]["amaps"][0]
+    assert (a30["src"], a30["table"], a30["name"]) == ("third.yaml", "input", "Far C")
+    assert a30["decoded"] == 5                                      # holding 30's value
+
+
+def test_plain_load_and_none_clear_the_additive_overlays():
+    dev = FakeDevice({0: 1})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=2, max_read=2)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    assert [o.name for o in sc.additional] == ["other.yaml"]
+
+    # re-loading an overlay's name refreshes it in place — no duplicate layer
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    assert [o.name for o in sc.additional] == ["other.yaml"]
+
+    # a plain (non-additive) load replaces the mapping AND the overlays
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    assert sc.additional == []
+
+    # — none — drops the mapping and every overlay, keeping the stats
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    sc.scan()
+    sc.clear_devices()
+    assert sc.device is None and sc.additional == []
+    assert sc.cells                                                 # stats survive
+
+    # with nothing loaded, an additive load is just a plain load (it becomes the mapping)
+    sc.load_device(DEVICE_YAML, "widget.yaml", additive=True)
+    assert sc.snapshot()["device"]["name"] == "widget.yaml" and sc.additional == []
+
+
+def test_additive_overlay_stays_out_of_generate_dead_list_and_stamp():
+    alt = ("device: {manufacturer: Other, model: Y2, bad_addresses: {holding: [7]}}\n"
+           "holding: {flow_b: {address: 2, ha: {platform: sensor, name: Flow B}}}\n")
+    dev = FakeDevice({0: 1, 2: 3})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(alt, "other.yaml", additive=True)
+    assert ("holding", 7) not in sc._bad          # another model's dead list is not this device's
+    assert sc.meta == {"manufacturer": "Acme", "model": "Widget"}
+    device = parse_device(yaml.safe_load(sc.generate_yaml("Acme", "Widget", [])), "gen.yaml")
+    assert {e.ha.get("name") for e in device.entities} == {"Temperature", "Mode", "Power", "Ghost"}
+
+
+def test_adopt_copies_an_overlay_mapping_into_the_editable_mapping():
+    dev = FakeDevice({0: 250, 2: 42})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    sc.scan()
+
+    sc.adopt_mapping("holding", 2)
+    row = _cell(sc.snapshot(), 2)
+    assert row["entity"]["name"] == "Flow B"      # the name was free — kept as-is
+    assert row["entity"]["decoded"] == 42
+    # the adopted entity is the mapping's now: it rides into the generated file
+    device = parse_device(yaml.safe_load(sc.generate_yaml("", "", [])), "gen.yaml")
+    assert ("holding", 2) in {(e.table, e.address) for e in device.entities}
+    # refused where it cannot work: already mapped here, or no overlay entity starts there
+    with pytest.raises(scanner.DeviceSchemaError):
+        sc.adopt_mapping("holding", 2)
+    with pytest.raises(scanner.DeviceSchemaError):
+        sc.adopt_mapping("holding", 1)
+    # a taken display name gets a numbered suffix (the schema refuses duplicates)
+    clash = ("device: {manufacturer: C, model: C}\n"
+             "holding: {t2: {address: 9, ha: {platform: sensor, name: Temperature}}}\n")
+    sc.load_device(clash, "clash.yaml", additive=True)
+    sc.adopt_mapping("holding", 9)
+    assert sc._starts[("holding", 9)].ha["name"] == "Temperature (2)"
+
+
+def test_additive_overlays_ride_in_exports():
+    sc = scanner.Scanner(FakeDevice({0: 1}).read, table="holding", start=0, count=2, max_read=2)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    state = json.loads(json.dumps(sc.full_state()))   # a JSON round-trip, like the browser does
+    restored = scanner.Scanner(table="holding", start=0, count=2, max_read=2)
+    restored.load_state(state)
+    assert [o.name for o in restored.additional] == ["other.yaml"]
+    assert restored.snapshot()["additional"][0]["manufacturer"] == "Other"
+    # an old export without the key restores to no overlays
+    del state["additional"]
+    restored.load_state(state)
+    assert restored.additional == []
+
+
+def test_search_finds_overlay_names_on_the_current_table():
+    dev = FakeDevice({2: 42})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.load_device(DEVICE_YAML, "widget.yaml")
+    sc.load_device(ALT_DEVICE_YAML, "other.yaml", additive=True)
+    sc.reconfigure(table="holding", start=0, count=4, max_read=4, filter_mode="none",
+                   page_size=4, search="flow b")
+    sc.page(forward=True, anchor=0)
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [2]
 
 
 def test_filter_nonzero_scans_to_fill_and_pages():

@@ -40,6 +40,7 @@
 
   .controls { display:flex; gap:14px; align-items:end; flex-wrap:wrap; margin-bottom:12px; }
   .controls label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
+  .controls label.chk { flex-direction:row; align-items:center; gap:4px; align-self:center; }
   input, select { background:var(--bg); color:var(--fg); border:1px solid var(--line);
                   border-radius:6px; padding:6px 8px; font:inherit; }
   input[type=number] { width:88px; }
@@ -101,16 +102,19 @@
   /* interactive mapping: the "mapped as" column is always shown; click a cell to map/edit it */
   td.mapped { cursor:pointer; position:relative; }
   td.mapped:hover { background:#232833; }
-  /* x-ray views: a sibling-table mapping shown muted as if it were local; the tiny top-right
-     corner tag lists what else maps here without changing the cell's size */
+  /* x-ray views and additive overlays: a foreign mapping shown muted as if it were local; the
+     tiny top-right corner tag lists what else maps here without changing the cell's size */
   .xforeign { opacity:.55; }
   .xcorner { position:absolute; top:1px; right:3px; font-size:9px; line-height:1; opacity:.55;
              max-width:48%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
-  /* small in-cell action chips: ⧉ copy (adopt a sibling mapping shown by x-ray on an
-     unmapped register) and ↻ retry (re-probe a dead register — the one-register Clear all) */
-  .xcopy, .retry { margin-left:6px; padding:0 5px; font-size:10px; line-height:16px; cursor:pointer;
+  /* an additive overlay's fill is tagged with the register's own address in plain text — unlike
+     a muted x-ray table tag it says: this mapping is for THIS register, just lower priority */
+  .areg { color:var(--fg); font-size:12px; }
+  /* small in-cell action chips: ⧉ copy (adopt a sibling mapping shown by x-ray, or an additive
+     overlay's mapping, on an unmapped register) and ↻ retry (re-probe a dead register) */
+  .xcopy, .acopy, .retry { margin-left:6px; padding:0 5px; font-size:10px; line-height:16px; cursor:pointer;
                    color:var(--muted); background:#262b35; border:1px solid #3a4150; border-radius:4px; }
-  .xcopy:hover, .retry:hover { color:var(--fg); border-color:#5661d6; }
+  .xcopy:hover, .acopy:hover, .retry:hover { color:var(--fg); border-color:#5661d6; }
   .addmap { color:var(--muted); opacity:.5; font-size:12px; }
   .editform { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:end; text-align:left; }
   .editform .ttl { align-self:center; color:var(--fg); font-weight:600; }
@@ -226,7 +230,8 @@
         <select id="deviceSel"><option value="">— none —</option></select></label>
       <button class="ghost" id="uploadDevice">Upload…</button>
       <input type="file" id="deviceFile" accept=".yaml,.yml" class="hide">
-      <button class="ghost" id="clearAll" title="Start over — clear the mapping, all statistics/history and the dead-register list (so dead registers get re-probed)">Clear all</button>
+      <label class="chk" title="keep the current mapping when loading a device file: the loaded file becomes a grey comparison overlay under it — its extra registers fill in (tagged with the register's address; ⧉ copy adopts one), overlapping ones tag the cell's top-right corner. Compare device models and spot registers your file doesn't document. Only — none — or Clear all drop the overlays"><input type="checkbox" id="additive"> additive</label>
+      <button class="ghost" id="clearAll" title="Start over — clear the mapping and any additive overlays, all statistics/history and the dead-register list (so dead registers get re-probed)">Clear all</button>
       <span id="deviceInfo"></span>
     </div>
 
@@ -397,13 +402,18 @@ function esc(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt
 const hex4 = v => '0x' + v.toString(16).toUpperCase().padStart(4, '0');   // addresses + word values
 const int16 = v => v >= 0x8000 ? v - 0x10000 : v;                         // two's-complement view
 
-// the two overlay cells for a register [mapped, decoded, xrayTitle] — the column is always shown,
+// the two overlay cells for a register [mapped, decoded, extraTitle] — the column is always shown,
 // and every cell opens the editor on click. A mapped cell shows its entity; once a mapping exists,
 // a served-but-unmapped register shows the amber gap badge; otherwise a faint "＋ map". The x-ray
 // views add the sibling table's mapping: muted as if it were local when this register is unmapped,
 // a tiny corner tag when it already has its own mapping; non-compatible tables hover-only (title).
+// Additively loaded files (amaps, priority order) rank below all of that: the first hit fills a
+// still-empty cell — muted too, but a current-table hit is tagged with this register's own address
+// in plain text (it maps HERE, not on a sibling) and gets a ⧉ copy to adopt it — and every other
+// hit joins the corner tag / hover title after the x-ray entries.
 function devCellsContent(row) {
-  const e = row.entity, x = row.xmap;
+  const e = row.entity, x = row.xmap, amaps = row.amaps || [], cur = snapshot?.config?.table;
+  const afill = (!e && !x) ? (amaps.find(a => !a.other) || null) : null;
   let mapped = '', decoded = '';
   if (e && e.continuation) {
     mapped = `<span class="type">↑ ${esc(e.name)}</span>`;
@@ -419,28 +429,55 @@ function devCellsContent(row) {
     mapped = `<span class="xforeign"><span class="name">${esc(x.name)}</span> ` +
              `<span class="type">${esc(x.type)}${x.count > 1 ? '×' + x.count : ''} · ${esc(x.table)}</span></span>` +
              `<button class="xcopy" title="copy this ${esc(x.table)} mapping onto ` +
-             `${esc(snapshot?.config?.table || 'this table')} at this address">⧉ copy</button>`;
+             `${esc(cur || 'this table')} at this address">⧉ copy</button>`;
     decoded = (x.decode_error && x.decode_error !== 'unread') ? `<span class="xforeign type">${esc(x.decode_error)}</span>`
             : (x.decoded == null ? '' : `<span class="xforeign">${esc(x.decoded)}</span>`);
-  } else if (row.value != null && !row.error && snapshot?.device) {
+  } else if (afill && afill.continuation) {                 // an overlay's entity, greyed like x-ray
+    mapped = `<span class="xforeign type">↑ ${esc(afill.name)}</span>`;
+  } else if (afill) {
+    const tag = afill.table === cur                         // for THIS register vs a sibling projection
+      ? ` <span class="areg">${hex4(row.address)}</span>` +
+        `<button class="acopy" title="adopt this ${esc(afill.src)} mapping into your mapping at this register">⧉ copy</button>`
+      : '';
+    mapped = `<span class="xforeign"><span class="name">${esc(afill.name)}</span> ` +
+             `<span class="type">${esc(afill.type)}${afill.count > 1 ? '×' + afill.count : ''}` +
+             `${afill.table === cur ? '' : ' · ' + esc(afill.table)}</span></span>` + tag;
+    decoded = (afill.decode_error && afill.decode_error !== 'unread') ? `<span class="xforeign type">${esc(afill.decode_error)}</span>`
+            : (afill.decoded == null ? '' : `<span class="xforeign">${esc(afill.decoded)}</span>`);
+  } else if (row.value != null && !row.error && (snapshot?.device || (snapshot?.additional || []).length)) {
     mapped = `<span class="badge gap">unmapped</span>`;    // a mapping exists: served-but-unmapped is a gap
   } else {
     mapped = `<span class="addmap">＋ map</span>`;          // otherwise a calm "map me" affordance
   }
-  const corner = [];
+  const corner = [], also = [];
   if (e && x) corner.push(esc(x.name));                        // locally mapped too -> sibling in the corner
   for (const o of row.xother || []) corner.push(esc(o.table)); // non-compatible: just the table's name
-  if (corner.length) mapped += `<span class="xcorner">${corner.join(' · ')}</span>`;
-  const also = [];
   if (x) also.push(`${x.table}: ${x.name}${x.decoded != null ? ' = ' + x.decoded : ''}`);
   for (const o of row.xother || []) also.push(`${o.table}: ${o.name}`);
-  return [mapped, decoded, also.length ? 'also mapped — ' + also.join(' · ') : ''];
+  for (const a of amaps) {                                     // overlay hits queue after the x-ray entries
+    if (a === afill) continue;
+    corner.push(esc(a.other ? a.table : a.name));
+    also.push(`${a.src}${a.table === cur ? '' : ' ' + a.table}: ${a.name}` +
+              (a.decoded != null ? ' = ' + a.decoded : ''));
+  }
+  if (corner.length) mapped += `<span class="xcorner">${corner.join(' · ')}</span>`;
+  const bits = [];
+  if (afill) bits.push(`from ${afill.src}`);                   // which file the grey fill came from
+  if (also.length) bits.push('also mapped — ' + also.join(' · '));
+  return [mapped, decoded, bits.join(' · ')];
 }
 
 // x-ray: adopt a compatible sibling mapping — copy it onto this table at the same address
 async function copyXmap(address) {
   const snap = await api('/api/copymap', { table: $('table').value, address });
   if (snap.error) { alert('Could not copy the mapping:\n' + snap.error); return; }
+  render(snap);
+}
+
+// additive overlays: adopt the overlay's mapping shown at this register into YOUR mapping
+async function adoptAmap(address) {
+  const snap = await api('/api/adopt', { table: $('table').value, address });
+  if (snap.error) { alert('Could not adopt the mapping:\n' + snap.error); return; }
   render(snap);
 }
 
@@ -459,7 +496,7 @@ const THEAD = `<thead><tr>
   <th title="raw value read as a signed 16-bit integer">int16</th>
   <th title="how many reads changed the value (differing from the read before)">Δ changes</th>
   <th title="share of this register's own reads that changed it — 0 static, 1.00 changes on every read">rate</th>
-  <th title="the entity mapped at this register (↑ = continuation register of a multi-word entity) — click a cell to map or edit; the x-ray views also show sibling-table mappings, muted">mapped as</th>
+  <th title="the entity mapped at this register (↑ = continuation register of a multi-word entity) — click a cell to map or edit; the x-ray views also show sibling-table mappings, muted, and additively loaded files show muted too, tagged with the register's address">mapped as</th>
   <th title="the value the mapped entity would decode from the raw register(s), through the integration's own codec — exactly what the running integration would show">decoded</th>
 </tr></thead>`;
 
@@ -530,15 +567,23 @@ function wireSelAll() {
   });
 }
 
-function renderDeviceInfo(dev, meta) {
-  const el = $('deviceInfo');
-  if (!dev) { el.textContent = ''; return; }
-  const fits = Object.entries(dev.tables).map(([t, r]) =>
-    `<button data-t="${t}" data-min="${r.min}" data-max="${r.max}">${t} ${r.min}–${r.max}</button>`).join('');
-  // show the CURRENT stamp (the editable Manufacturer/Model) and the live mapping ranges,
-  // not what the loaded file once said
-  const who = `${(meta && meta.manufacturer) || ''} ${(meta && meta.model) || ''}`.trim() || 'unnamed device';
-  el.innerHTML = `mapping <b>${esc(who)}</b> — fit range: ${fits}`;
+function renderDeviceInfo(dev, meta, additional) {
+  const el = $('deviceInfo'), adds = additional || [];
+  if (!dev && !adds.length) { el.textContent = ''; return; }
+  let html = '';
+  if (dev) {
+    const fits = Object.entries(dev.tables).map(([t, r]) =>
+      `<button data-t="${t}" data-min="${r.min}" data-max="${r.max}">${t} ${r.min}–${r.max}</button>`).join('');
+    // show the CURRENT stamp (the editable Manufacturer/Model) and the live mapping ranges,
+    // not what the loaded file once said
+    const who = `${(meta && meta.manufacturer) || ''} ${(meta && meta.model) || ''}`.trim() || 'unnamed device';
+    html = `mapping <b>${esc(who)}</b> — fit range: ${fits}`;
+  }
+  if (adds.length) {   // the additive comparison overlays, in priority order
+    const names = adds.map(a => esc(`${a.manufacturer || ''} ${a.model || ''}`.trim() || a.name)).join(', ');
+    html += `${html ? ' · ' : ''}<span title="additively loaded device files — grey comparison overlays under the mapping">＋ ${names}</span>`;
+  }
+  el.innerHTML = html;
   el.querySelectorAll('button').forEach(b => b.onclick = () => {
     $('table').value = b.dataset.t; $('start').value = b.dataset.min;
     $('count').value = +b.dataset.max - +b.dataset.min + 1;
@@ -565,7 +610,7 @@ function render(snap) {
   const errEl = $('connErr');
   if (err) { errEl.textContent = '⚠ ' + err; errEl.classList.remove('hide'); }
   else errEl.classList.add('hide');
-  renderDeviceInfo(snap.device, snap.meta);
+  renderDeviceInfo(snap.device, snap.meta, snap.additional);
   syncImportedOption(snap);
 
   ensureRows(snap.rows);
@@ -595,8 +640,10 @@ function render(snap) {
     tds[8].innerHTML = mapped;
     tds[9].innerHTML = decoded;
     tds[8].title = xtitle ? `${xtitle} — click to map / edit` : 'click to map / edit this register';
-    const cbtn = tds[8].querySelector('.xcopy');   // the cell itself opens the editor; the button copies
+    const cbtn = tds[8].querySelector('.xcopy');   // the cell itself opens the editor; the buttons copy
     if (cbtn) cbtn.onclick = ev => { ev.stopPropagation(); copyXmap(row.address); };
+    const abtn = tds[8].querySelector('.acopy');   // ...an x-ray sibling or an additive overlay's entity
+    if (abtn) abtn.onclick = ev => { ev.stopPropagation(); adoptAmap(row.address); };
     const hist = row.hist || [], n = row.hist_len || 0;   // hover hint on every data cell: recent value history
     const tip = n > 1
       ? `history (${n}): ${n > hist.length ? '… → ' : ''}${hist.join(' → ')} — click for details`
@@ -1039,6 +1086,10 @@ $('autoPage').onchange = () => {
 $('autoTables').onchange = () => {
   try { localStorage.setItem('mbscan.autoTables', $('autoTables').checked ? '1' : '0'); } catch {}
 };
+// additive device-file loading is a working style — remember it across reloads too
+$('additive').onchange = () => {
+  try { localStorage.setItem('mbscan.additive', $('additive').checked ? '1' : '0'); } catch {}
+};
 // interval stepping. At/below 1 s the step is 0.1 s; above 1 s it snaps to whole seconds. Setting
 // the step (and min, so the native spinner grid lines up) to 0.1 at/below 1 s, and rounding any
 // value over 1 s UP to the next whole second, gives the asked-for feel: from 1 s, ▼ -> 0.9 s, ▲ -> 2 s.
@@ -1142,8 +1193,24 @@ function selectDeviceOption(name) {
   if (sel.selectedIndex < 0) sel.value = '';
 }
 async function loadDevice(body) {
+  // the additive checkbox: with a mapping (or overlay) already loaded, a picked/uploaded file
+  // stacks underneath as a grey comparison overlay — the server keeps everything, so the view,
+  // the ticks and the generate stamp all stay put; with nothing loaded it's a plain load anyway
+  const additive = $('additive').checked
+    && !!(snapshot && (snapshot.device || (snapshot.additional || []).length));
+  if ($('additive').checked) body.additive = true;
   const snap = await api('/api/device', body);
   if (snap.error) { alert('Could not load device file:\n' + snap.error); return; }
+  if (additive) {
+    render(snap);
+    selectDeviceOption(snap.device && snap.device.name);  // the dropdown stays on the mapping
+    if (isConnected()) await withScanPaused(async () => { // refresh decodes at the kept position
+      anchorAtView();
+      render(await api('/api/config', cfg()));
+      syncStartField();
+    });
+    return;
+  }
   $('table').value = snap.config.table; $('start').value = snap.config.start;
   $('count').value = snap.config.count;
   // the server seeded the generate stamp from the file; mirror it (editable afterwards)
@@ -1208,6 +1275,7 @@ try {
   $('autoPage').checked = localStorage.getItem('mbscan.autoPage') === '1';
   $('autoTables').checked = localStorage.getItem('mbscan.autoTables') === '1';
   $('autoTables').disabled = !$('autoPage').checked;
+  $('additive').checked = localStorage.getItem('mbscan.additive') === '1';
 } catch {}
 syncGenBtn();
 
