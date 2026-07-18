@@ -114,10 +114,19 @@ asks for confirmation first — a full unfiltered pass of that many registers is
 - **The Details tab** — click **any** of a register's data cells (address, value, hex, int16,
   Δ, rate) to open the side panel on **Details**. At the **top**, the "what type is this?" helper:
   the current value plus the uint/int/float/string interpretations of that register and the next few
-  contiguous ones. **Below**, the last 50 *distinct* values it has taken — each with how long ago and
-  at which scan it appeared, the Δ from the value before, and a sparkline — so a steadily-climbing
-  energy meter reads differently from a noisy measurement at a glance. Hover any of those cells for a
-  quick recent-values peek, and walk registers with **↑ / ↓** — the tab follows the selection. Paired
+  contiguous ones. **Below**, the last 50 *distinct* values it has taken — each with the Δ from the
+  value before, the **Δt** to the *previous* change (a cadence like "every 60s" reads straight down
+  the column; hover for how long ago it was — the summary line names the last change's age), the
+  scan it appeared in, and a sparkline — so a steadily-climbing energy meter reads differently from
+  a noisy measurement at a glance. When the register decodes *on its own* — a mapped entity that
+  starts here and spans one register — the value column becomes a **decoded** column, through the
+  integration's real codec (a multi-word entity can't decode from one register's history, so raw
+  stays). And the **decode as** form between value and history sets a per-register *decode
+  override* — type / swap / scale / offset / mask / enum map, single-word, validated by the real
+  schema — that replaces the mapped entity's decode (or gives an unmapped register one) until
+  **Clear**ed: try interpretations while reverse-engineering without touching the mapping; the
+  main table's decoded column stays the mapping's truth. Hover any history cell for a quick
+  recent-values peek, and walk registers with **↑ / ↓** — the tab follows the selection. Paired
   with **auto-page**, an unattended run fills this history in across the whole device. (The
   **mapped as** and **decoded** cells open the **Mapping** tab instead.)
 
@@ -183,7 +192,8 @@ file refreshes its overlay in place. Only **— none —** (or **Clear all**) dr
 
 - **Export / Import** — save the whole **project** to JSON and reload it later to pick up where you
   left off (or hand it to someone else). It captures every table's per-register stats — last value,
-  read count, change count, and the value **history** — the editable **mapping**, the **connection**
+  read count, change count, and the value **history** — the editable **mapping**, any additive
+  **overlays** and **decode-as overrides**, the **connection**
   settings, the Count / Per-read tuning, and the **Manufacturer / Model** stamp for generation. It
   deliberately does *not* save the table, scroll position, filter, or which bundled file was picked
   (the mapping itself is the project's), so loading a project doesn't yank you off whatever you're

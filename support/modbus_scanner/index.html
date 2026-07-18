@@ -155,6 +155,8 @@
   .sidepane.on { display:block; }
   .histttl { font-weight:600; margin-bottom:6px; }
   .valblock { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); line-height:1.5; }
+  /* the Details tab's "decode as" override form sits between the value block and the history */
+  .ovrbox:not(:empty) { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); }
   .valblock .big { font-size:18px; font-weight:600; color:var(--fg); }
   .valviews { margin-top:5px; color:var(--muted); font-family:ui-monospace, monospace; font-size:12px;
               line-height:1.7; word-break:break-word; }
@@ -264,7 +266,9 @@
       </div>
       <div class="sidepane" id="paneDetails">
         <div class="histttl"></div>
-        <div class="histbody"></div>
+        <div class="valbox"></div>
+        <div class="ovrbox"></div>
+        <div class="histbox"></div>
       </div>
       <div class="sidepane" id="paneMapping">
         <div id="editor"></div>
@@ -414,7 +418,7 @@ function heatColor(row, scanIndex) {
   return `rgba(${c[0]},${c[1]},${c[2]},${alpha.toFixed(3)})`;
 }
 
-function esc(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const hex4 = v => '0x' + v.toString(16).toUpperCase().padStart(4, '0');   // addresses + word values
 const int16 = v => v >= 0x8000 ? v - 0x10000 : v;                         // two's-complement view
 
@@ -683,13 +687,19 @@ function sparkline(vals) {
   const min = Math.min(...vals), max = Math.max(...vals), span = (max - min) || 1;
   return vals.map(v => SPARK[Math.min(7, Math.floor((v - min) / span * 8))]).join('');
 }
-function relTime(sec) {
+// a compact duration ("42s", "3m 20s", "2h 5m", "3d 4h") — the history's Δt column reads
+// change cadence directly from it; relTime anchors the same format at now
+function dur(sec) {
   sec = Math.max(0, Math.round(sec));
-  if (sec < 60) return sec + 's ago';
-  if (sec < 3600) return Math.floor(sec / 60) + 'm ago';
-  if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
-  return Math.floor(sec / 86400) + 'd ago';
+  if (sec < 60) return sec + 's';
+  if (sec < 3600) { const m = Math.floor(sec / 60), s = sec % 60; return s ? `${m}m ${s}s` : `${m}m`; }
+  if (sec < 86400) { const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60); return m ? `${h}h ${m}m` : `${h}h`; }
+  const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600);
+  return h ? `${d}d ${h}h` : `${d}d`;
 }
+const relTime = sec => dur(sec) + ' ago';
+// numbers for the history table: kill float artifacts of decoded deltas, leave strings alone
+const fmtVal = v => typeof v === 'number' ? String(+v.toPrecision(12)) : String(v);
 // --- THE side panel: Details · Mapping · Generate — one tab bar, one ✕, and its content
 // always follows the selected row (click a row, or move the selection with ↑ / ↓) ---
 const SIDE_PANES = { details: 'paneDetails', mapping: 'paneMapping', generate: 'paneGenerate' };
@@ -765,8 +775,11 @@ async function refreshHistory() {
   if (histInFlight) return;
   if (selAddr == null) {
     $('side').querySelector('.histttl').textContent = 'no register selected';
-    $('side').querySelector('.histbody').innerHTML =
+    $('side').querySelector('.valbox').innerHTML =
       '<p class="status">click a register row, or move the selection with ↑ / ↓.</p>';
+    $('side').querySelector('.ovrbox').replaceChildren();
+    $('side').querySelector('.histbox').replaceChildren();
+    ovrFor = null;
     return;
   }
   histInFlight = true;
@@ -793,7 +806,6 @@ function renderHistory(data, views) {
   const name = data.entity ? ` — ${esc(data.entity.name)}` : '';
   $('side').querySelector('.histttl').innerHTML =
     `${data.table} ${hex} <span class="status">(#${data.address})${name}</span>`;
-  const body = $('side').querySelector('.histbody');
 
   // --- value view (top): the current value plus the "what type is this?" interpretations ---
   const v = data.value;
@@ -806,29 +818,106 @@ function renderHistory(data, views) {
       valBlock += `<div class="valviews">${views.map(x => `${esc(x.type)} = <b>${esc(x.value)}</b>`).join(' · ')}</div>`;
   }
   valBlock += '</div>';
+  $('side').querySelector('.valbox').innerHTML = valBlock;
 
-  // --- value history (below) ---
-  const h = data.history || [];
+  buildOverrideForm(data);   // the "decode as" override — rebuilt only when its target changes
+
+  // --- value history (below): the value (decoded when the register decodes on its own),
+  // its change per entry, and Δt — the gap to the PREVIOUS change, so a cadence ("every
+  // 60s") reads straight down the column; hover Δt for how long ago it was ---
+  const h = data.history || [], dec = data.decode;
   let histBlock;
   if (!h.length) {
     histBlock = '<p class="status">No reads yet — scan this register (it must be in the shown range) to build its history.</p>';
   } else {
     const now = Date.now() / 1000;
     const rows = h.slice().reverse().map((e, i, arr) => {   // newest first
-      const older = arr[i + 1], d = older ? e.value - older.value : null;
+      const older = arr[i + 1];
+      const shown = dec ? e.decoded : e.value;
+      const prev = older ? (dec ? older.decoded : older.value) : null;
+      const d = (typeof shown === 'number' && typeof prev === 'number')
+        ? +(shown - prev).toPrecision(12) : null;
       const cls = d == null ? '' : d > 0 ? 'up' : d < 0 ? 'dn' : '';
-      const ds = d == null ? '' : d > 0 ? '+' + d : '' + d;
-      return `<tr><td class="hv">${e.value}</td><td class="hd ${cls}">${ds}</td>` +
-             `<td class="ht">${relTime(now - e.t)}</td><td class="hs">#${e.scan}</td></tr>`;
+      const ds = d == null ? '' : (d > 0 ? '+' : '') + fmtVal(d);
+      const gap = older ? dur(e.t - older.t) : '—';
+      return `<tr><td class="hv">${esc(fmtVal(shown))}</td><td class="hd ${cls}">${ds}</td>` +
+             `<td class="ht" title="first seen ${relTime(now - e.t)}">${gap}</td>` +
+             `<td class="hs">#${e.scan}</td></tr>`;
     }).join('');
+    const decTitle = dec && (dec.source === 'override'
+      ? 'decoded through the decode-as override' : `decoded through ${esc(dec.name)}`);
     histBlock =
-      `<div class="spark" title="oldest → newest">${sparkline(h.map(e => e.value))}</div>` +
+      `<div class="spark" title="oldest → newest (raw values)">${sparkline(h.map(e => e.value))}</div>` +
       `<div class="status">${h.length} distinct value${h.length > 1 ? 's' : ''}` +
-      `${data.changes ? ' · ' + data.changes + ' changes' : ''} · newest first</div>` +
-      `<table class="histtable"><thead><tr><th>value</th><th>Δ</th><th>when</th><th>scan</th></tr></thead>` +
+      `${data.changes ? ' · ' + data.changes + ' changes' : ''}` +
+      ` · last ${relTime(now - h[h.length - 1].t)} · newest first</div>` +
+      `<table class="histtable"><thead><tr>` +
+      `<th${dec ? ` title="${decTitle}"` : ''}>${dec ? 'decoded' : 'value'}</th>` +
+      `<th title="change in the shown value since the previous entry">Δ</th>` +
+      `<th title="time between this change and the previous one — a cadence reads straight down; hover for how long ago">Δt</th>` +
+      `<th>scan</th></tr></thead>` +
       `<tbody>${rows}</tbody></table>`;
   }
-  body.innerHTML = valBlock + histBlock;
+  $('side').querySelector('.histbox').innerHTML = histBlock;
+}
+
+// --- the "decode as" override: a single-word decode spec for THE selected register that
+// replaces the mapped entity's decode in the history column until cleared — try types /
+// scales / enum maps while reverse-engineering, without touching the mapping. Rebuilt only
+// when the target register or its stored override changes, so live refreshes never clobber
+// typing (the same guard idea as the Mapping editor's). ---
+let ovrFor = null;   // "<table>:<addr>:<stored override>" the current form was built for
+function buildOverrideForm(data) {
+  const box = $('side').querySelector('.ovrbox');
+  if (BIT_TABLES.has(data.table)) {   // bit tables read 0/1 — nothing to re-decode
+    ovrFor = null; box.replaceChildren(); return;
+  }
+  const key = `${data.table}:${data.address}:${JSON.stringify(data.override || null)}`;
+  if (ovrFor === key) return;
+  ovrFor = key;
+  const o = data.override || {};
+  const form = document.createElement('form');
+  form.className = 'editform';
+  form.innerHTML = `
+    <span class="ttl" title="decode THIS register's value/history through this spec instead of its mapping, until cleared — single-word types only (the history holds one register's words)">decode as</span>
+    <label>type<select name="type">${['uint16', 'int16', 'float16'].map(t => `<option>${t}</option>`).join('')}</select></label>
+    <label>swap<select name="swap"><option value="">—</option><option>byte</option></select></label>
+    <label>scale<input name="scale" type="number" step="any"></label>
+    <label>offset<input name="offset" type="number" step="any"></label>
+    <label>mask<input name="mask" autocomplete="off" placeholder="0xFF"></label>
+    <label>map (value: label)<input name="map" placeholder="0: Off, 1: On"></label>
+    <span class="editbtns">
+      <span class="editerr err"></span>
+      <button type="submit">${data.override ? 'Update' : 'Set'}</button>
+      ${data.override ? '<button type="button" class="ghost" data-act="clear">Clear</button>' : ''}
+    </span>`;
+  if (o.type) form.elements.type.value = o.type;
+  if (o.swap) form.elements.swap.value = o.swap;
+  if (o.multiplier != null) form.elements.scale.value = o.multiplier;
+  if (o.offset != null) form.elements.offset.value = o.offset;
+  if (o.mask != null) form.elements.mask.value = '0x' + Number(o.mask).toString(16).toUpperCase();
+  if (o.map) form.elements.map.value = Object.entries(o.map).map(([k, v]) => `${k}: ${v}`).join(', ');
+  form.onsubmit = ev => { ev.preventDefault(); saveOverride(form, data.table, data.address); };
+  const cl = form.querySelector('[data-act=clear]');
+  if (cl) cl.onclick = () => clearOverride(data.table, data.address);
+  box.replaceChildren(form);
+}
+
+async function saveOverride(form, table, address) {
+  const body = { table, address };
+  for (const name of ['type', 'swap', 'scale', 'offset', 'mask', 'map'])
+    if (form.elements[name].value !== '') body[name] = form.elements[name].value;
+  const snap = await api('/api/override', body);
+  if (snap.error) { form.querySelector('.editerr').textContent = '⚠ ' + snap.error; return; }
+  ovrFor = null;   // rebuild from the stored override (the button turns to Update)
+  render(snap);
+  refreshHistory();
+}
+
+async function clearOverride(table, address) {
+  ovrFor = null;
+  render(await api('/api/unoverride', { table, address }));
+  refreshHistory();
 }
 
 // --- interactive mapping: click a register's "mapped as" cell to map / edit it ---

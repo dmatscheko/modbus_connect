@@ -271,6 +271,21 @@ class Overlay:
     covered: dict[tuple[str, int], EntityDef]
 
 
+def _parse_override(table: str, address: int, spec: dict[str, Any]) -> EntityDef:
+    """Validate a decode override's entity spec through the real schema and return its
+    parsed EntityDef — a throwaway single-entity document, so overrides never touch the
+    mapping. An override decodes ONE register (its history is per-register words), so
+    multi-word types are refused."""
+    doc = {"device": {"manufacturer": "override", "model": "override"},
+           table: {"override": {**spec, "address": address}}}
+    defn = parse_device(doc, "override.yaml").entities[0]
+    if defn.span.end - defn.span.start != 1:
+        raise DeviceSchemaError(
+            "an override decodes one register — a multi-word type cannot be decoded "
+            "from a single register's history")
+    return defn
+
+
 def _clamp_range(start: int, count: int) -> tuple[int, int]:
     """Clamp a [start, count) range into the Modbus 16-bit address space (registers
     0..65535), so start+count never runs past the last address."""
@@ -339,6 +354,11 @@ class Scanner:
         # overlays under the editable mapping, in load order (earlier = higher priority).
         # A plain (non-additive) load replaces them; — none — / Clear all drop them.
         self.additional: list[Overlay] = []
+        # Decode overrides (the Details tab's "decode as"): a per-register single-word spec
+        # that replaces the mapped entity's decode in the history panel until cleared. The
+        # raw specs export/import; the parsed defs are their decode-ready twins.
+        self.overrides: dict[tuple[str, int], dict[str, Any]] = {}
+        self._override_defs: dict[tuple[str, int], EntityDef] = {}
         self._starts: dict[tuple[str, int], EntityDef] = {}   # entity's first address
         self._covered: dict[tuple[str, int], EntityDef] = {}  # every address any entity occupies
         # The current filtered page: its matched addresses, and where paging continues in
@@ -840,17 +860,38 @@ class Scanner:
     def history(self, table: str, address: int) -> dict[str, Any]:
         """The full recorded history for one register — its distinct-from-previous values with
         the scan index and timestamp each was first seen — for the side panel. The value only
-        grows history when the register is actually read (i.e. its page is scanned)."""
+        grows history when the register is actually read (i.e. its page is scanned). When the
+        register decodes *on its own* — a "decode as" override set here (wins), or a mapped
+        entity that starts here and spans just this register — every entry also carries
+        ``decoded`` and ``decode`` names the source, so the UI can turn the value column into
+        a decoded one; a multi-word entity cannot decode from one register's history."""
         cell = self.cells.get((table, address))
         entity: dict[str, Any] | None = None
         if self.device is not None:
             defn = self._starts.get((table, address)) or self._covered.get((table, address))
             if defn is not None:
                 entity = {"name": defn.ha.get("name") or defn.key, "address": defn.address}
-        return {"table": table, "address": address,
-                "history": list(cell.history) if cell is not None else [],
+        entries = [dict(h) for h in cell.history] if cell is not None else []
+        decode: dict[str, Any] | None = None
+        dec_defn = self._override_defs.get((table, address))
+        if dec_defn is not None:
+            decode = {"source": "override"}
+        else:
+            start = self._starts.get((table, address))
+            if start is not None and start.span.end - start.span.start == 1:
+                dec_defn = start
+                decode = {"source": "entity", "name": start.ha.get("name") or start.key}
+        if dec_defn is not None:
+            for e in entries:
+                raw = [bool(e["value"])] if table in BIT_TABLES else [e["value"]]
+                try:
+                    e["decoded"] = _jsonable(codec.decode(dec_defn, raw))
+                except Exception:
+                    e["decoded"] = e["value"]  # e.g. an enum value with no label — show it raw
+        return {"table": table, "address": address, "history": entries,
                 "value": cell.value if cell is not None else None,
-                "changes": cell.changes if cell is not None else 0, "entity": entity}
+                "changes": cell.changes if cell is not None else 0, "entity": entity,
+                "decode": decode, "override": self.overrides.get((table, address))}
 
     def snapshot(self) -> dict[str, Any]:
         """The current view as rows, for rendering (see full_state for export). Every view is a
@@ -886,6 +927,8 @@ class Scanner:
                 "connection": dict(self.connection), "scan_index": self.scan_index,
                 "meta": dict(self.meta), "mapping": self.map_doc,
                 "additional": [{"name": ov.name, "mapping": ov.doc} for ov in self.additional],
+                "overrides": [{"table": t, "address": a, "spec": spec}
+                              for (t, a), spec in sorted(self.overrides.items())],
                 "cells": cells}
 
     def load_state(self, data: dict[str, Any]) -> None:
@@ -944,6 +987,19 @@ class Scanner:
                 self._add_overlay(name, _restore_int_keys(item["mapping"]))
             except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError, TypeError) as exc:
                 self.last_error = (f"additional mapping {name} could not be parsed: "
+                                   f"{' '.join(str(exc).split())}")
+        # ...and so do the decode overrides, revalidated like everything else
+        self.overrides, self._override_defs = {}, {}
+        for item in data.get("overrides") or []:
+            if not isinstance(item, dict):
+                continue
+            try:
+                t, a = str(item["table"]), int(item["address"])
+                spec = _restore_int_keys(item["spec"])
+                self._override_defs[(t, a)] = _parse_override(t, a, spec)
+                self.overrides[(t, a)] = spec
+            except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError, TypeError) as exc:
+                self.last_error = (f"decode override could not be restored: "
                                    f"{' '.join(str(exc).split())}")
         meta = data.get("meta")
         if isinstance(meta, dict):
@@ -1147,6 +1203,26 @@ class Scanner:
         self._sync_imported()
         return self.device_summary()
 
+    def set_override(self, table: str, address: int, fields: dict[str, Any]) -> None:
+        """Set the decode override for one register — the Details tab's "decode as": its
+        history (and newest value) then decode through THIS spec instead of the mapped
+        entity's, until cleared. Validated by the real schema; a bad spec raises and
+        leaves any current override alone. Bit tables read 0/1 — nothing to re-decode."""
+        if table not in TABLES:
+            raise DeviceSchemaError(f"unknown table {table!r}")
+        if table in BIT_TABLES:
+            raise DeviceSchemaError("bit tables read 0/1 — nothing to re-decode")
+        spec = _entity_from_fields(table, {**fields, "address": int(address),
+                                           "platform": "sensor", "name": "override"})
+        key = (table, int(address))
+        self._override_defs[key] = _parse_override(table, int(address), spec)
+        self.overrides[key] = spec
+
+    def clear_override(self, table: str, address: int) -> None:
+        """Drop one register's decode override — its history decodes normally again."""
+        self.overrides.pop((table, address), None)
+        self._override_defs.pop((table, address), None)
+
     def remove_mapping(self, table: str, address: int) -> dict[str, Any] | None:
         """Unmap the entity that starts at ``address`` on ``table``."""
         if not self.map_doc:
@@ -1184,6 +1260,8 @@ class Scanner:
         self.cells.clear()
         self._bad.clear()
         self._misses.clear()
+        self.overrides.clear()
+        self._override_defs.clear()
         self.imported = None
         self.set_meta("", "")
         self.scan_index = 0
@@ -1726,7 +1804,8 @@ class _Handler(BaseHTTPRequestHandler):
                     return
                 self._scanner.open_page()  # fill the page (offline too), recovering if the saved start is too high
                 self._json(self._scanner.snapshot())
-            elif self.path in ("/api/map", "/api/unmap", "/api/copymap", "/api/adopt"):
+            elif self.path in ("/api/map", "/api/unmap", "/api/copymap", "/api/adopt",
+                               "/api/override", "/api/unoverride"):
                 try:
                     table = str(body.get("table", self._scanner.table))
                     address = int(body["address"])
@@ -1736,6 +1815,10 @@ class _Handler(BaseHTTPRequestHandler):
                         self._scanner.copy_mapping(table, address)
                     elif self.path == "/api/adopt":
                         self._scanner.adopt_mapping(table, address)
+                    elif self.path == "/api/override":
+                        self._scanner.set_override(table, address, body)
+                    elif self.path == "/api/unoverride":
+                        self._scanner.clear_override(table, address)
                     else:
                         self._scanner.remove_mapping(table, address)
                 except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
