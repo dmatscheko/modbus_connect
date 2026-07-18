@@ -470,6 +470,12 @@ class Scanner:
         # list) when this is True: the device is provably responsive right now, so its silence
         # is a real hole, not the whole link being briefly down (which must stay retryable).
         self._op_alive = False
+        # Registers given up this operation, and a live human-readable status set while a slow
+        # bisection is running — read LOCK-FREE by /api/progress (a plain string, only ever
+        # reassigned) so the UI can show it *during* the blocking read, then cleared when the
+        # operation settles.
+        self._op_dead_found = 0
+        self._progress: str | None = None
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
                 timeout: float = 2.0, retries: int = 0) -> None:
@@ -558,6 +564,13 @@ class Scanner:
         if page_size:
             self.page_size = max(1, int(page_size))
 
+    def _begin_op(self) -> None:
+        """Reset the per-operation read bookkeeping before a scan / page (see the fields)."""
+        self._report = ReadReport()
+        self._op_singles = self._op_silent_probes = self._op_dead_found = 0
+        self._op_alive = False
+        self._progress = None
+
     def scan(self) -> None:
         """One tick: re-read the current page's registers (membership unchanged) so a live scan
         keeps their values fresh; the first tick fills the page. Every view is a packed page —
@@ -567,8 +580,7 @@ class Scanner:
             self.last_error = "not connected"
             return
         self.last_error = None
-        self._report, self._op_singles, self._op_silent_probes = ReadReport(), 0, 0  # per-op counters
-        self._op_alive = False
+        self._begin_op()
         self.scan_index += 1
         if self._page_addrs:
             self.refresh_page()
@@ -655,6 +667,9 @@ class Scanner:
         self._op_singles += block.count
         unresolved = False
         for addr in range(block.start, block.end):
+            # a live status the UI polls (lock-free) so a slow bisection isn't a silent freeze
+            self._progress = (f"Isolating unreadable registers on {self.table} — probing #{addr}"
+                              f" ({self._op_dead_found} given up so far)…")
             r = self._read(self.table, addr, 1)
             key = (self.table, addr)
             if r.values is not None:
@@ -685,6 +700,7 @@ class Scanner:
         if self._misses[key] >= _NOT_SERVED_LIMIT:
             self._bad.add(key)
         self._record(self.table, addr, error="not served", illegal=True)
+        self._op_dead_found += 1
 
     def retry_address(self, table: str, address: int) -> None:
         """Probe one given-up-on register again — the per-register escape hatch from the dead
@@ -736,8 +752,7 @@ class Scanner:
         page and just marks that direction exhausted (no empty page). Offline it still fills from the
         remembered cells (with no fresh reads), so an imported project can be reviewed unconnected."""
         self.last_error = None
-        self._report, self._op_singles, self._op_silent_probes = ReadReport(), 0, 0  # per-op counters
-        self._op_alive = False
+        self._begin_op()
         if self.connected and self._read is not None:
             self.scan_index += 1
         else:
@@ -767,6 +782,7 @@ class Scanner:
         one that answered but also hit silence is a *slow* link, not a dead one; one where
         everything answered clears the banner. An operation that read nothing (offline) leaves
         whatever was set (e.g. 'not connected')."""
+        self._progress = None   # the operation's reads are done — no bisection in flight
         r = self._report
         if r.alive:
             self.conn_error = None
@@ -2009,6 +2025,11 @@ class _Handler(BaseHTTPRequestHandler):
                 self._json(self._scanner.full_state())
         elif self.path == "/api/devices":
             self._json({"devices": list_device_files()})
+        elif self.path == "/api/progress":
+            # deliberately LOCK-FREE: a scan/page holds the lock for its whole (possibly slow)
+            # duration, so the only way to report progress *during* it is to read the plain
+            # status string without contending — it is only ever reassigned, never mutated.
+            self._json({"progress": self._scanner._progress})
         else:
             self._send(b"not found", "text/plain", 404)
 

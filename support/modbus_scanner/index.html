@@ -25,6 +25,9 @@
   .err { color:#ff6b6b; }
   #activity { color:var(--accent); opacity:0; transition:opacity .1s; }   /* lit while a request is in flight */
   body.busy #activity { opacity:1; }
+  /* live status while a slow bisection runs (polled lock-free) — amber, truncated, full on hover */
+  #progress { color:#e6c14d; font-size:12px; max-width:42vw; overflow:hidden;
+              text-overflow:ellipsis; white-space:nowrap; cursor:default; }
   .burger { background:transparent; border:1px solid var(--line); color:var(--fg);
             border-radius:6px; padding:5px 9px; cursor:pointer; font-size:15px; line-height:1; }
   /* the view-filter chips: each lit chip ADDS its register set to the view (union);
@@ -186,6 +189,7 @@
   <span class="status">· scan <b id="scanIndex">0</b></span>
   <span class="status hide" id="singles" title="the device refused one or more block reads, so those blocks were downgraded to register-by-register probes (to pin down the dead addresses) — this many single reads in the last scan/page. Many of these makes scanning much slower: normal on first contact with a sparse register map (it settles as the dead list fills in); if it never stops, the gateway may dislike block reads (lower Per read) or the serial side may be very slow">· <b id="singlesN">0</b> single probes</span>
   <span id="activity" title="working…">◍</span>
+  <span id="progress" class="hide" title="A block read got no answer, so registers are being probed one-by-one to isolate the unreadable ones (some devices serve an unsupported register by silence, not a refusal). This can take a while on a slow link — a lower Timeout makes each probe cheaper; once isolated they are skipped."></span>
   <span class="chips" id="filterChips" title="each lit chip adds its registers to the view (paging walks the union; the find box narrows on top) — with no chip lit every known register shows">
     <span class="status">show</span>
     <button class="chip" data-f="served" title="registers the device answers">served</button>
@@ -311,6 +315,7 @@ let apiChain = Promise.resolve(), inFlight = 0;
 function api(path, body) {
   const run = async () => {
     inFlight++; document.body.classList.add('busy');
+    ensureProgressPoll();
     try {
       const r = await fetch(path, body ? { method:'POST',
         headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) } : {});
@@ -320,6 +325,28 @@ function api(path, body) {
   const result = apiChain.then(run, run);   // wait for the previous call to settle, then run
   apiChain = result.catch(() => {});        // keep the chain alive even if one call rejects
   return result;
+}
+
+// While any request is in flight, poll the LOCK-FREE /api/progress so a slow bisection shows
+// live status instead of a frozen-looking UI. A raw fetch on purpose — it must NOT go through
+// the serialized api() chain (it would queue behind the very scan it is reporting on).
+let progressTimer = null;
+async function pollProgress() {
+  try {
+    const { progress } = await (await fetch('/api/progress', { cache:'no-store' })).json();
+    const el = $('progress');
+    if (progress && inFlight > 0) { el.textContent = '⏳ ' + progress; el.classList.remove('hide'); }
+    else el.classList.add('hide');
+  } catch {}
+}
+function ensureProgressPoll() {
+  if (progressTimer) return;   // one loop is enough; it self-stops when nothing is in flight
+  const tick = async () => {
+    await pollProgress();
+    if (inFlight > 0) { progressTimer = setTimeout(tick, 300); }
+    else { progressTimer = null; $('progress').classList.add('hide'); }
+  };
+  progressTimer = setTimeout(tick, 300);   // first poll after 300ms, so fast ops show nothing
 }
 
 // wrap a button so a click gives visible feedback and a second click is ignored while the
