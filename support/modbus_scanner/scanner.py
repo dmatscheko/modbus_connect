@@ -175,12 +175,16 @@ HISTORY_SPARK = 20
 # --- read backends ------------------------------------------------------------
 # A reader answers one block read: (values, error, illegal). ``values`` is None on
 # failure; ``illegal`` is True only when the device explicitly refused the address
-# (vs. a timeout), which is what marks a register genuinely "not served".
+# (vs. a timeout), which is what marks a register genuinely "not served". ``no_device``
+# is True when the failure suggests nothing lives behind the device ID at all — total
+# silence, or a gateway target-failed exception — which the connect-time probe turns
+# into a wrong-Device-ID warning (a gateway accepts the TCP connection for ANY ID).
 @dataclass(frozen=True)
 class ReadResult:
     values: list[int] | None
     error: str | None = None
     illegal: bool = False
+    no_device: bool = False
 
 
 Reader = Callable[[str, int, int], ReadResult]
@@ -191,7 +195,7 @@ def pymodbus_reader(
 ) -> tuple[Reader, Callable[[], bool], Callable[[], None]]:
     """A synchronous pymodbus TCP reader plus connect()/close()."""
     from pymodbus.client import ModbusTcpClient
-    from pymodbus.exceptions import ModbusException
+    from pymodbus.exceptions import ModbusException, ModbusIOException
     from pymodbus.pdu import ExceptionResponse
 
     client = ModbusTcpClient(host, port=port, timeout=timeout, retries=retries)
@@ -201,14 +205,21 @@ def pymodbus_reader(
         "coil": client.read_coils,
         "discrete": client.read_discrete_inputs,
     }
+    # gateway exceptions saying "nothing answered behind the requested device ID"
+    gateway_dead = {10: "gateway path unavailable", 11: "gateway target device failed to respond"}
 
     def read(table: str, address: int, count: int) -> ReadResult:
         try:
             rr = funcs[table](address=address, count=count, device_id=device_id)
+        except ModbusIOException:   # forwarded into the void — nothing answered in time
+            return ReadResult(None, f"no answer from device ID {device_id}", no_device=True)
         except ModbusException as exc:
             return ReadResult(None, str(exc))
         if rr.isError():
             code = rr.exception_code if isinstance(rr, ExceptionResponse) else None
+            if code in gateway_dead:
+                return ReadResult(None, f"no device at ID {device_id} "
+                                        f"({gateway_dead[code]}, exception {code})", no_device=True)
             return ReadResult(None, f"exception {code}" if code else str(rr),
                               illegal=code == _ILLEGAL_DATA_ADDRESS)
         raw = rr.bits if table in BIT_TABLES else rr.registers
@@ -397,8 +408,10 @@ class Scanner:
         every table's per-register stats and value history, the mapping, and the given-up-on
         (dead) register list — is **kept**, so importing a project and then connecting to watch
         it live never costs you your work; only **Clear all** (``clear_all``) wipes that.
-        ``demo`` uses the simulated device; ``tcp`` connects to a gateway. Connection errors are
-        stored (``conn_error``) and surfaced in the UI, not raised."""
+        ``demo`` uses the simulated device; ``tcp`` connects to a gateway — and then sends one
+        probe read, because a Modbus gateway accepts the TCP connection for ANY device ID: only
+        a read reveals whether something answers behind it (see _probe_device). Connection
+        errors are stored (``conn_error``) and surfaced in the UI, not raised."""
         self._teardown()
         self.connection = {"mode": mode, "host": host, "port": int(port),
                            "device_id": int(device_id), "timeout": float(timeout), "retries": int(retries)}
@@ -410,11 +423,26 @@ class Scanner:
             read, do_connect, close = pymodbus_reader(
                 host, int(port), int(device_id), float(timeout), int(retries))
             if do_connect():
-                self._read, self._close, self.connected, self.conn_error = read, close, True, None
+                self._read, self._close, self.connected = read, close, True
+                self.conn_error = self._probe_device()
             else:
                 self.connected, self.conn_error = False, f"cannot connect to {host}:{port}"
         self.last_error = None
         self._clear_page()  # refill the view from the current inputs; the stats behind it survive
+
+    def _probe_device(self) -> str | None:
+        """One tiny read right after connecting, to catch the classic gateway trap: the TCP
+        connect succeeds no matter the Device ID, and only a read reveals whether a device
+        answers behind it. ANY answer — data, or a Modbus exception such as 'illegal data
+        address' — proves a device is there; silence or a gateway target-failed exception
+        earns a warning (not a refusal — the ID may be wrong, or the device just offline)."""
+        if self._read is None:
+            return None
+        result = self._read("holding", 0, 1)
+        if not result.no_device:
+            return None
+        return (f"{result.error} — check the Device ID "
+                f"(the gateway accepts the connection either way)")
 
     def disconnect(self) -> None:
         """Deliberately drop the connection (the Connect button's other half). Everything

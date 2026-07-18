@@ -28,6 +28,13 @@ just shortcuts for that. **Demo** fakes a device (static config, a fast + slow c
 sine, a float32 ramp, and a couple of refused addresses) so you can try the whole UI with no
 gateway.
 
+Connecting also sends one **probe read**, because a Modbus gateway accepts the TCP connection
+for *any* Device ID — only a read reveals whether something answers behind it. Any answer (data,
+or a Modbus exception like *illegal data address*) proves a device is there; silence, or a
+gateway *target failed to respond* exception, shows a ⚠ warning right in the header — "no answer
+from device ID 1 — check the Device ID" — while staying connected, since the device might just
+be offline. Reads that fail during scanning carry the same self-explaining message.
+
 Once connected the button turns into **Disconnect** (and the connection fields lock until you
 drop the link — so what's shown is always what's connected). Disconnecting — like reconnecting —
 **keeps** everything you've gathered: the per-register stats and history, the mapping, and the

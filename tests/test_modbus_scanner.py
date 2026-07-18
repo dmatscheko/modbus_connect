@@ -1339,6 +1339,44 @@ def test_range_is_clamped_to_the_address_space():
     assert sc.max_read == 1                                # floored to 1
 
 
+def _fake_gateway(result):
+    """A pymodbus_reader stand-in whose every read answers ``result`` (TCP always connects)."""
+    def reader(host, port, device_id, timeout, retries):
+        def read(table, address, count):
+            return result
+        return read, (lambda: True), (lambda: None)
+    return reader
+
+
+def test_connect_probe_warns_when_the_device_id_never_answers(monkeypatch):
+    # the classic gateway trap: TCP connects for ANY device ID, and only a read reveals
+    # whether something answers behind it. The probe warns — and stays connected (a hint,
+    # not a refusal: the ID may be wrong, or the device may just be offline).
+    monkeypatch.setattr(scanner, "pymodbus_reader", _fake_gateway(
+        scanner.ReadResult(None, "no answer from device ID 1", no_device=True)))
+    sc = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
+    sc.connect(mode="tcp", host="gw.example", port=502, device_id=1)
+    assert sc.connected
+    assert "device ID 1" in sc.conn_error and "Device ID" in sc.conn_error
+    assert sc.snapshot()["connection"]["error"] == sc.conn_error   # the UI banner sees it
+
+    # ANY answer proves a device is there — even a refusal of the probed address...
+    monkeypatch.setattr(scanner, "pymodbus_reader", _fake_gateway(
+        scanner.ReadResult(None, "exception 2", illegal=True)))
+    sc.connect(mode="tcp", host="gw.example", port=502, device_id=20)
+    assert sc.connected and sc.conn_error is None
+
+    # ...or a plain data answer, or a non-gateway exception (the device spoke)
+    monkeypatch.setattr(scanner, "pymodbus_reader", _fake_gateway(
+        scanner.ReadResult([7])))
+    sc.connect(mode="tcp", host="gw.example", port=502, device_id=20)
+    assert sc.connected and sc.conn_error is None
+    monkeypatch.setattr(scanner, "pymodbus_reader", _fake_gateway(
+        scanner.ReadResult(None, "exception 4")))
+    sc.connect(mode="tcp", host="gw.example", port=502, device_id=20)
+    assert sc.connected and sc.conn_error is None
+
+
 def test_connect_demo_and_disconnected_guard():
     sc = scanner.Scanner(table="holding", start=0, count=4, max_read=4)  # no reader
     assert not sc.connected
