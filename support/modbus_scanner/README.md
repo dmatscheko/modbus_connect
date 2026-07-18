@@ -99,11 +99,19 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   genuinely stays silent, the fill keeps the current page and its ◀ / ▶ anchors — paging stays
   enabled and simply retries once the device answers — instead of latching "at the end" and going
   dead.
-- **Single-read downgrade** — when the device *refuses* a block read, that block is bisected
-  register by register to pin down the dead address(es), which is much slower; the header then
-  shows **`N single probes`** for the last scan/page. Normal on first contact with a sparse
-  register map — it settles as the dead list fills in — but if it never stops, the gateway may
-  dislike block reads (lower **Per read**) or the serial side may just be very slow.
+- **Single-read downgrade** — when a block read fails, that block is bisected register by
+  register to pin down the culprit(s), which is much slower; the header shows **`N single
+  probes`** for the last scan/page. This kicks in two ways. A *refused* block (an illegal-data
+  address exception) is always bisected. And some devices express an unsupported register by
+  **not answering at all** (a timeout) rather than a refusal — so a block spanning it times out
+  whole; when the device is answering its *other* registers (the link is proven up), such a
+  block is bisected too, and the silent addresses are given up on so later reads skip them —
+  otherwise that region would just say "no answer" forever. (A timeout while *nothing* is
+  answering is treated as the whole link being briefly down: nothing is buried, it stays
+  retryable.) Normal on first contact with a device that has holes — it settles as the dead
+  list fills in (a couple of scans) — but if it never stops, the gateway may dislike block
+  reads (lower **Per read**) or the serial side may just be very slow (a lower **Timeout**
+  makes each dead probe cheaper).
 - **Remembered across tables** — every value is kept per `(table, address)`, so a value's
   read/change counts and history survive switching table or paging away and back (and rescanning
   then flags anything that moved while you were elsewhere). Switching tables keeps your view

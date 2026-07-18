@@ -1416,31 +1416,55 @@ def test_single_probes_are_counted_per_operation_and_reported():
     assert sc.snapshot()["single_probes"] == 0
 
 
-def test_partial_silence_is_a_slow_link_not_a_dead_one():
-    # the value-and-warning contradiction: a pass where SOME reads answered and some timed
-    # out must read as a slow link — never shout "no answer" while data is arriving
-    dev = FakeDevice({i: i + 1 for i in range(8)})
-    silent_at = [None]
+def test_a_silent_register_region_is_bisected_and_isolated_when_the_link_is_alive():
+    # the reported gateway: registers 5..8 are unsupported and the device serves them by NOT
+    # answering (a timeout), not a refusal — so a block spanning them times out whole. With the
+    # device answering its neighbours (0..4), the block is bisected: the good ones show, and the
+    # silent ones are struck toward the dead list so later reads skip them (no endless "no answer").
+    dead = {5, 6, 7, 8}
+    vals = {i: i + 1 for i in range(20) if i not in dead}
 
     def read(table, address, count):
-        if silent_at[0] is not None and address + count > silent_at[0]:
-            return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
-        return dev.read(table, address, count)
+        for a in range(address, address + count):
+            if a in dead:
+                return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+        return scanner.ReadResult([vals.get(a, 0) for a in range(address, address + count)])
+
+    sc = scanner.Scanner(read, table="holding", start=0, count=12, max_read=4)
+    sc.scan()                                     # [0..3] answers (link proven alive), then the
+    snap = sc.snapshot()                          # blocks spanning 5..8 are bisected and isolated
+    assert _cell(snap, 4)["value"] == 5           # the good registers before the hole show
+    assert _cell(snap, 5)["error"] == "not served"   # the silent ones are marked, not a blanket error
+    assert snap["single_probes"] > 0              # the bisection is reported to the header
+    assert snap["last_error"] is None             # NOT "no answer" — the link is alive, holes isolated
+
+    sc.scan()                                     # a second strike seals them onto the dead list
+    assert {("holding", a) for a in dead} <= sc._bad
+    dev_reads = []
+    sc._read = lambda t, a, n: (dev_reads.append((a, n)), read(t, a, n))[1]
+    sc.scan()                                     # now planned around: no read spans the dead hole
+    assert all(not (a <= 5 < a + n) for a, n in dev_reads)
+
+
+def test_a_briefly_silent_link_is_not_buried_and_recovers():
+    # the opposite: when the WHOLE link goes quiet for a scan (nothing answers), no register is
+    # marked dead on the strength of that silence — it stays retryable and recovers cleanly.
+    dev = FakeDevice({i: i + 1 for i in range(8)})
+    down = [False]
+
+    def read(table, address, count):
+        return (scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+                if down[0] else dev.read(table, address, count))
 
     sc = scanner.Scanner(read, table="holding", start=0, count=8, max_read=4)
-    sc.scan()                                 # 0..7 fill in two blocks
+    sc.scan()                                     # 0..7 answer -> the device is known alive
+    down[0] = True                                # the whole link goes quiet
+    sc.scan()
+    assert "no answer" in sc.snapshot()["last_error"]
+    assert not sc._bad                            # NOTHING buried on silence alone
+    down[0] = False                               # it comes back
+    sc.scan()
     assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(8))
-    silent_at[0] = 4                          # the upper block stops answering
-    sc.scan()                                 # refresh: 0..3 answer, 4..7 miss
-    err = sc.snapshot()["last_error"]
-    assert err and "slow" in err and "no answer" not in err
-    assert sc.cells[("holding", 0)].value == 1   # ...and the values that DID answer are live
-    silent_at[0] = 0                          # now nothing answers at all — stay loud
-    sc.scan()
-    err = sc.snapshot()["last_error"]
-    assert "no answer" in err and "slow" not in err
-    silent_at[0] = None                       # fully recovered -> banner clears
-    sc.scan()
     assert sc.snapshot()["last_error"] is None
 
 

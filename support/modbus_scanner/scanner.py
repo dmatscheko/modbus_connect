@@ -195,6 +195,12 @@ _SILENT_BAIL = 3
 # trips the NEXT read (transaction-id desync) — the retry drains it. Paging past a fresh region
 # on a slow gateway relies on this: the first touch often times out, the retry answers.
 _SLOW_RETRIES = 2
+# Some devices express an unsupported register by NOT answering (a timeout) instead of a proper
+# illegal-data-address exception, so a block spanning it times out whole. When the device is
+# otherwise known alive, such a block is bisected register-by-register (like a refused one) to
+# isolate the dead address(es) so later block reads skip them — but that costs one timeout per
+# probed register, so it is capped per operation (an offline device must not bisect forever).
+_MAX_SILENT_PROBES = 16
 
 
 @dataclass
@@ -450,10 +456,20 @@ class Scanner:
         # anchor there and retry rather than latch "at the end".
         self._report = ReadReport()
         self._walk_aborted = False
-        # Single-register probes done this operation: a refused block is bisected register by
-        # register to pin down the dead address(es) (see _bisect), a big slowdown the header
-        # reports as "N single probes" so a suddenly-crawling scan explains itself.
+        # Single-register probes done this operation: a refused (or silent, on a known-alive
+        # device) block is bisected register by register to pin down the dead address(es) (see
+        # _bisect), a big slowdown the header reports as "N single probes". _op_silent_probes
+        # counts just the *timeout* probes (capped at _MAX_SILENT_PROBES per op); _device_seen
+        # records that this session has had a real answer, the gate for bisecting a silent block
+        # (an offline device — never yet answered — must not bisect at all).
         self._op_singles = 0
+        self._op_silent_probes = 0
+        self._device_seen = False
+        # Whether the device has answered *this operation* — set the moment any read returns
+        # data, reset per op. A silent register is only given up on (struck toward the dead
+        # list) when this is True: the device is provably responsive right now, so its silence
+        # is a real hole, not the whole link being briefly down (which must stay retryable).
+        self._op_alive = False
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
                 timeout: float = 2.0, retries: int = 0) -> None:
@@ -466,7 +482,8 @@ class Scanner:
         a read reveals whether something answers behind it (see _probe_device). Connection
         errors are stored (``conn_error``) and surfaced in the UI, not raised."""
         self._teardown()
-        self._op_singles = 0   # a stale count from the previous session must not linger
+        self._op_singles, self._op_silent_probes = 0, 0  # stale counts must not linger
+        self._device_seen = False                        # earn it afresh on this connection
         self.connection = {"mode": mode, "host": host, "port": int(port),
                            "device_id": int(device_id), "timeout": float(timeout), "retries": int(retries)}
         if mode == "demo":
@@ -498,6 +515,7 @@ class Scanner:
         if result.no_device:
             result = self._read("holding", 0, 1)
         if not result.no_device:
+            self._device_seen = True   # it answered (data or a refusal) — the device is there
             return None
         return (f"{result.error} — check the Device ID (the gateway accepts the connection "
                 f"either way); this clears itself once the device answers")
@@ -549,7 +567,8 @@ class Scanner:
             self.last_error = "not connected"
             return
         self.last_error = None
-        self._report, self._op_singles = ReadReport(), 0  # fresh per-operation counters
+        self._report, self._op_singles, self._op_silent_probes = ReadReport(), 0, 0  # per-op counters
+        self._op_alive = False
         self.scan_index += 1
         if self._page_addrs:
             self.refresh_page()
@@ -596,8 +615,14 @@ class Scanner:
                 elif result.illegal:
                     self._bisect(block, report)  # a refusal is an answer — the device is alive
                     streak = 0
+                elif self._device_seen and self._op_silent_probes < _MAX_SILENT_PROBES:
+                    # a timeout, but the device has answered before: this block may just span a
+                    # register the device serves by NOT answering — bisect it to isolate the hole
+                    # so later reads skip it (some devices time out instead of refusing).
+                    self._bisect(block, report)
+                    streak = 0
                 else:
-                    report.silent += 1  # a timeout/transport error: the device (or gateway) is quiet
+                    report.silent += 1  # UNRESOLVED silence: not-yet-seen, offline, or budget spent
                     report.error = result.error or "no answer"
                     streak += 1
                     if streak >= _SILENT_BAIL:
@@ -617,29 +642,49 @@ class Scanner:
             self._read_spans(spans)
 
     def _bisect(self, block: Span, report: ReadReport) -> None:
-        """Read each address of a refused block alone to pin down the culprit(s), updating
-        ``report`` (a refusal counts as answered — the device spoke — a silent read does not).
-        An address is only given up on (added to _bad, skipped from now on) after
-        _NOT_SERVED_LIMIT refusals in a row; a single "not served" is shown but retried next scan.
-        This register-by-register fallback is the big slowdown the header counts (see _op_singles)."""
+        """Read each address of a refused-or-silent block alone to pin down the culprit(s) —
+        the register-by-register fallback the header counts (see _op_singles). A register is
+        given up on (a strike toward the dead list, _NOT_SERVED_LIMIT strikes to seal it, so a
+        spurious one can't kill it) when it *refuses*, or when it *times out while the device
+        is answering other registers this op* (``_op_alive`` — some devices serve an unsupported
+        register by silence, not a refusal; a good neighbour proves the link is up, so this
+        silence is a real hole). A timeout while nothing has answered this op is left soft and
+        the block reported unresolved-silent, so a link that is merely down stays retryable and
+        no register is wrongly buried. Data answers at once. Single reads (no per-read retry):
+        the block already spent its retries above."""
         self._op_singles += block.count
+        unresolved = False
         for addr in range(block.start, block.end):
-            r = self._read_retry(addr, 1)
+            r = self._read(self.table, addr, 1)
             key = (self.table, addr)
             if r.values is not None:
                 self._record(self.table, addr, value=r.values[0])
                 report.answered += 1
             elif r.illegal:
-                self._misses[key] = self._misses.get(key, 0) + 1
-                if self._misses[key] >= _NOT_SERVED_LIMIT:
-                    self._bad.add(key)
-                self._record(self.table, addr, error="not served", illegal=True)
-                report.answered += 1
+                self._strike_dead(key, addr)
+                report.answered += 1   # a refusal is an answer — the device spoke
+            elif self._op_alive:
+                self._strike_dead(key, addr)   # silence on a live link -> a real hole, given up on
+                self._op_silent_probes += 1
             else:
-                self._misses.pop(key, None)  # a no-answer isn't a refusal -> breaks the streak
+                # nothing has answered this op: the whole link may just be down -> keep it soft
+                # and retryable, never buried on the strength of silence alone
+                self._misses.pop(key, None)
                 self._record(self.table, addr, error=r.error or "no answer")
-                report.silent += 1
-                report.error = r.error or "no answer"
+                self._op_silent_probes += 1
+                unresolved = True
+        if unresolved:
+            report.silent += 1
+            report.error = "no answer"
+
+    def _strike_dead(self, key: tuple[str, int], addr: int) -> None:
+        """One strike toward the dead list for a register that refused or (on a live link) went
+        silent; seal it into ``_bad`` at _NOT_SERVED_LIMIT strikes. Recorded "not served" — the
+        persistence contract the dead list rebuilds from (re-armable via the row's ↻ / Clear all)."""
+        self._misses[key] = self._misses.get(key, 0) + 1
+        if self._misses[key] >= _NOT_SERVED_LIMIT:
+            self._bad.add(key)
+        self._record(self.table, addr, error="not served", illegal=True)
 
     def retry_address(self, table: str, address: int) -> None:
         """Probe one given-up-on register again — the per-register escape hatch from the dead
@@ -666,6 +711,9 @@ class Scanner:
             # a real response (data, or an explicit refusal) proves the device is answering,
             # which disproves and clears the connect probe's "no device" warning
             self.conn_error = None
+        if value is not None:
+            self._device_seen = True   # a data answer — the gate for bisecting a silent block
+            self._op_alive = True      # ...and (this op) the gate for striking a silent register dead
         cell = self.cells.setdefault((table, address), Cell(address))
         cell.error = error
         cell.illegal = illegal
@@ -688,7 +736,8 @@ class Scanner:
         page and just marks that direction exhausted (no empty page). Offline it still fills from the
         remembered cells (with no fresh reads), so an imported project can be reviewed unconnected."""
         self.last_error = None
-        self._report, self._op_singles = ReadReport(), 0  # fresh per-operation counters
+        self._report, self._op_singles, self._op_silent_probes = ReadReport(), 0, 0  # per-op counters
+        self._op_alive = False
         if self.connected and self._read is not None:
             self.scan_index += 1
         else:
