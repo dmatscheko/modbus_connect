@@ -163,6 +163,10 @@
   .valviews b { color:var(--fg); font-weight:600; }
   .spark { font-family:ui-monospace, monospace; font-size:19px; line-height:1; letter-spacing:1px;
            color:var(--accent); margin:8px 0 6px; word-break:break-all; }
+  /* hover-linked highlight: a sparkline bar and its history row light up together */
+  .spark .sp { border-radius:2px; }
+  .spark .sp.hl { color:#fff; background:#39435a; }
+  table.histtable tr.hl td { background:#232833; }
   table.histtable { width:100%; margin-top:4px; }
   table.histtable th, table.histtable td { padding:3px 8px; }
   table.histtable td.hv { color:var(--fg); font-weight:600; }
@@ -682,10 +686,12 @@ function render(snap) {
 // --- value + history panel: click any data cell to see the register's type interpretations (top)
 // and how its value moved over time (below). The two overlay cells (mapped/decoded) open the editor. ---
 const SPARK = '▁▂▃▄▅▆▇█';
+// each bar is its own span carrying the history index, so it can hover-link to its table row
 function sparkline(vals) {
   if (!vals || vals.length < 2) return '';
   const min = Math.min(...vals), max = Math.max(...vals), span = (max - min) || 1;
-  return vals.map(v => SPARK[Math.min(7, Math.floor((v - min) / span * 8))]).join('');
+  return vals.map((v, i) => `<span class="sp" data-i="${i}">` +
+    `${SPARK[Math.min(7, Math.floor((v - min) / span * 8))]}</span>`).join('');
 }
 // a compact duration ("42s", "3m 20s", "2h 5m", "3d 4h") — the history's Δt column reads
 // change cadence directly from it; relTime anchors the same format at now
@@ -840,7 +846,8 @@ function renderHistory(data, views) {
       const cls = d == null ? '' : d > 0 ? 'up' : d < 0 ? 'dn' : '';
       const ds = d == null ? '' : (d > 0 ? '+' : '') + fmtVal(d);
       const gap = older ? dur(e.t - older.t) : '—';
-      return `<tr><td class="hv">${esc(fmtVal(shown))}</td><td class="hd ${cls}">${ds}</td>` +
+      return `<tr data-i="${arr.length - 1 - i}">` +   // its sparkline bar's index (oldest = 0)
+             `<td class="hv">${esc(fmtVal(shown))}</td><td class="hd ${cls}">${ds}</td>` +
              `<td class="ht" title="first seen ${relTime(now - e.t)}">${gap}</td>` +
              `<td class="hs">#${e.scan}</td></tr>`;
     }).join('');
@@ -858,7 +865,16 @@ function renderHistory(data, views) {
       `<th>scan</th></tr></thead>` +
       `<tbody>${rows}</tbody></table>`;
   }
-  $('side').querySelector('.histbox').innerHTML = histBlock;
+  const box = $('side').querySelector('.histbox');
+  box.innerHTML = histBlock;
+  // hover-link the sparkline and the table: a bar and its row share data-i, and hovering
+  // either lights up both — the graph shows WHEN, the row shows WHAT, linked at a glance
+  box.querySelectorAll('[data-i]').forEach(el => {
+    el.onmouseenter = () =>
+      box.querySelectorAll(`[data-i="${el.dataset.i}"]`).forEach(o => o.classList.add('hl'));
+    el.onmouseleave = () =>
+      box.querySelectorAll('.hl').forEach(o => o.classList.remove('hl'));
+  });
 }
 
 // --- the "decode as" override: a single-word decode spec for THE selected register that

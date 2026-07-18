@@ -117,7 +117,8 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   contiguous ones. **Below**, the last 50 *distinct* values it has taken — each with the Δ from the
   value before, the **Δt** to the *previous* change (a cadence like "every 60s" reads straight down
   the column; hover for how long ago it was — the summary line names the last change's age), the
-  scan it appeared in, and a sparkline — so a steadily-climbing energy meter reads differently from
+  scan it appeared in, and a sparkline — hover a bar or a row and its partner lights up, linking
+  *when* to *what* — so a steadily-climbing energy meter reads differently from
   a noisy measurement at a glance. When the register decodes *on its own* — a mapped entity that
   starts here and spans one register — the value column becomes a **decoded** column, through the
   integration's real codec (a multi-word entity can't decode from one register's history, so raw
