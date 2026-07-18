@@ -93,10 +93,17 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   past the refused ones so the page always fills. Every view fills its page: **◀ / ▶** page through
   the matches and stop at the real ends, and near an edge the window slides the other way to top up
   rather than leave a half-empty screen. An *unreadable* stretch is never mistaken for an *absent*
-  one: when a slow or silent endpoint makes a read time out, the fill keeps the current page and its
-  ◀ / ▶ anchors — so paging stays enabled and simply retries once the device answers — instead of
-  latching "at the end" and going dead. (A read that answers advances the page as usual; only
-  genuine silence holds it.)
+  one: a bare timeout is retried a couple of times first (a slow device may just need another go,
+  and a timed-out request can leave a late reply that trips the next read — the retry drains it),
+  so paging past a fresh region on a slow gateway usually still advances on the first ▶. If it
+  genuinely stays silent, the fill keeps the current page and its ◀ / ▶ anchors — paging stays
+  enabled and simply retries once the device answers — instead of latching "at the end" and going
+  dead.
+- **Single-read downgrade** — when the device *refuses* a block read, that block is bisected
+  register by register to pin down the dead address(es), which is much slower; the header then
+  shows **`N single probes`** for the last scan/page. Normal on first contact with a sparse
+  register map — it settles as the dead list fills in — but if it never stops, the gateway may
+  dislike block reads (lower **Per read**) or the serial side may just be very slow.
 - **Remembered across tables** — every value is kept per `(table, address)`, so a value's
   read/change counts and history survive switching table or paging away and back (and rescanning
   then flags anything that moved while you were elsewhere). Switching tables keeps your view

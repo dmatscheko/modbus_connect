@@ -184,6 +184,7 @@
   <h1>Modbus scanner</h1>
   <span class="status" id="connStatus">○ not connected</span>
   <span class="status">· scan <b id="scanIndex">0</b></span>
+  <span class="status hide" id="singles" title="the device refused one or more block reads, so those blocks were downgraded to register-by-register probes (to pin down the dead addresses) — this many single reads in the last scan/page. Many of these makes scanning much slower: normal on first contact with a sparse register map (it settles as the dead list fills in); if it never stops, the gateway may dislike block reads (lower Per read) or the serial side may be very slow">· <b id="singlesN">0</b> single probes</span>
   <span id="activity" title="working…">◍</span>
   <span class="chips" id="filterChips" title="each lit chip adds its registers to the view (paging walks the union; the find box narrows on top) — with no chip lit every known register shows">
     <span class="status">show</span>
@@ -628,6 +629,9 @@ function updatePager() {
 function render(snap) {
   snapshot = snap;
   $('scanIndex').textContent = snap.scan_index;
+  // the block->single-read downgrade indicator: shown only when the last operation bisected
+  $('singles').classList.toggle('hide', !snap.single_probes);
+  $('singlesN').textContent = snap.single_probes || 0;
   updatePager();
   applyConnection(snap.connection);
   const err = (snap.connection && snap.connection.error) || snap.last_error;

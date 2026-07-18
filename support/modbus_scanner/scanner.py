@@ -190,6 +190,11 @@ class ReadResult:
 # How many *consecutive* silent blocks (timeouts) end a multi-block read early, so a quiet
 # device never hangs a whole page tick waiting on timeout after timeout.
 _SILENT_BAIL = 3
+# How many extra times a *bare timeout* (not a refusal) is retried before it counts as silent.
+# A slow device may just need another go, and a timed-out request can leave a late reply that
+# trips the NEXT read (transaction-id desync) — the retry drains it. Paging past a fresh region
+# on a slow gateway relies on this: the first touch often times out, the retry answers.
+_SLOW_RETRIES = 2
 
 
 @dataclass
@@ -445,6 +450,10 @@ class Scanner:
         # anchor there and retry rather than latch "at the end".
         self._report = ReadReport()
         self._walk_aborted = False
+        # Single-register probes done this operation: a refused block is bisected register by
+        # register to pin down the dead address(es) (see _bisect), a big slowdown the header
+        # reports as "N single probes" so a suddenly-crawling scan explains itself.
+        self._op_singles = 0
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
                 timeout: float = 2.0, retries: int = 0) -> None:
@@ -457,6 +466,7 @@ class Scanner:
         a read reveals whether something answers behind it (see _probe_device). Connection
         errors are stored (``conn_error``) and surfaced in the UI, not raised."""
         self._teardown()
+        self._op_singles = 0   # a stale count from the previous session must not linger
         self.connection = {"mode": mode, "host": host, "port": int(port),
                            "device_id": int(device_id), "timeout": float(timeout), "retries": int(retries)}
         if mode == "demo":
@@ -539,7 +549,7 @@ class Scanner:
             self.last_error = "not connected"
             return
         self.last_error = None
-        self._report = ReadReport()   # a fresh accumulator for this operation's reads
+        self._report, self._op_singles = ReadReport(), 0  # fresh per-operation counters
         self.scan_index += 1
         if self._page_addrs:
             self.refresh_page()
@@ -553,6 +563,18 @@ class Scanner:
         addrs = [a for a in range(start, start + count) if (self.table, a) not in self._bad]
         return self._read_spans({Span(self.table, a, 1) for a in addrs})
 
+    def _read_retry(self, start: int, count: int) -> ReadResult:
+        """One block read on the current table, retried on a *bare timeout* (see _SLOW_RETRIES):
+        a slow device may just need another go, and a timed-out request can leave a late reply
+        that trips the next read (transaction-id desync) — the retry drains it. Data or an
+        explicit refusal answers at once; only silence is retried."""
+        result = self._read(self.table, start, count)
+        tries = _SLOW_RETRIES
+        while result.values is None and not result.illegal and tries > 0:
+            result = self._read(self.table, start, count)
+            tries -= 1
+        return result
+
     def _read_spans(self, spans: set[Span]) -> ReadReport:
         """Read & record a set of single-address spans, planned into efficient blocks; a
         block the device refuses is bisected to the individual refused address(es). Returns
@@ -565,7 +587,7 @@ class Scanner:
         if read is not None:
             streak = 0
             for block in plan_blocks(spans, max_read=self.max_read, holes=self._bad):
-                result = read(self.table, block.start, block.count)
+                result = self._read_retry(block.start, block.count)
                 if result.values is not None:
                     for i, addr in enumerate(range(block.start, block.end)):
                         self._record(self.table, addr, value=result.values[i])
@@ -598,9 +620,11 @@ class Scanner:
         """Read each address of a refused block alone to pin down the culprit(s), updating
         ``report`` (a refusal counts as answered — the device spoke — a silent read does not).
         An address is only given up on (added to _bad, skipped from now on) after
-        _NOT_SERVED_LIMIT refusals in a row; a single "not served" is shown but retried next scan."""
+        _NOT_SERVED_LIMIT refusals in a row; a single "not served" is shown but retried next scan.
+        This register-by-register fallback is the big slowdown the header counts (see _op_singles)."""
+        self._op_singles += block.count
         for addr in range(block.start, block.end):
-            r = self._read(self.table, addr, 1)
+            r = self._read_retry(addr, 1)
             key = (self.table, addr)
             if r.values is not None:
                 self._record(self.table, addr, value=r.values[0])
@@ -664,7 +688,7 @@ class Scanner:
         page and just marks that direction exhausted (no empty page). Offline it still fills from the
         remembered cells (with no fresh reads), so an imported project can be reviewed unconnected."""
         self.last_error = None
-        self._report = ReadReport()   # a fresh accumulator for this operation's reads
+        self._report, self._op_singles = ReadReport(), 0  # fresh per-operation counters
         if self.connected and self._read is not None:
             self.scan_index += 1
         else:
@@ -1110,7 +1134,8 @@ class Scanner:
         of the selected filter atoms (served / refused / non-zero / changed / mapped / x-ray).
         The filtered views read past dead registers so the page always fills."""
         base = {"config": self.config(), "scan_index": self.scan_index,
-                "last_error": self.last_error, "device": self.device_summary(),
+                "last_error": self.last_error, "single_probes": self._op_singles,
+                "device": self.device_summary(),
                 "meta": dict(self.meta),
                 "imported": dict(self.imported["meta"]) if self.imported else None,
                 "additional": [{"name": ov.name, "manufacturer": ov.device.manufacturer,

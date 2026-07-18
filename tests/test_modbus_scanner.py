@@ -1380,6 +1380,42 @@ def test_paging_stays_retryable_when_reads_go_silent_and_advances_on_recovery():
     assert snap["at_end"] is False and snap["next_anchor"] == 4
 
 
+def test_paging_retries_a_slow_first_read_and_advances():
+    # the reported ▶ bug: the first touch of a fresh region often times out on a slow gateway
+    # (or a stale reply desyncs it), which used to abort the walk with "no answer". A bounded
+    # retry drains it and lets paging advance — the device IS answering, just slowly.
+    dev = FakeDevice({i: i + 1 for i in range(20)})
+    attempts: dict = {}
+
+    def read(table, address, count):
+        k = (address, count)
+        attempts[k] = attempts.get(k, 0) + 1
+        if attempts[k] == 1:            # the FIRST attempt at any block times out; the retry works
+            return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+        return dev.read(table, address, count)
+
+    sc = scanner.Scanner(read, table="holding", start=0, count=4, max_read=4)
+    sc.page(forward=True, anchor=0)
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3]   # the retry recovered the read
+    assert snap["last_error"] is None and snap["at_end"] is False
+    sc.page(forward=True, anchor=snap["next_anchor"])             # ▶ now advances, not "no answer"
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [4, 5, 6, 7]
+
+
+def test_single_probes_are_counted_per_operation_and_reported():
+    # a refused block is downgraded to register-by-register probes (_bisect) — the snapshot
+    # reports how many, per operation, so the UI can explain a suddenly slow scan
+    dev = FakeDevice({0: 1, 1: 2, 3: 4}, illegal={2})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.scan()
+    assert sc.snapshot()["single_probes"] == 4     # the whole refused block was bisected
+    sc.scan()
+    assert sc.snapshot()["single_probes"] == 4     # 2 needs a second strike -> bisected again
+    sc.scan()                                      # 2 is dead now: planned around, no bisect
+    assert sc.snapshot()["single_probes"] == 0
+
+
 def test_partial_silence_is_a_slow_link_not_a_dead_one():
     # the value-and-warning contradiction: a pass where SOME reads answered and some timed
     # out must read as a slow link — never shout "no answer" while data is arriving
