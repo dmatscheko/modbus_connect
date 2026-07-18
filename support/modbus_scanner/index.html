@@ -158,6 +158,7 @@
   /* the Details tab's "decode as" override form sits between the value block and the history */
   .ovrbox:not(:empty) { margin-bottom:10px; padding-bottom:9px; border-bottom:1px solid var(--line); }
   .valblock .big { font-size:18px; font-weight:600; color:var(--fg); }
+  .valblock .status b { color:var(--fg); font-weight:600; }   /* the hex / int16 values pop like .big */
   .valviews { margin-top:5px; color:var(--muted); font-family:ui-monospace, monospace; font-size:12px;
               line-height:1.7; word-break:break-word; }
   .valviews b { color:var(--fg); font-weight:600; }
@@ -824,7 +825,7 @@ function renderHistory(data, views) {
   if (v == null) {
     valBlock += '<span class="status">Not read yet — no value to interpret.</span>';
   } else {
-    valBlock += `<span class="big">${v}</span> <span class="status">= ${hex4(v)} · int16 ${int16(v)}</span>`;
+    valBlock += `<span class="big">${v}</span> <span class="status">= <b>${hex4(v)}</b> · int16 <b>${int16(v)}</b></span>`;
     if (views && views.length)
       valBlock += `<div class="valviews">${views.map(x => {
         // floats arrive FULL precision and are rounded here, display-only — hover for exact
