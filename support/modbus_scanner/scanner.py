@@ -187,6 +187,43 @@ class ReadResult:
     no_device: bool = False
 
 
+# How many *consecutive* silent blocks (timeouts) end a multi-block read early, so a quiet
+# device never hangs a whole page tick waiting on timeout after timeout.
+_SILENT_BAIL = 3
+
+
+@dataclass
+class ReadReport:
+    """The aggregate outcome of ONE read operation (a page fill or a refresh, across all its
+    block reads): how many registers actually answered — data, or an explicit refusal, both
+    proving the device is alive — and how many blocks stayed silent, with the last transport
+    error. Every caller derives its decision from this single result — the connection banner,
+    whether paging may continue, the per-page error — so a value and a 'no answer' can never
+    contradict each other (the old bug was two separate channels: recorded values on one side,
+    a threshold-triggered error string on the other)."""
+    answered: int = 0
+    silent: int = 0
+    error: str | None = None
+
+    @property
+    def alive(self) -> bool:
+        """The device responded to something — it is there and talking (so any warning that
+        it is absent is disproved)."""
+        return self.answered > 0
+
+    @property
+    def total_failure(self) -> bool:
+        """A read was attempted and nothing at all answered — total silence."""
+        return self.answered == 0 and self.silent > 0
+
+    def fold(self, other: ReadReport) -> None:
+        """Accumulate a block-read's outcome into this operation-level report."""
+        self.answered += other.answered
+        self.silent += other.silent
+        if other.error:
+            self.error = other.error
+
+
 Reader = Callable[[str, int, int], ReadResult]
 
 
@@ -401,6 +438,13 @@ class Scanner:
         self._page_addrs: list[int] = []
         self._page_next_anchor: int | None = None
         self._page_prev_anchor: int | None = None
+        # Read-outcome bookkeeping (see ReadReport): _report accumulates the current
+        # operation's reads (every _read_spans folds into it) and _settle_errors turns it
+        # into the banner; _walk_aborted flags that a discovery walk hit an UNREADABLE
+        # (silent) block — the region beyond is unknown, not absent, so paging must keep its
+        # anchor there and retry rather than latch "at the end".
+        self._report = ReadReport()
+        self._walk_aborted = False
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
                 timeout: float = 2.0, retries: int = 0) -> None:
@@ -435,14 +479,18 @@ class Scanner:
         connect succeeds no matter the Device ID, and only a read reveals whether a device
         answers behind it. ANY answer — data, or a Modbus exception such as 'illegal data
         address' — proves a device is there; silence or a gateway target-failed exception
-        earns a warning (not a refusal — the ID may be wrong, or the device just offline)."""
+        earns a warning (not a refusal — the ID may be wrong, or the device just offline).
+        Slow serial sides often miss the very first read, so silence gets one retry; and the
+        warning self-heals — any later real answer clears it (see _record / _settle_errors)."""
         if self._read is None:
             return None
         result = self._read("holding", 0, 1)
+        if result.no_device:
+            result = self._read("holding", 0, 1)
         if not result.no_device:
             return None
-        return (f"{result.error} — check the Device ID "
-                f"(the gateway accepts the connection either way)")
+        return (f"{result.error} — check the Device ID (the gateway accepts the connection "
+                f"either way); this clears itself once the device answers")
 
     def disconnect(self) -> None:
         """Deliberately drop the connection (the Connect button's other half). Everything
@@ -490,67 +538,84 @@ class Scanner:
         if not self.connected or self._read is None:
             self.last_error = "not connected"
             return
+        self.last_error = None
+        self._report = ReadReport()   # a fresh accumulator for this operation's reads
         self.scan_index += 1
         if self._page_addrs:
             self.refresh_page()
         else:
             self._fill_page(forward=True, anchor=self.start)  # establish the page on the first tick
+        self._settle_errors()
 
-    def _read_range(self, start: int, count: int) -> str | None:
+    def _read_range(self, start: int, count: int) -> ReadReport:
         """Read & record [start, start+count) on the current table, planned so already-refused
-        addresses (in _bad) are skipped. Returns an error string on a persistent no-answer."""
+        addresses (in _bad) are skipped. Returns the aggregate ReadReport."""
         addrs = [a for a in range(start, start + count) if (self.table, a) not in self._bad]
         return self._read_spans({Span(self.table, a, 1) for a in addrs})
 
-    def _read_spans(self, spans: set[Span]) -> str | None:
+    def _read_spans(self, spans: set[Span]) -> ReadReport:
         """Read & record a set of single-address spans, planned into efficient blocks; a
-        block the device refuses is bisected to the individual refused address(es)."""
+        block the device refuses is bisected to the individual refused address(es). Returns
+        a ReadReport (data/refusals answered vs silent blocks) and folds it into the current
+        operation's report. Bails after _SILENT_BAIL consecutive silent blocks so a quiet
+        device never hangs the tick — but a silent block is a NON-answer, never mistaken for
+        an absent register: that distinction is what the callers act on."""
         read = self._read
-        if read is None:
-            return None
-        silent = 0
-        for block in plan_blocks(spans, max_read=self.max_read, holes=self._bad):
-            result = read(self.table, block.start, block.count)
-            if result.values is not None:
-                for i, addr in enumerate(range(block.start, block.end)):
-                    self._record(self.table, addr, value=result.values[i])
-                silent = 0
-            elif result.illegal:
-                self._bisect(block)  # device refused the block: find which address(es)
-            else:
-                silent += 1  # a timeout/transport error: the device (or gateway) is quiet
-                if silent >= 3:
-                    return result.error or "no answer"
-        return None
+        report = ReadReport()
+        if read is not None:
+            streak = 0
+            for block in plan_blocks(spans, max_read=self.max_read, holes=self._bad):
+                result = read(self.table, block.start, block.count)
+                if result.values is not None:
+                    for i, addr in enumerate(range(block.start, block.end)):
+                        self._record(self.table, addr, value=result.values[i])
+                    report.answered += block.count
+                    streak = 0
+                elif result.illegal:
+                    self._bisect(block, report)  # a refusal is an answer — the device is alive
+                    streak = 0
+                else:
+                    report.silent += 1  # a timeout/transport error: the device (or gateway) is quiet
+                    report.error = result.error or "no answer"
+                    streak += 1
+                    if streak >= _SILENT_BAIL:
+                        break
+        self._report.fold(report)
+        return report
 
     def refresh_page(self) -> None:
         """Re-read the registers of the current filtered page (its membership unchanged),
-        so a live scan keeps their values fresh without reshuffling what's shown."""
-        self.last_error = None
+        so a live scan keeps their values fresh without reshuffling what's shown. The read
+        outcome folds into the operation report; _settle_errors turns it into the banner."""
         spans: set[Span] = set()
         for addr in self._page_addrs:
             spans |= {Span(self.table, a, 1) for a in self._row_read_addrs(addr)
                       if (self.table, a) not in self._bad}
         if spans:
-            self.last_error = self._read_spans(spans)
+            self._read_spans(spans)
 
-    def _bisect(self, block: Span) -> None:
-        """Read each address of a refused block alone to pin down the culprit(s). An address is
-        only given up on (added to _bad, skipped from now on) after _NOT_SERVED_LIMIT refusals in
-        a row; a single "not served" is shown but retried next scan."""
+    def _bisect(self, block: Span, report: ReadReport) -> None:
+        """Read each address of a refused block alone to pin down the culprit(s), updating
+        ``report`` (a refusal counts as answered — the device spoke — a silent read does not).
+        An address is only given up on (added to _bad, skipped from now on) after
+        _NOT_SERVED_LIMIT refusals in a row; a single "not served" is shown but retried next scan."""
         for addr in range(block.start, block.end):
             r = self._read(self.table, addr, 1)
             key = (self.table, addr)
             if r.values is not None:
                 self._record(self.table, addr, value=r.values[0])
+                report.answered += 1
             elif r.illegal:
                 self._misses[key] = self._misses.get(key, 0) + 1
                 if self._misses[key] >= _NOT_SERVED_LIMIT:
                     self._bad.add(key)
                 self._record(self.table, addr, error="not served", illegal=True)
+                report.answered += 1
             else:
                 self._misses.pop(key, None)  # a no-answer isn't a refusal -> breaks the streak
                 self._record(self.table, addr, error=r.error or "no answer")
+                report.silent += 1
+                report.error = r.error or "no answer"
 
     def retry_address(self, table: str, address: int) -> None:
         """Probe one given-up-on register again — the per-register escape hatch from the dead
@@ -573,6 +638,10 @@ class Scanner:
 
     def _record(self, table: str, address: int, *, value: int | None = None,
                 error: str | None = None, illegal: bool = False) -> None:
+        if value is not None or illegal:
+            # a real response (data, or an explicit refusal) proves the device is answering,
+            # which disproves and clears the connect probe's "no device" warning
+            self.conn_error = None
         cell = self.cells.setdefault((table, address), Cell(address))
         cell.error = error
         cell.illegal = illegal
@@ -594,21 +663,49 @@ class Scanner:
         page_size matches (or reach the table/map edge). Finding nothing that way keeps the current
         page and just marks that direction exhausted (no empty page). Offline it still fills from the
         remembered cells (with no fresh reads), so an imported project can be reviewed unconnected."""
+        self.last_error = None
+        self._report = ReadReport()   # a fresh accumulator for this operation's reads
         if self.connected and self._read is not None:
             self.scan_index += 1
         else:
             self.last_error = "not connected"
         self._fill_page(forward, anchor)
+        self._settle_errors()
 
     def _fill_page(self, forward: bool, anchor: int) -> None:
-        self.last_error = None
         matched, nxt, prv = self._collect_page(forward, anchor)
         if matched:
+            # got a page (even if some reads were slow) -> show it and its anchors
             self._page_addrs, self._page_next_anchor, self._page_prev_anchor = matched, nxt, prv
+        elif self._report.total_failure:
+            # the fill could not LOOK (every read stayed silent) — that is NOT "no more
+            # registers": keep the current page AND its paging anchors, so ▶ / ◀ simply retry
+            # once the device answers, instead of latching "at the end" and going dead.
+            pass
         elif forward:
             self._page_next_anchor = None
         else:
             self._page_prev_anchor = None
+
+    def _settle_errors(self) -> None:
+        """Turn the operation's aggregate read report into the two banner fields, so the value
+        the user sees and the warning can never disagree. Any real answer clears the connect
+        probe's 'no device' warning (self-heal). A totally silent operation names the failure;
+        one that answered but also hit silence is a *slow* link, not a dead one; one where
+        everything answered clears the banner. An operation that read nothing (offline) leaves
+        whatever was set (e.g. 'not connected')."""
+        r = self._report
+        if r.alive:
+            self.conn_error = None
+        if not r.answered and not r.silent:
+            return
+        if r.total_failure:
+            self.last_error = r.error or "no answer"
+        elif r.silent:
+            self.last_error = ("slow link — some reads timed out, but the device is answering "
+                               "(raise Timeout or Retries if this persists)")
+        else:
+            self.last_error = None
 
     def open_page(self) -> None:
         """Fill the page from the current start, falling back to the first page if nothing shows
@@ -647,8 +744,12 @@ class Scanner:
         a long unmatched run, or the fill cap. The unmatched-run stop counts addresses with no
         evidence of device presence — anything *known* keeps a plain / refused-listing walk
         alive, anything *served* the other filtered walks — so a served-but-zero stretch never
-        ends a non-zero walk, while a genuinely mapped-out area does."""
+        ends a non-zero walk, while a genuinely mapped-out area does. An UNREADABLE (silent)
+        block is decisively NOT an absent one: it aborts the walk with ``_walk_aborted`` set —
+        the region beyond is unknown, and the caller keeps a retryable anchor there rather than
+        declaring the end (which is what disabled ▶ on a slow device)."""
         walk_known = not self.filter or "refused" in self.filter
+        self._walk_aborted = False
         matched: list[int] = []
         pos, dead, scanned = anchor, 0, 0
         while len(matched) < limit and scanned < _FILTER_FILL_CAP:
@@ -656,8 +757,9 @@ class Scanner:
                 break
             count = min(self.max_read, 0x10000 - pos) if forward else min(self.max_read, pos + 1)
             start = pos if forward else pos - count + 1
-            if self._read_range(start, count):
-                break  # device stopped answering — return what we have
+            if self._read_range(start, count).silent:
+                self._walk_aborted = True   # could not read here — stop; the edge is unknown
+                break
             scanned += count
             block = range(start, start + count) if forward else reversed(range(start, start + count))
             for a in block:
@@ -923,7 +1025,11 @@ class Scanner:
         prv = max((a for a in members if a < page[0]), default=None)
         if walking:  # a one-register look-ahead each way extends the anchors past the page
             after = self._scan_run(True, page[-1] + 1, 1)
+            if not after and self._walk_aborted and page[-1] < 0xFFFF:
+                after = [page[-1] + 1]   # could not look past the page — keep ▶ retryable there
             before = self._scan_run(False, page[0] - 1, 1)
+            if not before and self._walk_aborted and page[0] > 0:
+                before = [page[0] - 1]   # ...same for ◀
             if after:
                 nxt = after[0] if nxt is None else min(nxt, after[0])
             if before:

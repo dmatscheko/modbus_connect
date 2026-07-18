@@ -1339,6 +1339,100 @@ def test_range_is_clamped_to_the_address_space():
     assert sc.max_read == 1                                # floored to 1
 
 
+def test_paging_stays_retryable_when_reads_go_silent_and_advances_on_recovery():
+    # the reported bug: a slow/silent endpoint must not be mistaken for "no more registers".
+    # An unreadable stretch keeps the page AND the ▶ / ◀ anchors (so paging retries), names
+    # the failure, and advances the moment the device answers.
+    dev = FakeDevice({i: i + 1 for i in range(20)})
+    silent_at = [None]   # reads whose block reaches >= this address answer nothing
+
+    def read(table, address, count):
+        if silent_at[0] is not None and address + count > silent_at[0]:
+            return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+        return dev.read(table, address, count)
+
+    sc = scanner.Scanner(read, table="holding", start=0, count=4, max_read=4)
+    sc.page(forward=True, anchor=0)
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3]
+    assert snap["at_end"] is False and snap["next_anchor"] == 4 and snap["last_error"] is None
+
+    silent_at[0] = 4                          # the device goes quiet just past the page
+    sc.page(forward=True, anchor=4)           # ▶ — nothing readable there right now
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3]   # page kept, not blanked
+    assert snap["at_end"] is False and snap["next_anchor"] == 4   # ▶ stays enabled to retry
+    assert "no answer" in snap["last_error"]                      # and the failure is named
+
+    silent_at[0] = None                       # the device recovers
+    sc.page(forward=True, anchor=4)           # the retried ▶ now advances
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [4, 5, 6, 7]
+    assert snap["last_error"] is None
+
+    # look-ahead-only silence: the page itself filled, only the probe past it timed out —
+    # the anchor is synthesized so ▶ stays enabled (the edge beyond is unknown, not the end)
+    silent_at[0] = 4
+    sc2 = scanner.Scanner(read, table="holding", start=0, count=4, max_read=4)
+    sc2.page(forward=True, anchor=0)
+    snap = sc2.snapshot()
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3]
+    assert snap["at_end"] is False and snap["next_anchor"] == 4
+
+
+def test_partial_silence_is_a_slow_link_not_a_dead_one():
+    # the value-and-warning contradiction: a pass where SOME reads answered and some timed
+    # out must read as a slow link — never shout "no answer" while data is arriving
+    dev = FakeDevice({i: i + 1 for i in range(8)})
+    silent_at = [None]
+
+    def read(table, address, count):
+        if silent_at[0] is not None and address + count > silent_at[0]:
+            return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+        return dev.read(table, address, count)
+
+    sc = scanner.Scanner(read, table="holding", start=0, count=8, max_read=4)
+    sc.scan()                                 # 0..7 fill in two blocks
+    assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(8))
+    silent_at[0] = 4                          # the upper block stops answering
+    sc.scan()                                 # refresh: 0..3 answer, 4..7 miss
+    err = sc.snapshot()["last_error"]
+    assert err and "slow" in err and "no answer" not in err
+    assert sc.cells[("holding", 0)].value == 1   # ...and the values that DID answer are live
+    silent_at[0] = 0                          # now nothing answers at all — stay loud
+    sc.scan()
+    err = sc.snapshot()["last_error"]
+    assert "no answer" in err and "slow" not in err
+    silent_at[0] = None                       # fully recovered -> banner clears
+    sc.scan()
+    assert sc.snapshot()["last_error"] is None
+
+
+def test_connect_probe_warning_self_heals_on_the_next_answering_scan(monkeypatch):
+    # the probe warned (device silent at connect), but the device is really just slow: the
+    # first answering read — data OR a refusal — must clear the warning, all on its own
+    answers = [False]
+
+    def waking(host, port, device_id, timeout, retries):
+        def read(table, address, count):
+            if not answers[0]:
+                return scanner.ReadResult(None, f"no answer from device ID {device_id}",
+                                          no_device=True)
+            return scanner.ReadResult([7] * count)
+        return read, (lambda: True), (lambda: None)
+
+    monkeypatch.setattr(scanner, "pymodbus_reader", waking)
+    sc = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
+    sc.connect(mode="tcp", host="gw.example", port=502, device_id=20)
+    assert "device ID 20" in sc.conn_error          # probe (and its retry) found silence
+    assert sc.snapshot()["connection"]["error"] == sc.conn_error
+
+    answers[0] = True                               # the device wakes up
+    sc.scan()
+    assert sc.conn_error is None                    # the answering scan disproves the warning
+    assert sc.snapshot()["connection"]["error"] is None
+
+
 def _fake_gateway(result):
     """A pymodbus_reader stand-in whose every read answers ``result`` (TCP always connects)."""
     def reader(host, port, device_id, timeout, retries):

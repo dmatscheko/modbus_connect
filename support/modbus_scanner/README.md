@@ -33,7 +33,12 @@ for *any* Device ID — only a read reveals whether something answers behind it.
 or a Modbus exception like *illegal data address*) proves a device is there; silence, or a
 gateway *target failed to respond* exception, shows a ⚠ warning right in the header — "no answer
 from device ID 1 — check the Device ID" — while staying connected, since the device might just
-be offline. Reads that fail during scanning carry the same self-explaining message.
+be offline. The probe retries once (slow serial sides often miss the very first read), and the
+warning **self-heals**: any later real answer clears it. During scanning the header stays honest
+the same way — the value shown and the warning can never disagree: an operation where *nothing*
+answered says "no answer"; one where some reads answered and some timed out is a **slow** link
+(with a hint to raise Timeout / Retries), not a dead one; one that fully answers clears the
+banner. And an unreadable stretch is never mistaken for the map's end — see paging, below.
 
 Once connected the button turns into **Disconnect** (and the connection fields lock until you
 drop the link — so what's shown is always what's connected). Disconnecting — like reconnecting —
@@ -87,7 +92,11 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   hides the dead ones instead — a **packed page** of only the registers the device answers, reading
   past the refused ones so the page always fills. Every view fills its page: **◀ / ▶** page through
   the matches and stop at the real ends, and near an edge the window slides the other way to top up
-  rather than leave a half-empty screen.
+  rather than leave a half-empty screen. An *unreadable* stretch is never mistaken for an *absent*
+  one: when a slow or silent endpoint makes a read time out, the fill keeps the current page and its
+  ◀ / ▶ anchors — so paging stays enabled and simply retries once the device answers — instead of
+  latching "at the end" and going dead. (A read that answers advances the page as usual; only
+  genuine silence holds it.)
 - **Remembered across tables** — every value is kept per `(table, address)`, so a value's
   read/change counts and history survive switching table or paging away and back (and rescanning
   then flags anything that moved while you were elsewhere). Switching tables keeps your view
