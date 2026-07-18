@@ -110,7 +110,15 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   address range (`10-20`) — a register shows if *any* term matches, on top of the lit chips. Name
   terms search this table's mappings (with `x-ray` lit: *every* table's), and the fill probes only
   the matching candidates — a fresh or imported session finds a far register without scanning up
-  to it. A fast way to find what matters in a big address space.
+  to it. And a **`=value`** term searches the registers' **last-known values**, in every
+  reading: `=1000`, `=-87`, `=0xFFA9`, `=42.5` match the raw word (and its int16 view), the
+  32/64-bit integer and float readings of *adjacent* registers — both word orders, matched at
+  their start address — and mapped (or overlay) entities' numeric **decoded** values. Integers
+  must match exactly; decimals match at the precision typed (`=42.5` covers 42.45..42.55,
+  `=42.50` only 42.495..42.505) — "the display says 230.5 somewhere, find it" works even
+  before anything is mapped. Value terms search what is *remembered* (current table only, no
+  probing), so sweep the range once first; a register that changes later keeps its spot on the
+  page until the search is re-applied. A fast way to find what matters in a big address space.
 - **The Details tab** — click **any** of a register's data cells (address, value, hex, int16,
   Δ, rate) to open the side panel on **Details**. At the **top**, the "what type is this?" helper:
   the current value plus the uint/int/float/string interpretations of that register and the next few

@@ -113,9 +113,27 @@ def _parse_filters(value: Any) -> frozenset[str]:
     return frozenset(v for v in value if v in _ATOMS)
 
 # The find box: comma-separated terms, each an exact address ('40' / '0x28'), an address
-# range ('10-20', hex ok), or a case-insensitive mapping-name/key substring. A register
-# matches when ANY term does; the whole search ANDs with the selected view filter.
+# range ('10-20', hex ok), a case-insensitive mapping-name/key substring, or '=value' —
+# matching the registers' last-known values in every reading: the raw word (incl. its int16
+# view), 32/64-bit integer and float readings of adjacent registers in both word orders,
+# and mapped entities' decoded values (see Scanner._value_candidates). A register matches
+# when ANY term does; the whole search ANDs with the selected view filter.
 _RANGE_RE = re.compile(r"(0[xX][0-9a-fA-F]+|\d+)\s*-\s*(0[xX][0-9a-fA-F]+|\d+)")
+_VALUE_DEC_RE = re.compile(r"-?\d+\.\d+")   # a '=value' decimal (exponent forms are not terms)
+
+
+def _parse_value_term(text: str) -> tuple[Any, ...] | None:
+    """A ``=value`` find term: an exact integer (decimal, negative, or hex), or a plain
+    decimal number which matches at the precision typed — ``=42.5`` matches any reading
+    within 42.45..42.55, ``=42.50`` only within 42.495..42.505."""
+    try:
+        return ("value", int(text, 0), None)   # None = integers match exactly
+    except ValueError:
+        pass
+    if not _VALUE_DEC_RE.fullmatch(text):
+        return None
+    decimals = len(text.split(".")[1])
+    return ("value", float(text), 0.5 * 10 ** -decimals)   # half the last typed decimal place
 
 
 def _parse_search(text: str) -> list[tuple[Any, ...]]:
@@ -124,6 +142,11 @@ def _parse_search(text: str) -> list[tuple[Any, ...]]:
     for part in text.split(","):
         part = part.strip()
         if not part:
+            continue
+        if part.startswith("="):
+            term = _parse_value_term(part[1:].strip())
+            if term is not None:   # an unparseable value term contributes nothing
+                terms.append(term)
             continue
         m = _RANGE_RE.fullmatch(part)
         if m:
@@ -628,12 +651,58 @@ class Scanner:
         matched.sort()
         return matched
 
+    def _value_candidates(self, number: int | float, tol: float | None) -> set[int]:
+        """Addresses whose *last-known* values match a ``=value`` find term, on the current
+        table — no probing, the remembered cells are searched. Every reading is checked
+        against the number: the raw word (and its int16 view), the 32/64-bit integer and
+        float readings of adjacent registers (both word orders, matched at their start
+        address), and the mapping's / overlays' entities whose decoded value is numeric.
+        Integers must match exactly; decimals match at the precision typed (``tol`` is
+        half their last decimal place)."""
+        def hits(x: int | float) -> bool:
+            if isinstance(x, float) and not math.isfinite(x):
+                return False
+            return x == number if tol is None else abs(x - number) <= tol
+        vals = {a: c.value for (t, a), c in self.cells.items()
+                if t == self.table and c.value is not None}
+        out = {a for a, v in vals.items() if hits(v)}
+        if self.table not in BIT_TABLES:
+            for a, v in vals.items():
+                if v >= 0x8000 and hits(v - 0x10000):   # the word's int16 reading
+                    out.add(a)
+            for a in vals:   # multi-word readings, both word orders, matched at the start
+                if a in out:
+                    continue
+                for count, ffmt in ((2, ">f"), (4, ">d")):
+                    words = [vals.get(a + i) for i in range(count)]
+                    if None in words:
+                        continue
+                    for order in (words, list(reversed(words))):
+                        raw = struct.pack(f">{count}H", *order)
+                        if (hits(int.from_bytes(raw, "big"))
+                                or hits(int.from_bytes(raw, "big", signed=True))
+                                or hits(struct.unpack(ffmt, raw)[0])):
+                            out.add(a)
+                            break
+                    if a in out:
+                        break
+        for index in [self._starts, *(ov.starts for ov in self.additional)]:
+            for (t, a), defn in index.items():
+                if t != self.table or a in out:
+                    continue
+                decoded, err = self._decode_entity(defn)
+                if (err is None and isinstance(decoded, (int, float))
+                        and not isinstance(decoded, bool) and hits(decoded)):
+                    out.add(a)
+        return out
+
     def _search_candidates(self) -> list[int]:
         """Every address the active search could match — computable outright, no scanning:
         address and range terms name their addresses; name terms contribute the covered
         addresses (every table's with the x-ray atom on, else this table's) whose entity
-        name/key contains the term. The search fill probes only these candidates, so a
-        fresh session finds a far register as fast as an already-scanned one."""
+        name/key contains the term; value terms the addresses whose remembered values
+        match (see _value_candidates). The search fill probes only these candidates, so
+        a fresh session finds a far register as fast as an already-scanned one."""
         out: set[int] = set()
         tables = TABLES if "xray" in self.filter else (self.table,)
         indexes = [self._covered] + [ov.covered for ov in self.additional]
@@ -643,6 +712,8 @@ class Scanner:
                     out.add(term[1])
             elif term[0] == "range":
                 out.update(range(max(0, term[1]), min(term[2], 0xFFFF) + 1))
+            elif term[0] == "value":
+                out |= self._value_candidates(term[1], term[2])
             else:
                 for index in indexes:
                     for (t, a), defn in index.items():

@@ -5,6 +5,7 @@ and — most important — that the device-file it generates is valid against th
 
 import importlib.util
 import json
+import struct
 import sys
 from pathlib import Path
 
@@ -1157,6 +1158,50 @@ def test_filter_members_keep_far_known_matches_beyond_the_walk_stop():
                    filter_mode=["changed"], page_size=4)
     sc.page(forward=True, anchor=0)
     assert [r["address"] for r in sc.snapshot()["rows"]] == [0, 500]
+
+
+def test_search_by_value_matches_raw_int16_and_hex():
+    # '=value' terms search the LAST-KNOWN values: the raw word, its int16 view, hex input —
+    # and terms still OR with the others (here an address term)
+    dev = FakeDevice({0: 65449, 1: 87, 2: 42})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=3, max_read=4)
+    sc.scan()
+    for term, want in (("=-87", [0]), ("=65449", [0]), ("=0xFFA9", [0]),
+                       ("=87", [1]), ("=87, 2", [1, 2])):
+        sc.reconfigure(table="holding", start=0, count=3, max_read=4, page_size=3, search=term)
+        sc.page(forward=True, anchor=0)
+        assert [r["address"] for r in sc.snapshot()["rows"]] == want, term
+
+
+def test_search_by_value_matches_float_pairs_at_typed_precision():
+    # a decimal term checks the float readings of adjacent registers, BOTH word orders,
+    # and matches at the precision typed: =42.5 covers 42.45..42.55, =42.50 does not.
+    # (The device serves only 10..21 — a zero next to a float's high word would itself
+    # read as a round float in one word order, which is honest but not this test's point.)
+    hi, lo = struct.unpack(">HH", struct.pack(">f", 42.53))
+    dev = FakeDevice({10: hi, 11: lo, 20: lo, 21: hi},
+                     illegal=set(range(0, 10)) | set(range(22, 60)))
+    sc = scanner.Scanner(dev.read, table="holding", start=10, count=12, max_read=16)
+    sc.scan()
+    sc.reconfigure(table="holding", start=10, count=12, max_read=16, page_size=12, search="=42.5")
+    sc.page(forward=True, anchor=0)
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [10, 20]
+    sc.reconfigure(table="holding", start=10, count=12, max_read=16, page_size=12, search="=42.50")
+    sc.page(forward=True, anchor=0)
+    assert sc.snapshot()["rows"] == []                   # two decimals ask for more than 42.53 gives
+
+
+def test_search_by_value_matches_uint32_pairs_and_decoded_entities():
+    dev = FakeDevice({0: 1, 1: 34464, 5: 235})           # (1, 34464) reads 100000 as uint32
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=6, max_read=8)
+    sc.set_mapping("holding", 5, {"name": "Temp", "platform": "sensor", "scale": "0.1"})
+    sc.scan()
+    sc.reconfigure(table="holding", start=0, count=6, max_read=8, page_size=6, search="=100000")
+    sc.page(forward=True, anchor=0)
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [0]
+    sc.reconfigure(table="holding", start=0, count=6, max_read=8, page_size=6, search="=23.5")
+    sc.page(forward=True, anchor=0)
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [5]   # Temp's decoded 23.5, no raw word
 
 
 def test_search_finds_overlay_names_on_the_current_table():

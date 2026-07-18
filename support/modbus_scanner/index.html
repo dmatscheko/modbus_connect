@@ -194,8 +194,8 @@
     <button class="chip" data-f="mapped" title="every register the mapping and the additive overlays cover — probed or not, dead or alive">mapped</button>
     <button class="chip" data-f="xray" title="every register any table maps — and shows sibling-table mappings muted in the cells">x-ray</button>
   </span>
-  <label>find <input type="search" id="search" placeholder="name or 40, 0x28, 10-20"
-    title="show only matching registers, on top of the show chips — comma-separated terms: a mapping-name part (with the x-ray chip lit, every table's names), an exact address (40 or 0x28), or an address range (10-20); a register matches if any term does"></label>
+  <label>find <input type="search" id="search" placeholder="name, 40, 10-20, =42.5"
+    title="show only matching registers, on top of the show chips — comma-separated terms: a mapping-name part (with the x-ray chip lit, every table's names), an exact address (40 or 0x28), an address range (10-20), or =value searching the last-known values (=1000, =-87, =0xFFA9, =42.5): the raw word and its int16 view, the 32/64-bit and float readings of adjacent registers in both word orders, and mapped entities' decoded values — decimals match at the precision typed; a register matches if any term does"></label>
   <span class="pager">
     <button class="ghost" id="pagePrev" title="previous page">◀</button>
     <span class="status" id="pageInfo" title="registers shown">—</span>
