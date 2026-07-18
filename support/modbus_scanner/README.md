@@ -111,10 +111,14 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   retryable.) Normal on first contact with a device that has holes — it settles as the dead
   list fills in (a couple of scans) — but if it never stops, the gateway may dislike block
   reads (lower **Per read**) or the serial side may just be very slow (a lower **Timeout**
-  makes each dead probe cheaper). While a bisection is running the header shows a live ⏳
-  status ("Isolating unreadable registers on holding — probing #124 (6 given up so far)…"),
-  updated register by register, so a slow pass never looks like a frozen UI — it is polled
-  from a lock-free endpoint, so it ticks *during* the blocking read, not after.
+  makes each dead probe cheaper). The probing stays **within the page you asked for**: the read
+  is sized to **Count** (a Count of 3 reads 3, not a full **Per read** block), and the tiny
+  look-ahead that decides whether ▶ is enabled peeks a single register without bisecting — so
+  scanning a range that ends in a dead region never runs off bisecting hundreds of registers
+  past it. While a bisection is running the header shows a live ⏳ status ("Isolating unreadable
+  registers on holding — probing #124 (6 given up so far)…"), updated register by register, so a
+  slow pass never looks like a frozen UI — it is polled from a lock-free endpoint, so it ticks
+  *during* the blocking read, not after.
 - **Remembered across tables** — every value is kept per `(table, address)`, so a value's
   read/change counts and history survive switching table or paging away and back (and rescanning
   then flags anything that moved while you were elsewhere). Switching tables keeps your view

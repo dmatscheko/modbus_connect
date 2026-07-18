@@ -1468,6 +1468,43 @@ def test_a_briefly_silent_link_is_not_buried_and_recovers():
     assert sc.snapshot()["last_error"] is None
 
 
+def test_a_small_count_reads_only_that_many_registers():
+    # "read only 3 if it has to read only 3": the plain view must not blast a full max_read
+    # block when Count is small — the read is sized to Count, plus a 1-register look-ahead
+    dev = FakeDevice({i: i + 1 for i in range(200)})
+    probed = []
+    sc = scanner.Scanner(dev.read, table="holding", start=64, count=3, max_read=64)
+    orig = sc._read
+    sc._read = lambda t, a, n: (probed.append((a, n)), orig(t, a, n))[1]
+    sc.scan()
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [64, 65, 66]
+    assert max(a + n - 1 for a, n in probed) <= 67   # 64..66 (Count) + a 1-register peek at 67
+
+
+def test_scanning_a_dead_edge_does_not_probe_far_beyond_the_range():
+    # the reported bug: a Count=8 scan of 116..123 (with 120+ dead by timeout) must isolate
+    # 120..123 but NOT go bisecting a full block deep past 123 via the look-ahead
+    dead = set(range(120, 400))
+
+    def read(table, address, count):
+        for a in range(address, address + count):
+            if a in dead:
+                return scanner.ReadResult(None, "no answer from device ID 20", no_device=True)
+        return scanner.ReadResult([a + 1 for a in range(address, address + count)])
+
+    probed = []
+    sc = scanner.Scanner(read, table="holding", start=116, count=8, max_read=64)
+    sc._device_seen = True                         # the connect probe would set this in real use
+    orig = sc._read
+    sc._read = lambda t, a, n: (probed.append((a, n)), orig(t, a, n))[1]
+    sc.scan()
+    snap = sc.snapshot()
+    assert [r["address"] for r in snap["rows"]] == list(range(116, 124))   # 116..123 shown
+    assert _cell(snap, 123)["error"] == "not served"                       # dead edge isolated
+    assert max(a + n - 1 for a, n in probed) <= 124   # never deep past the page (only a peek at 124)
+    assert snap["single_probes"] == 8                 # just the in-range block, not 64+ beyond
+
+
 def test_connect_probe_warning_self_heals_on_the_next_answering_scan(monkeypatch):
     # the probe warned (device silent at connect), but the device is really just slow: the
     # first answering read — data OR a refusal — must clear the warning, all on its own

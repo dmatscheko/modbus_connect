@@ -470,6 +470,10 @@ class Scanner:
         # list) when this is True: the device is provably responsive right now, so its silence
         # is a real hole, not the whole link being briefly down (which must stay retryable).
         self._op_alive = False
+        # Set around the page's look-ahead reads (which only find the next/prev anchor): they
+        # must NOT bisect — a silent block just past the page means "unknown ahead", not a
+        # region to probe register-by-register beyond what was asked for.
+        self._no_bisect = False
         # Registers given up this operation, and a live human-readable status set while a slow
         # bisection is running — read LOCK-FREE by /api/progress (a plain string, only ever
         # reassigned) so the UI can show it *during* the blocking read, then cleared when the
@@ -568,7 +572,7 @@ class Scanner:
         """Reset the per-operation read bookkeeping before a scan / page (see the fields)."""
         self._report = ReadReport()
         self._op_singles = self._op_silent_probes = self._op_dead_found = 0
-        self._op_alive = False
+        self._op_alive = self._no_bisect = False
         self._progress = None
 
     def scan(self) -> None:
@@ -627,10 +631,12 @@ class Scanner:
                 elif result.illegal:
                     self._bisect(block, report)  # a refusal is an answer — the device is alive
                     streak = 0
-                elif self._device_seen and self._op_silent_probes < _MAX_SILENT_PROBES:
+                elif (self._device_seen and not self._no_bisect
+                        and self._op_silent_probes < _MAX_SILENT_PROBES):
                     # a timeout, but the device has answered before: this block may just span a
                     # register the device serves by NOT answering — bisect it to isolate the hole
-                    # so later reads skip it (some devices time out instead of refusing).
+                    # so later reads skip it (some devices time out instead of refusing). The
+                    # page's look-ahead sets _no_bisect, so it never probes past what was asked.
                     self._bisect(block, report)
                     streak = 0
                 else:
@@ -836,7 +842,13 @@ class Scanner:
         ends a non-zero walk, while a genuinely mapped-out area does. An UNREADABLE (silent)
         block is decisively NOT an absent one: it aborts the walk with ``_walk_aborted`` set —
         the region beyond is unknown, and the caller keeps a retryable anchor there rather than
-        declaring the end (which is what disabled ▶ on a slow device)."""
+        declaring the end (which is what disabled ▶ on a slow device).
+
+        In the *plain* view every register is a match, so the read is sized to how many are
+        still wanted (never the whole ``max_read`` when only a few remain): a Count of 3 reads
+        3, the 1-register look-ahead reads 1 — it must not blast a full 64-wide block (and
+        bisect it) past the requested range. The filtered views stay wide: their matches are
+        sparse, so a full block is the efficient way to scan for them."""
         walk_known = not self.filter or "refused" in self.filter
         self._walk_aborted = False
         matched: list[int] = []
@@ -844,7 +856,8 @@ class Scanner:
         while len(matched) < limit and scanned < _FILTER_FILL_CAP:
             if (forward and pos > 0xFFFF) or (not forward and pos < 0):
                 break
-            count = min(self.max_read, 0x10000 - pos) if forward else min(self.max_read, pos + 1)
+            cap = min(self.max_read, limit - len(matched)) if not self.filter else self.max_read
+            count = min(cap, 0x10000 - pos) if forward else min(cap, pos + 1)
             start = pos if forward else pos - count + 1
             if self._read_range(start, count).silent:
                 self._walk_aborted = True   # could not read here — stop; the edge is unknown
@@ -1112,13 +1125,17 @@ class Scanner:
             self._read_spans(spans)
         nxt = min((a for a in members if a > page[-1]), default=None)
         prv = max((a for a in members if a < page[0]), default=None)
-        if walking:  # a one-register look-ahead each way extends the anchors past the page
-            after = self._scan_run(True, page[-1] + 1, 1)
-            if not after and self._walk_aborted and page[-1] < 0xFFFF:
-                after = [page[-1] + 1]   # could not look past the page — keep ▶ retryable there
-            before = self._scan_run(False, page[0] - 1, 1)
-            if not before and self._walk_aborted and page[0] > 0:
-                before = [page[0] - 1]   # ...same for ◀
+        if walking:  # a one-register look-ahead each way extends the anchors past the page —
+            self._no_bisect = True   # ...just to FIND the anchor: never probe/bisect past the page
+            try:
+                after = self._scan_run(True, page[-1] + 1, 1)
+                if not after and self._walk_aborted and page[-1] < 0xFFFF:
+                    after = [page[-1] + 1]   # could not look past the page — keep ▶ retryable there
+                before = self._scan_run(False, page[0] - 1, 1)
+                if not before and self._walk_aborted and page[0] > 0:
+                    before = [page[0] - 1]   # ...same for ◀
+            finally:
+                self._no_bisect = False
             if after:
                 nxt = after[0] if nxt is None else min(nxt, after[0])
             if before:
