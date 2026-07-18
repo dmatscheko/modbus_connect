@@ -905,6 +905,7 @@ class Scanner:
                 "imported": dict(self.imported["meta"]) if self.imported else None,
                 "additional": [{"name": ov.name, "manufacturer": ov.device.manufacturer,
                                 "model": ov.device.model} for ov in self.additional],
+                "overrides": {f"{t}:{a}": spec for (t, a), spec in self.overrides.items()},
                 "connection": {**self.connection, "connected": self.connected,
                                "error": self.conn_error}}
         return {**base, "rows": [self._row(a) for a in self._page_addrs],

@@ -599,12 +599,16 @@ def test_history_decode_override_wins_and_clears():
     assert h["history"][-1]["decoded"] == 0x8005 - 0x10000      # int16 view, not the 0.1 scale
     assert h["override"] == {"address": 0, "type": "int16", "ha": {"platform": "sensor",
                                                                    "name": "override"}}
-    # the main table's decoded column stays the integration's truth, untouched
-    assert _cell(sc.snapshot(), 0)["entity"]["decoded"] == round(0x8005 * 0.1, 10)
+    # the main table's decoded column stays the integration's truth, untouched — and the
+    # snapshot carries the override specs, so the UI can prefill its editor synchronously
+    snap = sc.snapshot()
+    assert _cell(snap, 0)["entity"]["decoded"] == round(0x8005 * 0.1, 10)
+    assert snap["overrides"] == {"holding:0": h["override"]}
 
     sc.clear_override("holding", 0)
     h = sc.history("holding", 0)
     assert h["decode"] == {"source": "entity", "name": "Temp"} and h["override"] is None
+    assert sc.snapshot()["overrides"] == {}
 
     # refused where it cannot work: multi-word types, bit tables — nothing changes
     with pytest.raises(scanner.DeviceSchemaError):
