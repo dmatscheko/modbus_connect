@@ -704,8 +704,13 @@ function dur(sec) {
   return h ? `${d}d ${h}h` : `${d}d`;
 }
 const relTime = sec => dur(sec) + ' ago';
-// numbers for the history table: kill float artifacts of decoded deltas, leave strings alone
-const fmtVal = v => typeof v === 'number' ? String(+v.toPrecision(12)) : String(v);
+// numbers in the Details view: STRICTLY at most 3 decimal places on screen — a tiny
+// magnitude reads 0, never a long tail or scientific notation. Display-only: the exact
+// value is never rounded and rides in the cell's hover title wherever the text changed.
+const fmtVal = v => {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return String(v);
+  return String(+v.toFixed(3));
+};
 // --- THE side panel: Details · Mapping · Generate — one tab bar, one ✕, and its content
 // always follows the selected row (click a row, or move the selection with ↑ / ↓) ---
 const SIDE_PANES = { details: 'paneDetails', mapping: 'paneMapping', generate: 'paneGenerate' };
@@ -821,7 +826,12 @@ function renderHistory(data, views) {
   } else {
     valBlock += `<span class="big">${v}</span> <span class="status">= ${hex4(v)} · int16 ${int16(v)}</span>`;
     if (views && views.length)
-      valBlock += `<div class="valviews">${views.map(x => `${esc(x.type)} = <b>${esc(x.value)}</b>`).join(' · ')}</div>`;
+      valBlock += `<div class="valviews">${views.map(x => {
+        // floats arrive FULL precision and are rounded here, display-only — hover for exact
+        const flt = x.type.startsWith('float'), shown = flt ? fmtVal(parseFloat(x.value)) : x.value;
+        const tip = flt && shown !== x.value ? ` title="${esc(x.value)}"` : '';
+        return `${esc(x.type)} = <b${tip}>${esc(shown)}</b>`;
+      }).join(' · ')}</div>`;
   }
   valBlock += '</div>';
   $('side').querySelector('.valbox').innerHTML = valBlock;
@@ -841,18 +851,25 @@ function renderHistory(data, views) {
       const older = arr[i + 1];
       const shown = dec ? e.decoded : e.value;
       const prev = older ? (dec ? older.decoded : older.value) : null;
-      const d = (typeof shown === 'number' && typeof prev === 'number')
-        ? +(shown - prev).toPrecision(12) : null;
+      const d = (typeof shown === 'number' && typeof prev === 'number') ? shown - prev : null;
       const cls = d == null ? '' : d > 0 ? 'up' : d < 0 ? 'dn' : '';
-      const ds = d == null ? '' : (d > 0 ? '+' : '') + fmtVal(d);
+      // rounding is display-only: where it changes the text, the exact value rides in the title
+      const vText = fmtVal(shown);
+      const vTip = typeof shown === 'number' && vText !== String(shown)
+        ? ` title="${esc(String(shown))}"` : '';
+      // a delta whose text rounds to 0 keeps no sign — the colour shows the direction,
+      // the title the exact value
+      const dText = d == null ? '' : (d > 0 && fmtVal(d) !== '0' ? '+' : '') + fmtVal(d);
+      const dTip = d != null && fmtVal(d) !== String(d)
+        ? ` title="${esc((d > 0 ? '+' : '') + d)}"` : '';
       const gap = older ? dur(e.t - older.t) : '—';
       return `<tr data-i="${arr.length - 1 - i}">` +   // its sparkline bar's index (oldest = 0)
-             `<td class="hv">${esc(fmtVal(shown))}</td><td class="hd ${cls}">${ds}</td>` +
+             `<td class="hv"${vTip}>${esc(vText)}</td><td class="hd ${cls}"${dTip}>${dText}</td>` +
              `<td class="ht" title="first seen ${relTime(now - e.t)}">${gap}</td>` +
              `<td class="hs">#${e.scan}</td></tr>`;
     }).join('');
     const decTitle = dec && (dec.source === 'override'
-      ? 'decoded through the decode-as override' : `decoded through ${esc(dec.name)}`);
+      ? 'decoded through the Details-view override (Decode as…)' : `decoded through ${esc(dec.name)}`);
     histBlock =
       `<div class="spark" title="oldest → newest (raw values)">${sparkline(h.map(e => e.value))}</div>` +
       `<div class="status">${h.length} distinct value${h.length > 1 ? 's' : ''}` +
@@ -877,10 +894,11 @@ function renderHistory(data, views) {
   });
 }
 
-// --- the Details-view decode override ("Decode as…"): a decode-only mapping for THE selected
-// register that overrides how its value/history decode in the Details tab — never the device
-// mapping. The button opens the Mapping tab in override mode (a custom title, decode fields
-// only, the familiar Save / Unmap / Cancel) and all three return here to Details. ---
+// --- the Details-view decode override ("Decode as…"): ONE global decode-only mapping for the
+// whole Details tab — every word-table register shown there decodes its value/history through
+// it (bit tables read 0/1 and are left alone), never touching the device mapping. The button
+// opens the Mapping tab in override mode (a custom title, decode fields only, the familiar
+// Save / Unmap / Cancel) and all three return here to Details. ---
 function ovrSummary(o) {   // the compact "current override" text next to the button
   const bits = [o.type || 'uint16'];
   if (o.swap) bits.push('swap ' + o.swap);
@@ -892,25 +910,23 @@ function ovrSummary(o) {   // the compact "current override" text next to the bu
 }
 function renderOvrBox(data) {
   const box = $('side').querySelector('.ovrbox');
-  if (BIT_TABLES.has(data.table)) { box.replaceChildren(); return; }  // 0/1 reads — nothing to re-decode
+  if (BIT_TABLES.has(data.table)) { box.replaceChildren(); return; }  // 0/1 reads — the override skips these
   const cur = data.override ? ` <span class="status">${esc(ovrSummary(data.override))}</span>` : '';
-  box.innerHTML = `<button class="ghost" id="ovrOpen" title="a Details-view-only mapping: override how ` +
-    `this register's value and history decode here (the device mapping stays untouched) — ` +
-    `Save / Unmap / Cancel all come back to this tab">Decode as…</button>${cur}`;
+  box.innerHTML = `<button class="ghost" id="ovrOpen" title="ONE Details-view-only mapping for every ` +
+    `register shown here: override how the value and history decode, whichever register is selected ` +
+    `(the device mapping stays untouched) — Save / Unmap / Cancel all come back to this tab">Decode as…</button>${cur}`;
   $('ovrOpen').onclick = () => {   // entering always rebuilds — the stored override may have changed
     mapPaneMode = 'override'; editorFor = null; sideShow('mapping');
   };
 }
 
 // the Mapping tab's override mode: the same editor look, but only the decode fields — the
-// server pins everything else (platform, name), and an override decodes ONE register's words
-function buildOverrideEditor(table, address, spec) {
-  const hex = hex4(address);
+// server pins everything else (platform, name), and the override decodes one register at a time
+function buildOverrideEditor(spec) {
   const form = document.createElement('form');
   form.className = 'editform';
-  form.dataset.table = table; form.dataset.address = address;
   form.innerHTML = `
-    <span class="ttl">Decode ${table} ${hex} <span class="status">(#${address}) as — Details view only</span></span>
+    <span class="ttl">Decode the Details view as <span class="status">— every register shown there, until unmapped</span></span>
     <label>type<select name="type">${['uint16', 'int16', 'float16'].map(t => `<option>${t}</option>`).join('')}</select></label>
     <label>swap<select name="swap"><option value="">—</option><option>byte</option></select></label>
     <label>scale<input name="scale" type="number" step="any"></label>
@@ -934,14 +950,14 @@ function buildOverrideEditor(table, address, spec) {
   form.onsubmit = ev => { ev.preventDefault(); saveOverride(form); };
   form.querySelector('[data-act=cancel]').onclick = backToDetails;
   const un = form.querySelector('[data-act=unmap]');
-  if (un) un.onclick = () => unmapOverride(table, address);
+  if (un) un.onclick = unmapOverride;
   return form;
 }
 
 function backToDetails() { mapPaneMode = null; sideShow('details'); }
 
 async function saveOverride(form) {
-  const body = { table: form.dataset.table, address: +form.dataset.address };
+  const body = {};
   for (const name of ['type', 'swap', 'scale', 'offset', 'mask', 'map'])
     if (form.elements[name].value !== '') body[name] = form.elements[name].value;
   const snap = await api('/api/override', body);
@@ -950,8 +966,8 @@ async function saveOverride(form) {
   backToDetails();
 }
 
-async function unmapOverride(table, address) {
-  render(await api('/api/unoverride', { table, address }));
+async function unmapOverride() {
+  render(await api('/api/unoverride', {}));
   backToDetails();
 }
 
@@ -1080,15 +1096,13 @@ let editorFor = null;    // "<table>:<entity start>" the current form was built 
 let mapPaneMode = null;  // 'override' = the Mapping tab edits the Details-view decode override
 function buildMappingPane(force) {
   const box = $('editor');
-  if (selAddr == null) { editorFor = null; box.replaceChildren(); return; }
-  if (mapPaneMode === 'override') {
-    const key = `ovr:${selTable}:${selAddr}`;
-    if (!force && editorFor === key) return;
-    editorFor = key;
-    const spec = (snapshot && snapshot.overrides && snapshot.overrides[`${selTable}:${selAddr}`]) || null;
-    box.replaceChildren(buildOverrideEditor(selTable, selAddr, spec));
+  if (mapPaneMode === 'override') {   // the global Details-view override — selection-independent
+    if (!force && editorFor === 'ovr') return;
+    editorFor = 'ovr';
+    box.replaceChildren(buildOverrideEditor((snapshot && snapshot.override) || null));
     return;
   }
+  if (selAddr == null) { editorFor = null; box.replaceChildren(); return; }
   const row = snapshot && snapshot.rows.find(r => r.address === selAddr);
   const ent = row && row.entity;
   const target = (ent && ent.address != null) ? ent.address : selAddr;

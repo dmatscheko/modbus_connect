@@ -122,13 +122,18 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   a noisy measurement at a glance. When the register decodes *on its own* — a mapped entity that
   starts here and spans one register — the value column becomes a **decoded** column, through the
   integration's real codec (a multi-word entity can't decode from one register's history, so raw
-  stays). And the **Decode as…** button between value and history sets a per-register *decode
-  override*: it opens the **Mapping** tab in a Details-view-only mode — the familiar editor with
-  just the decode fields (type / swap / scale / offset / mask / enum map, single-word, validated
-  by the real schema) — whose **Save**, **Unmap** and **Cancel** all return to Details. Saved, it
-  replaces the mapped entity's decode (or gives an unmapped register one) and its summary shows
-  next to the button, until **Unmap** drops it: try interpretations while reverse-engineering
-  without touching the mapping; the main table's decoded column stays the mapping's truth. Hover any history cell for a quick
+  stays). And the **Decode as…** button between value and history sets ONE global *decode
+  override* for the whole Details view: it opens the **Mapping** tab in a Details-view-only mode —
+  the familiar editor with just the decode fields (type / swap / scale / offset / mask / enum map,
+  single-word, validated by the real schema) — whose **Save**, **Unmap** and **Cancel** all return
+  to Details. Saved, *every* word-table register you select decodes through it — replacing a
+  mapped entity's decode, giving unmapped registers one, its summary next to the button (bit
+  tables read 0/1 and are left alone) — until **Unmap** drops it: try an interpretation across
+  many registers while reverse-engineering without touching the mapping; the main table's decoded
+  column stays the mapping's truth. Floats in the Details view show with strictly at most 3
+  decimal places everywhere — a tiny magnitude reads 0 on screen, never a long tail or
+  scientific notation — and **display-only**: the underlying data is never rounded, and
+  wherever rounding changed the text, hovering the number shows the exact value. Hover any history cell for a quick
   recent-values peek, and walk registers with **↑ / ↓** — the tab follows the selection. Paired
   with **auto-page**, an unattended run fills this history in across the whole device. (The
   **mapped as** and **decoded** cells open the **Mapping** tab instead.)
@@ -196,7 +201,7 @@ file refreshes its overlay in place. Only **— none —** (or **Clear all**) dr
 - **Export / Import** — save the whole **project** to JSON and reload it later to pick up where you
   left off (or hand it to someone else). It captures every table's per-register stats — last value,
   read count, change count, and the value **history** — the editable **mapping**, any additive
-  **overlays** and **decode-as overrides**, the **connection**
+  **overlays** and the Details-view **decode-as override**, the **connection**
   settings, the Count / Per-read tuning, and the **Manufacturer / Model** stamp for generation. It
   deliberately does *not* save the table, scroll position, filter, or which bundled file was picked
   (the mapping itself is the project's), so loading a project doesn't yank you off whatever you're

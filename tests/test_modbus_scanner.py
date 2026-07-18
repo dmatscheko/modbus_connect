@@ -457,7 +457,7 @@ def test_generate_stamp_is_server_state_and_rides_in_exports():
     # the export's whole surface — no key carries the picked bundled-file name
     # (additive overlays ride along with theirs: the name is the overlay's identity)
     assert set(state) == {"config", "connection", "scan_index", "meta", "mapping",
-                          "additional", "overrides", "cells"}
+                          "additional", "override", "cells"}
 
     restored = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
     restored.load_state(state)
@@ -587,34 +587,38 @@ def test_history_decodes_through_a_single_word_mapping():
     assert hw["decode"] is None and all("decoded" not in e for e in hw["history"])
 
 
-def test_history_decode_override_wins_and_clears():
-    dev = FakeDevice({0: 0x8005})
-    sc = scanner.Scanner(dev.read, table="holding", start=0, count=1, max_read=1)
+def test_history_decode_override_is_global_wins_and_clears():
+    # the Details-view override is ONE global spec: every word-table register's history
+    # decodes through it — mapped ones included — until it is unmapped
+    dev = FakeDevice({0: 0x8005, 1: 7})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=2, max_read=2)
     sc.set_mapping("holding", 0, {"name": "Temp", "platform": "sensor", "scale": "0.1"})
     sc.scan()
 
-    sc.set_override("holding", 0, {"type": "int16"})
+    sc.set_override({"type": "int16"})
     h = sc.history("holding", 0)
     assert h["decode"] == {"source": "override"}                # wins over the mapped entity
     assert h["history"][-1]["decoded"] == 0x8005 - 0x10000      # int16 view, not the 0.1 scale
-    assert h["override"] == {"address": 0, "type": "int16", "ha": {"platform": "sensor",
-                                                                   "name": "override"}}
+    assert h["override"] == {"type": "int16", "ha": {"platform": "sensor", "name": "override"}}
+    # ...and it covers every other word-table register too, mapped or not
+    assert sc.history("holding", 1)["decode"] == {"source": "override"}
+    assert sc.history("input", 1)["decode"] == {"source": "override"}
+    # bit tables read 0/1 and are left alone
+    assert sc.history("coil", 1)["decode"] is None
     # the main table's decoded column stays the integration's truth, untouched — and the
-    # snapshot carries the override specs, so the UI can prefill its editor synchronously
+    # snapshot carries the spec, so the UI can prefill its editor synchronously
     snap = sc.snapshot()
     assert _cell(snap, 0)["entity"]["decoded"] == round(0x8005 * 0.1, 10)
-    assert snap["overrides"] == {"holding:0": h["override"]}
+    assert snap["override"] == h["override"]
 
-    sc.clear_override("holding", 0)
+    sc.clear_override()
     h = sc.history("holding", 0)
     assert h["decode"] == {"source": "entity", "name": "Temp"} and h["override"] is None
-    assert sc.snapshot()["overrides"] == {}
+    assert sc.snapshot()["override"] is None
 
-    # refused where it cannot work: multi-word types, bit tables — nothing changes
+    # refused where it cannot work: a multi-word type — nothing changes
     with pytest.raises(scanner.DeviceSchemaError):
-        sc.set_override("holding", 0, {"type": "uint32"})
-    with pytest.raises(scanner.DeviceSchemaError):
-        sc.set_override("coil", 0, {})
+        sc.set_override({"type": "uint32"})
     assert sc.history("holding", 0)["override"] is None
 
 
@@ -622,21 +626,21 @@ def test_history_decode_override_maps_unmapped_registers_and_rides_in_exports():
     dev = FakeDevice({0: 1})
     sc = scanner.Scanner(dev.read, table="holding", start=0, count=1, max_read=1)
     sc.scan()
-    sc.set_override("holding", 0, {"map": "0: Off, 1: On"})     # no mapping needed
+    sc.set_override({"map": "0: Off, 1: On"})                   # no mapping needed
     assert sc.history("holding", 0)["history"][-1]["decoded"] == "On"
 
     state = json.loads(json.dumps(sc.full_state()))             # a JSON round-trip, like the browser
     restored = scanner.Scanner(table="holding", start=0, count=1, max_read=1)
     restored.load_state(state)
-    assert restored.overrides[("holding", 0)]["map"] == {0: "Off", 1: "On"}  # int keys restored
+    assert restored.override["map"] == {0: "Off", 1: "On"}      # int keys restored
     assert restored.history("holding", 0)["history"][-1]["decoded"] == "On"
 
-    restored.clear_all()                                        # the deliberate reset forgets them
-    assert restored.overrides == {}
+    restored.clear_all()                                        # the deliberate reset forgets it
+    assert restored.override is None
     # an old export without the key restores to none
-    del state["overrides"]
+    del state["override"]
     restored.load_state(state)
-    assert restored.overrides == {}
+    assert restored.override is None
 
 
 DEVICE_YAML = """
