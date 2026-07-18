@@ -47,7 +47,7 @@
 
   .controls { display:flex; gap:14px; align-items:end; flex-wrap:wrap; margin-bottom:12px; }
   .controls label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
-  .controls label.chk { flex-direction:row; align-items:center; gap:4px; align-self:center; }
+  .controls label.chk { flex-direction:row; align-items:center; gap:4px; }
   input, select { background:var(--bg); color:var(--fg); border:1px solid var(--line);
                   border-radius:6px; padding:6px 8px; font:inherit; }
   input[type=number] { width:88px; }
@@ -1098,10 +1098,6 @@ $('autoPage').onchange = () => {
 $('autoTables').onchange = () => {
   try { localStorage.setItem('mbscan.autoTables', $('autoTables').checked ? '1' : '0'); } catch {}
 };
-// additive device-file loading is a working style — remember it across reloads too
-$('additive').onchange = () => {
-  try { localStorage.setItem('mbscan.additive', $('additive').checked ? '1' : '0'); } catch {}
-};
 // interval stepping. At/below 1 s the step is 0.1 s; above 1 s it snaps to whole seconds. Setting
 // the step (and min, so the native spinner grid lines up) to 0.1 at/below 1 s, and rounding any
 // value over 1 s UP to the next whole second, gives the asked-for feel: from 1 s, ▼ -> 0.9 s, ▲ -> 2 s.
@@ -1292,7 +1288,6 @@ try {
   $('autoPage').checked = localStorage.getItem('mbscan.autoPage') === '1';
   $('autoTables').checked = localStorage.getItem('mbscan.autoTables') === '1';
   $('autoTables').disabled = !$('autoPage').checked;
-  $('additive').checked = localStorage.getItem('mbscan.additive') === '1';
 } catch {}
 syncGenBtn();
 
