@@ -160,11 +160,12 @@ def _parse_search(text: str) -> list[tuple[Any, ...]]:
     return terms
 # The x-ray views project mappings between the same-width tables: word <-> word, bit <-> bit.
 _SIBLING = {"holding": "input", "input": "holding", "coil": "discrete", "discrete": "coil"}
-# A register the device refuses (illegal-data-address) is only given up on — dropped from the
-# read plan (a reconnect keeps that; Clear all or the row's ↻ retry re-arm it) — after this many
-# *consecutive* "not served" answers, so a single spurious refusal doesn't kill a register
-# (a served read in between resets the count).
-_NOT_SERVED_LIMIT = 2
+# A register that doesn't answer — refused (illegal-data-address) or, on a live link, silent —
+# is only given up on (dropped from the read plan; a reconnect keeps that, Clear all or the
+# row's ↻ retry re-arm it) after this many *consecutive* failures, so one spurious miss doesn't
+# kill a register (a served read in between resets the count). This is the DEFAULT for the
+# per-session "Give up after" setting (Scanner._dead_after), which the UI exposes.
+_DEAD_AFTER_DEFAULT = 2
 # Per register we keep a short history of its *distinct-from-previous* values (with the scan
 # index and wall-clock time each was first seen), so after a long unattended sweep the UI can
 # show how a value moved. Capped per cell; a compact tail rides along in each row for the tooltip.
@@ -400,7 +401,12 @@ class Scanner:
         self.connected = read is not None
         self.conn_error: str | None = None
         self.connection: dict[str, Any] = {"mode": "", "host": "", "port": 502, "device_id": 1,
-                                           "timeout": 2.0, "retries": 0}
+                                           "timeout": 2.0, "retries": _DEAD_AFTER_DEFAULT}
+        # "Give up after": how many consecutive failed reads before a non-responding register is
+        # put on the dead list and skipped. Set from the connection's ``retries`` field (kept
+        # under that key so exports/refreshes round-trip); pymodbus's own per-request retry is
+        # left at 0 — the scanner retries transient timeouts itself (see _read_retry).
+        self._dead_after = _DEAD_AFTER_DEFAULT
         self.table = table
         self.start, self.count = _clamp_range(start, count)
         self.max_read = _clamp_max_read(table, max_read)
@@ -482,18 +488,21 @@ class Scanner:
         self._progress: str | None = None
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
-                timeout: float = 2.0, retries: int = 0) -> None:
+                timeout: float = 2.0, retries: int = _DEAD_AFTER_DEFAULT) -> None:
         """(Re)open the connection from UI/CLI settings. Everything the session has gathered —
         every table's per-register stats and value history, the mapping, and the given-up-on
         (dead) register list — is **kept**, so importing a project and then connecting to watch
         it live never costs you your work; only **Clear all** (``clear_all``) wipes that.
         ``demo`` uses the simulated device; ``tcp`` connects to a gateway — and then sends one
         probe read, because a Modbus gateway accepts the TCP connection for ANY device ID: only
-        a read reveals whether something answers behind it (see _probe_device). Connection
-        errors are stored (``conn_error``) and surfaced in the UI, not raised."""
+        a read reveals whether something answers behind it (see _probe_device). ``retries`` is
+        the "Give up after" setting — failed reads before a register is given up on — NOT a
+        pymodbus per-request retry (that stays 0; the scanner retries transient timeouts itself).
+        Connection errors are stored (``conn_error``) and surfaced in the UI, not raised."""
         self._teardown()
         self._op_singles, self._op_silent_probes = 0, 0  # stale counts must not linger
         self._device_seen = False                        # earn it afresh on this connection
+        self._dead_after = max(1, int(retries))          # 1..N failed reads before giving up
         self.connection = {"mode": mode, "host": host, "port": int(port),
                            "device_id": int(device_id), "timeout": float(timeout), "retries": int(retries)}
         if mode == "demo":
@@ -502,7 +511,7 @@ class Scanner:
             self.connected, self.conn_error = False, "host is required"
         else:
             read, do_connect, close = pymodbus_reader(
-                host, int(port), int(device_id), float(timeout), int(retries))
+                host, int(port), int(device_id), float(timeout), 0)  # pymodbus retry off
             if do_connect():
                 self._read, self._close, self.connected = read, close, True
                 self.conn_error = self._probe_device()
@@ -662,7 +671,7 @@ class Scanner:
     def _bisect(self, block: Span, report: ReadReport) -> None:
         """Read each address of a refused-or-silent block alone to pin down the culprit(s) —
         the register-by-register fallback the header counts (see _op_singles). A register is
-        given up on (a strike toward the dead list, _NOT_SERVED_LIMIT strikes to seal it, so a
+        given up on (a strike toward the dead list, ``_dead_after`` strikes to seal it, so a
         spurious one can't kill it) when it *refuses*, or when it *times out while the device
         is answering other registers this op* (``_op_alive`` — some devices serve an unsupported
         register by silence, not a refusal; a good neighbour proves the link is up, so this
@@ -700,10 +709,11 @@ class Scanner:
 
     def _strike_dead(self, key: tuple[str, int], addr: int) -> None:
         """One strike toward the dead list for a register that refused or (on a live link) went
-        silent; seal it into ``_bad`` at _NOT_SERVED_LIMIT strikes. Recorded "not served" — the
-        persistence contract the dead list rebuilds from (re-armable via the row's ↻ / Clear all)."""
+        silent; seal it into ``_bad`` at ``_dead_after`` strikes (the "Give up after" setting).
+        Recorded "not served" — the persistence contract the dead list rebuilds from (re-armable
+        via the row's ↻ / Clear all)."""
         self._misses[key] = self._misses.get(key, 0) + 1
-        if self._misses[key] >= _NOT_SERVED_LIMIT:
+        if self._misses[key] >= self._dead_after:
             self._bad.add(key)
         self._record(self.table, addr, error="not served", illegal=True)
         self._op_dead_found += 1
@@ -798,7 +808,7 @@ class Scanner:
             self.last_error = r.error or "no answer"
         elif r.silent:
             self.last_error = ("slow link — some reads timed out, but the device is answering "
-                               "(raise Timeout or Retries if this persists)")
+                               "(raise Timeout if this persists)")
         else:
             self.last_error = None
 
@@ -1260,7 +1270,8 @@ class Scanner:
         if isinstance(conn, dict):   # bring the connection settings back (but stay disconnected)
             self.connection = {"mode": str(conn.get("mode", "")), "host": str(conn.get("host", "")),
                                "port": int(conn.get("port") or 502), "device_id": int(conn.get("device_id") or 1),
-                               "timeout": float(conn.get("timeout") or 2.0), "retries": int(conn.get("retries") or 0)}
+                               "timeout": float(conn.get("timeout") or 2.0),
+                               "retries": int(conn.get("retries") or _DEAD_AFTER_DEFAULT)}
         self.scan_index = int(data.get("scan_index", 0))
         # accept the cross-table 'cells' list, or an older single-table 'rows' export —
         # parsed fully BEFORE anything is replaced, so a malformed file (the caller turns
@@ -2067,7 +2078,7 @@ class _Handler(BaseHTTPRequestHandler):
                     port=int(body.get("port") or 502),
                     device_id=int(body.get("device_id") or 1),
                     timeout=float(body.get("timeout") or 2.0),
-                    retries=int(body.get("retries") or 0),
+                    retries=int(body.get("retries") or _DEAD_AFTER_DEFAULT),
                 )
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/disconnect":
@@ -2201,7 +2212,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--device-id", "--id", type=lambda s: int(s, 0), default=1,
                         help="Modbus unit id behind the gateway (default 1)")
     parser.add_argument("--timeout", type=float, default=2.0, help="seconds per request")
-    parser.add_argument("--retries", type=int, default=0, help="pymodbus retries per request")
+    parser.add_argument("--retries", type=int, default=_DEAD_AFTER_DEFAULT,
+                        help="give up on a non-responding register after this many failed reads "
+                             "(the UI's 'Give up after'); not a pymodbus per-request retry")
     parser.add_argument("--table", choices=TABLES, default="holding", help="start on this table")
     parser.add_argument("--start", type=lambda s: int(s, 0), default=0, help="first address")
     parser.add_argument("--count", type=lambda s: int(s, 0), default=64, help="how many addresses")

@@ -227,7 +227,7 @@
       <label>Port <input type="number" id="cport" value="502"></label>
       <label>Device ID <input type="number" id="devid" value="1" min="0" max="255"></label>
       <label>Timeout (s) <input type="number" id="ctimeout" value="2" step="0.5" min="0.1"></label>
-      <label>Retries <input type="number" id="cretries" value="0" min="0"></label>
+      <label title="Give up on a non-responding register after this many failed reads — it then joins the dead list and is skipped from future block reads (re-arm with a row's ↻ or Clear all). Higher tolerates a flaky link; lower isolates truly-dead registers in fewer scans. This is NOT a per-request retry — the scanner already retries transient timeouts on its own.">Give up after <input type="number" id="cretries" value="2" min="1"> reads</label>
       <button id="connect">Connect</button>
     </div>
 

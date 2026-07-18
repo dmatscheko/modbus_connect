@@ -1530,6 +1530,33 @@ def test_connect_probe_warning_self_heals_on_the_next_answering_scan(monkeypatch
     assert sc.snapshot()["connection"]["error"] is None
 
 
+def test_give_up_after_setting_controls_the_dead_threshold(monkeypatch):
+    # the repurposed "Retries" field ("Give up after"): connect wires it to how many failed
+    # reads bury a register, clamped to >= 1, and pymodbus's own per-request retry stays off
+    seen = {}
+
+    def reader(host, port, device_id, timeout, retries):
+        seen["pymodbus_retries"] = retries
+        return (lambda t, a, n: scanner.ReadResult([0] * n)), (lambda: True), (lambda: None)
+
+    monkeypatch.setattr(scanner, "pymodbus_reader", reader)
+    sc = scanner.Scanner(table="holding", start=0, count=4, max_read=4)
+    sc.connect(mode="tcp", host="gw", retries=3)
+    assert sc._dead_after == 3 and seen["pymodbus_retries"] == 0
+    sc.connect(mode="tcp", host="gw", retries=0)
+    assert sc._dead_after == 1                        # clamped to at least one attempt
+
+    # the threshold in action: a refused register survives dead_after-1 strikes, dies on the Nth
+    dev = FakeDevice({0: 1, 2: 3}, illegal={1})
+    sc2 = scanner.Scanner(dev.read, table="holding", start=0, count=3, max_read=4)
+    sc2._dead_after = 3                               # (connect sets this from the "Give up after" field)
+    sc2.page(forward=True, anchor=0)
+    sc2.page(forward=True, anchor=0)
+    assert ("holding", 1) not in sc2._bad            # 2 strikes < 3 -> still probed
+    sc2.page(forward=True, anchor=0)
+    assert ("holding", 1) in sc2._bad                # the 3rd strike seals it
+
+
 def _fake_gateway(result):
     """A pymodbus_reader stand-in whose every read answers ``result`` (TCP always connects)."""
     def reader(host, port, device_id, timeout, retries):

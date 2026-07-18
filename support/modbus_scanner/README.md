@@ -37,7 +37,7 @@ be offline. The probe retries once (slow serial sides often miss the very first 
 warning **self-heals**: any later real answer clears it. During scanning the header stays honest
 the same way — the value shown and the warning can never disagree: an operation where *nothing*
 answered says "no answer"; one where some reads answered and some timed out is a **slow** link
-(with a hint to raise Timeout / Retries), not a dead one; one that fully answers clears the
+(with a hint to raise Timeout), not a dead one; one that fully answers clears the
 banner. And an unreadable stretch is never mistaken for the map's end — see paging, below.
 
 Once connected the button turns into **Disconnect** (and the connection fields lock until you
@@ -47,6 +47,12 @@ dead-register list all survive, so you can import a project and then connect to 
 without losing your work (or drop the link and keep working with the frozen values). **Clear all** (top row) is the one deliberate reset: it
 drops the mapping, wipes every register's stats and history, and empties the dead-register list —
 so registers earlier given up on as dead get re-probed from scratch on the next scan.
+
+The connection row's **Give up after** (the `--retries` flag / `retries` field) is how many
+consecutive failed reads bury a non-responding register onto the dead list (default 2): raise it
+to tolerate a flaky link, lower it to isolate truly-dead registers in fewer scans. It is *not* a
+per-request retry — the scanner already re-tries a transient timeout on its own (and pymodbus's
+own retry is left off), so this only sets the give-up threshold.
 
 Everything else is set in the UI too — table, address range, per-read size (`max_register_read`),
 and rescan interval. CLI flags (`--table` / `--start` / `--count` / `--max-read` / `--port` /
