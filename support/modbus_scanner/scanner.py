@@ -457,11 +457,8 @@ class Scanner:
         self._page_prev_anchor: int | None = None
         # Read-outcome bookkeeping (see ReadReport): _report accumulates the current
         # operation's reads (every _read_spans folds into it) and _settle_errors turns it
-        # into the banner; _walk_aborted flags that a discovery walk hit an UNREADABLE
-        # (silent) block — the region beyond is unknown, not absent, so paging must keep its
-        # anchor there and retry rather than latch "at the end".
+        # into the banner.
         self._report = ReadReport()
-        self._walk_aborted = False
         # Single-register probes done this operation: a refused (or silent, on a known-alive
         # device) block is bisected register by register to pin down the dead address(es) (see
         # _bisect), a big slowdown the header reports as "N single probes". _op_silent_probes
@@ -476,10 +473,6 @@ class Scanner:
         # list) when this is True: the device is provably responsive right now, so its silence
         # is a real hole, not the whole link being briefly down (which must stay retryable).
         self._op_alive = False
-        # Set around the page's look-ahead reads (which only find the next/prev anchor): they
-        # must NOT bisect — a silent block just past the page means "unknown ahead", not a
-        # region to probe register-by-register beyond what was asked for.
-        self._no_bisect = False
         # Registers given up this operation, and a live human-readable status set while a slow
         # bisection is running — read LOCK-FREE by /api/progress (a plain string, only ever
         # reassigned) so the UI can show it *during* the blocking read, then cleared when the
@@ -581,7 +574,7 @@ class Scanner:
         """Reset the per-operation read bookkeeping before a scan / page (see the fields)."""
         self._report = ReadReport()
         self._op_singles = self._op_silent_probes = self._op_dead_found = 0
-        self._op_alive = self._no_bisect = False
+        self._op_alive = False
         self._progress = None
 
     def scan(self) -> None:
@@ -640,12 +633,10 @@ class Scanner:
                 elif result.illegal:
                     self._bisect(block, report)  # a refusal is an answer — the device is alive
                     streak = 0
-                elif (self._device_seen and not self._no_bisect
-                        and self._op_silent_probes < _MAX_SILENT_PROBES):
+                elif self._device_seen and self._op_silent_probes < _MAX_SILENT_PROBES:
                     # a timeout, but the device has answered before: this block may just span a
                     # register the device serves by NOT answering — bisect it to isolate the hole
-                    # so later reads skip it (some devices time out instead of refusing). The
-                    # page's look-ahead sets _no_bisect, so it never probes past what was asked.
+                    # so later reads skip it (some devices time out instead of refusing).
                     self._bisect(block, report)
                     streak = 0
                 else:
@@ -762,22 +753,25 @@ class Scanner:
             cell.value = value
 
     # --- paging --------------------------------------------------------------
-    def page(self, *, forward: bool, anchor: int) -> None:
+    def page(self, *, forward: bool, anchor: int, firm: bool = False) -> None:
         """Fill a page from ``anchor`` in one direction, scanning as far as needed to collect
         page_size matches (or reach the table/map edge). Finding nothing that way keeps the current
         page and just marks that direction exhausted (no empty page). Offline it still fills from the
-        remembered cells (with no fresh reads), so an imported project can be reviewed unconnected."""
+        remembered cells (with no fresh reads), so an imported project can be reviewed unconnected.
+        ``firm`` anchors the top of the page AT ``anchor`` (no sliding the other way to fill): the
+        deliberate 'jump here' of open_page, so setting Start leaps over an unreadable stretch below
+        instead of the fill sliding back down into it."""
         self.last_error = None
         self._begin_op()
         if self.connected and self._read is not None:
             self.scan_index += 1
         else:
             self.last_error = "not connected"
-        self._fill_page(forward, anchor)
+        self._fill_page(forward, anchor, firm)
         self._settle_errors()
 
-    def _fill_page(self, forward: bool, anchor: int) -> None:
-        matched, nxt, prv = self._collect_page(forward, anchor)
+    def _fill_page(self, forward: bool, anchor: int, firm: bool = False) -> None:
+        matched, nxt, prv = self._collect_page(forward, anchor, firm)
         if matched:
             # got a page (even if some reads were slow) -> show it and its anchors
             self._page_addrs, self._page_next_anchor, self._page_prev_anchor = matched, nxt, prv
@@ -818,10 +812,10 @@ class Scanner:
         when restoring a view (import): a table switch or a saved scroll position must never strand
         the view in empty space with no way to page back."""
         self._clear_page()
-        self.page(forward=True, anchor=self.start)
+        self.page(forward=True, anchor=self.start, firm=True)
         if not self._page_addrs and self.start > 0:
             self.start = 0
-            self.page(forward=True, anchor=0)
+            self.page(forward=True, anchor=0, firm=True)
 
     def _walking(self) -> bool:
         """Whether the page fill scans the address space to *discover* matches: the plain
@@ -850,17 +844,15 @@ class Scanner:
         evidence of device presence — anything *known* keeps a plain / refused-listing walk
         alive, anything *served* the other filtered walks — so a served-but-zero stretch never
         ends a non-zero walk, while a genuinely mapped-out area does. An UNREADABLE (silent)
-        block is decisively NOT an absent one: it aborts the walk with ``_walk_aborted`` set —
-        the region beyond is unknown, and the caller keeps a retryable anchor there rather than
-        declaring the end (which is what disabled ▶ on a slow device).
+        block is decisively NOT an absent one: it stops the walk, and the caller keeps the page
+        and its anchors (via _report.total_failure) so paging retries rather than latching the end.
 
         In the *plain* view every register is a match, so the read is sized to how many are
-        still wanted (never the whole ``max_read`` when only a few remain): a Count of 3 reads
-        3, the 1-register look-ahead reads 1 — it must not blast a full 64-wide block (and
-        bisect it) past the requested range. The filtered views stay wide: their matches are
-        sparse, so a full block is the efficient way to scan for them."""
+        still wanted (never the whole ``max_read`` when only a few remain): a Count of 3 reads 3 —
+        it must not blast a full 64-wide block (and bisect it) past the requested range. The
+        filtered views stay wide: their matches are sparse, so a full block is the efficient way
+        to scan for them."""
         walk_known = not self.filter or "refused" in self.filter
-        self._walk_aborted = False
         matched: list[int] = []
         pos, dead, scanned = anchor, 0, 0
         while len(matched) < limit and scanned < _FILTER_FILL_CAP:
@@ -870,8 +862,7 @@ class Scanner:
             count = min(cap, 0x10000 - pos) if forward else min(cap, pos + 1)
             start = pos if forward else pos - count + 1
             if self._read_range(start, count).silent:
-                self._walk_aborted = True   # could not read here — stop; the edge is unknown
-                break
+                break   # could not read here — stop; the caller keeps a retryable anchor
             scanned += count
             block = range(start, start + count) if forward else reversed(range(start, start + count))
             for a in block:
@@ -1085,11 +1076,15 @@ class Scanner:
                         out.update(range(defn.span.start, defn.span.end))
         return out
 
-    def _collect_page(self, forward: bool, anchor: int) -> tuple[list[int], int | None, int | None]:
+    def _collect_page(self, forward: bool, anchor: int,
+                      firm: bool = False) -> tuple[list[int], int | None, int | None]:
         """Collect a full window of page_size registers around ``anchor`` and return (page,
         next_anchor, prev_anchor). Every page is filled to page_size when that many registers
         exist: it collects the paging direction, and if it comes up short at an edge it slides
-        the window the other way to top it up — so paging never leaves a half-empty screen.
+        the window the other way to top it up — so paging never leaves a half-empty screen —
+        UNLESS ``firm`` (a jump to ``anchor``): then a short page stays short rather than sliding
+        back below the anchor, so setting Start leaps over an unreadable stretch instead of the
+        fill reading down into it.
         The page is the union of two sources: a scanning walk that *discovers* matches (the
         plain view and the scan atoms — see _scan_run) and the selected atoms' already-known
         members (see _filter_members), read afterwards so unprobed mapped registers and split
@@ -1116,11 +1111,11 @@ class Scanner:
             return sorted(got)[-need:]
 
         page = run(forward, anchor, want)
-        if not page and not walking and members:
+        if not page and not walking and members and not firm:
             # a members-only view with nothing in the paging direction slides to the far
             # window (e.g. a table switch landing past everything mapped), never an empty page
             page = members[-want:] if forward else members[:want]
-        if 0 < len(page) < want:  # short at an edge: slide the window the other way to fill
+        if 0 < len(page) < want and not firm:  # short at an edge: slide the other way to fill
             if forward:
                 page = sorted(set(run(False, page[0] - 1, want - len(page))) | set(page))
             else:
@@ -1133,23 +1128,19 @@ class Scanner:
                  for x in self._row_read_addrs(a) if (self.table, x) not in self._bad}
         if spans:
             self._read_spans(spans)
+        # Anchors = where ▶ / ◀ continue. The members-based views (mapped / x-ray) window over a
+        # known set, so their edges ARE the member edges. A *walking* view (plain / scan atoms)
+        # has no fixed end, so it enables paging purely by the address-space bounds — no probe
+        # past the page: ▶ is live while the last shown register is below the top of the space,
+        # ◀ while the first is above 0, and the click itself walks on from there. (This replaces
+        # a one-register look-ahead read that, on a slow/dead edge, cost a timeout per page.)
         nxt = min((a for a in members if a > page[-1]), default=None)
         prv = max((a for a in members if a < page[0]), default=None)
-        if walking:  # a one-register look-ahead each way extends the anchors past the page —
-            self._no_bisect = True   # ...just to FIND the anchor: never probe/bisect past the page
-            try:
-                after = self._scan_run(True, page[-1] + 1, 1)
-                if not after and self._walk_aborted and page[-1] < 0xFFFF:
-                    after = [page[-1] + 1]   # could not look past the page — keep ▶ retryable there
-                before = self._scan_run(False, page[0] - 1, 1)
-                if not before and self._walk_aborted and page[0] > 0:
-                    before = [page[0] - 1]   # ...same for ◀
-            finally:
-                self._no_bisect = False
-            if after:
-                nxt = after[0] if nxt is None else min(nxt, after[0])
-            if before:
-                prv = before[0] if prv is None else max(prv, before[0])
+        if walking:
+            if nxt is None and page[-1] < 0xFFFF:
+                nxt = page[-1] + 1
+            if prv is None and page[0] > 0:
+                prv = page[0] - 1
         return page, nxt, prv
 
     # --- serialisation -------------------------------------------------------

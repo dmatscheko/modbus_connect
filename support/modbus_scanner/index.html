@@ -227,7 +227,7 @@
       <label>Port <input type="number" id="cport" value="502"></label>
       <label>Device ID <input type="number" id="devid" value="1" min="0" max="255"></label>
       <label>Timeout (s) <input type="number" id="ctimeout" value="2" step="0.5" min="0.1"></label>
-      <label title="Give up on a non-responding register after this many failed reads — it then joins the dead list and is skipped from future block reads (re-arm with a row's ↻ or Clear all). Higher tolerates a flaky link; lower isolates truly-dead registers in fewer scans. This is NOT a per-request retry — the scanner already retries transient timeouts on its own.">Give up after <input type="number" id="cretries" value="2" min="1"> reads</label>
+      <label title="Give up on a non-responding register after this many failed reads — it then joins the dead list and is skipped from future block reads (re-arm with a row's ↻ or Clear all). Higher tolerates a flaky link; lower isolates truly-dead registers in fewer scans. This is NOT a per-request retry — the scanner already retries transient timeouts on its own.">Retries <input type="number" id="cretries" value="2" min="1"></label>
       <button id="connect">Connect</button>
     </div>
 
@@ -399,7 +399,14 @@ function anchorAtView() {
   const pos = snapshot?.rows?.[0]?.address;
   if (pos != null) $('start').value = pos;
 }
-function syncStartField() { if (snapshot?.config) $('start').value = snapshot.config.start; }
+// the Start field always shows the first register on the page — so it reads as "where am I",
+// and editing it + Apply range jumps there (handy to leap over a big unreadable stretch instead
+// of paging through it). Only ever set on a deliberate page change (fill / page / switch), never
+// on a plain scan refresh, so mid-edit typing survives a running scan.
+function syncStartField() {
+  const pos = snapshot?.rows?.[0]?.address;
+  if (pos != null) $('start').value = pos;
+}
 
 // connection state: header status, field enabling, and gating the scan buttons
 const SCAN_BTNS = ['toggle', 'once'];   // need a live link (apply just presets the range, so it stays live)
@@ -1218,6 +1225,7 @@ function setRunning(on) {
 async function loadRange() {
   selected.clear();
   render(await api('/api/config', cfg()));
+  syncStartField();   // reflect where the fill actually landed (Apply range jumps to Start)
 }
 // A full scan of a very large unfiltered range is slow, so make the user accept it once. A filtered
 // fill scans a bounded window and stops at dead runs, so Count doesn't drive its cost — no warning there.
@@ -1254,6 +1262,7 @@ async function stepPage(dir) {
   const anchor = snapshot && (dir > 0 ? snapshot.next_anchor : snapshot.prev_anchor);
   if (anchor == null) return false;   // that direction is exhausted
   render(await api('/api/page', { forward: dir > 0, anchor }));
+  syncStartField();   // Start follows the page so it always shows the first visible register
   return true;
 }
 function pageBy(dir) { return withScanPaused(() => stepPage(dir)); }

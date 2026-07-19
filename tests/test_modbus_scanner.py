@@ -440,6 +440,22 @@ def test_open_page_recovers_to_the_first_page_when_start_is_past_all_registers()
     assert rows and rows[0] == 0                          # landed on the served registers, not stranded
 
 
+def test_a_firm_jump_anchors_the_page_top_and_does_not_slide_below():
+    # open_page (Apply range / the Start jump) anchors the page AT Start and fills forward only,
+    # even when fewer than a full page exist above it — it must NOT slide back below the anchor
+    # (which, over a dead region, would read the very stretch the user set Start to leap past)
+    dev = FakeDevice({})                                    # every address readable (value 0)
+    sc = scanner.Scanner(dev.read, table="holding", start=0xFFFA, count=8, max_read=8)
+    sc.reconfigure(table="holding", start=0xFFFA, count=8, max_read=8, page_size=8)
+    sc.open_page()
+    rows = [r["address"] for r in sc.snapshot()["rows"]]
+    assert rows == [0xFFFA, 0xFFFB, 0xFFFC, 0xFFFD, 0xFFFE, 0xFFFF]   # top anchored at Start, short
+    # a plain ▶-style fill (not firm) would instead slide down to keep the page full
+    sc.reconfigure(table="holding", start=0xFFFA, count=8, max_read=8, page_size=8)
+    sc.page(forward=True, anchor=0xFFFA)                    # non-firm
+    assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(0xFFF8, 0x10000))  # slid to fill
+
+
 def test_generate_stamp_is_server_state_and_rides_in_exports():
     # the Manufacturer/Model stamp: seeded by a loaded device file, editable via set_meta,
     # part of the project export — and served in every snapshot, so a browser refresh
@@ -1225,13 +1241,11 @@ def test_filter_nonzero_scans_to_fill_and_pages():
     snap = sc.snapshot()
     assert [r["address"] for r in snap["rows"]] == [1, 3]      # scanned forward, skipping zeros
     assert all(r["value"] for r in snap["rows"])
-    assert snap["at_start"] is True and snap["at_end"] is False
 
-    # paging forward reads past the zeros to 8; it's the last match, so the page slides back to fill
+    # ▶ walks on from just past the page and discovers the last match (8), sliding back to fill
     sc.page(forward=True, anchor=snap["next_anchor"])
     snap2 = sc.snapshot()
     assert [r["address"] for r in snap2["rows"]] == [3, 8]     # only 8 is left, so 3 fills the page
-    assert snap2["at_end"] is True
 
     sc.page(forward=False, anchor=snap2["prev_anchor"])        # back to the first matches
     assert [r["address"] for r in sc.snapshot()["rows"]] == [1, 3]
@@ -1256,11 +1270,11 @@ def test_paging_to_the_start_slides_the_window_to_fill_the_page():
     sc.page(forward=False, anchor=snap["prev_anchor"])          # page left — only 1..5 sit below 6
     left = sc.snapshot()
     assert [r["address"] for r in left["rows"]] == [1, 2, 3, 4, 5, 6, 7, 8]       # slid up to stay full
-    assert left["at_start"] is True                             # nothing below register 1
 
 
-def test_filter_nonzero_does_not_page_past_the_last_match():
-    # a full page followed by nothing must land on at_end — not offer a dead page into empty space
+def test_filter_nonzero_paging_reaches_the_last_match_then_the_end():
+    # ▶ / ◀ are enabled by the address bounds (no look-ahead probe); the click itself walks to
+    # the next match. Paging reaches every match, and one step past the last lands on the end.
     dev = FakeDevice({0: 1, 1: 2, 5: 3, 6: 4}, illegal=set(range(7, 200)))
     sc = scanner.Scanner(dev.read, table="holding", start=0, count=8, max_read=4)
     sc.reconfigure(table="holding", start=0, count=8, max_read=4, filter_mode="nonzero", page_size=2)
@@ -1268,12 +1282,14 @@ def test_filter_nonzero_does_not_page_past_the_last_match():
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
     assert [r["address"] for r in snap["rows"]] == [0, 1]
-    assert snap["next_anchor"] == 5     # the real next match (look-ahead), not 2 = one-past-the-page
+    assert snap["at_end"] is False and snap["next_anchor"] == 2   # one past the page — ▶ walks on
 
-    sc.page(forward=True, anchor=snap["next_anchor"])
+    sc.page(forward=True, anchor=snap["next_anchor"])             # ...and finds the next matches
     snap2 = sc.snapshot()
     assert [r["address"] for r in snap2["rows"]] == [5, 6]
-    assert snap2["at_end"] is True and snap2["next_anchor"] is None  # a full page, but nothing beyond
+
+    sc.page(forward=True, anchor=snap2["next_anchor"])            # one more: nothing beyond -> the end
+    assert sc.snapshot()["at_end"] is True
 
 
 def test_mapping_editor_covers_the_integration_fields():

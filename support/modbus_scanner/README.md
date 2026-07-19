@@ -72,7 +72,11 @@ generated YAML carry a bold accent bar at their left edge (the whole checkbox ce
 target). Scan controls (Start/Stop, Scan once, interval) stay in the header so you can drive a scan
 with the settings hidden, and the **◀ / ▶** buttons page the range backward / forward by exactly
 the number of registers shown (with a live `start–end` readout between them), so you can walk a big
-address space a screen at a time.
+address space a screen at a time. The **Start** field always shows the first register on the page,
+so it reads as "where am I" — and editing it and hitting **Apply range** *jumps* there, anchoring
+the page at that address (a fast way to leap over a big unreadable stretch instead of paging through
+it). ◀ / ▶ are enabled purely by the address bounds — ▶ while the last shown register is below the
+top of the space, ◀ while the first is above 0 — with no probe past the page to decide it.
 
 Tick **auto-page** and each scan steps to the *next* page on its own, wrapping back to the first at the
 end of the table — so you can leave a scan running unattended and come back to a change map of the whole
@@ -96,9 +100,10 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   for good; it stays *listed*, just never re-probed — each dead row has a small **↻** button to probe
   exactly that one register again (**Clear all** re-arms them all at once). The **served** chip
   hides the dead ones instead — a **packed page** of only the registers the device answers, reading
-  past the refused ones so the page always fills. Every view fills its page: **◀ / ▶** page through
-  the matches and stop at the real ends, and near an edge the window slides the other way to top up
-  rather than leave a half-empty screen. An *unreadable* stretch is never mistaken for an *absent*
+  past the refused ones so the page always fills. **◀ / ▶** page through the matches; near an edge
+  the window slides the other way to top up rather than leave a half-empty screen — except a **jump**
+  (editing **Start** + **Apply range**) anchors the page firmly at Start and fills forward only, so
+  it never slides back down into a region you set Start to skip. An *unreadable* stretch is never mistaken for an *absent*
   one: a bare timeout is retried a couple of times first (a slow device may just need another go,
   and a timed-out request can leave a late reply that trips the next read — the retry drains it),
   so paging past a fresh region on a slow gateway usually still advances on the first ▶. If it
