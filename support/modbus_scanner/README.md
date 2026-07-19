@@ -41,10 +41,16 @@ answered says "no answer"; one where some reads answered and some timed out is a
 banner. And an unreadable stretch is never mistaken for the map's end — see paging, below.
 
 Once connected the button turns into **Disconnect** (and the connection fields lock until you
-drop the link — so what's shown is always what's connected). Disconnecting — like reconnecting —
-**keeps** everything you've gathered: the per-register stats and history, the mapping, and the
-dead-register list all survive, so you can import a project and then connect to watch it live
-without losing your work (or drop the link and keep working with the frozen values). **Clear all** (top row) is the one deliberate reset: it
+drop the link — so what's shown is always what's connected). Disconnect works in **every** state
+and can't be blocked: the button reads **Disconnect** from the moment a connection attempt begins
+(a click abandons the attempt) as well as once the link is live, and while a slow device is being
+scanned (or a big unreadable region bisected, which can take a while) a click stops it **at once** —
+the request bypasses the queue that serializes everything else and cancels the in-flight read, so
+you're never stuck waiting to try something else. Disconnecting —
+like reconnecting — **keeps** everything you've gathered: the per-register stats and history, the
+mapping, and the dead-register list all survive, so you can import a project and then connect to
+watch it live without losing your work (or drop the link and keep working with the frozen values).
+**Clear all** (top row) is the one deliberate reset: it
 drops the mapping, wipes every register's stats and history, and empties the dead-register list —
 so registers earlier given up on as dead get re-probed from scratch on the next scan.
 

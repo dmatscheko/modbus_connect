@@ -479,6 +479,12 @@ class Scanner:
         # operation settles.
         self._op_dead_found = 0
         self._progress: str | None = None
+        # Set the instant Disconnect is pressed, checked by every read loop so a long, slow
+        # operation (e.g. bisecting a big dead region) stops at its next read instead of running
+        # to completion. Reset per operation (see _begin_op) and on connect, so it only ever
+        # aborts the operation it was raised against. A plain flag = a lock-free, GIL-atomic
+        # write, so Disconnect can raise it WITHOUT the server lock a slow scan is holding.
+        self._cancel = False
 
     def connect(self, *, mode: str = "tcp", host: str = "", port: int = 502, device_id: int = 1,
                 timeout: float = 2.0, retries: int = _DEAD_AFTER_DEFAULT) -> None:
@@ -493,6 +499,7 @@ class Scanner:
         pymodbus per-request retry (that stays 0; the scanner retries transient timeouts itself).
         Connection errors are stored (``conn_error``) and surfaced in the UI, not raised."""
         self._teardown()
+        self._cancel = False                             # a fresh link is never mid-cancel
         self._op_singles, self._op_silent_probes = 0, 0  # stale counts must not linger
         self._device_seen = False                        # earn it afresh on this connection
         self._dead_after = max(1, int(retries))          # 1..N failed reads before giving up
@@ -523,9 +530,9 @@ class Scanner:
         warning self-heals — any later real answer clears it (see _record / _settle_errors)."""
         if self._read is None:
             return None
-        result = self._read("holding", 0, 1)
+        result = self._do_read("holding", 0, 1)
         if result.no_device:
-            result = self._read("holding", 0, 1)
+            result = self._do_read("holding", 0, 1)
         if not result.no_device:
             self._device_seen = True   # it answered (data or a refusal) — the device is there
             return None
@@ -535,19 +542,63 @@ class Scanner:
     def disconnect(self) -> None:
         """Deliberately drop the connection (the Connect button's other half). Everything
         gathered stays — stats, history, mapping, dead list, and the settings for the next
-        Connect — and the view keeps showing the remembered values, just frozen."""
-        self._teardown()
-        self.conn_error = None  # a chosen state, not a failure
+        Connect — and the view keeps showing the remembered values, just frozen. The full,
+        synchronous drop (no scan in flight); the server splits it into begin_ + finish_ so the
+        button also works mid-scan without waiting on the lock a slow read holds."""
+        self.begin_disconnect()
+        self.finish_disconnect()
+
+    def begin_disconnect(self) -> None:
+        """First half of a Disconnect, safe to call WITHOUT the server lock — even while a scan
+        thread holds it mid-read. Two lock-free moves that stop an in-flight operation NOW: raise
+        _cancel (every read loop checks it and bails at its next step) and close the socket (a
+        blocking read returns at once, instead of running out its full timeout). It writes only
+        the atomic flag and the socket — NOT ``connected`` or the banner — so it never races the
+        scan for those; finish_disconnect (under the lock) lands the clean state."""
+        self._cancel = True
+        self._close_socket()
+
+    def finish_disconnect(self) -> None:
+        """Second half: land the clean 'disconnected' state. Always called UNDER the server lock —
+        by the request handler once the cancelled operation has released it (or by an in-flight
+        scan itself as it unwinds on the cancel, see _settle_errors) — so ``connected`` and the
+        banner have a single writer and can never read as 'disconnected, but warning: no answer'.
+        Idempotent. Closes the socket a connect may have opened while we waited, then drops the
+        link; everything gathered stays, the view just freezes on the remembered values."""
+        self._close_socket()     # tear down whatever a racing connect probe may have just opened
+        self._read, self._close, self.connected = None, None, False
+        self.conn_error = None   # a chosen state, not a failure
         self.last_error = None
+        self._progress = None    # any slow-bisection status line is moot once the link is cut
 
     def _clear_page(self) -> None:
         self._page_addrs, self._page_next_anchor, self._page_prev_anchor = [], None, None
 
-    def _teardown(self) -> None:
+    def _close_socket(self) -> None:
+        """Best-effort close of the live socket (idempotent), which unblocks any in-flight
+        blocking read. Deliberately leaves self._read in place: reads route through _do_read,
+        which fails safe on a closed socket, so a scan reading concurrently trips on nothing."""
         if self._close is not None:
-            with contextlib.suppress(Exception):  # best-effort close of the old connection
+            with contextlib.suppress(Exception):  # best-effort — a slow gateway may already be gone
                 self._close()
+
+    def _teardown(self) -> None:
+        self._close_socket()
         self._read, self._close, self.connected = None, None, False
+
+    def _do_read(self, table: str, start: int, count: int) -> ReadResult:
+        """The single choke point every device read passes through, so a concurrent Disconnect
+        can never turn a live read into a crash. It takes the reader by a local reference (which
+        a teardown may null underneath it), short-circuits a cancelled/offline read to a null
+        result, and swallows the error a socket closed mid-read would raise — the read loops,
+        which also check _cancel, then stop cleanly on the null."""
+        read = self._read
+        if self._cancel or read is None:
+            return ReadResult(None, "cancelled")
+        try:
+            return read(table, start, count)
+        except Exception as exc:  # a Disconnect can close the socket out from under a blocking read
+            return ReadResult(None, str(exc) or "read failed")
 
     def reconfigure(self, *, table: str, start: int, count: int, max_read: int,
                     filter_mode: Any = None, page_size: int | None = None,
@@ -576,6 +627,8 @@ class Scanner:
         self._op_singles = self._op_silent_probes = self._op_dead_found = 0
         self._op_alive = False
         self._progress = None
+        self._cancel = False   # a stale cancel from a past Disconnect must not abort this op
+                               # (and a live one aborts an *in-flight* op — set after this reset)
 
     def scan(self) -> None:
         """One tick: re-read the current page's registers (membership unchanged) so a live scan
@@ -605,10 +658,10 @@ class Scanner:
         a slow device may just need another go, and a timed-out request can leave a late reply
         that trips the next read (transaction-id desync) — the retry drains it. Data or an
         explicit refusal answers at once; only silence is retried."""
-        result = self._read(self.table, start, count)
+        result = self._do_read(self.table, start, count)
         tries = _SLOW_RETRIES
-        while result.values is None and not result.illegal and tries > 0:
-            result = self._read(self.table, start, count)
+        while result.values is None and not result.illegal and tries > 0 and not self._cancel:
+            result = self._do_read(self.table, start, count)
             tries -= 1
         return result
 
@@ -624,6 +677,8 @@ class Scanner:
         if read is not None:
             streak = 0
             for block in plan_blocks(spans, max_read=self.max_read, holes=self._bad):
+                if self._cancel:
+                    break   # Disconnect pressed — stop reading; finish_disconnect owns the state
                 result = self._read_retry(block.start, block.count)
                 if result.values is not None:
                     for i, addr in enumerate(range(block.start, block.end)):
@@ -673,10 +728,12 @@ class Scanner:
         self._op_singles += block.count
         unresolved = False
         for addr in range(block.start, block.end):
+            if self._cancel:
+                break   # Disconnect pressed mid-bisection — the slowest place to be stuck; bail now
             # a live status the UI polls (lock-free) so a slow bisection isn't a silent freeze
             self._progress = (f"Isolating unreadable registers on {self.table} — probing #{addr}"
                               f" ({self._op_dead_found} given up so far)…")
-            r = self._read(self.table, addr, 1)
+            r = self._do_read(self.table, addr, 1)
             key = (self.table, addr)
             if r.values is not None:
                 self._record(self.table, addr, value=r.values[0])
@@ -719,7 +776,7 @@ class Scanner:
         self._misses.pop(key, None)
         if self._read is None or table != self.table:
             return  # offline (or not the shown table): just un-dead it for the next scans
-        r = self._read(table, address, 1)
+        r = self._do_read(table, address, 1)
         if r.values is not None:
             self._record(table, address, value=r.values[0])
         elif r.illegal:
@@ -792,6 +849,12 @@ class Scanner:
         one that answered but also hit silence is a *slow* link, not a dead one; one where
         everything answered clears the banner. An operation that read nothing (offline) leaves
         whatever was set (e.g. 'not connected')."""
+        if self._cancel:
+            # Disconnect cancelled this op. Land the clean 'disconnected' state right here, under
+            # the lock we hold — the single-writer that makes the banner and ``connected`` agree,
+            # so the tail of an aborted scan can never flash 'disconnected, but no answer'.
+            self.finish_disconnect()
+            return
         self._progress = None   # the operation's reads are done — no bisection in flight
         r = self._report
         if r.alive:
@@ -859,6 +922,8 @@ class Scanner:
         matched: list[int] = []
         pos, dead, scanned = anchor, 0, 0
         while len(matched) < limit and scanned < _FILTER_FILL_CAP:
+            if self._cancel:
+                break   # Disconnect pressed — abandon the walk; the view freezes where it is
             if (forward and pos > 0xFFFF) or (not forward and pos < 0):
                 break
             cap = min(self.max_read, limit - len(matched)) if not self.filter else self.max_read
@@ -2061,6 +2126,23 @@ class _Handler(BaseHTTPRequestHandler):
         except (ValueError, OSError):
             self._json({"error": "bad request body"}, 400)
             return
+        if self.path == "/api/disconnect":
+            # This is what makes Disconnect non-blockable. The freeze it fixes: a slow operation
+            # holds the lock, so taking it FIRST would queue Disconnect behind the very thing the
+            # user wants to stop. Instead, cancel LOCK-FREE first: begin_disconnect flips the
+            # atomic cancel flag and closes the socket without the lock, so an in-flight read
+            # returns at once AND every following read short-circuits — the operation drains its
+            # loop in an instant and releases the lock. ONLY THEN take the lock to land the clean
+            # state, so finish_disconnect is the single writer (the banner can never read
+            # 'disconnected, but no answer') and it always runs, whatever op held the lock — a
+            # scan, a page fill, a single-register retry, even a connect probe. The wait is bounded
+            # to that one in-flight read the close cut short, never the whole slow operation.
+            sc = self._scanner
+            sc.begin_disconnect()
+            with self._lock:
+                sc.finish_disconnect()
+            self._json({"connection": {**sc.connection, "connected": False, "error": None}})
+            return
         with self._lock:
             if self.path == "/api/scan":
                 self._scanner.scan()
@@ -2074,9 +2156,6 @@ class _Handler(BaseHTTPRequestHandler):
                     timeout=float(body.get("timeout") or 2.0),
                     retries=int(body.get("retries") or _DEAD_AFTER_DEFAULT),
                 )
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/disconnect":
-                self._scanner.disconnect()
                 self._json(self._scanner.snapshot())
             elif self.path == "/api/config":
                 self._scanner.reconfigure(

@@ -1683,6 +1683,186 @@ def test_disconnect_drops_the_link_but_keeps_everything():
     assert sc.connected and sc.cells and sc.snapshot()["last_error"] is None
 
 
+def test_do_read_fails_safe_when_the_link_is_torn_out_mid_read():
+    # every device read goes through _do_read, so a Disconnect closing the socket (or nulling the
+    # reader) under an in-flight read can only ever yield a null result — never a crash
+    dev = FakeDevice({0: 5})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    assert sc._do_read("holding", 0, 1).values == [5]        # the normal path still reads
+
+    sc._cancel = True                                        # a cancel short-circuits, no read attempted
+    r = sc._do_read("holding", 0, 1)
+    assert r.values is None and r.error == "cancelled" and dev.reads == [(0, 1)]  # unchanged: no new read
+
+    sc._cancel = False
+    def boom(table, address, count):                         # a socket closed mid-read raises
+        raise OSError("socket closed")
+    sc._read = boom
+    r = sc._do_read("holding", 0, 1)
+    assert r.values is None and "closed" in (r.error or "")  # swallowed into a null result
+
+    sc._read = None                                          # a torn-down reader is null too
+    assert sc._do_read("holding", 0, 1).values is None
+
+
+def test_cancel_stops_the_read_loops_before_they_read():
+    # the flag Disconnect raises is checked at the top of every read loop, so a long operation
+    # stops at its next step instead of grinding through the whole range
+    dev = FakeDevice({a: a for a in range(200)})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=200, max_read=8)
+    sc._begin_op()
+    sc._cancel = True
+    assert sc._scan_run(forward=True, anchor=0, limit=200) == []   # the walk abandons at once
+    rep = sc._read_spans({scanner.Span("holding", a, 1) for a in range(8)})
+    assert rep.answered == 0 and dev.reads == []                   # neither loop touched the device
+
+
+def test_begin_disconnect_is_lockfree_and_finish_lands_the_clean_state():
+    # the drop is split so it works mid-scan: begin_ (no lock) only raises the cancel flag and
+    # closes the socket; finish_ (under the lock) is the single writer of connected + the banner
+    closed = []
+    dev = FakeDevice({0: 1, 1: 2})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc._close = lambda: closed.append(True)
+    sc.scan()
+    assert sc.connected and sc.cells
+    sc.last_error = "slow link — some reads timed out"   # pretend the last op left a banner
+
+    sc.begin_disconnect()
+    assert sc._cancel and closed == [True]               # cancelled + socket closed…
+    assert sc.connected is True                          # …but connected/banner deliberately untouched
+    assert sc.last_error == "slow link — some reads timed out"
+
+    sc.finish_disconnect()
+    assert not sc.connected and sc.last_error is None and sc.conn_error is None
+    assert sc._read is None and sc.cells                 # link dropped; everything gathered kept
+
+
+def test_a_cancelled_operation_settles_to_disconnected_never_no_answer():
+    # the contradiction to avoid: a value/'⚠ no answer' shown at the same time as a deliberate
+    # Disconnect. A cancelled op settles through finish_disconnect, so the banner is always clean.
+    def silent(table, address, count):
+        return scanner.ReadResult(None, "no answer from device ID 20")
+    sc = scanner.Scanner(silent, table="holding", start=0, count=4, max_read=4)
+    sc._begin_op()
+    sc._cancel = True                 # Disconnect fired during the op
+    sc._settle_errors()               # the scan's tail settles under the lock it holds
+    assert not sc.connected
+    assert sc.last_error is None and sc.conn_error is None   # never "no answer" after a Disconnect
+
+
+def test_disconnect_interrupts_a_slow_blocking_scan():
+    # the whole point: a slow device (every read blocks) must not trap the user. Closing the
+    # socket unblocks the in-flight read and the cancel flag ends the walk — the scan stops
+    # promptly, far short of the full range, and lands the clean disconnected state.
+    import threading
+    import time
+
+    closed = threading.Event()
+    reads: list[int] = []
+
+    def slow_read(table, address, count):
+        reads.append(address)
+        if closed.wait(timeout=0.5):      # a real blocking read returns early when the socket closes…
+            raise OSError("socket closed")
+        return scanner.ReadResult([address] * count)   # …otherwise it answers (so the walk keeps going), slowly
+
+    sc = scanner.Scanner(slow_read, table="holding", start=0, count=300, max_read=1)
+    sc._close = closed.set                # Disconnect's socket close unblocks the blocking read
+    sc._device_seen = True                # a live device — exercises the bisect path's cancel check too
+
+    done = threading.Event()
+    def run_scan():
+        sc.scan()
+        done.set()
+
+    t = threading.Thread(target=run_scan)
+    t.start()
+    time.sleep(0.05)                      # let the scan get into a blocking read
+    sc.begin_disconnect()                 # lock-free: raise cancel + close the socket
+    assert done.wait(timeout=2.0), "the slow scan did not stop after Disconnect"
+    t.join(timeout=1.0)
+
+    assert not sc.connected                             # the scan's tail landed the clean state
+    assert sc.last_error is None and sc.conn_error is None   # not a stale "no answer"
+    assert len(reads) < 20                              # aborted early — nowhere near the 300-register range
+
+
+def _disconnect_via_handler(sc, lock):
+    """Drive the REAL /api/disconnect branch of the request handler without opening a socket
+    (the HA test plugin blocks real ones): build a _Handler without its socket-bound __init__ and
+    call do_POST. Returns the JSON body the handler sent."""
+    import io
+
+    h = scanner._Handler.__new__(scanner._Handler)
+    h.server = type("S", (), {"scanner": sc, "lock": lock})()
+    h.path = "/api/disconnect"
+    h.headers = {"Content-Length": "2"}
+    h.rfile = io.BytesIO(b"{}")
+    sent = {}
+    h._json = lambda payload, status=200: sent.update(payload=payload, status=status)
+    h.do_POST()
+    return sent["payload"]
+
+
+def test_disconnect_handler_cancels_lockfree_while_a_scan_holds_the_lock():
+    # the guarantee: while a scan holds the server lock, the Disconnect handler must cancel it
+    # WITHOUT first waiting on that lock (that was the freeze). It raises the cancel flag and
+    # closes the socket lock-free — proven here by a lock-holder that sees both already done
+    # before it releases — then takes the lock only to land the clean final state.
+    import threading
+    import time
+
+    lock = threading.Lock()
+    closed: list[bool] = []
+    dev = FakeDevice({0: 1, 1: 2})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc._close = lambda: closed.append(True)
+    sc._begin_op()
+
+    release = threading.Event()
+    observed = {}
+    def holder():                                 # stands in for a scan mid-operation
+        with lock:
+            release.wait(timeout=1.0)
+            observed["cancel"], observed["closed"] = sc._cancel, list(closed)
+    ht = threading.Thread(target=holder, daemon=True)
+    ht.start()
+    time.sleep(0.02)                              # let the holder take the lock
+
+    payload = {}
+    dt = threading.Thread(target=lambda: payload.update(_disconnect_via_handler(sc, lock)),
+                          daemon=True)
+    dt.start()
+    time.sleep(0.05)                              # the handler has begun and is now waiting on the lock
+    assert sc._cancel is True and closed == [True]   # cancelled + socket closed WITHOUT the lock
+
+    release.set()                                 # let the holder release; the handler can finalize
+    ht.join(timeout=1.0)
+    dt.join(timeout=1.0)
+    assert observed["cancel"] is True and observed["closed"] == [True]  # the holder saw it pre-release
+    assert payload["connection"]["connected"] is False
+    assert not sc.connected and sc.last_error is None and sc.conn_error is None  # finalized, clean
+
+
+def test_disconnect_handler_finalizes_itself_when_no_scan_is_running():
+    # the other branch: idle, no scan holds the lock, so the handler takes it and lands the clean
+    # disconnected state itself — Disconnect works the same whether or not something is in flight.
+    import threading
+
+    lock = threading.Lock()
+    dev = FakeDevice({0: 1, 1: 2})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.scan()
+    assert sc.connected and sc.cells
+
+    payload = _disconnect_via_handler(sc, lock)
+    assert payload["connection"]["connected"] is False
+    assert not sc.connected                        # handler finalized (lock was free)
+    assert sc.last_error is None and sc.conn_error is None and sc._read is None
+    assert sc.cells                                # everything gathered stays
+
+
 def test_lists_bundled_device_files():
     devices = {d["file"] for d in scanner.list_device_files()}
     assert "solax-x3-hac.yaml" in devices

@@ -302,6 +302,10 @@
 <script>
 const $ = id => document.getElementById(id);
 let timer = null, running = false, snapshot = null, scanToken = 0;
+// the connection toggle's live state: a connection attempt is in flight (the button already reads
+// Disconnect, and a click abandons the attempt), and a drop is in flight (so re-clicks are
+// ignored). Declared up here because applyConnection, called on the first render, reads `connecting`.
+let connecting = false, dropping = false;
 let rowEntries = [], builtSig = '';   // reused row cells, rebuilt only when the range/layout changes
 const selected = new Set();           // addresses ticked for YAML generation
 const COLS = 2;                       // the register list is laid out across this many side-by-side tables
@@ -410,8 +414,8 @@ function syncStartField() {
 
 // connection state: header status, field enabling, and gating the scan buttons
 const SCAN_BTNS = ['toggle', 'once'];   // need a live link (apply just presets the range, so it stays live)
-function toggleConnFields() {   // demo needs no gateway fields; a live link locks them all (Disconnect to edit)
-  const demo = $('mode').value === 'demo', locked = isConnected();
+function toggleConnFields() {   // demo needs no gateway fields; a live link (or a connection attempt) locks them all
+  const demo = $('mode').value === 'demo', locked = isConnected() || connecting;
   $('mode').disabled = locked;
   ['host', 'cport', 'devid', 'ctimeout', 'cretries'].forEach(id => $(id).disabled = locked || demo);
 }
@@ -422,10 +426,11 @@ function applyConnection(conn) {   // per-render: status + button gating only (n
       : `● connected — ${conn.host}:${conn.port} (id ${conn.device_id})`;
     st.style.color = '#5ad17a';
   } else { st.textContent = '○ not connected'; st.style.color = ''; }
-  const btn = $('connect');   // one button, two roles — it toggles the link
-  btn.textContent = connected ? 'Disconnect' : 'Connect';
-  btn.title = connected ? 'drop the connection — everything gathered is kept'
-                        : 'connect with these settings';
+  const btn = $('connect');   // one button: Connect, flipping to Disconnect the instant a connection
+  // attempt starts (a click then abandons the attempt) and staying Disconnect once the link is live
+  btn.textContent = (connecting || connected) ? 'Disconnect' : 'Connect';
+  btn.title = (connecting || connected) ? 'drop the connection — everything gathered is kept'
+                                        : 'connect with these settings';
   toggleConnFields();
   SCAN_BTNS.forEach(id => $(id).disabled = !connected);
   if (!connected && running) setRunning(false);   // stop polling if the link drops
@@ -1178,7 +1183,11 @@ async function unmapEntity(table, address) {
   buildMappingPane(true);   // back to a fresh Map form for the still-selected row
 }
 
-async function scanOnce() { render(await api('/api/scan', {})); }
+async function scanOnce() {
+  const t = scanToken;                       // a Stop / Disconnect (which bump the token) supersedes this tick
+  const snap = await api('/api/scan', {});
+  if (t === scanToken) render(snap);         // drop a stale scan's paint so it can't flash over a disconnect
+}
 
 const TABLES = ['holding', 'input', 'coil', 'discrete'];
 const BIT_TABLES = new Set(['coil', 'discrete']);   // bool registers — no type/conversions (mirrors models.BIT_TABLES)
@@ -1466,20 +1475,49 @@ async function clearAll() {
 action('clearAll', clearAll);
 
 // --- connection ---
+// Drop the link from ANY state — connected, or mid connection-attempt — and do it NOW: it must
+// never queue behind the operation it is stopping (a slow scan, a bisection, a stalled connect),
+// so it goes out as a raw fetch OFF the serialized api() chain, straight to the lock-free
+// /api/disconnect. The server cancels the in-flight op; we flip the UI from the reply at once,
+// then settle the full frozen view (which does ride the chain) once the lock frees.
+async function dropConnection() {
+  connecting = false;   // any in-flight connect attempt's result is now stale (ignored below)
+  setRunning(false);    // stop the poll loop and bump the scan token, so a stale tick can't repaint
+  try {
+    const r = await (await fetch('/api/disconnect',
+      { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' })).json();
+    applyConnection(r.connection);   // "disconnected" at once — button + status, no waiting on the chain
+  } catch {}
+  render(await api('/api/state'));   // then refresh the frozen view (clears any stale banner)
+}
+
 $('mode').onchange = toggleConnFields;
-action('connect', async () => {
-  // the toggle's other half: a live link makes this button Disconnect — a deliberate drop
-  // that keeps everything gathered (the view stays, frozen) and unlocks the settings
-  if (isConnected()) { render(await api('/api/disconnect', {})); return; }
-  anchorAtView();   // keep the view position across a (re)connect — captured before the page clears
-  const snap = await api('/api/connect', {
-    mode: $('mode').value, host: $('host').value.trim(), port: +$('cport').value,
-    device_id: +$('devid').value, timeout: +$('ctimeout').value, retries: +$('cretries').value });
-  render(snap);
-  if (snap.connection && snap.connection.connected) {
-    render(await api('/api/config', cfg()));   // fill the page at the kept position
-    syncStartField();
+// one button: Connect when idle, Disconnect while a connection attempt is in flight or the link is
+// live (a click during an attempt abandons it). NOT wrapped in action(): the attempt must stay
+// clickable so it can be dropped — the action() busy-guard would freeze the button for the attempt.
+$('connect').addEventListener('click', async () => {
+  if (connecting || isConnected()) {   // Disconnect — the unblockable drop (abandons an attempt too)
+    if (dropping) return;              // a drop is already in flight; ignore the re-click
+    dropping = true;
+    try { await dropConnection(); } finally { dropping = false; }
+    return;
   }
+  // start a connection attempt — cancellable: another click runs dropConnection above
+  connecting = true;
+  applyConnection(snapshot && snapshot.connection);   // flip the button to Disconnect, lock the fields
+  anchorAtView();   // keep the view position across a (re)connect — captured before the page clears
+  try {
+    const snap = await api('/api/connect', {
+      mode: $('mode').value, host: $('host').value.trim(), port: +$('cport').value,
+      device_id: +$('devid').value, timeout: +$('ctimeout').value, retries: +$('cretries').value });
+    if (!connecting) return;   // cancelled mid-attempt — dropConnection owns the UI now, ignore this result
+    connecting = false;
+    render(snap);
+    if (snap.connection && snap.connection.connected) {
+      render(await api('/api/config', cfg()));   // fill the page at the kept position
+      syncStartField();
+    }
+  } finally { connecting = false; }
 });
 
 // --- the settings block (burger): always starts open, hidden per-session only ---
