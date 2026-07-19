@@ -80,18 +80,19 @@ def test_scan_tracks_changes_and_errors():
     assert _cell(snap, 2)["changes"] == 0  # unchanged register stays cold
 
 
-def test_plain_view_lists_dead_registers_and_served_view_packs_past_them():
-    # 1 is refused: `all` lists it as a flagged row (write-only registers exist!), while the
-    # packed `served` view reads past it to fill the page with what the device answers
+def test_plain_view_lists_dead_registers_and_served_view_packs_the_readable_ones():
+    # 1 is refused: the plain view lists it as a flagged row (write-only registers exist!). The
+    # `served` chip filters what the plain view READ down to the registers that answered — packed,
+    # dead 1 skipped — it does not itself go reading ahead (that is the plain view's job).
     dev = FakeDevice({0: 1, 2: 3, 3: 4, 4: 5}, illegal={1})
-    sc = scanner.Scanner(dev.read, table="holding", start=0, count=3, max_read=4)
-    sc.scan()
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=5, max_read=4)
+    sc.scan()                                                         # plain view reads 0..4
     snap = sc.snapshot()
-    assert [r["address"] for r in snap["rows"]] == [0, 1, 2]           # every register, dead 1 included
+    assert [r["address"] for r in snap["rows"]] == [0, 1, 2, 3, 4]    # every register, dead 1 included
     assert _cell(snap, 1)["error"] == "not served"
-    sc.reconfigure(table="holding", start=0, count=3, max_read=4, filter_mode="served", page_size=3)
+    sc.reconfigure(table="holding", start=0, count=5, max_read=4, filter_mode="served", page_size=5)
     sc.page(forward=True, anchor=0)
-    assert [r["address"] for r in sc.snapshot()["rows"]] == [0, 2, 3]  # skipped refused 1, filled to 3
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [0, 2, 3, 4]  # the readable ones, dead 1 skipped
 
 
 def test_register_is_skipped_only_after_two_not_served_in_a_row():
@@ -345,7 +346,11 @@ def test_table_switch_keeps_position_and_falls_back_when_nothing_is_served_there
             return scanner.ReadResult(None, "exception 2", illegal=True)
         return scanner.ReadResult(list(range(address, address + count)))
 
-    sc = scanner.Scanner(read, table="holding", start=40, count=8, max_read=8)
+    sc = scanner.Scanner(read, table="holding", start=0, count=60, max_read=60)
+    sc.scan()                                                          # read holding 0..59 plainly
+    sc.reconfigure(table="input", start=0, count=10, max_read=10)
+    sc.scan()                                                          # ...and input 0..9 plainly
+
     sc.reconfigure(table="holding", start=40, count=8, max_read=8, filter_mode="served", page_size=8)
     sc.open_page()
     assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(40, 48))   # viewing holding @40
@@ -814,9 +819,10 @@ def test_switching_to_an_empty_filter_shows_no_matches_not_stale_rows():
     # a non-zero page has matches; switching to "mapped" with nothing mapped must not keep them
     dev = FakeDevice({0: 5, 1: 7, 2: 9})
     sc = scanner.Scanner(dev.read, table="holding", start=0, count=4, max_read=4)
+    sc.scan()                                                      # read 0..3 plainly first
     sc.reconfigure(table="holding", start=0, count=4, max_read=4, filter_mode="nonzero", page_size=10)
     sc.page(forward=True, anchor=0)
-    assert [r["address"] for r in sc.snapshot()["rows"]]           # non-zero found matches
+    assert [r["address"] for r in sc.snapshot()["rows"]]           # non-zero filters the read matches
 
     sc.reconfigure(table="holding", start=0, count=4, max_read=4, filter_mode="mapped", page_size=10)
     sc.page(forward=True, anchor=0)
@@ -1136,11 +1142,12 @@ def test_filter_chips_union_any_atom_combination():
     dev = FakeDevice({1: 5, 3: 0, 8: 9})
     sc = scanner.Scanner(dev.read, table="holding", start=0, count=10, max_read=8)
     sc.set_mapping("holding", 3, {"name": "Mine reads zero", "platform": "sensor"})
+    sc.scan()                                                  # read 0..9 plainly (finds non-zero 1, 8)
     sc.reconfigure(table="holding", start=0, count=10, max_read=8,
                    filter_mode=["mapped", "nonzero", "bogus"], page_size=10)  # unknown atoms drop
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
-    assert [r["address"] for r in snap["rows"]] == [1, 3, 8]   # non-zero walk plus mapped member
+    assert [r["address"] for r in snap["rows"]] == [1, 3, 8]   # non-zero members plus the mapped one
     assert snap["config"]["filter"] == ["nonzero", "mapped"]   # canonical chip order, no 'bogus'
 
 
@@ -1231,65 +1238,63 @@ def test_search_finds_overlay_names_on_the_current_table():
     assert [r["address"] for r in sc.snapshot()["rows"]] == [2]
 
 
-def test_filter_nonzero_scans_to_fill_and_pages():
-    # non-zero at 1, 3, 8; the rest read zero; refused from 20 on (the register map ends there)
+def test_filter_nonzero_pages_over_the_known_matches():
+    # non-zero at 1, 3, 8; the rest read zero. The chip filters what the plain view READ (it
+    # does not go discovering itself), windowing over the known matches with a sliding page.
     dev = FakeDevice({1: 5, 3: 7, 8: 9}, illegal=set(range(20, 200)))
-    sc = scanner.Scanner(dev.read, table="holding", start=0, count=8, max_read=4)
-    sc.reconfigure(table="holding", start=0, count=8, max_read=4, filter_mode="nonzero", page_size=2)
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=9, max_read=4)
+    sc.scan()                                                  # read 0..8 plainly (finds 1, 3, 8)
+    sc.reconfigure(table="holding", start=0, count=9, max_read=4, filter_mode="nonzero", page_size=2)
 
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
-    assert [r["address"] for r in snap["rows"]] == [1, 3]      # scanned forward, skipping zeros
+    assert [r["address"] for r in snap["rows"]] == [1, 3]      # the first two non-zero matches
     assert all(r["value"] for r in snap["rows"])
 
-    # ▶ walks on from just past the page and discovers the last match (8), sliding back to fill
-    sc.page(forward=True, anchor=snap["next_anchor"])
-    snap2 = sc.snapshot()
-    assert [r["address"] for r in snap2["rows"]] == [3, 8]     # only 8 is left, so 3 fills the page
+    sc.page(forward=True, anchor=snap["next_anchor"])          # 8 is the last -> slides back to fill
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [3, 8]
 
-    sc.page(forward=False, anchor=snap2["prev_anchor"])        # back to the first matches
+    sc.page(forward=False, anchor=sc.snapshot()["prev_anchor"])    # back to the first matches
     assert [r["address"] for r in sc.snapshot()["rows"]] == [1, 3]
 
-    # turning the filter off shows the served registers (packed), reading past the refused tail
-    sc.reconfigure(table="holding", start=0, count=8, max_read=4, filter_mode="none", page_size=8)
+    # turning the filter off (plain view) shows the read range packed, dead rows included
+    sc.reconfigure(table="holding", start=0, count=9, max_read=4, filter_mode="none", page_size=9)
     sc.page(forward=True, anchor=0)
-    assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(8))
+    assert [r["address"] for r in sc.snapshot()["rows"]] == list(range(9))
 
 
-def test_paging_to_the_start_slides_the_window_to_fill_the_page():
-    # Start high with few registers below (0 refused): paging left must fill the page by sliding up,
-    # not leave a half-empty stub of the few registers that happen to sit below the anchor
-    dev = FakeDevice({i: i for i in range(1, 40)}, illegal={0})  # 0 refused; 1..39 served
-    sc = scanner.Scanner(dev.read, table="holding", start=6, count=8, max_read=8)
+def test_paging_a_filter_to_the_start_slides_to_fill_the_page():
+    # 0 refused; 1..39 served. Paging left in the served view (over the known matches): with only
+    # 1..5 below the anchor it must slide up to stay full, not leave a half-empty stub.
+    dev = FakeDevice({i: i for i in range(1, 40)}, illegal={0})
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=40, max_read=40)
+    sc.scan()                                                   # read 0..39 plainly (0 refused)
     sc.reconfigure(table="holding", start=6, count=8, max_read=8, filter_mode="served", page_size=8)
 
     sc.page(forward=True, anchor=6)
-    snap = sc.snapshot()
-    assert [r["address"] for r in snap["rows"]] == [6, 7, 8, 9, 10, 11, 12, 13]   # a full page from 6
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [6, 7, 8, 9, 10, 11, 12, 13]  # full page from 6
 
-    sc.page(forward=False, anchor=snap["prev_anchor"])          # page left — only 1..5 sit below 6
-    left = sc.snapshot()
-    assert [r["address"] for r in left["rows"]] == [1, 2, 3, 4, 5, 6, 7, 8]       # slid up to stay full
+    sc.page(forward=False, anchor=sc.snapshot()["prev_anchor"])   # only 1..5 sit below 6
+    assert [r["address"] for r in sc.snapshot()["rows"]] == [1, 2, 3, 4, 5, 6, 7, 8]  # slid up to stay full
 
 
-def test_filter_nonzero_paging_reaches_the_last_match_then_the_end():
-    # ▶ / ◀ are enabled by the address bounds (no look-ahead probe); the click itself walks to
-    # the next match. Paging reaches every match, and one step past the last lands on the end.
+def test_a_filter_chip_pages_its_matches_and_stops_exactly_at_the_end():
+    # a chip's page has EXACT bounds straight from its known matches — so ▶ / ◀ enable and stop
+    # precisely at the last match, no walking past it and no dead click (the whole point).
     dev = FakeDevice({0: 1, 1: 2, 5: 3, 6: 4}, illegal=set(range(7, 200)))
-    sc = scanner.Scanner(dev.read, table="holding", start=0, count=8, max_read=4)
-    sc.reconfigure(table="holding", start=0, count=8, max_read=4, filter_mode="nonzero", page_size=2)
+    sc = scanner.Scanner(dev.read, table="holding", start=0, count=7, max_read=4)
+    sc.scan()                                                    # read 0..6 plainly (finds 0,1,5,6)
+    sc.reconfigure(table="holding", start=0, count=7, max_read=4, filter_mode="nonzero", page_size=2)
 
     sc.page(forward=True, anchor=0)
     snap = sc.snapshot()
     assert [r["address"] for r in snap["rows"]] == [0, 1]
-    assert snap["at_end"] is False and snap["next_anchor"] == 2   # one past the page — ▶ walks on
+    assert snap["at_end"] is False and snap["next_anchor"] == 5   # the next known match, exactly
 
-    sc.page(forward=True, anchor=snap["next_anchor"])             # ...and finds the next matches
+    sc.page(forward=True, anchor=snap["next_anchor"])
     snap2 = sc.snapshot()
     assert [r["address"] for r in snap2["rows"]] == [5, 6]
-
-    sc.page(forward=True, anchor=snap2["next_anchor"])            # one more: nothing beyond -> the end
-    assert sc.snapshot()["at_end"] is True
+    assert snap2["at_end"] is True and snap2["next_anchor"] is None   # last match -> the end, no dead click
 
 
 def test_mapping_editor_covers_the_integration_fields():

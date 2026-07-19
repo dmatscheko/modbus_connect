@@ -190,12 +190,12 @@
   <span class="status hide" id="singles" title="the device refused one or more block reads, so those blocks were downgraded to register-by-register probes (to pin down the dead addresses) — this many single reads in the last scan/page. Many of these makes scanning much slower: normal on first contact with a sparse register map (it settles as the dead list fills in); if it never stops, the gateway may dislike block reads (lower Per read) or the serial side may be very slow">· <b id="singlesN">0</b> single probes</span>
   <span id="activity" title="working…">◍</span>
   <span id="progress" class="hide" title="A block read got no answer, so registers are being probed one-by-one to isolate the unreadable ones (some devices serve an unsupported register by silence, not a refusal). This can take a while on a slow link — a lower Timeout makes each probe cheaper; once isolated they are skipped."></span>
-  <span class="chips" id="filterChips" title="each lit chip adds its registers to the view (paging walks the union; the find box narrows on top) — with no chip lit every known register shows">
+  <span class="chips" id="filterChips" title="each lit chip filters the view to its registers (the union of all lit chips; the find box narrows on top). A chip filters what has ALREADY been read/mapped — it never goes reading ahead, so ◀ / ▶ know their exact bounds. With no chip lit, the plain view pages the whole address space and READS as it goes — that is how you discover registers; the chips then filter what it found.">
     <span class="status">show</span>
-    <button class="chip" data-f="served" title="registers the device answers">served</button>
-    <button class="chip" data-f="refused" title="registers the device refuses or gave up on — write-only registers live here">refused</button>
-    <button class="chip" data-f="nonzero" title="served registers with a non-zero value">non-zero</button>
-    <button class="chip" data-f="changed" title="registers whose value moved at least once">changed</button>
+    <button class="chip" data-f="served" title="registers already read that answered (readable)">served</button>
+    <button class="chip" data-f="refused" title="registers read-and-refused, or given up on as dead — write-only registers live here (plus a device file's declared-dead hints)">refused</button>
+    <button class="chip" data-f="nonzero" title="already-read registers with a non-zero value">non-zero</button>
+    <button class="chip" data-f="changed" title="already-read registers whose value moved at least once between reads">changed</button>
     <button class="chip" data-f="mapped" title="every register the mapping and the additive overlays cover — probed or not, dead or alive">mapped</button>
     <button class="chip" data-f="xray" title="every register any table maps — and shows sibling-table mappings muted in the cells">x-ray</button>
   </span>

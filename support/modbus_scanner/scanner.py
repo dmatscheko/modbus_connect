@@ -818,10 +818,13 @@ class Scanner:
             self.page(forward=True, anchor=0, firm=True)
 
     def _walking(self) -> bool:
-        """Whether the page fill scans the address space to *discover* matches: the plain
-        view (no atom selected) always walks, and so does any selected scan atom. The set
-        atoms (mapped / x-ray) are members-only — their registers are known without probing."""
-        return not self.filter or bool(self.filter & _SCAN_SET)
+        """Only the plain view (no chip) DISCOVERS registers, by reading the address space as it
+        pages. Every chip is a filter over the ALREADY-KNOWN set — served / refused / non-zero /
+        changed over the recorded cells, mapped / x-ray over the mapping (see _filter_members) —
+        so its page windows over known members with EXACT bounds: no reading ahead to find a
+        match, and never a look-ahead to know where ▶ / ◀ stop. (To surface *new* matches, page
+        the plain view to read the registers; the chips then just filter what it found.)"""
+        return not self.filter
 
     def _scan_match(self, addr: int) -> bool:
         """Does this (already recorded) register match the plain view (anything known) or

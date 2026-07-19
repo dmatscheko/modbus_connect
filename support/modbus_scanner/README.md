@@ -81,10 +81,10 @@ top of the space, ◀ while the first is above 0 — with no probe past the page
 Tick **auto-page** and each scan steps to the *next* page on its own, wrapping back to the first at the
 end of the table — so you can leave a scan running unattended and come back to a change map of the whole
 table. Tick **＋ tables** as well and it carries on into the next table when one is done, cycling
-holding → input → coil → discrete forever. (A wider **Count** sweeps faster; a lit **show** chip keeps
-the sweep to just its matched registers — light **served** for an unattended walk, since the plain
-no-chip view pages through the entire address space, dead registers included. A **Count** over 2000
-asks for confirmation first — a full unfiltered pass of that many registers is slow.)
+holding → input → coil → discrete forever. Auto-page the **plain** (no-chip) view to *discover* —
+it reads the whole address space as it walks; the **show** chips then filter what it found (they
+never read ahead themselves). A wider **Count** sweeps faster; a **Count** over 2000 asks for
+confirmation first — a full unfiltered pass of that many registers is slow.
 
 ## What you see
 
@@ -136,11 +136,15 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   **position** too, falling back to the first page when the switched-to table serves nothing there.
 - **Filter the view** — the **show** chips. Each chip is an additive toggle: a lit chip *adds* its
   register set to the page, and the view is the union of everything lit — any combination, one
-  click each. **No chip lit is the plain view**: every known register, dead/refused rows included
-  (write-only registers refuse reads but exist). The six chips: **served**, the registers the
-  device answers; **refused**, the ones it refuses or that were given up on; **non-zero**, served
-  registers with a non-zero value; **changed**, registers that moved at least once (once a sweep
-  or two has run); **mapped**, everything the mapping — and any additive overlays — covers, probed
+  click each. A chip **filters what has already been read or mapped** — it never goes reading ahead
+  to discover new matches, so its page has *exact* bounds and ◀ / ▶ enable and stop precisely at
+  the real first/last match (no probe past the page). **No chip lit is the plain view**: it pages
+  the whole address space and **reads as it goes** — dead/refused rows included — so that is how
+  you *discover* registers; the chips then filter what it found. The six chips: **served**, the
+  registers already read that answered; **refused**, ones read-and-refused or given up on as dead
+  (write-only registers, plus a device file's declared-dead hints); **non-zero**, already-read
+  registers with a non-zero value; **changed**, already-read registers whose value moved at least
+  once between reads; **mapped**, everything the mapping — and any additive overlays — covers, probed
   or not, dead or alive; **x-ray**, every register that *any* table maps: a same-width sibling's
   mapping (holding ↔ input, coil ↔ discrete) appears muted as if it were mapped here — decoded
   against *this* table's registers — and as a tiny top-right corner tag when the register also has
@@ -150,11 +154,10 @@ asks for confirmation first — a full unfiltered pass of that many registers is
   for spotting — and fixing — entities written against the wrong table. Classic combinations are
   just chips: the old *mapped + changed* is `mapped` + `changed`; new ones like `mapped` +
   `non-zero` (your mapping plus anything alive it misses) come for free. **Count** sets how many
-  rows a page shows in every view. Under the hood a page fill unions two sources: the scan chips
-  *walk* the address space to discover matches (stopping where the device's map ends; the plain
-  view pages the whole address space), while `mapped` / `x-ray` — and every chip's already-known
-  matches — arrive as a *known set*, so a mapped register far off or refused, or a changed one you
-  saw long ago beyond a dead stretch, is never missed. The **find** box narrows any view further:
+  rows a page shows in every view. Only the plain view reads to discover; every chip's page is a
+  window over its *known* set, so a mapped register far off or refused, or a changed one you saw
+  long ago beyond a dead stretch, is never missed — and paging it is instant (no reads to find the
+  next page, just the ones already known). The **find** box narrows any view further:
   comma-separated terms, each a mapping-name part (`heat`), an exact address (`40`, `0x28`), or an
   address range (`10-20`) — a register shows if *any* term matches, on top of the lit chips. Name
   terms search this table's mappings (with `x-ray` lit: *every* table's), and the fill probes only
