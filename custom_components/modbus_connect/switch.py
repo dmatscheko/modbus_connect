@@ -44,11 +44,10 @@ async def async_setup_entry(
     # plus the show-all bypass — present only when the file uses groups at all,
     # since without groups everything is always shown anyway.
     entities.extend(
-        ModbusConnectGroupSwitch(coordinator, entry, group)
-        for group in coordinator.group_switch_names
+        ModbusConnectGroupSwitch(coordinator, group) for group in coordinator.group_switch_names
     )
     if coordinator.all_groups:
-        entities.append(ModbusConnectShowAllSwitch(coordinator, entry))
+        entities.append(ModbusConnectShowAllSwitch(coordinator))
     async_add_entities(entities)
 
 
@@ -80,32 +79,36 @@ class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
         await self._run_action("turn_off")
 
 
-class ModbusConnectGroupSwitch(ModbusConnectMetaEntity, SwitchEntity):
-    """Config toggle that creates or removes the entities of one group.
-
-    Toggling rewrites the entry's enabled-groups option, which reloads the entry
-    and rebuilds the entity set. Hidden entities become "no longer provided" (gray)
-    rather than deleted, so the registry keeps the user's customizations and
-    restores them when the group is re-enabled. Removed entities also drop out of
-    the Modbus read plan.
-    """
+class _OptionSwitch(ModbusConnectMetaEntity, SwitchEntity):
+    """Base for the config toggles: each rewrites one option of the config entry,
+    and the entry's update listener (see __init__.py) reloads it, which rebuilds
+    the entity set."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
 
-    def __init__(
-        self,
-        coordinator: ModbusConnectCoordinator,
-        entry: ModbusConnectConfigEntry,
-        group: str,
-    ) -> None:
+    def _set_option(self, key: str, value: Any) -> None:
+        entry = self._coordinator.entry
+        self.hass.config_entries.async_update_entry(
+            entry, options={**entry.options, key: value}
+        )
+
+
+class ModbusConnectGroupSwitch(_OptionSwitch):
+    """Config toggle that creates or removes the entities of one group.
+
+    Hidden entities become "no longer provided" (gray) rather than deleted, so
+    the registry keeps the user's customizations and restores them when the
+    group is re-enabled. Removed entities also drop out of the Modbus read plan.
+    """
+
+    def __init__(self, coordinator: ModbusConnectCoordinator, group: str) -> None:
         super().__init__(
             coordinator,
             unique_suffix=f"group_{group}",
             domain="switch",
             object_id=f"enable_{group}_entities",
         )
-        self._entry = entry
         self._group = group
         # The device file may override the switch label via group_labels; otherwise
         # the name shows with underscores as spaces, first letter upper (e.g.
@@ -127,43 +130,29 @@ class ModbusConnectGroupSwitch(ModbusConnectMetaEntity, SwitchEntity):
 
     async def _set(self, *, enabled: bool) -> None:
         groups = set(self._coordinator.enabled_groups)
-        if enabled:
-            groups.add(self._group)
-        else:
-            groups.discard(self._group)
+        (groups.add if enabled else groups.discard)(self._group)
         if frozenset(groups) == self._coordinator.enabled_groups:
             return
         groups.discard(BASIC_GROUP)  # implicit everywhere, never persisted
-        # The entry's update listener (see __init__.py) reloads and rebuilds entities.
-        self.hass.config_entries.async_update_entry(
-            self._entry,
-            options={**self._entry.options, OPTION_ENABLED_GROUPS: sorted(groups)},
-        )
+        self._set_option(OPTION_ENABLED_GROUPS, sorted(groups))
 
 
-class ModbusConnectShowAllSwitch(ModbusConnectMetaEntity, SwitchEntity):
+class ModbusConnectShowAllSwitch(_OptionSwitch):
     """Config toggle that bypasses group handling: while on, every entity of the
     device file is created (and its registers polled), whatever the group
     switches say. Exists only for device files that use groups — without groups
     everything is always shown and there is nothing to bypass.
     """
 
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_should_poll = False
     _attr_translation_key = "group_enable_all"
 
-    def __init__(
-        self,
-        coordinator: ModbusConnectCoordinator,
-        entry: ModbusConnectConfigEntry,
-    ) -> None:
+    def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
         super().__init__(
             coordinator,
             unique_suffix="show_all_entities",
             domain="switch",
             object_id="enable_all_entities",
         )
-        self._entry = entry
 
     @property
     def is_on(self) -> bool:
@@ -176,10 +165,5 @@ class ModbusConnectShowAllSwitch(ModbusConnectMetaEntity, SwitchEntity):
         await self._set(show_all=False)
 
     async def _set(self, *, show_all: bool) -> None:
-        if show_all == self._coordinator.show_all:
-            return
-        # The entry's update listener (see __init__.py) reloads and rebuilds entities.
-        self.hass.config_entries.async_update_entry(
-            self._entry,
-            options={**self._entry.options, OPTION_SHOW_ALL: show_all},
-        )
+        if show_all != self._coordinator.show_all:
+            self._set_option(OPTION_SHOW_ALL, show_all)

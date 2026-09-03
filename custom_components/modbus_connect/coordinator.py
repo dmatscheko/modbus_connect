@@ -232,6 +232,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self.device_def = device
         self.device_id: int = entry.data[CONF_SLAVE_ID]
+        self.entry = entry
         self.entry_id = entry.entry_id
 
         # Group visibility. Only entities/templates in an enabled group are created,
