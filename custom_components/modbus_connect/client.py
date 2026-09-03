@@ -93,15 +93,19 @@ class WriteError(Exception):
     """A write request failed."""
 
 
-async def async_probe(host: str, port: int, timeout: float = 5.0) -> bool:
-    """Try to open a TCP connection to the gateway (config flow validation)."""
-    client = AsyncModbusTcpClient(host, port=port, timeout=timeout, retries=0)
+async def _connects(client: _InnerClient) -> bool:
+    """Open and immediately close a connection — the config flow's reachability probes."""
     try:
         return bool(await client.connect())
-    except (TimeoutError, ModbusException, OSError):
+    except _CONN_ERRORS:
         return False
     finally:
         client.close()
+
+
+async def async_probe(host: str, port: int, timeout: float = 5.0) -> bool:
+    """Try to open a TCP connection to the gateway (config flow validation)."""
+    return await _connects(AsyncModbusTcpClient(host, port=port, timeout=timeout, retries=0))
 
 
 # The gateway itself reports it could not reach the device: no route to it, or
@@ -166,15 +170,9 @@ async def async_probe_serial(
     timeout: float = 5.0,
 ) -> bool:
     """Try to open the serial port (config flow validation)."""
-    client = _serial_client(
-        serial_port, baudrate, bytesize, parity, stopbits, timeout, 0
+    return await _connects(
+        _serial_client(serial_port, baudrate, bytesize, parity, stopbits, timeout, 0)
     )
-    try:
-        return bool(await client.connect())
-    except (TimeoutError, ModbusException, OSError):
-        return False
-    finally:
-        client.close()
 
 
 async def async_probe_serial_device(
