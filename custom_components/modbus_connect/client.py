@@ -224,6 +224,42 @@ class ModbusBlockClient:
     # --- instance sharing ------------------------------------------------------
 
     @classmethod
+    def _acquire(
+        cls,
+        key: str,
+        make_inner: Callable[[], _InnerClient],
+        framer: str,
+        line: tuple[int, int, str, int] | None,
+        entry_id: str,
+        timeout: float | None,
+        retries: int | None,
+        request_delay: float | None,
+    ) -> ModbusBlockClient:
+        """The shared client for ``key``, created on first use.
+
+        One endpoint speaks exactly one framing and line setting, and a second
+        connection would not help either (many gateways allow a single client):
+        a later entry that asks for different settings gets the existing
+        connection and a warning.
+        """
+        client = cls._instances.get(key)
+        if client is None:
+            client = cls._instances[key] = cls(key, make_inner(), framer, line=line)
+        elif (client.framer, client._line) != (framer, line):
+            settings = f"{client.framer} framing"
+            if client._line is not None:
+                baud, size, par, stop = client._line
+                settings += f" at {baud} baud {size}{par}{stop}"
+            _LOGGER.warning(
+                "%s is already connected with %s; keeping it. All entries sharing "
+                "a gateway or port must use the same framing and line settings",
+                client.target,
+                settings,
+            )
+        client._register(entry_id, timeout, retries, request_delay)
+        return client
+
+    @classmethod
     def acquire(
         cls,
         host: str,
@@ -236,29 +272,17 @@ class ModbusBlockClient:
         request_delay: float | None = None,
     ) -> ModbusBlockClient:
         """Get (or create) the shared client for a TCP gateway."""
-        key = f"{host}:{port}"
-        client = cls._instances.get(key)
-        if client is None:
-            inner = AsyncModbusTcpClient(
+        return cls._acquire(
+            f"{host}:{port}",
+            lambda: AsyncModbusTcpClient(
                 host,
                 port=port,
                 framer=FramerType(framer),
                 timeout=DEFAULT_TIMEOUT,
                 retries=DEFAULT_RETRIES,
-            )
-            client = cls(key, inner, framer)
-            cls._instances[key] = client
-        elif client.framer != framer:
-            # One TCP endpoint speaks exactly one framing; a second connection
-            # would not help either (many gateways allow a single client).
-            _LOGGER.warning(
-                "Gateway %s is already connected with %s framing; keeping it. "
-                "All entries sharing a gateway must use the same framing",
-                client.target,
-                client.framer,
-            )
-        client._register(entry_id, timeout, retries, request_delay)
-        return client
+            ),
+            framer, None, entry_id, timeout, retries, request_delay,
+        )
 
     @classmethod
     def acquire_serial(
@@ -275,29 +299,13 @@ class ModbusBlockClient:
         request_delay: float | None = None,
     ) -> ModbusBlockClient:
         """Get (or create) the shared client for a local serial port."""
-        client = cls._instances.get(serial_port)
-        line = (baudrate, bytesize, parity, stopbits)
-        if client is None:
-            inner = _serial_client(
-                serial_port, baudrate, bytesize, parity, stopbits,
-                DEFAULT_TIMEOUT, DEFAULT_RETRIES,
-            )
-            client = cls(serial_port, inner, "rtu", line=line)
-            cls._instances[serial_port] = client
-        elif client._line != line:
-            assert client._line is not None
-            baud, size, par, stop = client._line
-            _LOGGER.warning(
-                "Serial port %s is already open at %d baud %d%s%d; keeping it. "
-                "All entries sharing a port must use the same line settings",
-                client.target,
-                baud,
-                size,
-                par,
-                stop,
-            )
-        client._register(entry_id, timeout, retries, request_delay)
-        return client
+        return cls._acquire(
+            serial_port,
+            lambda: _serial_client(
+                serial_port, baudrate, bytesize, parity, stopbits, DEFAULT_TIMEOUT, DEFAULT_RETRIES
+            ),
+            "rtu", (baudrate, bytesize, parity, stopbits), entry_id, timeout, retries, request_delay,
+        )
 
     def _register(
         self,
