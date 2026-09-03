@@ -315,20 +315,27 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         value = self.render_number(field)
         return None if value is None else clamp_round(value, hi)
 
+    def _action_error(
+        self, translation_key: str, message: str, **placeholders: str
+    ) -> ServiceValidationError:
+        """A translated error for a template action that cannot run."""
+        return ServiceValidationError(
+            message,
+            translation_domain=DOMAIN,
+            translation_key=translation_key,
+            translation_placeholders={"key": self._tdef.key, **placeholders},
+        )
+
     def _resolve_switch(self, name: str, switch: SwitchTarget) -> WriteTarget:
         """Pick a switch action's target by rendering its selector template."""
         selected = self._render_source(switch.selector, f"{name}.by")
         target = switch.cases.get(str(selected)) if selected is not None else None
         if target is None:
-            raise ServiceValidationError(
+            raise self._action_error(
+                "no_case",
                 f"{self._tdef.key}: '{name}' has no case for {selected!r}",
-                translation_domain=DOMAIN,
-                translation_key="no_case",
-                translation_placeholders={
-                    "key": self._tdef.key,
-                    "action": name,
-                    "value": str(selected),
-                },
+                action=name,
+                value=str(selected),
             )
         return target
 
@@ -342,11 +349,8 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         """
         target = self._tdef.config.get(name)
         if target is None:
-            raise ServiceValidationError(
-                f"{self._tdef.key} has no '{name}' action",
-                translation_domain=DOMAIN,
-                translation_key="no_action",
-                translation_placeholders={"key": self._tdef.key, "action": name},
+            raise self._action_error(
+                "no_action", f"{self._tdef.key} has no '{name}' action", action=name
             )
         if isinstance(target, SwitchTarget):
             target = self._resolve_switch(name, target)
@@ -354,15 +358,11 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
             payload: Any = target.value
         elif target.value_map is not None:
             if str(value) not in target.value_map:
-                raise ServiceValidationError(
+                raise self._action_error(
+                    "no_mapping",
                     f"{self._tdef.key}: no '{name}' mapping for {value!r}",
-                    translation_domain=DOMAIN,
-                    translation_key="no_mapping",
-                    translation_placeholders={
-                        "key": self._tdef.key,
-                        "action": name,
-                        "value": str(value),
-                    },
+                    action=name,
+                    value=str(value),
                 )
             payload = target.value_map[str(value)]
         else:
