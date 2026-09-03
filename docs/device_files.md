@@ -280,13 +280,17 @@ device:
 
 Every key must be a group some entity actually uses.
 
-Besides the per-group switches there is one **Enable all entities** switch:
-while it is on, group handling is bypassed entirely and every entity of the
-file exists — an entity tagged into *no* group is exactly the "everything
-else" tier behind that switch. (`all` is not a reserved name: a file may
-declare a group called `all`, which behaves like any other named group.) The
-switches only exist in files that use `groups:` at all; an untagged file
-simply shows every entity, always.
+Besides the per-group switches there can be one **Enable all entities**
+switch: while it is on, group handling is bypassed entirely and every entity of
+the file exists — an entity tagged into *no* group is exactly the "everything
+else" tier behind that switch. It is offered only where it adds something: when
+the file has untagged entities, or at least four toggleable groups (so enabling
+everything one switch at a time would be a chore). A file with a couple of
+groups and no untagged entity gets group switches only, which already reach
+every entity. (`all` is not a reserved name: a file may declare a group called
+`all`, which behaves like any other named group.) No switch exists in a file
+without `groups:`; it simply shows every entity, always. A grouped file without
+`default_groups` starts with every group enabled.
 
 Hidden entities also drop out of the Modbus read plan — though a shown
 template, `read_register`, `write_value`, or action selector keeps its own

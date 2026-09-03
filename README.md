@@ -196,7 +196,10 @@ device file can tag its entities into named groups — a `basic` / `standard` /
 Switches on the device's companion **Configuration** device turn whole groups
 on and off; `basic` is the always-visible baseline and has no switch, while
 `standard` is enabled by default — so a fresh install shows the everyday set
-and leaves the deeper detail one switch away. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
+and leaves the deeper detail one switch away. An **Enable all entities**
+master switch appears only where it adds something: when the file has
+entities in no group at all (the expert tier only it can reveal), or when it
+has so many groups that flipping them one by one would be a chore. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
 parallel-mode, EPS, and generator register blocks in groups of their own —
 the same opt-ins the solax-modbus integration offers as config checkboxes,
 except a switch flip materializes the entities (and their register reads) at
