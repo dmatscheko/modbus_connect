@@ -277,13 +277,56 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
             return "invalid_device_file"
         return None
 
-    def _connection_defaults(self) -> dict[str, Any]:
-        """Prefill for a fresh connection form from the chosen device file."""
+    def _connection_defaults(self, entry: ConfigEntry | None = None) -> dict[str, Any]:
+        """Prefill for a connection form: the chosen device file's defaults, or on
+        reconfigure the entry's current data (with a missing prefix filled in)."""
         assert self._device is not None
-        return {
-            CONF_SLAVE_ID: self._device.modbus_id or DEFAULT_SLAVE_ID,
-            CONF_PREFIX: self._device.prefix or self._title,
-        }
+        prefix = self._device.prefix or self._title
+        if entry is None:
+            return {CONF_SLAVE_ID: self._device.modbus_id or DEFAULT_SLAVE_ID, CONF_PREFIX: prefix}
+        return {**dict(entry.data), **({} if entry.data.get(CONF_PREFIX) else {CONF_PREFIX: prefix})}
+
+    async def _connection_step(
+        self,
+        step_id: str,
+        user_input: dict[str, Any] | None,
+        *,
+        serial: bool,
+        entry: ConfigEntry | None = None,
+    ) -> ConfigFlowResult:
+        """One connection form — TCP gateway or serial port, fresh or reconfigure
+        (``entry``): validate the input against the chosen device, then create or
+        update the entry; otherwise (re-)show the form."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            target = CONF_SERIAL_PORT if serial else CONF_HOST
+            user_input[target] = user_input[target].strip()
+            await self.async_set_unique_id(
+                (_serial_unique_id if serial else _unique_id)(user_input)
+            )
+            if entry is None or self.unique_id != entry.unique_id:
+                self._abort_if_unique_id_configured()
+            validate = self._validate_serial if serial else self._validate_connection
+            error = await validate(user_input)
+            if error is None:
+                if entry is None:
+                    return self.async_create_entry(
+                        title=self._title, data=self._entry_data(user_input)
+                    )
+                return self._finish_reconfigure(entry, user_input)
+            errors["base"] = error
+        defaults = user_input or self._connection_defaults(entry)
+        if serial:
+            ports = await self.hass.async_add_executor_job(_list_serial_ports)
+            schema = _serial_schema(defaults, ports)
+        else:
+            schema = _connection_schema(defaults)
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=schema,
+            description_placeholders={"device": self._title},
+            errors=errors,
+        )
 
     def _entry_data(self, connection: dict[str, Any]) -> dict[str, Any]:
         return {
@@ -364,45 +407,12 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_connection(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
-            await self.async_set_unique_id(_unique_id(user_input))
-            self._abort_if_unique_id_configured()
-            error = await self._validate_connection(user_input)
-            if error is None:
-                return self.async_create_entry(
-                    title=self._title, data=self._entry_data(user_input)
-                )
-            errors["base"] = error
-        return self.async_show_form(
-            step_id="connection",
-            data_schema=_connection_schema(user_input or self._connection_defaults()),
-            description_placeholders={"device": self._title},
-            errors=errors,
-        )
+        return await self._connection_step("connection", user_input, serial=False)
 
     async def async_step_serial(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            user_input[CONF_SERIAL_PORT] = user_input[CONF_SERIAL_PORT].strip()
-            await self.async_set_unique_id(_serial_unique_id(user_input))
-            self._abort_if_unique_id_configured()
-            error = await self._validate_serial(user_input)
-            if error is None:
-                return self.async_create_entry(
-                    title=self._title, data=self._entry_data(user_input)
-                )
-            errors["base"] = error
-        ports = await self.hass.async_add_executor_job(_list_serial_ports)
-        return self.async_show_form(
-            step_id="serial",
-            data_schema=_serial_schema(user_input or self._connection_defaults(), ports),
-            description_placeholders={"device": self._title},
-            errors=errors,
-        )
+        return await self._connection_step("serial", user_input, serial=True)
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -465,58 +475,21 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure_connection(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        entry = self._get_reconfigure_entry()
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
-            await self.async_set_unique_id(_unique_id(user_input))
-            if self.unique_id != entry.unique_id:
-                self._abort_if_unique_id_configured()
-            error = await self._validate_connection(user_input)
-            if error is None:
-                return self._finish_reconfigure(entry, user_input)
-            errors["base"] = error
-        defaults = user_input or {
-            **dict(entry.data),
-            **(
-                {} if entry.data.get(CONF_PREFIX) else
-                {CONF_PREFIX: self._connection_defaults()[CONF_PREFIX]}
-            ),
-        }
-        return self.async_show_form(
-            step_id="reconfigure_connection",
-            data_schema=_connection_schema(defaults),
-            description_placeholders={"device": self._title},
-            errors=errors,
+        return await self._connection_step(
+            "reconfigure_connection",
+            user_input,
+            serial=False,
+            entry=self._get_reconfigure_entry(),
         )
 
     async def async_step_reconfigure_serial(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        entry = self._get_reconfigure_entry()
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            user_input[CONF_SERIAL_PORT] = user_input[CONF_SERIAL_PORT].strip()
-            await self.async_set_unique_id(_serial_unique_id(user_input))
-            if self.unique_id != entry.unique_id:
-                self._abort_if_unique_id_configured()
-            error = await self._validate_serial(user_input)
-            if error is None:
-                return self._finish_reconfigure(entry, user_input)
-            errors["base"] = error
-        ports = await self.hass.async_add_executor_job(_list_serial_ports)
-        defaults = user_input or {
-            **dict(entry.data),
-            **(
-                {} if entry.data.get(CONF_PREFIX) else
-                {CONF_PREFIX: self._connection_defaults()[CONF_PREFIX]}
-            ),
-        }
-        return self.async_show_form(
-            step_id="reconfigure_serial",
-            data_schema=_serial_schema(defaults, ports),
-            description_placeholders={"device": self._title},
-            errors=errors,
+        return await self._connection_step(
+            "reconfigure_serial",
+            user_input,
+            serial=True,
+            entry=self._get_reconfigure_entry(),
         )
 
     @staticmethod
