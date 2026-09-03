@@ -591,17 +591,21 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if (v := self._render_info(self.device_def.serial_number)) is not None:
             self.device_info["serial_number"] = v
 
+    def _render(self, source: str, *, parse_result: bool = True) -> Any:
+        """Render a Jinja source over the current values (see render_over_values)."""
+        return render_over_values(
+            Template(source, self.hass),
+            self.data,
+            parse_result=parse_result,
+            key_fn=self.key_lookup(self.data),
+        )
+
     def _render_info(self, source: str | None) -> str | None:
         """Render one device-info template; None if absent, failing, or still
         referencing an unread (None) register."""
         if source is None:
             return None
-        value = render_over_values(
-            Template(source, self.hass),
-            self.data,
-            parse_result=False,
-            key_fn=self.key_lookup(self.data),
-        )
+        value = self._render(source, parse_result=False)
         if value is None:
             return None
         value = str(value).strip()
@@ -933,15 +937,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         words: list[int] = []
         for item in items:
-            rendered = (
-                render_over_values(
-                    Template(item, self.hass),
-                    self.data,
-                    key_fn=self.key_lookup(self.data),
-                )
-                if isinstance(item, str)
-                else item
-            )
+            rendered = self._render(item) if isinstance(item, str) else item
             if (
                 isinstance(rendered, bool)
                 or not isinstance(rendered, (int, float))
@@ -976,9 +972,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if defn.platform == "button" and isinstance(value, str):
             # a single Jinja template write_value: render it, then encode through
             # the codec below (honouring the entity's type/map/etc.).
-            value = render_over_values(
-                Template(value, self.hass), self.data, key_fn=self.key_lookup(self.data)
-            )
+            value = self._render(value)
             if value is None:
                 raise WriteError(
                     f"{defn.key}: write_value template rendered to nothing"
