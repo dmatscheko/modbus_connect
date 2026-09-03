@@ -1045,8 +1045,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return confirmed
 
     async def async_write(self, defn: EntityDef, value: Any) -> None:
-        """Encode and write a value, then read it back to confirm."""
+        """Encode and write a value, then read it back to confirm.
+
+        A write the device rejects (or that cannot be encoded or sent) raises. A
+        write the device took whose confirming read-back then fails is a read
+        problem, not a write failure: it is logged and counted as a failed read,
+        and the written value shows until the next poll verifies it.
+        """
         confirmed: Any = None
+        written = False
         try:
             async with self.client.lock:
                 if not await self.client.ensure_connected():
@@ -1057,15 +1064,26 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         translation_placeholders={"target": self.client.target},
                     )
                 value = await self._perform_write(defn, value)
+                written = True
                 if defn.platform != "button":
                     confirmed = await self._confirm_write(defn, value)
         except (ReadError, WriteError, codec.CodecError) as err:
-            raise HomeAssistantError(
-                f"Writing {defn.key} failed: {err}",
-                translation_domain=DOMAIN,
-                translation_key="write_failed",
-                translation_placeholders={"key": defn.key, "error": str(err)},
-            ) from err
+            if not written:
+                raise HomeAssistantError(
+                    f"Writing {defn.key} failed: {err}",
+                    translation_domain=DOMAIN,
+                    translation_key="write_failed",
+                    translation_placeholders={"key": defn.key, "error": str(err)},
+                ) from err
+            self._record_read_failure(defn.span)
+            _LOGGER.warning(
+                "%s: %s was written but could not be read back (%s); showing the "
+                "written value until the next poll",
+                self.name,
+                defn.key,
+                err,
+            )
+            confirmed = value
 
         if defn.platform != "button":
             data = dict(self.data) if self.data else {}

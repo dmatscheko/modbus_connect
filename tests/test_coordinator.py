@@ -905,6 +905,28 @@ async def test_write_cannot_connect_raises(hass, monkeypatch):
         await coordinator.async_write(defn, 5)
 
 
+async def test_write_taken_by_the_device_but_not_readable_back_is_no_error(
+    hass, monkeypatch, caplog
+):
+    client = FakeClient({0: 1})
+    defn = EntityDef(
+        key="x",
+        platform="number",
+        address=0,
+        ha={"native_min_value": 0, "native_max_value": 100},
+    )
+    device = make_device(defn)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+
+    client.fail_addresses = {0}  # the device takes the write but answers no read
+    await coordinator.async_write(defn, 42)  # no error: the write went through
+    assert client.written == [(0, [42])]
+    assert coordinator.data["x"] == 42  # shown as written until the next poll
+    assert coordinator.failed_read_total == 1  # the failed read-back still counts
+    assert "written but could not be read back" in caplog.text
+
+
 async def test_undecodable_value_becomes_none(hass, monkeypatch):
     client = FakeClient({0: 1})
     # count contradicts the type width; decode raises and the value is None

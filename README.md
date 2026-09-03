@@ -215,7 +215,8 @@ result. The device file sets each entity's poll cadence; the config-entry
 option is only a *floor* that slows polling down, never speeds it up (the
 exact precedence is in the [device file
 reference](docs/device_files.md#read-planning-and-polling)). Writes are
-confirmed by reading the register back immediately.
+confirmed by reading the register back immediately; a write the device took
+whose read-back fails is logged, not reported as a failed write.
 
 The *Configuration* companion device carries the read diagnostics: a **Reads
 per refresh** sensor (how many block reads a full refresh issues — usually far

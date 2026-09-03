@@ -149,7 +149,10 @@ file's `min_scan_interval` (unset, it imposes no floor — it defaults to the
 config's fastest cadence). So `scan_interval` sets the actual rate, while
 `min_scan_interval` and the option only ever slow polling down. Writes are
 confirmed by reading the register back immediately (an entity's
-`confirm_delay` defers that read for devices that apply writes slowly).
+`confirm_delay` defers that read for devices that apply writes slowly). A
+write the device rejects is an error; a write it took whose read-back then
+fails is only logged and counted as a failed read, and the written value shows
+until the next poll.
 
 To watch the plan at work: *Download diagnostics* shows the parsed definition,
 the planning state (including learned holes, quarantined and not-yet-alive
