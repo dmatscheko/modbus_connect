@@ -29,34 +29,21 @@ from .models import (
 from .schema import DESCRIPTION_CLASSES, description_fields
 
 
-def _platform_description(
-    platform: str,
-    key: str,
-    ha: dict[str, Any],
-    overrides: dict[str, Any] | None = None,
-) -> EntityDescription:
-    """Shared builder core: keep the ``ha:`` fields the platform's
-    EntityDescription knows, apply overrides, default the name from the key."""
-    desc_cls = DESCRIPTION_CLASSES[platform]
-    known = description_fields(desc_cls)
-    values = {k: v for k, v in ha.items() if k in known}
-    if overrides:
-        values.update(overrides)
-    values.setdefault("name", derive_name(key))
-    return desc_cls(key=key, **values)
-
-
 def build_description(
-    defn: EntityDef,
+    defn: EntityDef | TemplateDef,
     platform: str | None = None,
     overrides: dict[str, Any] | None = None,
 ) -> EntityDescription:
-    """Build the platform's EntityDescription from the validated ha: block.
-
-    With ``platform`` set, fields the target platform does not know are
-    silently dropped (used for duplicate_as_sensor mirrors).
-    """
-    return _platform_description(platform or defn.platform, defn.key, defn.ha, overrides)
+    """Build the platform's EntityDescription from the validated ``ha:`` block of
+    a register-backed entity or a ``template:`` entry: keep the fields the
+    platform's description knows, apply ``overrides``, default the name from the
+    key. With ``platform`` set, fields the target platform does not know are
+    silently dropped (the duplicate_as_sensor mirrors)."""
+    desc_cls = DESCRIPTION_CLASSES[platform or defn.platform]
+    values = {k: v for k, v in defn.ha.items() if k in description_fields(desc_cls)}
+    values.update(overrides or {})
+    values.setdefault("name", derive_name(defn.key))
+    return desc_cls(key=defn.key, **values)
 
 
 def build_mirror_description(defn: EntityDef) -> EntityDescription:
@@ -239,11 +226,6 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         await self.coordinator.async_write(self._defn, value)
 
 
-def build_template_description(tdef: TemplateDef) -> EntityDescription:
-    """Build the EntityDescription for a template: entry."""
-    return _platform_description(tdef.platform, tdef.key, tdef.ha)
-
-
 class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
     """Base for template: entities — re-renders on every device poll.
 
@@ -262,7 +244,7 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
     ) -> None:
         super().__init__(coordinator)
         self._tdef = tdef
-        self.entity_description = description or build_template_description(tdef)
+        self.entity_description = description or build_description(tdef)
         self._attr_unique_id = f"{coordinator.entry_id}_{tdef.key}"
         self._attr_device_info = coordinator.device_info
         self._compiled: dict[str, Template] = {}

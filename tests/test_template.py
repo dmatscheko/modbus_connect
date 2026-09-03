@@ -9,7 +9,6 @@ from custom_components.modbus_connect.binary_sensor import ModbusConnectTemplate
 from custom_components.modbus_connect.climate import ModbusConnectClimate
 from custom_components.modbus_connect.const import OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
 from custom_components.modbus_connect.cover import ModbusConnectCover
-from custom_components.modbus_connect.entity import build_template_description
 from custom_components.modbus_connect.fan import ModbusConnectFan
 from custom_components.modbus_connect.light import ModbusConnectLight
 from custom_components.modbus_connect.loader import BUILTIN_DIR, _load_file
@@ -139,7 +138,7 @@ def template_def(device, key):
 
 
 def make_entity(hass, cls, coordinator, tdef):
-    entity = cls(coordinator, tdef, build_template_description(tdef))
+    entity = cls(coordinator, tdef)
     entity.hass = hass
     return entity
 
