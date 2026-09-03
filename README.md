@@ -48,6 +48,11 @@ storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
 Finder) — or any other device that speaks Modbus TCP, directly or through an
 RS-485 gateway.
 
+<p align="center">
+  <img src="docs/img/dimplex_si_dashboard.png" alt="Device page of a Dimplex heat pump: climate controls for heating and hot water, temperature sensors, and the activity log" width="800">
+  <br><em>A heat pump's device page — climate entities, sensors and history, all from one YAML file that the user never needs to touch.</em>
+</p>
+
 ## Installation
 
 ### HACS (recommended)
@@ -79,6 +84,11 @@ device file, and the connection is verified with a real read from the device
 before anything is created — a wrong Modbus ID fails right there instead of
 producing an entry full of unavailable entities. Add the integration once per
 Modbus device — several devices can share one gateway or adapter.
+
+<p align="center">
+  <img src="docs/img/add_device_dialog.png" alt="The add-device dialog: pick a device definition from the bundled and user files, then name the device" width="800">
+  <br><em>Adding a device: pick its definition, name it, then enter the connection.</em>
+</p>
 
 Worth knowing: entity IDs are assigned when an entity is first created, so
 changing the prefix later does not rename existing entities. The entry's
@@ -211,6 +221,11 @@ their registry rows, so renames, areas, and enabled/disabled states all come
 back when the group does. The **Remove hidden entities** button deletes those
 greyed-out leftovers (including stale rows from an earlier device file)
 without touching anything that is currently provided.
+
+<p align="center">
+  <img src="docs/img/dimplex_si_config.png" alt="The Configuration device of a Dimplex heat pump: one switch per entity group, the enable-all switch, and the remove-hidden-entities button" width="800">
+  <br><em>The companion Configuration device: one switch per group, plus the expert bypass and the cleanup button.</em>
+</p>
 
 ## Wiring the HA Energy Dashboard (SolaX X3-Hybrid G4)
 
