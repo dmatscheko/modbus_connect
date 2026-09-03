@@ -30,6 +30,19 @@ from custom_components.modbus_connect.diagnostics import (
 
 from .fakes import FakeClient
 
+
+def device_by_identifiers(
+    registry: dr.DeviceRegistry, identifiers: set[tuple[str, str]]
+) -> dr.DeviceEntry | None:
+    """``async_get_device`` is deprecated since HA 2026.9 (identifiers are no longer
+    unique across config entries) and raises in tests; use the replacement where it
+    exists, the old lookup on earlier releases."""
+    if hasattr(registry, "async_get_devices"):
+        devices = registry.async_get_devices(identifiers=identifiers)
+        assert len(devices) <= 1, devices
+        return devices[0] if devices else None
+    return registry.async_get_device(identifiers)
+
 DEVICE_YAML = """
 device:
   manufacturer: Acme
@@ -403,7 +416,7 @@ async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
     assert acquire.call_args.kwargs["baudrate"] == 19200
     assert acquire.call_args.kwargs["parity"] == "E"
     # the connection shows on the device card via model_id
-    device = dr.async_get(hass).async_get_device({(DOMAIN, entry.entry_id)})
+    device = device_by_identifiers(dr.async_get(hass), {(DOMAIN, entry.entry_id)})
     assert device is not None
     assert device.model_id == "/dev/ttyUSB0 · ID 7"
 
@@ -831,9 +844,7 @@ async def test_prefix_drives_entity_ids(hass: HomeAssistant) -> None:
     assert eid(hass, entry, "climate", "t_climate") == "climate.hp_t_climate"
 
     # the device name comes from the name, not the prefix
-    device = dr.async_get(hass).async_get_device(
-        identifiers={(DOMAIN, entry.entry_id)}
-    )
+    device = device_by_identifiers(dr.async_get(hass), {(DOMAIN, entry.entry_id)})
     assert device is not None
     assert device.name == "Heat pump"
 
@@ -1122,8 +1133,8 @@ async def test_meta_entities_live_on_configuration_device(hass: HomeAssistant) -
         await hass.async_block_till_done()
 
         dev_reg = dr.async_get(hass)
-        main = dev_reg.async_get_device({(DOMAIN, entry.entry_id)})
-        meta = dev_reg.async_get_device({(DOMAIN, f"{entry.entry_id}_meta")})
+        main = device_by_identifiers(dev_reg, {(DOMAIN, entry.entry_id)})
+        meta = device_by_identifiers(dev_reg, {(DOMAIN, f"{entry.entry_id}_meta")})
         assert main is not None and meta is not None
         # the pair is cross-linked: both info cards show a "Connected via" jump
         assert meta.via_device_id == main.id

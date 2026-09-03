@@ -344,12 +344,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         # Meta entities (group toggles, read diagnostics) live on their own
         # service device so the real device shows only the device's entities.
+        # Its "Connected via" link to the main device is made by registry id in
+        # async_setup_entry — DeviceInfo's identifier-based ``via_device`` is
+        # deprecated since HA 2026.9 (removed from the TypedDict).
         self.meta_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{entry.entry_id}_meta")},
             name=f"{name} Configuration",
             manufacturer=device.manufacturer,
             entry_type=DeviceEntryType.SERVICE,
-            via_device=(DOMAIN, entry.entry_id),
         )
 
         super().__init__(

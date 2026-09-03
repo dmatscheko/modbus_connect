@@ -65,8 +65,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
     coordinator.apply_device_info()
     # Register both devices up front: the meta device (group toggles,
     # diagnostics) must exist even when every entity of the device happens to
-    # be group-hidden, and the main device must exist for its via_device link.
-    # Cross-linking the pair puts a "Connected via" jump on both info cards.
+    # be group-hidden. Cross-linking the pair by registry id puts a
+    # "Connected via" jump on both info cards (DeviceInfo's ``via_device`` is
+    # deprecated since HA 2026.9, so neither device declares one).
     registry = dr.async_get(hass)
     main_device = registry.async_get_or_create(
         config_entry_id=entry.entry_id, **coordinator.device_info
@@ -75,6 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
         config_entry_id=entry.entry_id, **coordinator.meta_device_info
     )
     registry.async_update_device(main_device.id, via_device_id=meta_device.id)
+    registry.async_update_device(meta_device.id, via_device_id=main_device.id)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
