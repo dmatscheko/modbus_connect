@@ -132,6 +132,7 @@ them as a starting point and please report corrections.
 
 | Manufacturer | Model | File | Tested |
 | --- | --- | --- | :---: |
+| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | |
 | Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` | ✓ |
 | Eastron | SDM-230 | `eastron-sdm230.yaml` | |
 | Eastron | SDM-630 | `eastron-sdm630.yaml` | |
