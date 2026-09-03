@@ -13,10 +13,10 @@ from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
+    ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
-    init_meta_entity,
     on_off_payload,
     resolve_on_off,
 )
@@ -80,7 +80,7 @@ class ModbusConnectTemplateSwitch(ModbusConnectTemplateEntity, SwitchEntity):
         await self._run_action("turn_off")
 
 
-class ModbusConnectGroupSwitch(SwitchEntity):
+class ModbusConnectGroupSwitch(ModbusConnectMetaEntity, SwitchEntity):
     """Config toggle that creates or removes the entities of one group.
 
     Toggling rewrites the entry's enabled-groups option, which reloads the entry
@@ -90,7 +90,6 @@ class ModbusConnectGroupSwitch(SwitchEntity):
     the Modbus read plan.
     """
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
 
@@ -100,7 +99,12 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         entry: ModbusConnectConfigEntry,
         group: str,
     ) -> None:
-        self._coordinator = coordinator
+        super().__init__(
+            coordinator,
+            unique_suffix=f"group_{group}",
+            domain="switch",
+            object_id=f"enable_{group}_entities",
+        )
         self._entry = entry
         self._group = group
         # The device file may override the switch label via group_labels; otherwise
@@ -110,13 +114,6 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         self._attr_translation_placeholders = {
             "group": coordinator.device_def.group_label(group)
         }
-        init_meta_entity(
-            self,
-            coordinator,
-            unique_suffix=f"group_{group}",
-            domain="switch",
-            object_id=f"enable_{group}_entities",
-        )
 
     @property
     def is_on(self) -> bool:
@@ -144,14 +141,13 @@ class ModbusConnectGroupSwitch(SwitchEntity):
         )
 
 
-class ModbusConnectShowAllSwitch(SwitchEntity):
+class ModbusConnectShowAllSwitch(ModbusConnectMetaEntity, SwitchEntity):
     """Config toggle that bypasses group handling: while on, every entity of the
     device file is created (and its registers polled), whatever the group
     switches say. Exists only for device files that use groups — without groups
     everything is always shown and there is nothing to bypass.
     """
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
     _attr_translation_key = "group_enable_all"
@@ -161,15 +157,13 @@ class ModbusConnectShowAllSwitch(SwitchEntity):
         coordinator: ModbusConnectCoordinator,
         entry: ModbusConnectConfigEntry,
     ) -> None:
-        self._coordinator = coordinator
-        self._entry = entry
-        init_meta_entity(
-            self,
+        super().__init__(
             coordinator,
             unique_suffix="show_all_entities",
             domain="switch",
             object_id="enable_all_entities",
         )
+        self._entry = entry
 
     @property
     def is_on(self) -> bool:

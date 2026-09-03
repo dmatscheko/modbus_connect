@@ -15,10 +15,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
+    ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
     build_description,
     build_template_description,
-    init_meta_entity,
     resolve_on_off,
 )
 
@@ -62,7 +62,7 @@ class ModbusConnectTemplateBinarySensor(ModbusConnectTemplateEntity, BinarySenso
         return self.render_bool("state")
 
 
-class ModbusConnectReadHealthBinarySensor(BinarySensorEntity):
+class ModbusConnectReadHealthBinarySensor(ModbusConnectMetaEntity, BinarySensorEntity):
     """Health check: on (problem) while a read failed in the last 5 minutes.
 
     Deliberately a plain polled entity, not a CoordinatorEntity: it must stay
@@ -72,16 +72,12 @@ class ModbusConnectReadHealthBinarySensor(BinarySensorEntity):
     so a healthy device costs nothing in the recorder.
     """
 
-    _attr_has_entity_name = True
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "read_failures"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
-        self._coordinator = coordinator
-        init_meta_entity(
-            self, coordinator, unique_suffix="read_failures", domain="binary_sensor"
-        )
+        super().__init__(coordinator, unique_suffix="read_failures", domain="binary_sensor")
 
     @property
     def is_on(self) -> bool:

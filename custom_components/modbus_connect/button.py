@@ -11,7 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectEntity, build_description, init_meta_entity
+from .entity import ModbusConnectEntity, ModbusConnectMetaEntity, build_description
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class ModbusConnectButton(ModbusConnectEntity, ButtonEntity):
         await self._write(self._defn.write_value)
 
 
-class ModbusConnectRemoveHiddenButton(ButtonEntity):
+class ModbusConnectRemoveHiddenButton(ModbusConnectMetaEntity, ButtonEntity):
     """Deletes the registry entries this entry no longer provides.
 
     Disabling a group keeps the hidden entities' registry rows (grayed out as
@@ -51,16 +51,12 @@ class ModbusConnectRemoveHiddenButton(ButtonEntity):
     so customizations on live (even user-disabled) entities are safe.
     """
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = False
     _attr_translation_key = "remove_hidden"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
-        self._coordinator = coordinator
-        init_meta_entity(
-            self, coordinator, unique_suffix="remove_hidden_entities", domain="button"
-        )
+        super().__init__(coordinator, unique_suffix="remove_hidden_entities", domain="button")
 
     async def async_press(self) -> None:
         registry = er.async_get(self.hass)

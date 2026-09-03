@@ -12,16 +12,15 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
+    ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
     build_description,
     build_mirror_description,
     build_template_description,
-    init_meta_entity,
 )
 from .models import TemplateDef
 
@@ -155,9 +154,7 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
         return round(self._total, 3)
 
 
-class ModbusConnectReadCountSensor(
-    CoordinatorEntity[ModbusConnectCoordinator], SensorEntity
-):
+class ModbusConnectReadCountSensor(ModbusConnectMetaEntity, SensorEntity):
     """Diagnostic: Modbus block reads a full refresh issues.
 
     Block merging lets one read cover many entities, so this sits well below the
@@ -165,32 +162,29 @@ class ModbusConnectReadCountSensor(
     It reports the full-refresh figure, which is stable (it moves only when the
     read plan does), so it stays near-silent in the recorder rather than churning
     every cycle; the live per-cycle read and poll counts are in Download
-    Diagnostics. Deliberately carries no ``state_class`` — a read gauge has no
-    meaningful long-term statistics, and omitting it avoids the 5-minute
-    statistics writes.
+    Diagnostics. A plain polled entity like its two siblings (see the binary
+    sensor's docstring), so the plan figure stays readable during an outage.
+    Deliberately carries no ``state_class`` — a read gauge has no meaningful
+    long-term statistics, and omitting it avoids the 5-minute statistics writes.
     """
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = "reads"
     _attr_translation_key = "reads_per_refresh"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
-        super().__init__(coordinator)
-        init_meta_entity(
-            self, coordinator, unique_suffix="reads_per_refresh", domain="sensor"
-        )
+        super().__init__(coordinator, unique_suffix="reads_per_refresh", domain="sensor")
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.full_refresh_read_count
+        return self._coordinator.full_refresh_read_count
 
     @property
     def extra_state_attributes(self) -> dict[str, int]:
-        return {"read_entities": self.coordinator.read_entity_count}
+        return {"read_entities": self._coordinator.read_entity_count}
 
 
-class ModbusConnectFailedReadsSensor(SensorEntity):
+class ModbusConnectFailedReadsSensor(ModbusConnectMetaEntity, SensorEntity):
     """Diagnostic: failed read transactions since the entry was (re)loaded.
 
     The ever-increasing companion to the "Read failures" problem indicator —
@@ -201,16 +195,12 @@ class ModbusConnectFailedReadsSensor(SensorEntity):
     should stay at 0.
     """
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_native_unit_of_measurement = "reads"
     _attr_translation_key = "failed_reads"
 
     def __init__(self, coordinator: ModbusConnectCoordinator) -> None:
-        self._coordinator = coordinator
-        init_meta_entity(
-            self, coordinator, unique_suffix="failed_reads", domain="sensor"
-        )
+        super().__init__(coordinator, unique_suffix="failed_reads", domain="sensor")
 
     @property
     def native_value(self) -> int:

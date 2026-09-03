@@ -85,21 +85,31 @@ def suggest_entity_id(
         entity.entity_id = f"{domain}.{object_id}"
 
 
-def init_meta_entity(
-    entity: Entity,
-    coordinator: ModbusConnectCoordinator,
-    *,
-    unique_suffix: str,
-    domain: str,
-    object_id: str | None = None,
-) -> None:
-    """Shared wiring for the Configuration-device meta entities (the diagnostic
-    and group/config controls): a stable unique id, the meta device, and the
+class ModbusConnectMetaEntity(Entity):
+    """Base for the Configuration-device entities — the group/config controls
+    and the read diagnostics: a stable unique id, the meta device, and the
     entity-id suggestion. ``object_id`` defaults to ``unique_suffix`` — the two
-    switches spell them differently (``group_x`` vs ``enable_x_entities``)."""
-    entity._attr_unique_id = f"{coordinator.entry_id}_{unique_suffix}"
-    entity._attr_device_info = coordinator.meta_device_info
-    suggest_entity_id(entity, coordinator, domain, object_id or unique_suffix)
+    switches spell them differently (``group_x`` vs ``enable_x_entities``).
+
+    Deliberately not coordinator-bound: the controls never poll, and the
+    diagnostics poll on Home Assistant's own cadence so they stay available
+    exactly while the coordinator is failing (see each class).
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: ModbusConnectCoordinator,
+        *,
+        unique_suffix: str,
+        domain: str,
+        object_id: str | None = None,
+    ) -> None:
+        self._coordinator = coordinator
+        self._attr_unique_id = f"{coordinator.entry_id}_{unique_suffix}"
+        self._attr_device_info = coordinator.meta_device_info
+        suggest_entity_id(self, coordinator, domain, object_id or unique_suffix)
 
 
 def resolve_on_off(defn: EntityDef, value: Any) -> bool | None:
