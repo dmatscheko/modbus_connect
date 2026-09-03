@@ -41,7 +41,9 @@ Offline devices back off exponentially (up to 5 min) instead of hammering the
 gateway. One failing entity does not take down the rest; it just becomes
 unavailable — and a register that keeps failing while the device answers
 everything else is quarantined out of the read plan and re-probed every
-10 minutes, so a single bad address never costs permanent traffic.
+10 minutes, so a single bad address never costs permanent traffic. A register
+the device has already served is never quarantined, so power-cycling a device
+(which may refuse reads while it boots) costs nothing but the outage itself.
 
 Typical use cases: energy meters (Eastron SDM), solar inverters and hybrid
 storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
@@ -226,9 +228,14 @@ A register that keeps failing while the device answers everything else — the
 signature of a wrong address in a device file — is **quarantined**: the entity
 goes unavailable, its registers leave the read plan, and a probe every
 10 minutes lifts the quarantine as soon as the device serves them again. The
-log warns with the entity and address; *Download diagnostics* lists
-`quarantined` and per-entity failure counts (`failed_reads_by_key`, worst
-first). A register the device genuinely never serves is best removed from the
+log warns with the entity and address. Only a register that has never
+answered can be quarantined: once the device has served it on two consecutive
+polls it is **known alive** and stays in the read plan through any later
+failure, so a device that is power-cycled — timing out, then refusing reads
+while it boots — is polled again the moment it answers. *Download diagnostics*
+lists `quarantined`, `not_yet_alive` and per-entity failure counts
+(`failed_reads_by_key`, worst first). A register the device genuinely never
+serves is best removed from the
 file or declared in
 [`bad_addresses`](docs/device_files.md#read-planning-and-polling).
 

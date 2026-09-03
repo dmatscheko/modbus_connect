@@ -65,6 +65,8 @@ async def async_get_config_entry_diagnostics(
                 sorted(coordinator.failed_reads_by_key.items(), key=lambda kv: -kv[1])
             ),
             "quarantined": coordinator.quarantine_status,
+            "alive_entity_count": len(coordinator.alive),
+            "not_yet_alive": coordinator.not_yet_alive,
         },
         "entities": [
             {

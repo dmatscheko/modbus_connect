@@ -24,6 +24,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from . import codec
 from .client import ModbusBlockClient, ReadError, WriteError
 from .const import (
+    ALIVE_AFTER,
     BASIC_GROUP,
     CONF_PREFIX,
     CONF_SERIAL_PORT,
@@ -317,6 +318,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.quarantined: dict[str, float] = {}
         self._fail_streak: dict[str, int] = {}
         self._cycle_illegal: set[str] = set()
+        # Keys the device answered on ALIVE_AFTER consecutive polls. Quarantine
+        # exists to park registers a device file gets wrong; a register that has
+        # already been served is not one of those, so an alive key is never
+        # quarantined: a power-cycled device — timing out, then refusing reads
+        # while it boots — is polled again as soon as it answers. Runtime state
+        # like the quarantine (a reload starts over).
+        self.alive: set[str] = set()
+        self._alive_streak: dict[str, int] = {}
 
         # The prefix drives entity ids; the name is the device/entry title.
         # Old entries stored their device name in CONF_PREFIX.
@@ -417,6 +426,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         device itself said the register does not exist.
         """
         key = defn.key
+        if key in self.alive:
+            # The device has served this register before: an outage or a
+            # rebooting device, not a wrong address — keep polling it.
+            _LOGGER.debug("%s: known-alive %s unread; not quarantining", self.name, key)
+            return
+        self._alive_streak.pop(key, None)  # alive takes consecutive answers
         streak = self._fail_streak[key] = self._fail_streak.get(key, 0) + 1
         if streak < QUARANTINE_AFTER and key not in self._cycle_illegal:
             return
@@ -438,6 +453,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             QUARANTINE_RETRY_SECONDS,
         )
 
+    def _track_alive(self, key: str) -> None:
+        """Count an entity's consecutive answered polls; mark it alive at ALIVE_AFTER."""
+        if key in self.alive:
+            return
+        streak = self._alive_streak[key] = self._alive_streak.get(key, 0) + 1
+        if streak >= ALIVE_AFTER:
+            self.alive.add(key)
+            del self._alive_streak[key]
+
     def _trim_failure_window(self) -> None:
         """Drop failure timestamps older than the health window from the deque."""
         cutoff = time.monotonic() - HEALTH_WINDOW_SECONDS
@@ -455,6 +479,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Quarantined entity keys → seconds until their next re-probe."""
         now = time.monotonic()
         return {k: max(0, round(t - now)) for k, t in sorted(self.quarantined.items())}
+
+    @property
+    def not_yet_alive(self) -> list[str]:
+        """Polled entity keys the device has not answered on ALIVE_AFTER consecutive
+        polls yet — the only ones a run of failures can still quarantine."""
+        return sorted(e.key for e in self._readers if e.key not in self.alive)
 
     def monotonic_time(self) -> float:
         """The clock the integrating template sensors measure refresh intervals
@@ -661,6 +691,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._track_failure_streak(defn, now)  # may quarantine the key
             else:
                 self._fail_streak.pop(defn.key, None)
+                self._track_alive(defn.key)
             if value is None and defn.optimistic_default is not None:
                 value = defn.optimistic_default  # keep the control usable
             data[defn.key] = self._postprocess(defn, data.get(defn.key), value)

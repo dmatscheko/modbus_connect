@@ -128,6 +128,11 @@ consecutive polls, or one explicit illegal-address answer) is quarantined: its
 entity goes unavailable, its registers leave the read plan, and a standalone
 probe every 10 minutes lifts the quarantine as soon as the device serves it
 again — a wrong `address:` costs a warning and a probe, not permanent traffic.
+Only a register that has never answered can be quarantined: once the device has
+served it on two consecutive polls it is known alive for the life of the entry
+and stays in the plan through any later failure, so a power-cycled device
+(timing out, then refusing reads while it boots) is polled again as soon as it
+answers.
 Two device keys steer the planner up front when a device is known to be picky:
 
 - `bad_addresses:` — registers the device answers with an error, per table;
@@ -145,7 +150,8 @@ confirmed by reading the register back immediately (an entity's
 `confirm_delay` defers that read for devices that apply writes slowly).
 
 To watch the plan at work: *Download diagnostics* shows the parsed definition,
-the planning state (including learned holes and quarantined registers), and
+the planning state (including learned holes, quarantined and not-yet-alive
+registers), and
 per-entity failure counts (`failed_reads_by_key`, worst first) — see the
 README's [read health](../README.md#how-data-is-updated) section for the
 entities that surface failures on the device page.

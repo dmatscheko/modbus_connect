@@ -1211,6 +1211,73 @@ async def test_failing_probe_alone_is_not_an_outage(hass, monkeypatch):
     assert coordinator.last_update_success  # a failing probe is no outage
 
 
+async def test_known_alive_register_is_never_quarantined(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("good", 0), sensor("flaky", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    for _ in range(2):  # answered twice in a row: known alive
+        await coordinator.async_refresh()
+        ft.now += 30
+    assert coordinator.alive == {"good", "flaky"}
+    assert coordinator.not_yet_alive == []
+
+    # the device reboots: it refuses the register outright, then times out on
+    # it for several polls — neither may quarantine a register it has served
+    client.fail_addresses = {100}
+    client.illegal = True
+    await coordinator.async_refresh()
+    ft.now += 30
+    client.illegal = False
+    for _ in range(4):
+        await coordinator.async_refresh()
+        ft.now += 30
+    assert coordinator.quarantined == {}
+    assert coordinator.data == {"good": 5, "flaky": None}
+    assert coordinator.failed_reads_by_key == {"flaky": 5}  # still counted
+
+    client.fail_addresses = set()
+    client.reads.clear()
+    await coordinator.async_refresh()  # still in the plan: no probe wait
+    assert Span("holding", 100, 1) in client.reads
+    assert coordinator.data == {"good": 5, "flaky": 7}
+
+
+async def test_one_answer_does_not_make_a_register_alive(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("good", 0), sensor("new", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()  # answered once
+    ft.now += 30
+    assert coordinator.alive == set()
+
+    client.fail_addresses = {100}
+    client.illegal = True  # one refusal still quarantines: not known alive yet
+    await coordinator.async_refresh()
+    assert set(coordinator.quarantined) == {"new"}
+    assert coordinator.alive == {"good"}
+    assert coordinator.not_yet_alive == ["new"]
+
+
+async def test_alive_needs_consecutive_answers(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 5, 100: 7})
+    device = make_device(sensor("a", 0), sensor("b", 100))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()  # b answered once
+    ft.now += 30
+    client.fail_addresses = {100}
+    await coordinator.async_refresh()  # b unread: its run starts over
+    ft.now += 30
+    client.fail_addresses = set()
+    await coordinator.async_refresh()  # b answered once again
+    ft.now += 30
+    assert coordinator.alive == {"a"}
+    await coordinator.async_refresh()  # twice in a row
+    assert coordinator.alive == {"a", "b"}
+
+
 async def test_dead_register_isolated_from_adjacent_neighbour(hass, monkeypatch):
     # a and b are adjacent, so the unbridged fallback merges them straight back
     # into the failed block; only the per-span isolation can save b

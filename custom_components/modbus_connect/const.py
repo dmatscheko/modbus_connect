@@ -101,3 +101,7 @@ QUARANTINE_AFTER: Final = 3
 # ... and are re-probed standalone this often (seconds); success lifts the
 # quarantine, as does reloading the entry.
 QUARANTINE_RETRY_SECONDS: Final = 600
+# A register answered on this many consecutive polls is known alive: it is never
+# quarantined afterwards, so a device that is power-cycled (and refuses or times
+# out on reads while it boots) is polled again the moment it answers.
+ALIVE_AFTER: Final = 2
