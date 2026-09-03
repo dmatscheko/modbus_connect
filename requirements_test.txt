@@ -1,5 +1,5 @@
 pytest-homeassistant-custom-component
-pymodbus>=3.13.1
+pymodbus>=3.14.0
 pyserial>=3.5
 pyyaml
 jsonschema
