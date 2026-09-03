@@ -7,23 +7,54 @@
 device:
   manufacturer: Anhui
   model: QDF70B Pressure Sensor
+  prefix: Anhui Pressure Sensor
+  max_register_read: 64
+  max_read_gap: 32
+  default_groups: [basic]
+  group_labels:
+    advanced: Advanced
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
-  holding_0004:
+  pressure_pa:
     address: 4
+    groups: [basic]
     ha:
       platform: sensor
       name: Pressure
+      device_class: pressure
+      state_class: measurement
       unit: Pa
-  holding_0016:
+  pressure_detail_2:
     address: 22
+    groups: [advanced]
     ha:
       platform: sensor
       name: Pressure detail 2
-  holding_0009:
+      state_class: measurement
+  pressure_detail_1:
     address: 9
     type: int16
+    groups: [advanced]
     ha:
       platform: sensor
       name: Pressure detail 1
+      state_class: measurement
+
+# Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
+translations:
+  QDF70B Pressure Sensor:
+    de: QDF70B Drucksensor
+    en: QDF70B Pressure Sensor
+  Advanced:
+    en: Advanced
+    de: Erweitert
+  Pressure:
+    de: Druck
+    en: Pressure
+  Pressure detail 2:
+    de: Druck Detail 2
+    en: Pressure detail 2
+  Pressure detail 1:
+    de: Druck Detail 1
+    en: Pressure detail 1

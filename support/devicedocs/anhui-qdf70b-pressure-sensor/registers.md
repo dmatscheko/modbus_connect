@@ -18,6 +18,6 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 
 | Register | Table | Modbus command | Data type / conversion |
 | --- | --- | --- | --- |
-| `0x0004` (4) — Pressure<br>`holding_0004` | Holding (4x) | FC03 read | uint16 |
-| `0x0016` (22) — Pressure detail 2<br>`holding_0016` | Holding (4x) | FC03 read | uint16 |
-| `0x0009` (9) — Pressure detail 1<br>`holding_0009` | Holding (4x) | FC03 read | int16 |
+| `0x0004` (4) — Pressure<br>`pressure_pa` | Holding (4x) | FC03 read | uint16 |
+| `0x0016` (22) — Pressure detail 2<br>`pressure_detail_2` | Holding (4x) | FC03 read | uint16 |
+| `0x0009` (9) — Pressure detail 1<br>`pressure_detail_1` | Holding (4x) | FC03 read | int16 |
