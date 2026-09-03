@@ -8,7 +8,7 @@ from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEnti
 from homeassistant.helpers.entity import EntityDescription
 
 from .coordinator import ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, clamp_round, platform_setup
+from .entity import ModbusConnectTemplateEntity, platform_setup
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -37,10 +37,7 @@ class ModbusConnectLight(ModbusConnectTemplateEntity, LightEntity):
 
     @property
     def brightness(self) -> int | None:
-        if "brightness" not in self._tdef.config:
-            return None
-        value = self.render_number("brightness")
-        return None if value is None else clamp_round(value, 255)
+        return self.render_level("brightness", 255)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         if ATTR_BRIGHTNESS in kwargs and "set_brightness" in self._tdef.config:

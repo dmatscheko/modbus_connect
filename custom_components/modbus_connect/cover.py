@@ -8,12 +8,7 @@ from homeassistant.components.cover import ATTR_POSITION, CoverEntity, CoverEnti
 from homeassistant.helpers.entity import EntityDescription
 
 from .coordinator import ModbusConnectCoordinator
-from .entity import (
-    ModbusConnectTemplateEntity,
-    clamp_round,
-    closed_from_position,
-    platform_setup,
-)
+from .entity import ModbusConnectTemplateEntity, closed_from_position, platform_setup
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -44,10 +39,7 @@ class ModbusConnectCover(ModbusConnectTemplateEntity, CoverEntity):
 
     @property
     def current_cover_position(self) -> int | None:
-        if "position" not in self._tdef.config:
-            return None
-        value = self.render_number("position")
-        return None if value is None else clamp_round(value, 100)
+        return self.render_level("position", 100)
 
     @property
     def is_closed(self) -> bool | None:

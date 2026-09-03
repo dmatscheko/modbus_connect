@@ -308,6 +308,13 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         value = self.render(field, data)
         return None if value is None else str(value)
 
+    def render_level(self, field: str, hi: int) -> int | None:
+        """Render a template as an integer UI level clamped to ``0..hi`` — a
+        cover/fan position (hi=100) or a light brightness (hi=255); None when
+        the template is absent or yields no number."""
+        value = self.render_number(field)
+        return None if value is None else clamp_round(value, hi)
+
     def _resolve_switch(self, name: str, switch: SwitchTarget) -> WriteTarget:
         """Pick a switch action's target by rendering its selector template."""
         selected = self._render_source(switch.selector, f"{name}.by")

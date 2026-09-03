@@ -8,7 +8,7 @@ from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.helpers.entity import EntityDescription
 
 from .coordinator import ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, clamp_round, platform_setup
+from .entity import ModbusConnectTemplateEntity, platform_setup
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
@@ -43,10 +43,7 @@ class ModbusConnectFan(ModbusConnectTemplateEntity, FanEntity):
 
     @property
     def percentage(self) -> int | None:
-        if "percentage" not in self._tdef.config:
-            return None
-        value = self.render_number("percentage")
-        return None if value is None else clamp_round(value, 100)
+        return self.render_level("percentage", 100)
 
     @property
     def preset_mode(self) -> str | None:
