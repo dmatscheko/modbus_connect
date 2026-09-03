@@ -105,3 +105,9 @@ QUARANTINE_RETRY_SECONDS: Final = 600
 # quarantined afterwards, so a device that is power-cycled (and refuses or times
 # out on reads while it boots) is polled again the moment it answers.
 ALIVE_AFTER: Final = 2
+# A bridged block that fails while its entities then read fine on their own may just
+# have hit a transient timeout, and a fragmented plan costs an extra read on every
+# later cycle: its filler addresses are learned as holes (never bridged again) only
+# after this many consecutive such misses — and never for a block whose entities are
+# all known alive, since the device has served exactly that read before.
+HOLE_AFTER: Final = 2

@@ -32,6 +32,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     HEALTH_WINDOW_SECONDS,
+    HOLE_AFTER,
     MAX_BACKOFF_SECONDS,
     OPTION_ENABLED_GROUPS,
     OPTION_MIN_SCAN_INTERVAL,
@@ -294,6 +295,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Device-declared dead registers seed the same set the planner grows from
         # failed reads, so they are never read or bridged across.
         self.holes: set[tuple[str, int]] = set(device.bad_addresses)
+        # Consecutive misses per set of bridged filler addresses (see _learn_holes).
+        self._bridge_strikes: dict[frozenset[tuple[str, int]], int] = {}
         self._cache: dict[tuple[str, int], int | bool] = {}
         # Keys whose last read failed and that already got their one quick retry;
         # see _async_update_data.
@@ -777,6 +780,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         try:
             self._store(block, await self.client.read_block(self.device_id, block))
+            if self._bridge_strikes:  # a bridged read that works forgives earlier misses
+                covered = {(block.table, a) for a in range(block.start, block.end)}
+                self._bridge_strikes = {
+                    f: n for f, n in self._bridge_strikes.items() if not f <= covered
+                }
             return 1, 1
         except ReadError as err:
             # Drop the whole failed range before retrying: successful sub-reads
@@ -819,19 +827,44 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if any_ok and all_ok:
             # Every real span read fine on retry: the initial failure was only
-            # bridged filler (learned as holes below, so it will not repeat) —
-            # a planning artifact, not a device problem, so it is not recorded.
-            new_holes = bridged_addresses(block, needed)
-            if new_holes:
-                self.holes |= new_holes
-                _LOGGER.info(
-                    "%s: device rejects %d bridged filler address(es) in the %s table; "
-                    "not bridging them again",
-                    self.name,
-                    len(new_holes),
-                    block.table,
-                )
+            # bridged filler (or a transient) — a planning artifact, not a device
+            # problem, so it is not recorded; _learn_holes decides whether to
+            # stop bridging.
+            self._learn_holes(block, needed)
         return (1 if any_ok else 0), reads
+
+    def _learn_holes(self, block: Span, needed: list[Span]) -> None:
+        """A bridged block failed while every span in it then read fine on its own:
+        remember its filler addresses as holes — but only on the HOLE_AFTER-th
+        consecutive miss of the same filler (a single miss is as likely a transient
+        timeout, and a fragmented plan costs a read on every later cycle), and never
+        for a block whose entities are all known alive: the device has served
+        exactly this read before, so the miss cannot be a rejected address."""
+        filler = frozenset(bridged_addresses(block, needed))
+        if not filler:
+            return
+        if {e.key for e in self._readers if e.span in needed} <= self.alive:
+            self._bridge_strikes.pop(filler, None)
+            _LOGGER.debug(
+                "%s: bridged read %s failed, but its entities are known alive; "
+                "keeping the bridge",
+                self.name,
+                block,
+            )
+            return
+        strikes = self._bridge_strikes[filler] = self._bridge_strikes.get(filler, 0) + 1
+        if strikes < HOLE_AFTER:
+            return
+        del self._bridge_strikes[filler]
+        self.holes |= filler
+        _LOGGER.info(
+            "%s: device rejects %d bridged filler address(es) in the %s table "
+            "(%d reads in a row); not bridging them again",
+            self.name,
+            len(filler),
+            block.table,
+            strikes,
+        )
 
     async def _read_spans_isolated(self, needed: list[Span]) -> tuple[bool, int]:
         """Read each span on its own to tell a dead register from its neighbours.

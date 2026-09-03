@@ -413,6 +413,12 @@ async def test_bridged_hole_learned(hass, monkeypatch):
         Span("holding", 0, 2),  # unbridged fallback reads
         Span("holding", 6, 2),
     ]
+    assert coordinator.holes == set()  # one miss may be a transient: not learned yet
+
+    client.reads.clear()
+    coordinator._next_due = dict.fromkeys(coordinator._next_due, 0.0)
+    await coordinator.async_refresh()  # the same bridge fails again: now a hole
+    assert client.reads[0] == Span("holding", 0, 8)
     assert coordinator.holes == {("holding", a) for a in (2, 3, 4, 5)}
 
     client.reads.clear()
@@ -420,6 +426,43 @@ async def test_bridged_hole_learned(hass, monkeypatch):
     await coordinator.async_refresh()
     # planner now avoids the bridge entirely
     assert client.reads == [Span("holding", 0, 2), Span("holding", 6, 2)]
+
+
+async def test_single_bridged_miss_is_forgiven_by_the_next_success(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 1, 4: 2})
+    device = make_device(sensor("a", 0), sensor("b", 4), max_gap=8)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    for _ in range(3):  # a transient miss of the bridged block, then it works again
+        client.fail_spans = {Span("holding", 0, 5)}
+        await coordinator.async_refresh()
+        assert coordinator.data == {"a": 1, "b": 2}  # recovered via the sub-reads
+        assert coordinator.holes == set()
+        client.fail_spans = set()
+        client.reads.clear()
+        ft.now += 30
+        await coordinator.async_refresh()
+        assert client.reads == [Span("holding", 0, 5)]  # still one bridged read
+        ft.now += 30
+    assert coordinator.holes == set()  # misses that never repeat teach nothing
+
+
+async def test_known_alive_block_never_learns_holes(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({0: 1, 4: 2})
+    device = make_device(sensor("a", 0), sensor("b", 4), max_gap=8)
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    for _ in range(2):
+        await coordinator.async_refresh()
+        ft.now += 30
+    assert coordinator.alive == {"a", "b"}
+
+    client.fail_spans = {Span("holding", 0, 5)}  # the bridged read keeps timing out
+    for _ in range(4):
+        await coordinator.async_refresh()
+        ft.now += 30
+    assert coordinator.holes == set()  # the device served this exact read before
+    assert coordinator.data == {"a": 1, "b": 2}
 
 
 async def test_partial_failure_keeps_other_entities(hass, monkeypatch):

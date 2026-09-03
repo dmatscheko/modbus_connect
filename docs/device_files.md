@@ -120,8 +120,10 @@ registers is cheaper than a second round trip), and no block exceeds
 `max_register_read` or the protocol limit of 125 registers.
 
 A failed bridged block falls back to unbridged reads automatically, filler
-addresses the device refuses to serve are learned as holes and never bridged
-again, and a failed retry covering several entities is read once more entity
+addresses the device keeps refusing (two bridged reads in a row — and never in a
+block whose entities are known alive, since a single miss is as likely a
+transient timeout) are learned as holes and never bridged again, and a failed
+retry covering several entities is read once more entity
 by entity, so one dead register cannot take its readable neighbours down. A
 register that keeps failing while the device answers everything else (three
 consecutive polls, or one explicit illegal-address answer) is quarantined: its
