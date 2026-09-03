@@ -127,8 +127,7 @@ generates a ready-to-load file from your mappings. Run it from a checkout of
 this repository:
 
 ```bash
-.venv/bin/python support/modbus_scanner/scanner.py --host <gateway> --device-id 1
-.venv/bin/python support/modbus_scanner/scanner.py --demo    # no hardware needed
+.venv/bin/python support/modbus_scanner/scanner.py
 ```
 
 The [scanner guide](support/modbus_scanner/README.md) walks through it. For
