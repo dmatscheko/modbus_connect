@@ -1361,7 +1361,7 @@ class Scanner:
                 self._reindex()
             except (DeviceSchemaError, yaml.YAMLError, ValueError) as exc:
                 self.clear_device()  # a genuinely unparseable mapping — drop it, but say so
-                self.last_error = f"imported mapping could not be parsed: {' '.join(str(exc).split())}"
+                self.last_error = f"imported mapping could not be parsed: {_oneline(exc)}"
         else:
             self.clear_device()
         # additive overlays ride in exports too; one that no longer parses is dropped, but said so
@@ -1374,7 +1374,7 @@ class Scanner:
                 self._add_overlay(name, _restore_int_keys(item["mapping"]))
             except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError, TypeError) as exc:
                 self.last_error = (f"additional mapping {name} could not be parsed: "
-                                   f"{' '.join(str(exc).split())}")
+                                   f"{_oneline(exc)}")
         # ...and so does the Details-view decode override, revalidated like everything else
         self.override, self._override_def = None, None
         spec = data.get("override")
@@ -1385,7 +1385,7 @@ class Scanner:
                 self.override = spec
             except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError, TypeError) as exc:
                 self.last_error = (f"decode override could not be restored: "
-                                   f"{' '.join(str(exc).split())}")
+                                   f"{_oneline(exc)}")
         meta = data.get("meta")
         if isinstance(meta, dict):
             self.set_meta(meta.get("manufacturer"), meta.get("model"))
@@ -1496,7 +1496,7 @@ class Scanner:
         except (DeviceSchemaError, yaml.YAMLError, ValueError) as exc:
             self.map_doc = prev
             self._reindex()
-            raise DeviceSchemaError(" ".join(str(exc).split())) from exc
+            raise DeviceSchemaError(_oneline(exc)) from exc
         self._sync_imported()
         return self.device_summary()
 
@@ -1536,7 +1536,7 @@ class Scanner:
         except (DeviceSchemaError, yaml.YAMLError, ValueError) as exc:
             self.map_doc = prev
             self._reindex()
-            raise DeviceSchemaError(" ".join(str(exc).split())) from exc
+            raise DeviceSchemaError(_oneline(exc)) from exc
         self._sync_imported()
         return self.device_summary()
 
@@ -1584,7 +1584,7 @@ class Scanner:
         except (DeviceSchemaError, yaml.YAMLError, ValueError) as exc:
             self.map_doc = prev
             self._reindex()
-            raise DeviceSchemaError(" ".join(str(exc).split())) from exc
+            raise DeviceSchemaError(_oneline(exc)) from exc
         self._sync_imported()
         return self.device_summary()
 
@@ -1766,6 +1766,11 @@ class Scanner:
             return codec.decode(defn, raw), None
         except Exception as exc:
             return None, f"decode error: {exc}"
+
+
+def _oneline(exc: object) -> str:
+    """An exception's message on one line, for the UI banner and the JSON error replies."""
+    return " ".join(str(exc).split())
 
 
 def _jsonable(value: Any) -> Any:
@@ -2074,6 +2079,100 @@ def generate_device_yaml(scanner: Scanner, manufacturer: str, model: str,
 
 
 # --- web server ---------------------------------------------------------------
+class _HttpError(Exception):
+    """An error reply with its own HTTP status; the dispatcher turns it into JSON."""
+
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+# What a request may legitimately get wrong (a bad field, an unparseable mapping): a 400
+# with the message. Anything else is a bug and surfaces as a traceback.
+_USER_ERRORS = (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError)
+
+
+def _table_of(sc: Scanner, body: dict[str, Any]) -> str:
+    return str(body.get("table", sc.table))
+
+
+def _api_connect(sc: Scanner, body: dict[str, Any]) -> None:
+    sc.connect(
+        mode=str(body.get("mode", "tcp")),
+        host=str(body.get("host", "")).strip(),
+        port=int(body.get("port") or 502),
+        device_id=int(body.get("device_id") or 1),
+        timeout=float(body.get("timeout") or 2.0),
+        retries=int(body.get("retries") or _DEAD_AFTER_DEFAULT),
+    )
+
+
+def _api_config(sc: Scanner, body: dict[str, Any]) -> None:
+    sc.reconfigure(
+        table=body.get("table", sc.table),
+        start=int(body.get("start", sc.start)),
+        count=int(body.get("count", sc.count)),
+        max_read=int(body.get("max_read", sc.max_read)),
+        filter_mode=body.get("filter"),  # a chip list or a legacy string; None keeps
+        page_size=int(body.get("page_size") or sc.page_size),
+        search=str(body.get("search", sc.search)),
+    )
+    # fill from the requested start; if nothing is shown there (say, a switch to a
+    # table that serves nothing at this position), fall back to the first page
+    sc.open_page()
+
+
+def _api_import(sc: Scanner, body: dict[str, Any]) -> None:
+    try:
+        sc.load_state(body)
+    except (*_USER_ERRORS, TypeError, AttributeError) as exc:
+        raise _HttpError(400, f"not a scanner project export: {exc}") from exc
+    sc.open_page()  # fill the page (offline too), recovering if the saved start is too high
+
+
+def _api_device(sc: Scanner, body: dict[str, Any]) -> None:
+    additive = bool(body.get("additive"))
+    if body.get("imported"):
+        sc.load_imported(additive=additive)
+    elif body.get("yaml") is not None:
+        sc.load_device(body["yaml"], body.get("name", "uploaded.yaml"), additive=additive)
+    else:
+        file = str(body.get("file", ""))
+        path = CONFIG_DIR / file
+        if Path(file).name != file or not path.is_file():
+            raise _HttpError(404, "no such device file")
+        sc.load_device(path.read_text(encoding="utf-8"), path.name, additive=additive)
+
+
+# POST endpoints that change the session and answer with the fresh snapshot ...
+_POST_MUTATIONS: dict[str, Callable[[Scanner, dict[str, Any]], Any]] = {
+    "/api/scan": lambda sc, b: sc.scan(),
+    "/api/connect": _api_connect,
+    "/api/config": _api_config,
+    "/api/page": lambda sc, b: sc.page(forward=bool(b.get("forward", True)),
+                                      anchor=int(b.get("anchor", 0))),
+    "/api/retry": lambda sc, b: sc.retry_address(_table_of(sc, b), int(b.get("address") or 0)),
+    "/api/meta": lambda sc, b: sc.set_meta(b.get("manufacturer"), b.get("model")),
+    "/api/import": _api_import,
+    "/api/map": lambda sc, b: sc.set_mapping(_table_of(sc, b), int(b["address"]), b),
+    "/api/unmap": lambda sc, b: sc.remove_mapping(_table_of(sc, b), int(b["address"])),
+    "/api/copymap": lambda sc, b: sc.copy_mapping(_table_of(sc, b), int(b["address"])),
+    "/api/adopt": lambda sc, b: sc.adopt_mapping(_table_of(sc, b), int(b["address"])),
+    "/api/override": lambda sc, b: sc.set_override(b),
+    "/api/unoverride": lambda sc, b: sc.clear_override(),
+    "/api/device": _api_device,
+    "/api/device/clear": lambda sc, b: sc.clear_devices(),
+    "/api/clear": lambda sc, b: sc.clear_all(),
+}
+# ... and the ones that answer with their own result.
+_POST_QUERIES: dict[str, Callable[[Scanner, dict[str, Any]], Any]] = {
+    "/api/decode": lambda sc, b: {"views": decoded_views([int(v) for v in b.get("registers", [])])},
+    "/api/history": lambda sc, b: sc.history(_table_of(sc, b), int(b.get("address") or 0)),
+    "/api/generate": lambda sc, b: {"yaml": sc.generate_yaml(
+        b.get("manufacturer", ""), b.get("model", ""), [int(a) for a in b.get("addresses", [])])},
+}
+
+
 class _Handler(BaseHTTPRequestHandler):
     def log_message(self, *args: Any) -> None:  # quiet; this is a local tool
         pass
@@ -2143,120 +2242,24 @@ class _Handler(BaseHTTPRequestHandler):
                 sc.finish_disconnect()
             self._json({"connection": {**sc.connection, "connected": False, "error": None}})
             return
+        query, mutation = _POST_QUERIES.get(self.path), _POST_MUTATIONS.get(self.path)
+        if query is None and mutation is None:
+            self._json({"error": "not found"}, 404)
+            return
         with self._lock:
-            if self.path == "/api/scan":
-                self._scanner.scan()
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/connect":
-                self._scanner.connect(
-                    mode=str(body.get("mode", "tcp")),
-                    host=str(body.get("host", "")).strip(),
-                    port=int(body.get("port") or 502),
-                    device_id=int(body.get("device_id") or 1),
-                    timeout=float(body.get("timeout") or 2.0),
-                    retries=int(body.get("retries") or _DEAD_AFTER_DEFAULT),
-                )
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/config":
-                self._scanner.reconfigure(
-                    table=body.get("table", self._scanner.table),
-                    start=int(body.get("start", self._scanner.start)),
-                    count=int(body.get("count", self._scanner.count)),
-                    max_read=int(body.get("max_read", self._scanner.max_read)),
-                    filter_mode=body.get("filter"),  # a chip list or a legacy string; None keeps
-                    page_size=int(body.get("page_size") or self._scanner.page_size),
-                    search=str(body.get("search", self._scanner.search)),
-                )
-                # fill from the requested start; if nothing is shown there (say, a switch to a
-                # table that serves nothing at this position), fall back to the first page
-                self._scanner.open_page()
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/page":
-                self._scanner.page(forward=bool(body.get("forward", True)),
-                                   anchor=int(body.get("anchor", 0)))
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/decode":
-                regs = [int(v) for v in body.get("registers", [])]
-                self._json({"views": decoded_views(regs)})
-            elif self.path == "/api/history":
-                self._json(self._scanner.history(
-                    str(body.get("table", self._scanner.table)), int(body.get("address") or 0)))
-            elif self.path == "/api/retry":
-                self._scanner.retry_address(
-                    str(body.get("table", self._scanner.table)), int(body.get("address") or 0))
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/meta":
-                self._scanner.set_meta(body.get("manufacturer"), body.get("model"))
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/generate":
-                yaml_text = self._scanner.generate_yaml(
-                    body.get("manufacturer", ""), body.get("model", ""),
-                    [int(a) for a in body.get("addresses", [])],
-                )
-                self._json({"yaml": yaml_text})
-            elif self.path == "/api/import":
-                try:
-                    self._scanner.load_state(body)
-                except (DeviceSchemaError, yaml.YAMLError, ValueError,
-                        KeyError, TypeError, AttributeError) as exc:
-                    self._json({"error": f"not a scanner project export: {exc}"}, 400)
+            try:
+                if query is not None:
+                    self._json(query(self._scanner, body))
                     return
-                self._scanner.open_page()  # fill the page (offline too), recovering if the saved start is too high
-                self._json(self._scanner.snapshot())
-            elif self.path in ("/api/map", "/api/unmap", "/api/copymap", "/api/adopt"):
-                try:
-                    table = str(body.get("table", self._scanner.table))
-                    address = int(body["address"])
-                    if self.path == "/api/map":
-                        self._scanner.set_mapping(table, address, body)
-                    elif self.path == "/api/copymap":
-                        self._scanner.copy_mapping(table, address)
-                    elif self.path == "/api/adopt":
-                        self._scanner.adopt_mapping(table, address)
-                    else:
-                        self._scanner.remove_mapping(table, address)
-                except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
-                    self._json({"error": " ".join(str(exc).split())}, 400)
-                    return
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/override":
-                try:
-                    self._scanner.set_override(body)
-                except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
-                    self._json({"error": " ".join(str(exc).split())}, 400)
-                    return
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/unoverride":
-                self._scanner.clear_override()
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/device":
-                try:
-                    additive = bool(body.get("additive"))
-                    if body.get("imported"):
-                        self._scanner.load_imported(additive=additive)
-                    elif body.get("yaml") is not None:
-                        self._scanner.load_device(body["yaml"], body.get("name", "uploaded.yaml"),
-                                                  additive=additive)
-                    else:
-                        file = str(body.get("file", ""))
-                        path = CONFIG_DIR / file
-                        if Path(file).name != file or not path.is_file():
-                            self._json({"error": "no such device file"}, 404)
-                            return
-                        self._scanner.load_device(path.read_text(encoding="utf-8"), path.name,
-                                                  additive=additive)
-                except (DeviceSchemaError, yaml.YAMLError, ValueError, KeyError) as exc:
-                    self._json({"error": " ".join(str(exc).split())}, 400)
-                    return
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/device/clear":
-                self._scanner.clear_devices()
-                self._json(self._scanner.snapshot())
-            elif self.path == "/api/clear":
-                self._scanner.clear_all()
-                self._json(self._scanner.snapshot())
-            else:
-                self._json({"error": "not found"}, 404)
+                assert mutation is not None
+                mutation(self._scanner, body)
+            except _HttpError as exc:
+                self._json({"error": str(exc)}, exc.status)
+                return
+            except _USER_ERRORS as exc:
+                self._json({"error": _oneline(exc)}, 400)
+                return
+            self._json(self._scanner.snapshot())
 
 
 def serve(scanner: Scanner, host: str, port: int, *, open_browser: bool = True) -> None:
