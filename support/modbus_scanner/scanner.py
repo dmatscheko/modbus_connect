@@ -51,7 +51,7 @@ import threading
 import time
 import webbrowser
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -1304,12 +1304,7 @@ class Scanner:
         any additive overlays, the connection, and just the Count / Per-read tuning — NOT the
         table, view position, or filter (those are per-session, so an import doesn't yank you off
         what you're looking at). Round-trips through load_state."""
-        cells = [
-            {"table": table, "address": cell.address, "value": cell.value,
-             "changes": cell.changes, "reads": cell.reads, "last_changed": cell.last_changed,
-             "error": cell.error, "illegal": cell.illegal, "history": cell.history}
-            for (table, _addr), cell in sorted(self.cells.items())
-        ]
+        cells = [{"table": table, **asdict(cell)} for (table, _addr), cell in sorted(self.cells.items())]
         return {"config": {"count": self.count, "max_read": self.max_read},
                 "connection": dict(self.connection), "scan_index": self.scan_index,
                 "meta": dict(self.meta), "mapping": self.map_doc,
