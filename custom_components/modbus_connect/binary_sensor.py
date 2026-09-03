@@ -9,41 +9,19 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
+from .coordinator import ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
     ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
-    build_description,
-    build_template_description,
+    platform_setup,
     resolve_on_off,
 )
 
 # Read-only platform; all data comes through the coordinator.
 PARALLEL_UPDATES = 0
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    entities: list[BinarySensorEntity] = [
-        ModbusConnectBinarySensor(coordinator, defn, build_description(defn))
-        for defn in coordinator.entities_for("binary_sensor")
-    ]
-    entities.extend(
-        ModbusConnectTemplateBinarySensor(
-            coordinator, tdef, build_template_description(tdef)
-        )
-        for tdef in coordinator.templates_for("binary_sensor")
-    )
-    entities.append(ModbusConnectReadHealthBinarySensor(coordinator))
-    async_add_entities(entities)
 
 
 class ModbusConnectBinarySensor(ModbusConnectEntity, BinarySensorEntity):
@@ -89,3 +67,15 @@ class ModbusConnectReadHealthBinarySensor(ModbusConnectMetaEntity, BinarySensorE
             "failed_reads_last_5_min": self._coordinator.read_failures_in_window,
             "failed_reads_total": self._coordinator.failed_read_total,
         }
+
+
+def _extra_binary_sensors(coordinator: ModbusConnectCoordinator) -> list[Entity]:
+    return [ModbusConnectReadHealthBinarySensor(coordinator)]
+
+
+async_setup_entry = platform_setup(
+    "binary_sensor",
+    ModbusConnectBinarySensor,
+    ModbusConnectTemplateBinarySensor,
+    _extra_binary_sensors,
+)

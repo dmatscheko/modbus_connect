@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable, Iterable
 from typing import Any
 
 from homeassistant.components.sensor import SensorStateClass
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity, EntityDescription
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.template import Template, result_as_boolean
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
 from .const import DOMAIN
-from .coordinator import ModbusConnectCoordinator, render_over_values
+from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator, render_over_values
 from .models import (
     BIT_TABLES,
     TYPE_STRING,
@@ -68,6 +71,38 @@ def build_mirror_description(defn: EntityDef) -> EntityDescription:
     if numeric and "state_class" not in defn.ha:
         overrides["state_class"] = SensorStateClass.MEASUREMENT
     return build_description(defn, platform="sensor", overrides=overrides)
+
+
+SetupEntry = Callable[[HomeAssistant, ModbusConnectConfigEntry, AddEntitiesCallback], Awaitable[None]]
+
+
+def platform_setup(
+    platform: str,
+    entity_cls: Callable[[ModbusConnectCoordinator, EntityDef], Entity] | None = None,
+    template_cls: Callable[[ModbusConnectCoordinator, TemplateDef], Entity] | None = None,
+    extra: Callable[[ModbusConnectCoordinator], Iterable[Entity]] | None = None,
+) -> SetupEntry:
+    """A platform module's ``async_setup_entry``: adds the visible register-backed
+    entities (``entity_cls``) and template entities (``template_cls``) of
+    ``platform``, plus any ``extra`` integration-level entities — the sensor
+    mirrors and the Configuration-device controls and diagnostics."""
+
+    async def async_setup_entry(
+        hass: HomeAssistant,
+        entry: ModbusConnectConfigEntry,
+        async_add_entities: AddEntitiesCallback,
+    ) -> None:
+        coordinator = entry.runtime_data
+        entities: list[Entity] = []
+        if entity_cls is not None:
+            entities += (entity_cls(coordinator, e) for e in coordinator.entities_for(platform))
+        if template_cls is not None:
+            entities += (template_cls(coordinator, t) for t in coordinator.templates_for(platform))
+        if extra is not None:
+            entities += extra(coordinator)
+        async_add_entities(entities)
+
+    return async_setup_entry
 
 
 def suggest_entity_id(
@@ -158,14 +193,14 @@ class ModbusConnectEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self,
         coordinator: ModbusConnectCoordinator,
         defn: EntityDef,
-        description: EntityDescription,
+        description: EntityDescription | None = None,
         *,
         unique_suffix: str = "",
         domain: str | None = None,
     ) -> None:
         super().__init__(coordinator)
         self._defn = defn
-        self.entity_description = description
+        self.entity_description = description or build_description(defn)
         self._attr_unique_id = f"{coordinator.entry_id}_{defn.key}{unique_suffix}"
         self._attr_device_info = coordinator.device_info
         suggest_entity_id(
@@ -223,11 +258,11 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self,
         coordinator: ModbusConnectCoordinator,
         tdef: TemplateDef,
-        description: EntityDescription,
+        description: EntityDescription | None = None,
     ) -> None:
         super().__init__(coordinator)
         self._tdef = tdef
-        self.entity_description = description
+        self.entity_description = description or build_template_description(tdef)
         self._attr_unique_id = f"{coordinator.entry_id}_{tdef.key}"
         self._attr_device_info = coordinator.device_info
         self._compiled: dict[str, Template] = {}

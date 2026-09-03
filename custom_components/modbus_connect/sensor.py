@@ -8,57 +8,22 @@ from typing import Any
 
 from homeassistant.components.sensor import RestoreSensor, SensorEntity
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import EntityDescription
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
+from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.typing import StateType
 
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
+from .coordinator import ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
     ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
-    build_description,
     build_mirror_description,
-    build_template_description,
+    platform_setup,
 )
-from .models import TemplateDef
+from .models import EntityDef, TemplateDef
 
 # Read-only platform; all data comes through the coordinator.
 PARALLEL_UPDATES = 0
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    entities: list[SensorEntity] = []
-    for defn in coordinator.visible_entities:
-        if defn.platform == "sensor":
-            entities.append(ModbusConnectSensor(coordinator, defn, build_description(defn)))
-        elif defn.duplicate_as_sensor:
-            entities.append(
-                ModbusConnectSensor(
-                    coordinator,
-                    defn,
-                    build_mirror_description(defn),
-                    unique_suffix="_sensor",
-                    domain="sensor",
-                )
-            )
-    entities.extend(
-        (
-            ModbusConnectIntegralSensor(coordinator, tdef, build_template_description(tdef))
-            if tdef.config.get("integrate")
-            else ModbusConnectTemplateSensor(coordinator, tdef, build_template_description(tdef))
-        )
-        for tdef in coordinator.templates_for("sensor")
-    )
-    entities.append(ModbusConnectReadCountSensor(coordinator))
-    entities.append(ModbusConnectFailedReadsSensor(coordinator))
-    async_add_entities(entities)
 
 
 class ModbusConnectSensor(ModbusConnectEntity, SensorEntity):
@@ -101,7 +66,7 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
         self,
         coordinator: ModbusConnectCoordinator,
         tdef: TemplateDef,
-        description: EntityDescription,
+        description: EntityDescription | None = None,
     ) -> None:
         super().__init__(coordinator, tdef, description)
         self._method: str = tdef.config["integrate"]
@@ -205,3 +170,34 @@ class ModbusConnectFailedReadsSensor(ModbusConnectMetaEntity, SensorEntity):
     @property
     def native_value(self) -> int:
         return self._coordinator.failed_read_total
+
+
+class ModbusConnectMirrorSensor(ModbusConnectSensor):
+    """The read-only twin of a writable entity (``duplicate_as_sensor``), so its
+    history lands in long-term statistics."""
+
+    def __init__(self, coordinator: ModbusConnectCoordinator, defn: EntityDef) -> None:
+        super().__init__(
+            coordinator,
+            defn,
+            build_mirror_description(defn),
+            unique_suffix="_sensor",
+            domain="sensor",
+        )
+
+
+def _template_sensor(coordinator: ModbusConnectCoordinator, tdef: TemplateDef) -> Entity:
+    if tdef.config.get("integrate"):
+        return ModbusConnectIntegralSensor(coordinator, tdef)
+    return ModbusConnectTemplateSensor(coordinator, tdef)
+
+
+def _extra_sensors(coordinator: ModbusConnectCoordinator) -> list[Entity]:
+    return [
+        *(ModbusConnectMirrorSensor(coordinator, defn) for defn in coordinator.mirrored_entities),
+        ModbusConnectReadCountSensor(coordinator),
+        ModbusConnectFailedReadsSensor(coordinator),
+    ]
+
+
+async_setup_entry = platform_setup("sensor", ModbusConnectSensor, _template_sensor, _extra_sensors)

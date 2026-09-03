@@ -504,6 +504,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return (t for t in self.visible_templates if t.platform == platform)
 
     @property
+    def mirrored_entities(self) -> Iterator[EntityDef]:
+        """Visible writable entities that also get a read-only sensor twin
+        (``duplicate_as_sensor``)."""
+        return (
+            e for e in self.visible_entities if e.duplicate_as_sensor and e.platform != "sensor"
+        )
+
+    @property
     def group_switch_names(self) -> tuple[str, ...]:
         """The named groups that get a toggle switch (the always-on ``basic``
         gets none). The show-all switch is separate — it exists whenever the
@@ -520,11 +528,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         every unique id any platform module creates.
         """
         ids = {f"{self.entry_id}_{e.key}" for e in self.visible_entities}
-        ids.update(
-            f"{self.entry_id}_{e.key}_sensor"
-            for e in self.visible_entities
-            if e.duplicate_as_sensor and e.platform != "sensor"
-        )
+        ids.update(f"{self.entry_id}_{e.key}_sensor" for e in self.mirrored_entities)
         ids.update(f"{self.entry_id}_{t.key}" for t in self.visible_templates)
         ids.update(
             f"{self.entry_id}_group_{group}" for group in self.group_switch_names

@@ -6,31 +6,16 @@ import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectEntity, ModbusConnectMetaEntity, build_description
+from .coordinator import ModbusConnectCoordinator
+from .entity import ModbusConnectEntity, ModbusConnectMetaEntity, platform_setup
 
 _LOGGER = logging.getLogger(__name__)
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    entities: list[ButtonEntity] = [
-        ModbusConnectButton(coordinator, defn, build_description(defn))
-        for defn in coordinator.entities_for("button")
-    ]
-    entities.append(ModbusConnectRemoveHiddenButton(coordinator))
-    async_add_entities(entities)
 
 
 class ModbusConnectButton(ModbusConnectEntity, ButtonEntity):
@@ -75,3 +60,10 @@ class ModbusConnectRemoveHiddenButton(ModbusConnectMetaEntity, ButtonEntity):
             self._coordinator.name,
             len(stale),
         )
+
+
+def _extra_buttons(coordinator: ModbusConnectCoordinator) -> list[Entity]:
+    return [ModbusConnectRemoveHiddenButton(coordinator)]
+
+
+async_setup_entry = platform_setup("button", ModbusConnectButton, extra=_extra_buttons)

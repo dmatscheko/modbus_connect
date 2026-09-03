@@ -13,12 +13,10 @@ from homeassistant.components.climate import (
     HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, build_template_description
+from .coordinator import ModbusConnectCoordinator
+from .entity import ModbusConnectTemplateEntity, platform_setup
 from .models import TemplateDef
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,18 +27,6 @@ _HVACEnum = TypeVar("_HVACEnum", bound=Enum)
 PARALLEL_UPDATES = 1
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    async_add_entities(
-        ModbusConnectClimate(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.templates_for("climate")
-    )
-
-
 class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
     """A thermostat whose state comes from templates over the device's values
     and whose actions write to the device's Modbus entities."""
@@ -49,7 +35,7 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
         self,
         coordinator: ModbusConnectCoordinator,
         tdef: TemplateDef,
-        description: EntityDescription,
+        description: EntityDescription | None = None,
     ) -> None:
         super().__init__(coordinator, tdef, description)
         cfg = tdef.config
@@ -117,3 +103,6 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
             if mode != HVACMode.OFF:
                 await self.async_set_hvac_mode(mode)
                 return
+
+
+async_setup_entry = platform_setup("climate", template_cls=ModbusConnectClimate)

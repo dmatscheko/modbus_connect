@@ -6,49 +6,21 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from .const import BASIC_GROUP, OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
+from .coordinator import ModbusConnectCoordinator
 from .entity import (
     ModbusConnectEntity,
     ModbusConnectMetaEntity,
     ModbusConnectTemplateEntity,
-    build_description,
-    build_template_description,
     on_off_payload,
+    platform_setup,
     resolve_on_off,
 )
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    entities: list[SwitchEntity] = [
-        ModbusConnectSwitch(coordinator, defn, build_description(defn))
-        for defn in coordinator.entities_for("switch")
-    ]
-    entities.extend(
-        ModbusConnectTemplateSwitch(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.templates_for("switch")
-    )
-    # Group toggles are integration-level config controls, never themselves
-    # group-filtered: one per named group (basic is always on and gets no toggle),
-    # plus the show-all bypass — present only when the file uses groups at all,
-    # since without groups everything is always shown anyway.
-    entities.extend(
-        ModbusConnectGroupSwitch(coordinator, group) for group in coordinator.group_switch_names
-    )
-    if coordinator.all_groups:
-        entities.append(ModbusConnectShowAllSwitch(coordinator))
-    async_add_entities(entities)
 
 
 class ModbusConnectSwitch(ModbusConnectEntity, SwitchEntity):
@@ -167,3 +139,21 @@ class ModbusConnectShowAllSwitch(_OptionSwitch):
     async def _set(self, *, show_all: bool) -> None:
         if show_all != self._coordinator.show_all:
             self._set_option(OPTION_SHOW_ALL, show_all)
+
+
+def _extra_switches(coordinator: ModbusConnectCoordinator) -> list[Entity]:
+    # Group toggles are integration-level config controls, never themselves
+    # group-filtered: one per named group (basic is always on and gets no toggle),
+    # plus the show-all bypass — present only when the file uses groups at all,
+    # since without groups everything is always shown anyway.
+    extra: list[Entity] = [
+        ModbusConnectGroupSwitch(coordinator, group) for group in coordinator.group_switch_names
+    ]
+    if coordinator.all_groups:
+        extra.append(ModbusConnectShowAllSwitch(coordinator))
+    return extra
+
+
+async_setup_entry = platform_setup(
+    "switch", ModbusConnectSwitch, ModbusConnectTemplateSwitch, _extra_switches
+)

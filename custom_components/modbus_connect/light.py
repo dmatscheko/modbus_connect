@@ -5,28 +5,14 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
-from .entity import ModbusConnectTemplateEntity, build_template_description, clamp_round
+from .coordinator import ModbusConnectCoordinator
+from .entity import ModbusConnectTemplateEntity, clamp_round, platform_setup
 from .models import TemplateDef
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    async_add_entities(
-        ModbusConnectLight(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.templates_for("light")
-    )
 
 
 class ModbusConnectLight(ModbusConnectTemplateEntity, LightEntity):
@@ -36,7 +22,7 @@ class ModbusConnectLight(ModbusConnectTemplateEntity, LightEntity):
         self,
         coordinator: ModbusConnectCoordinator,
         tdef: TemplateDef,
-        description: EntityDescription,
+        description: EntityDescription | None = None,
     ) -> None:
         super().__init__(coordinator, tdef, description)
         cfg = tdef.config
@@ -64,3 +50,6 @@ class ModbusConnectLight(ModbusConnectTemplateEntity, LightEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._run_action("turn_off")
+
+
+async_setup_entry = platform_setup("light", template_cls=ModbusConnectLight)

@@ -3,36 +3,11 @@
 from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import ModbusConnectConfigEntry
-from .entity import (
-    ModbusConnectEntity,
-    ModbusConnectTemplateEntity,
-    build_description,
-    build_template_description,
-)
+from .entity import ModbusConnectEntity, ModbusConnectTemplateEntity, platform_setup
 
 # Serialize writes; the gateway handles one transaction at a time.
 PARALLEL_UPDATES = 1
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ModbusConnectConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator = entry.runtime_data
-    entities: list[NumberEntity] = [
-        ModbusConnectNumber(coordinator, defn, build_description(defn))
-        for defn in coordinator.entities_for("number")
-    ]
-    entities.extend(
-        ModbusConnectTemplateNumber(coordinator, tdef, build_template_description(tdef))
-        for tdef in coordinator.templates_for("number")
-    )
-    async_add_entities(entities)
 
 
 class ModbusConnectNumber(ModbusConnectEntity, NumberEntity):
@@ -56,3 +31,6 @@ class ModbusConnectTemplateNumber(ModbusConnectTemplateEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self._run_action("set_value", value)
+
+
+async_setup_entry = platform_setup("number", ModbusConnectNumber, ModbusConnectTemplateNumber)
