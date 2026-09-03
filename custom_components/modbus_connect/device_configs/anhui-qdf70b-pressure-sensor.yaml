@@ -15,7 +15,7 @@ holding:
     ha:
       platform: sensor
       name: Pressure
-      unit: pa
+      unit: Pa
   holding_0016:
     address: 22
     ha:
