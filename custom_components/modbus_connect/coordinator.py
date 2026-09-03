@@ -39,6 +39,7 @@ from .const import (
     OPTION_SHOW_ALL,
     QUARANTINE_AFTER,
     QUARANTINE_RETRY_SECONDS,
+    SHOW_ALL_MIN_GROUPS,
 )
 from .models import (
     TABLE_COIL,
@@ -113,28 +114,52 @@ def resolve_enabled_groups(
     """Which named entity groups are active for this entry.
 
     The config-entry option wins when set; otherwise the device file's
-    ``default_groups``. The selection is filtered to the file's declared groups,
-    so stale names from a previously configured device file drop out. The
-    ``basic`` group is special: it is always enabled (and gets no toggle
-    switch), so a device's baseline entities cannot be hidden.
+    ``default_groups``, and a file that declares none starts with every group
+    enabled. The selection is filtered to the file's declared groups, so stale
+    names from a previously configured device file drop out. The ``basic``
+    group is special: it is always enabled (and gets no toggle switch), so a
+    device's baseline entities cannot be hidden.
     """
     chosen = (options or {}).get(OPTION_ENABLED_GROUPS)
     if chosen is None:
-        chosen = device.default_groups
+        chosen = device.default_groups or device.group_names
     names = set(device.group_names)
     return frozenset(g for g in chosen if g in names) | {BASIC_GROUP}
+
+
+def wants_show_all_switch(device: DeviceDef) -> bool:
+    """Whether the "Enable all entities" switch adds anything for this file.
+
+    It does when entities are tagged into no group — only the bypass can reveal
+    them — or when there are at least SHOW_ALL_MIN_GROUPS toggleable groups, so
+    enabling everything one switch at a time would be a chore. A file with a
+    couple of groups and no untagged entity gets no switch: its group switches
+    already reach every entity.
+    """
+    if not device.group_names:
+        return False
+    untagged = any(not e.groups for e in device.entities if not e.internal) or any(
+        not t.groups for t in device.templates
+    )
+    toggles = sum(1 for g in device.group_names if g != BASIC_GROUP)
+    return untagged or toggles >= SHOW_ALL_MIN_GROUPS
 
 
 def resolve_show_all(device: DeviceDef, options: dict[str, Any] | None) -> bool:
     """Whether group handling is bypassed so every entity shows.
 
     Permanently on for a device file that uses no groups — there is nothing to
-    toggle, so no switch exists either. Otherwise the show-all option wins when
-    set (the "Show all entities" switch). With nothing chosen anywhere, a file
-    that declares no ``default_groups`` starts with everything visible.
+    toggle, so no switch exists either. Permanently off for a file that gets no
+    show-all switch (see wants_show_all_switch): its group switches alone decide,
+    and a stale option from an earlier file is ignored. Otherwise the show-all
+    option wins when set (the "Enable all entities" switch). With nothing chosen
+    anywhere, a file that declares no ``default_groups`` starts with everything
+    visible.
     """
     if not device.group_names:
         return True
+    if not wants_show_all_switch(device):
+        return False
     options = options or {}
     flag = options.get(OPTION_SHOW_ALL)
     if flag is not None:
@@ -243,6 +268,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # resolve_show_all / referenced_read_keys.
         self.enabled_groups = resolve_enabled_groups(device, dict(entry.options))
         self.show_all = resolve_show_all(device, dict(entry.options))
+        self.show_all_switch = wants_show_all_switch(device)
         self.all_groups = device.group_names
         # Internal entities never become HA entities; they are read only when a
         # visible item depends on them (via the closure below), so a readback for a
@@ -536,7 +562,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ids.update(
             f"{self.entry_id}_group_{group}" for group in self.group_switch_names
         )
-        if self.all_groups:
+        if self.show_all_switch:
             ids.add(f"{self.entry_id}_show_all_entities")
         ids.add(f"{self.entry_id}_reads_per_refresh")
         ids.add(f"{self.entry_id}_remove_hidden_entities")

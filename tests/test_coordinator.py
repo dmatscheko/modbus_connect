@@ -13,6 +13,7 @@ from custom_components.modbus_connect.coordinator import (
     is_group_visible,
     resolve_enabled_groups,
     resolve_show_all,
+    wants_show_all_switch,
 )
 from custom_components.modbus_connect.models import (
     EntityDef,
@@ -168,19 +169,52 @@ def test_resolve_enabled_groups_precedence():
 
 
 def test_resolve_show_all_precedence():
-    dev = make_device(sensor("a", 0, groups=("basic",)), default_groups=("basic",))
+    # an untagged entity makes the bypass exist at all (see the next test)
+    dev = make_device(sensor("a", 0, groups=("basic",)), sensor("u", 1), default_groups=("basic",))
     # the option wins when set
     assert resolve_show_all(dev, {OPTION_SHOW_ALL: True}) is True
     assert resolve_show_all(dev, {OPTION_SHOW_ALL: False}) is False
     # nothing chosen anywhere: default_groups keeps the bypass off ...
     assert resolve_show_all(dev, None) is False
-    # ... while a grouped file without default_groups starts with everything
-    dev2 = make_device(sensor("a", 0, groups=("x",)))
+    # ... while a grouped file without default_groups starts with everything:
+    # every group enabled, and the bypass on where it has untagged entities to show
+    dev2 = make_device(sensor("a", 0, groups=("x",)), sensor("b", 1))
+    assert resolve_enabled_groups(dev2, None) == frozenset({"x", "basic"})
     assert resolve_show_all(dev2, None) is True
     assert resolve_show_all(dev2, {OPTION_ENABLED_GROUPS: ["x"]}) is False
     # a file without any groups always shows everything, whatever the options say
     dev3 = make_device(sensor("a", 0))
     assert resolve_show_all(dev3, {OPTION_SHOW_ALL: False}) is True
+    # a file whose group switches already reach every entity gets no bypass at
+    # all: even a stale option cannot switch it on
+    dev4 = make_device(sensor("a", 0, groups=("x",)), sensor("b", 1, groups=("y",)))
+    assert resolve_show_all(dev4, {OPTION_SHOW_ALL: True}) is False
+
+
+def test_show_all_switch_only_where_it_adds_something():
+    assert wants_show_all_switch(make_device(sensor("a", 0))) is False  # no groups
+    few = make_device(sensor("a", 0, groups=("x",)), sensor("b", 1, groups=("y",)))
+    assert wants_show_all_switch(few) is False  # two switches reach everything
+    untagged = make_device(sensor("a", 0, groups=("x",)), sensor("b", 1))
+    assert wants_show_all_switch(untagged) is True  # only the bypass shows b
+    internal = make_device(sensor("a", 0, groups=("x",)), sensor("i", 1, platform="internal"))
+    assert wants_show_all_switch(internal) is False  # internal never becomes an entity
+    many = make_device(*(sensor(f"e{n}", n, groups=(f"g{n}",)) for n in range(4)))
+    assert wants_show_all_switch(many) is True  # four switches: one master is a help
+
+
+async def test_no_show_all_switch_means_no_bypass_entity(hass, monkeypatch):
+    client = FakeClient({0: 1, 1: 2})
+    device = make_device(
+        sensor("a", 0, groups=("x",)), sensor("b", 1, groups=("y",)), default_groups=("x",)
+    )
+    coordinator = await make_coordinator(
+        hass, device, client, monkeypatch, FakeTime(), options={OPTION_SHOW_ALL: True}
+    )
+    assert coordinator.show_all_switch is False
+    assert coordinator.show_all is False  # the stale option is ignored
+    assert {e.key for e in coordinator.visible_entities} == {"a"}
+    assert f"{coordinator.entry_id}_show_all_entities" not in coordinator.provided_unique_ids
 
 
 def test_group_named_all_is_an_ordinary_group():

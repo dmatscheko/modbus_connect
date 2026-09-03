@@ -66,6 +66,10 @@ OPTION_ENABLED_GROUPS: Final = "enabled_groups"
 # Bypass group handling entirely while true: every non-internal entity is shown,
 # whatever the group selection says (the "Show all entities" switch).
 OPTION_SHOW_ALL: Final = "show_all_entities"
+# The show-all switch is offered only where it adds something: when entities are
+# tagged into no group (nothing else can reveal them), or when a file has at least
+# this many toggleable groups, so enabling them one by one would be a chore.
+SHOW_ALL_MIN_GROUPS: Final = 4
 
 # The one reserved group name: always enabled, no toggle switch. Tagging an
 # entity ``groups: [basic]`` keeps it out of other groups without ever hiding it.

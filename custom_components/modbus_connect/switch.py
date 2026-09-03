@@ -112,8 +112,8 @@ class ModbusConnectGroupSwitch(_OptionSwitch):
 class ModbusConnectShowAllSwitch(_OptionSwitch):
     """Config toggle that bypasses group handling: while on, every entity of the
     device file is created (and its registers polled), whatever the group
-    switches say. Exists only for device files that use groups — without groups
-    everything is always shown and there is nothing to bypass.
+    switches say. Exists only where it adds something: for files with entities
+    tagged into no group, or with many groups (see wants_show_all_switch).
     """
 
     _attr_translation_key = "group_enable_all"
@@ -144,12 +144,11 @@ class ModbusConnectShowAllSwitch(_OptionSwitch):
 def _extra_switches(coordinator: ModbusConnectCoordinator) -> list[Entity]:
     # Group toggles are integration-level config controls, never themselves
     # group-filtered: one per named group (basic is always on and gets no toggle),
-    # plus the show-all bypass — present only when the file uses groups at all,
-    # since without groups everything is always shown anyway.
+    # plus the show-all bypass where it adds something (see wants_show_all_switch).
     extra: list[Entity] = [
         ModbusConnectGroupSwitch(coordinator, group) for group in coordinator.group_switch_names
     ]
-    if coordinator.all_groups:
+    if coordinator.show_all_switch:
         extra.append(ModbusConnectShowAllSwitch(coordinator))
     return extra
 
