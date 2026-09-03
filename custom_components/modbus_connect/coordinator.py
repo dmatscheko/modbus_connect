@@ -293,7 +293,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._tick: int = min(self._interval_for.values(), default=floor)
         self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
         # Device-declared dead registers seed the same set the planner grows from
-        # failed reads, so they are never read or bridged across.
+        # failed reads, so no read is ever bridged across them.
         self.holes: set[tuple[str, int]] = set(device.bad_addresses)
         # Consecutive misses per set of bridged filler addresses (see _learn_holes).
         self._bridge_strikes: dict[frozenset[tuple[str, int]], int] = {}

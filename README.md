@@ -236,9 +236,10 @@ failure, so a device that is power-cycled — timing out, then refusing reads
 while it boots — is polled again the moment it answers. *Download diagnostics*
 lists `quarantined`, `not_yet_alive` and per-entity failure counts
 (`failed_reads_by_key`, worst first). A register the device genuinely never
-serves is best removed from the
-file or declared in
-[`bad_addresses`](docs/device_files.md#read-planning-and-polling).
+serves is best removed from the file; unused addresses the device refuses
+between entities go into
+[`bad_addresses`](docs/device_files.md#read-planning-and-polling) so no read
+is bridged across them.
 
 ## Automation examples
 

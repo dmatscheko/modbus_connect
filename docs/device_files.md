@@ -32,8 +32,8 @@ device:
   model: SDM630
   max_register_read: 100   # max registers per read request (default 8, cap 125)
   max_read_gap: 8          # bridge unused holes up to this many registers (default 8)
-  bad_addresses:           # never read or bridge across these (optional), by table —
-    holding: [0x99]        #   registers the device answers with an error
+  bad_addresses:           # never bridge a read across these (optional), by table —
+    holding: [0x99]        #   unused registers the device answers with an error
   split_before:            # force a fresh read block to start at these (optional),
     holding: [0x30, 400]   #   by table — for devices that dislike spanning them
   scan_interval: 30        # default poll interval in seconds; entities without
@@ -137,8 +137,10 @@ and stays in the plan through any later failure, so a power-cycled device
 answers.
 Two device keys steer the planner up front when a device is known to be picky:
 
-- `bad_addresses:` — registers the device answers with an error, per table;
-  never read and never bridged across.
+- `bad_addresses:` — addresses the device answers with an error, per table;
+  the planner never bridges a read across them. This steers only the gaps
+  between entities: an entity's own registers are always read, so a register
+  the device refuses belongs out of the file, not in this list.
 - `split_before:` — a fresh read block must start at these addresses, per
   table; for devices that fail any read *spanning* them.
 

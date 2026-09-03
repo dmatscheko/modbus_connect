@@ -290,9 +290,10 @@ class DeviceDef:
     templates: tuple[TemplateDef, ...] = ()
     max_read: int = DEFAULT_MAX_READ  # max registers/bits per read request
     max_gap: int = DEFAULT_MAX_GAP  # bridge unused holes up to this many addresses
-    # (table, address) pairs the planner must never read or bridge across
-    # (device-declared dead registers), and addresses that must always start a
-    # new read block (a forced boundary between two otherwise-mergeable spans).
+    # (table, address) pairs the planner must never bridge a read across
+    # (device-declared dead registers between entities; an entity's own address
+    # is still read), and addresses that must always start a new read block (a
+    # forced boundary between two otherwise-mergeable spans).
     bad_addresses: frozenset[tuple[str, int]] = frozenset()
     boundaries: frozenset[tuple[str, int]] = frozenset()
     # Poll cadence. ``scan_interval`` is the device default that entities without
