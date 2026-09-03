@@ -60,16 +60,10 @@ class ModbusConnectValve(ModbusConnectEntity, ValveEntity):
         return None if is_open is None else not is_open
 
     async def async_open_valve(self) -> None:
-        if self.reports_position:
-            await self._write(100)
-        else:
-            await self._write(on_off_payload(self._defn, True))
+        await self._write(100 if self.reports_position else on_off_payload(self._defn, True))
 
     async def async_close_valve(self) -> None:
-        if self.reports_position:
-            await self._write(0)
-        else:
-            await self._write(on_off_payload(self._defn, False))
+        await self._write(0 if self.reports_position else on_off_payload(self._defn, False))
 
     async def async_set_valve_position(self, position: int) -> None:
         await self._write(position)
