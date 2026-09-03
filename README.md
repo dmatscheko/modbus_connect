@@ -35,15 +35,12 @@ built around four ideas:
    device's register values and re-rendered every poll, and the same engine
    drives writes. Device quirks become a few lines of YAML, not a plugin.
 
-Failed bridged blocks fall back to unbridged reads automatically, and
-addresses a device refuses to serve are remembered and never bridged again.
-Offline devices back off exponentially (up to 5 min) instead of hammering the
-gateway. One failing entity does not take down the rest; it just becomes
-unavailable — and a register that keeps failing while the device answers
-everything else is quarantined out of the read plan and re-probed every
-10 minutes, so a single bad address never costs permanent traffic. A register
-the device has already served is never quarantined, so power-cycling a device
-(which may refuse reads while it boots) costs nothing but the outage itself.
+Failures are contained: a bad register never takes its neighbours down, an
+offline device backs off instead of hammering the gateway, and a register that
+keeps failing is quarantined and re-probed — see
+[how data is updated](#how-data-is-updated). And writing a file for a new
+device is a matter of clicking through its registers in the bundled
+[Modbus Scanner](#writing-a-device-file-the-modbus-scanner).
 
 Typical use cases: energy meters (Eastron SDM), solar inverters and hybrid
 storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
@@ -117,47 +114,79 @@ composite `template:` entities (climate, fan, cover, …), entity groups, and
 read-planning hints — is documented in the
 [device file reference](docs/device_files.md).
 
+### Writing a device file: the Modbus Scanner
+
+You rarely have to write a file blind. `support/modbus_scanner/` is a
+browser-based register scanner for authoring and testing device files against
+the live device (or a built-in demo device): it walks the address space over a
+Modbus TCP gateway, shows which registers answer, which change and how fast,
+decodes each one as every type at once, lets you map registers to entities by
+clicking them — validated on the spot by the integration's own schema —
+overlays an existing device file to check it against the hardware, and
+generates a ready-to-load file from your mappings. Run it from a checkout of
+this repository:
+
+```bash
+.venv/bin/python support/modbus_scanner/scanner.py --host <gateway> --device-id 1
+.venv/bin/python support/modbus_scanner/scanner.py --demo    # no hardware needed
+```
+
+The [scanner guide](support/modbus_scanner/README.md) walks through it. For
+one-off probes, reads and writes from a terminal there is also
+`support/modbus_cli.py`, a single-file CLI (see its `--help`).
+
 ## Bundled device files
 
 Definitions ship with the integration; pull requests with new files are
 welcome. Any Modbus TCP device not listed here works too — write a device file
 for it.
 
-**Tested so far:** only the five **✓** files below have been tested on real
-hardware and are actively maintained here — each has a hand-written source
-(`support/devicedocs/<slug>/device.yaml`) that the bundled file is generated
-from. The rest are community-contributed, mostly converted from
+**Tested so far:** only the six **✓** files have been tested on real
+hardware and are actively maintained here; each is generated from a hand-written
+source (`support/devicedocs/<slug>/device.yaml`). The rest are
+community-contributed, mostly converted from
 [`modbus_local_gateway`](https://github.com/timlaing/modbus_local_gateway) and
 [`homeassistant-solax-modbus`](https://github.com/wills106/homeassistant-solax-modbus);
 they should work but have **not** been verified against hardware here, so treat
 them as a starting point and please report corrections.
 
-| Manufacturer | Model | File | Tested |
-| --- | --- | --- | :---: |
-| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | ✓ |
-| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` | ✓ |
-| Eastron | SDM-230 | `eastron-sdm230.yaml` | |
-| Eastron | SDM-630 | `eastron-sdm630.yaml` | |
-| ebyte | ME31-AXAX404 | `ebyte-me31-axax404.yaml` | |
-| Finder | 7M.24 | `finder-7m24.yaml` | |
-| Finder | 7M.38 | `finder-7m38.yaml` | |
-| Fröling | BWP300 PV | `froeling-bwp300-pv.yaml` | |
-| Growatt | MIC 2500TL-X | `growatt-mic-2500tl-x.yaml` | |
-| Growatt | MIN 6000TL-XH | `growatt-min-6000tl-xh.yaml` | |
-| Growatt | MOD 6000TL-X | `growatt-mod-6000tl-x.yaml` | |
-| Growatt | MOD 10KTL3-XH | `growatt-mod-10ktl3-xh.yaml` | |
-| Growatt | SPH3600TL BL_UP | `growatt-sph-3600tl-bl-up.yaml` | |
-| Husdata | H60 | `husdata-h60.yaml` | |
-| Pichler | Lüftungsgerät LG 150 – LG 250 | `pichler-lg150-lg250.yaml` | ✓ |
-| Pichler | Lüftungsgerät LG 350 – LG 450 | `pichler-lg350-lg450.yaml` | ✓ |
-| Salda | RIS / RIRS (MCB) | `salda-ris-mcb.yaml` | |
-| Schneider Electric | Altivar ATV312 | `schneider-atv312.yaml` | |
-| Schneider Electric | Altivar ATV312 Expert | `schneider-atv312-expert.yaml` | |
-| SolaX Power | X3-Hybrid G4 | `solax-x3-hybrid-g4.yaml` | ✓ |
-| SolaX Power | X3-HAC (11 kW EV charger) | `solax-x3-hac.yaml` | ✓ |
-| Varmann | Qtherm | `varmann-qtherm.yaml` | |
-| Waveshare | Modbus POE ETH Relay 30CH | `waveshare-modbus-poe-eth-relay-30ch.yaml` | |
-| Waveshare | Modbus RTU Relay (D) | `waveshare-modbus-rtu-relay-d.yaml` | |
+Every file has a generated register reference (*registers*, with the primary
+document it was checked against), grouped files a group reference (*groups*),
+and some a hand-written note on quirks (*caveats*) — see
+[`support/devicedocs/`](support/devicedocs/README.md). *Source* says where the
+register map comes from: **official** — the manufacturer's own document;
+**vendor doc, community-hosted** — a genuine manufacturer document the vendor
+does not publish, mirrored by a community project; **partially checked** —
+only part of the file could be verified against the document; **none** — no
+public document exists, the map is community knowledge; **—** — not researched
+yet.
+
+| Manufacturer | Model | File | Tested | Docs | Source |
+| --- | --- | --- | :---: | --- | --- |
+| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | ✓ | [registers](support/devicedocs/anhui-qdf70b-pressure-sensor/registers.md) · [groups](support/devicedocs/anhui-qdf70b-pressure-sensor/groups.md) | — |
+| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` | ✓ | [registers](support/devicedocs/dimplex-si-11tu/registers.md) · [groups](support/devicedocs/dimplex-si-11tu/groups.md) · [caveats](support/devicedocs/dimplex-si-11tu/caveats.md) | official |
+| Eastron | SDM-230 | `eastron-sdm230.yaml` |  | [registers](support/devicedocs/eastron-sdm230/registers.md) · [caveats](support/devicedocs/eastron-sdm230/caveats.md) | official |
+| Eastron | SDM-630 | `eastron-sdm630.yaml` |  | [registers](support/devicedocs/eastron-sdm630/registers.md) | official |
+| ebyte | ME31-AXAX404 | `ebyte-me31-axax404.yaml` |  | [registers](support/devicedocs/ebyte-me31-axax404/registers.md) · [caveats](support/devicedocs/ebyte-me31-axax404/caveats.md) | official |
+| Finder | 7M.24 | `finder-7m24.yaml` |  | [registers](support/devicedocs/finder-7m24/registers.md) | official |
+| Finder | 7M.38 | `finder-7m38.yaml` |  | [registers](support/devicedocs/finder-7m38/registers.md) | official |
+| Fröling | BWP300 PV | `froeling-bwp300-pv.yaml` |  | [registers](support/devicedocs/froeling-bwp300-pv/registers.md) · [caveats](support/devicedocs/froeling-bwp300-pv/caveats.md) | none |
+| Growatt | MIC 2500TL-X | `growatt-mic-2500tl-x.yaml` |  | [registers](support/devicedocs/growatt-mic-2500tl-x/registers.md) · [caveats](support/devicedocs/growatt-mic-2500tl-x/caveats.md) | vendor doc, community-hosted |
+| Growatt | MIN 6000TL-XH | `growatt-min-6000tl-xh.yaml` |  | [registers](support/devicedocs/growatt-min-6000tl-xh/registers.md) · [caveats](support/devicedocs/growatt-min-6000tl-xh/caveats.md) | vendor doc, community-hosted |
+| Growatt | MOD 6000TL-X | `growatt-mod-6000tl-x.yaml` |  | [registers](support/devicedocs/growatt-mod-6000tl-x/registers.md) · [caveats](support/devicedocs/growatt-mod-6000tl-x/caveats.md) | vendor doc, community-hosted |
+| Growatt | MOD 10KTL3-XH | `growatt-mod-10ktl3-xh.yaml` |  | [registers](support/devicedocs/growatt-mod-10ktl3-xh/registers.md) · [caveats](support/devicedocs/growatt-mod-10ktl3-xh/caveats.md) | vendor doc, community-hosted |
+| Growatt | SPH3600TL BL_UP | `growatt-sph-3600tl-bl-up.yaml` |  | [registers](support/devicedocs/growatt-sph-3600tl-bl-up/registers.md) · [caveats](support/devicedocs/growatt-sph-3600tl-bl-up/caveats.md) | vendor doc, community-hosted |
+| Husdata | H60 | `husdata-h60.yaml` |  | [registers](support/devicedocs/husdata-h60/registers.md) | official, partially checked |
+| Pichler | Lüftungsgerät LG 150 – LG 250 | `pichler-lg150-lg250.yaml` | ✓ | [registers](support/devicedocs/pichler-lg150-lg250/registers.md) · [groups](support/devicedocs/pichler-lg150-lg250/groups.md) · [caveats](support/devicedocs/pichler-lg150-lg250/caveats.md) | official |
+| Pichler | Lüftungsgerät LG 350 – LG 450 | `pichler-lg350-lg450.yaml` | ✓ | [registers](support/devicedocs/pichler-lg350-lg450/registers.md) · [groups](support/devicedocs/pichler-lg350-lg450/groups.md) · [caveats](support/devicedocs/pichler-lg350-lg450/caveats.md) | official |
+| Salda | RIS / RIRS (MCB) | `salda-ris-mcb.yaml` |  | [registers](support/devicedocs/salda-ris-mcb/registers.md) · [caveats](support/devicedocs/salda-ris-mcb/caveats.md) | official, partially checked |
+| Schneider Electric | Altivar ATV312 | `schneider-atv312.yaml` |  | [registers](support/devicedocs/schneider-atv312/registers.md) | official |
+| Schneider Electric | Altivar ATV312 Expert | `schneider-atv312-expert.yaml` |  | [registers](support/devicedocs/schneider-atv312-expert/registers.md) | official |
+| SolaX Power | X3-Hybrid G4 | `solax-x3-hybrid-g4.yaml` | ✓ | [registers](support/devicedocs/solax-x3-hybrid-g4/registers.md) · [groups](support/devicedocs/solax-x3-hybrid-g4/groups.md) · [caveats](support/devicedocs/solax-x3-hybrid-g4/caveats.md) | vendor doc, community-hosted |
+| SolaX Power | X3-HAC (11 kW EV charger) | `solax-x3-hac.yaml` | ✓ | [registers](support/devicedocs/solax-x3-hac/registers.md) · [groups](support/devicedocs/solax-x3-hac/groups.md) · [caveats](support/devicedocs/solax-x3-hac/caveats.md) | vendor doc, community-hosted |
+| Varmann | Qtherm | `varmann-qtherm.yaml` |  | [registers](support/devicedocs/varmann-qtherm/registers.md) · [caveats](support/devicedocs/varmann-qtherm/caveats.md) | official |
+| Waveshare | Modbus POE ETH Relay 30CH | `waveshare-modbus-poe-eth-relay-30ch.yaml` |  | [registers](support/devicedocs/waveshare-modbus-poe-eth-relay-30ch/registers.md) | official |
+| Waveshare | Modbus RTU Relay (D) | `waveshare-modbus-rtu-relay-d.yaml` |  | [registers](support/devicedocs/waveshare-modbus-rtu-relay-d/registers.md) | official |
 
 ## Entity groups
 
@@ -296,8 +325,9 @@ automation:
   allow exactly one client.
 - **Some entities are unavailable** — the device rejected their addresses
   (wrong device file, or the register only exists on other firmware). The
-  log lists every address the device refused. Those addresses are excluded
-  from gap bridging automatically.
+  log names the entity and address, and *Download diagnostics* lists them
+  under `quarantined`. The [Modbus Scanner](#writing-a-device-file-the-modbus-scanner)
+  shows in seconds which registers the device actually serves.
 - **Everything is unavailable** — the device did not answer at all: wrong
   Modbus device ID, or the gateway is up while the RS-485 side is down. The
   integration logs once when a device becomes unreachable and once when it
@@ -355,18 +385,14 @@ standalone; `tests/test_e2e_server.py` proves the transaction counts against
 a real TCP server. The device-file YAML format is documented in
 [docs/device_files.md](docs/device_files.md).
 
-Brand assets live in `support/brand/` (SVG sources and `build_brand.py` to
-regenerate them and the PNGs in `custom_components/modbus_connect/brand/`,
-which Home Assistant ≥ 2026.3 serves locally), alongside
-`support/modbus_cli.py` — a standalone Modbus debugging CLI (probe, read
-with decoded views, write, register scan; see its `--help`),
-`support/modbus_scanner/` — a live web-UI register scanner that colours
-registers by change rate, generates a device-file skeleton, and overlays an
-existing device file to test it against the device (`--demo` needs no
-hardware) — and
-`support/build_json_schema.py`, which regenerates the editor schema for
-device files ([docs/device_files.schema.json](docs/device_files.schema.json));
-a test fails when the committed schema is stale.
+`support/` holds the tooling: the [Modbus Scanner](support/modbus_scanner/README.md)
+and `modbus_cli.py` (above), the [converters and doc generators](support/converter/README.md)
+that produce the bundled device files and their [register docs](support/devicedocs/README.md),
+`build_json_schema.py`, which regenerates the editor schema for device files
+([docs/device_files.schema.json](docs/device_files.schema.json); a test fails
+when the committed schema is stale), and `brand/` (SVG sources and
+`build_brand.py` for the PNGs in `custom_components/modbus_connect/brand/`,
+which Home Assistant ≥ 2026.3 serves locally).
 
 Releases are cut from the GitHub **Actions** tab: run the *Release* workflow
 and enter the version (e.g. `0.3.0`). It re-runs the full gate (ruff, mypy,
