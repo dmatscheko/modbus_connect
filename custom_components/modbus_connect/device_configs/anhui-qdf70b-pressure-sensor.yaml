@@ -9,52 +9,251 @@ device:
   model: QDF70B Pressure Sensor
   prefix: Anhui Pressure Sensor
   max_register_read: 64
-  max_read_gap: 32
-  default_groups: [basic]
+  max_read_gap: 8
+  default_groups: [basic, standard]
   group_labels:
+    standard: Standard
     advanced: Advanced
+    readings: Readings
+    calibration: Calibration
+    modbus_config: "Modbus & comms"
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
-  pressure_pa:
+  pressure:
     address: 4
-    groups: [basic]
+    type: int16
+    groups: [basic, readings]
     ha:
       platform: sensor
       name: Pressure
       device_class: pressure
       state_class: measurement
       unit: Pa
-  pressure_detail_2:
+  pressure_float:
     address: 22
-    groups: [advanced]
+    type: float32
+    groups: [standard, readings]
     ha:
       platform: sensor
-      name: Pressure detail 2
+      name: Pressure (float)
+      device_class: pressure
       state_class: measurement
-  pressure_detail_1:
+      precision: 1
+      unit: Pa
+  pressure_unit:
+    address: 2
+    groups: [standard, readings]
+    map:
+      0: MPa
+      1: kPa
+      2: Pa
+      3: bar
+      4: mbar
+      5: kg/cm²
+      6: PSI
+      7: mH₂O
+      8: mmH₂O
+      9: inH₂O
+      10: H₂O
+      11: mHg
+      12: mmHg
+      13: inHg
+      14: atm
+      15: Torr
+      16: m
+      17: cm
+      18: mm
+      19: kg
+      20: "°C"
+      21: pH
+      22: "°F"
+      23: Empty
+    ha:
+      platform: sensor
+      name: Pressure unit
+      icon: "mdi:ruler"
+      entity_category: diagnostic
+  decimal_places:
+    address: 3
+    groups: [standard, readings]
+    ha:
+      platform: sensor
+      name: Decimal places
+      icon: "mdi:decimal"
+      entity_category: diagnostic
+  range_zero_point:
+    address: 5
+    type: int16
+    groups: [advanced, calibration]
+    ha:
+      platform: sensor
+      name: Range zero point
+      device_class: pressure
+      icon: "mdi:arrow-collapse-down"
+      entity_category: diagnostic
+      unit: Pa
+  range_full_point:
+    address: 6
+    type: int16
+    groups: [advanced, calibration]
+    ha:
+      platform: sensor
+      name: Range full point
+      device_class: pressure
+      icon: "mdi:arrow-collapse-up"
+      entity_category: diagnostic
+      unit: Pa
+  zero_offset:
+    address: 12
+    type: int16
+    groups: [advanced, calibration]
+    ha:
+      platform: number
+      name: Zero offset
+      min: -32768
+      max: 32767
+      step: 1
+      icon: "mdi:plus-minus-variant"
+      entity_category: config
+      unit: Pa
+  undocumented_register_9:
     address: 9
     type: int16
     groups: [advanced]
     ha:
       platform: sensor
-      name: Pressure detail 1
-      state_class: measurement
+      name: Undocumented register 9
+      icon: "mdi:help-circle-outline"
+      entity_category: diagnostic
+  modbus_address:
+    address: 0
+    groups: [advanced, modbus_config]
+    ha:
+      platform: number
+      name: Modbus address
+      min: 1
+      max: 255
+      step: 1
+      icon: "mdi:serial-port"
+      entity_category: config
+  baud_rate:
+    address: 1
+    groups: [advanced, modbus_config]
+    map:
+      0: "1200 bps"
+      1: "2400 bps"
+      2: "4800 bps"
+      3: "9600 bps"
+      4: "19200 bps"
+      5: "38400 bps"
+      6: "57600 bps"
+      7: "115200 bps"
+    ha:
+      platform: select
+      name: Modbus baud rate
+      icon: "mdi:speedometer"
+      entity_category: config
+  parity:
+    address: 37
+    groups: [advanced, modbus_config]
+    map:
+      0: None
+      1: Odd
+      2: Even
+    ha:
+      platform: select
+      name: Modbus parity
+      icon: "mdi:check-network-outline"
+      entity_category: config
+  save_settings:
+    address: 15
+    write_value: 0
+    groups: [advanced, modbus_config]
+    ha:
+      platform: button
+      name: Save settings
+      icon: "mdi:content-save"
+      entity_category: config
+  restore_factory_settings:
+    address: 16
+    write_value: 1
+    groups: [advanced, modbus_config]
+    ha:
+      platform: button
+      name: Restore factory settings
+      device_class: restart
+      icon: "mdi:factory"
+      entity_category: config
 
 # Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
 translations:
   QDF70B Pressure Sensor:
     de: QDF70B Drucksensor
     en: QDF70B Pressure Sensor
+  Standard:
+    en: Standard
+    de: Standard
   Advanced:
     en: Advanced
     de: Erweitert
+  Readings:
+    de: Messwerte
+    en: Readings
+  Calibration:
+    de: Kalibrierung
+    en: Calibration
+  "Modbus & comms":
+    en: "Modbus & comms"
+    de: "Modbus & Kommunikation"
+  Empty:
+    de: Leer
+    en: Empty
+  None:
+    de: Keine
+    en: None
+  Odd:
+    de: Ungerade
+    en: Odd
+  Even:
+    de: Gerade
+    en: Even
   Pressure:
     de: Druck
     en: Pressure
-  Pressure detail 2:
-    de: Druck Detail 2
-    en: Pressure detail 2
-  Pressure detail 1:
-    de: Druck Detail 1
-    en: Pressure detail 1
+  Pressure (float):
+    de: Druck (Gleitkomma)
+    en: Pressure (float)
+  Pressure unit:
+    de: Druckeinheit
+    en: Pressure unit
+  Decimal places:
+    de: Dezimalstellen
+    en: Decimal places
+  Range zero point:
+    de: Messbereich Nullpunkt
+    en: Range zero point
+  Range full point:
+    de: Messbereich Endwert
+    en: Range full point
+  Zero offset:
+    de: Nullpunktverschiebung
+    en: Zero offset
+  Undocumented register 9:
+    de: Undokumentiertes Register 9
+    en: Undocumented register 9
+  Modbus address:
+    de: Modbus-Adresse
+    en: Modbus address
+  Modbus baud rate:
+    de: Modbus-Baudrate
+    en: Modbus baud rate
+  Modbus parity:
+    de: Modbus-Parität
+    en: Modbus parity
+  Save settings:
+    de: Einstellungen speichern
+    en: Save settings
+  Restore factory settings:
+    de: Werkseinstellungen wiederherstellen
+    en: Restore factory settings

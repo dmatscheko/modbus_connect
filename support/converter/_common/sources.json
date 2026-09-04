@@ -204,5 +204,18 @@
     "url": "https://www.froeling.com/de-at/produkte/speichersysteme/brauchwasserwaermepumpe-bwp-300-pv/",
     "source_type": "none",
     "notes": "Fröling publishes no Modbus register document for the BWP 300 PV (an OEM domestic-hot-water heat pump). Its official technical documents are storage-tank installation manuals with no Modbus content. The upstream modbus_local_gateway config — from which this device file derives — cites no source, and its register map (holding 4–33, input 0–119) points to a third-party controller and appears vendor-supplied/reverse-engineered. Any Fröling Modbus spec, if one exists, is behind the login-gated connect.froeling.com partner portal. The table below therefore reflects the device file only; treat its addresses as community-provided, not manufacturer-confirmed."
+  },
+  "anhui-qdf70b-pressure-sensor": {
+    "url": "http://www.qidian-zdk.com/rs485-modbus-rtu",
+    "extra_urls": [
+      "http://www.qidian-zdk.com/pressure-measurement-series",
+      "https://s2ins.com/wp-content/uploads/2024/11/Pressure-Sensor-Transmitter-QDW90A-O4-0-500Bar-Output-RS485.pdf"
+    ],
+    "title": "Anhui Qidian — MODBUS Pressure and Level transmitter communication protocol",
+    "version": "PDF authored 2024-12-10, listed as 'Pressure level sensor' (2024-12-26) on the RS485-Modbus-RTU manual page",
+    "source_type": "official-manufacturer (Anhui Qidian Automation Technology, qidian-zdk.com manual download; the family-wide protocol for the QDF70B / QDW90A / QDY transmitters)",
+    "primary_file": "qidian-pressure-level-sensor-modbus-rtu-protocol.pdf",
+    "match": "verified — 0-based PDU addresses (the document's example frame 01 03 00 04 00 01 reads the value): 0x0004 measured value (int16, scaled by the 0x0003 decimal-places register, unit per 0x0002), 0x0016–0x0017 float32 big-endian copy; setup 0x0000 address, 0x0001 baud, 0x0025 parity, 0x000C zero offset, 0x0005/0x0006 range points, 0x000F save, 0x0010 factory restore. Holding register 9 answers on the hardware but is absent from the document",
+    "notes": "The site's download list serves the PDF through a JavaScript download API (no static link); the identical file (same checksum) is mirrored by the s2ins.com distributor. The document is the generic protocol of the whole pressure/level transmitter family and does not name the QDF70B; the unit and decimal-places registers decide how the integer value is scaled — the device file assumes Pa with 0 decimals (see caveats.md)."
   }
 }

@@ -172,7 +172,7 @@ yet.
 
 | Manufacturer | Model | File | Tested | Docs | Source |
 | --- | --- | --- | :---: | --- | --- |
-| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | ✓ | [registers](support/devicedocs/anhui-qdf70b-pressure-sensor/registers.md) · [groups](support/devicedocs/anhui-qdf70b-pressure-sensor/groups.md) | — |
+| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | ✓ | [registers](support/devicedocs/anhui-qdf70b-pressure-sensor/registers.md) · [groups](support/devicedocs/anhui-qdf70b-pressure-sensor/groups.md) · [caveats](support/devicedocs/anhui-qdf70b-pressure-sensor/caveats.md) | official |
 | Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` | ✓ | [registers](support/devicedocs/dimplex-si-11tu/registers.md) · [groups](support/devicedocs/dimplex-si-11tu/groups.md) · [caveats](support/devicedocs/dimplex-si-11tu/caveats.md) | official |
 | Eastron | SDM-230 | `eastron-sdm230.yaml` |  | [registers](support/devicedocs/eastron-sdm230/registers.md) · [caveats](support/devicedocs/eastron-sdm230/caveats.md) | official |
 | Eastron | SDM-630 | `eastron-sdm630.yaml` |  | [registers](support/devicedocs/eastron-sdm630/registers.md) | official |
