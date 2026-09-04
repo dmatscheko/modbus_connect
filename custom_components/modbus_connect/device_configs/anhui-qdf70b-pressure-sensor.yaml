@@ -43,7 +43,7 @@ holding:
       unit: Pa
   pressure_unit:
     address: 2
-    groups: [standard, readings]
+    groups: [advanced, calibration]
     map:
       0: MPa
       1: kPa
@@ -76,7 +76,7 @@ holding:
       entity_category: diagnostic
   decimal_places:
     address: 3
-    groups: [standard, readings]
+    groups: [advanced, calibration]
     ha:
       platform: sensor
       name: Decimal places
@@ -128,7 +128,7 @@ holding:
       entity_category: diagnostic
   modbus_address:
     address: 0
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     ha:
       platform: number
       name: Modbus address
@@ -139,7 +139,7 @@ holding:
       entity_category: config
   baud_rate:
     address: 1
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     map:
       0: "1200 bps"
       1: "2400 bps"
@@ -156,7 +156,7 @@ holding:
       entity_category: config
   parity:
     address: 37
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     map:
       0: None
       1: Odd

@@ -19,8 +19,11 @@ device:
   # The map is sparse (0–12, 22–23, 37); bridge the small holes, but not the
   # undocumented 24–36 run, so the parity register is read on its own.
   max_read_gap: 8
-  # basic (the pressure reading) is always on; standard adds the float copy and the
-  # unit/decimal setup; the calibration and communication settings are opt-in.
+  # basic (the pressure reading) is always on; standard adds the float copy. The
+  # unit/decimal setup and calibration are opt-in (Advanced or Calibration). The
+  # communication settings (address, baud rate, parity) are dangerous — a write
+  # changes how the device answers — so they belong to the Modbus & comms group
+  # only, never to a broad tier; the save/restore buttons are also under Advanced.
   default_groups: [basic, standard]
   group_labels:
     standard: Standard
@@ -53,7 +56,7 @@ holding:
       precision: 1
   pressure_unit:
     address: 2
-    groups: [standard, readings]
+    groups: [advanced, calibration]
     map:
       0: MPa
       1: kPa
@@ -86,7 +89,7 @@ holding:
       entity_category: diagnostic
   decimal_places:
     address: 3
-    groups: [standard, readings]
+    groups: [advanced, calibration]
     ha:
       platform: sensor
       name: Decimal places
@@ -138,7 +141,7 @@ holding:
       entity_category: diagnostic
   modbus_address:
     address: 0
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     ha:
       platform: number
       name: Modbus address
@@ -149,7 +152,7 @@ holding:
       entity_category: config
   baud_rate:
     address: 1
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     map:
       0: 1200 bps
       1: 2400 bps
@@ -166,7 +169,7 @@ holding:
       entity_category: config
   parity:
     address: 37
-    groups: [advanced, modbus_config]
+    groups: [modbus_config]
     map:
       0: "None"
       1: Odd

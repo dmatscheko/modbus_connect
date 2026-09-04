@@ -13,7 +13,8 @@ hard-codes **Pa with 0 decimals** — the configuration of the QDF70B it was tes
 with. A sensor ordered in kPa or bar, or with decimals, shows the wrong unit and
 magnitude in the `Pressure` entity; check the `Pressure unit` and `Decimal
 places` diagnostics after adding the device and adapt a copy of the file if they
-differ (`multiplier: 0.1` per decimal place, and the matching `unit`).
+differ (`multiplier: 0.1` per decimal place, and the matching `unit`). Both
+diagnostics are opt-in: enable the *Advanced* or *Calibration* switch to see them.
 
 The float32 copy (`Pressure (float)`, registers 22–23, IEEE 754 big-endian)
 already carries the decimal scaling, so its magnitude is right regardless of the
@@ -36,7 +37,10 @@ or baud rate takes effect right after the reply, so the integration loses the
 device until the entry is reconfigured to match. `Restore factory settings`
 (register 16, write 1) reloads the factory set, which the vendor warns may
 differ from what was last saved (address, baud rate and calibration included) —
-re-scan afterwards. Both buttons are opt-in under the *Modbus & comms* switch.
+re-scan afterwards. Because a wrong write here changes how the device answers,
+the address, baud-rate and parity entities are reachable only through the
+*Modbus & comms* switch (no broad tier includes them); the two buttons also appear
+under *Advanced*.
 
 ## Parity codes are inconsistent in the document
 

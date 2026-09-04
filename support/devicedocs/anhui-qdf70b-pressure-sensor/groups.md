@@ -11,10 +11,10 @@ Entities are split into groups you can switch on/off on the integration's compan
 | Group | Kind | Switch on Configuration device | Entities | Covers |
 | --- | --- | --- | --- | --- |
 | `basic` | core | (always on) | 1 | Everyday essentials — main controls, headline sensors and the composite climate/fan entities. Always shown. |
-| `standard` | tier | Enable Standard entities | 3 | The everyday set beyond the basics: common setpoints, secondary readings and totals. On by default. |
-| `advanced` | tier | Enable Advanced entities | 9 | The full detail — deep settings, per-component diagnostics and secondary readings. |
-| `readings` | feature | Enable Readings entities | 4 | e.g. Pressure, Pressure (float), Pressure unit, … |
-| `calibration` | feature | Enable Calibration entities | 3 | e.g. Range zero point, Range full point, Zero offset |
+| `standard` | tier | Enable Standard entities | 1 | The everyday set beyond the basics: common setpoints, secondary readings and totals. On by default. |
+| `advanced` | tier | Enable Advanced entities | 8 | The full detail — deep settings, per-component diagnostics and secondary readings. |
+| `readings` | feature | Enable Readings entities | 2 | e.g. Pressure, Pressure (float) |
+| `calibration` | feature | Enable Calibration entities | 5 | e.g. Pressure unit, Decimal places, Range zero point, … |
 | `modbus_config` | feature | Enable Modbus & comms entities | 5 | e.g. Modbus address, Modbus baud rate, Modbus parity, … |
 
 **Kinds:** *core* = `basic`, always shown · *tier* = `standard` (on by default) and `advanced`, broad opt-in detail levels · *feature* = one functional group (subsystem), toggle independently · *expert* = untagged, only via **Enable all entities**.
