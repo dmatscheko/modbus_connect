@@ -317,6 +317,29 @@ holding:
       name: Charge Phase Alt
       icon: "mdi:dip-switch"
       entity_category: config
+  three_phase_unbalanced_power:
+    address: 1596
+    groups: [advanced, charging]
+    ha:
+      platform: number
+      name: Three-Phase Unbalanced Power
+      min: 1300
+      max: 7200
+      step: 1
+      unit_of_measurement: W
+      device_class: power
+      entity_category: config
+  three_phase_unbalanced_switch:
+    address: 1597
+    groups: [advanced, charging]
+    map:
+      0: "Off"
+      1: "On"
+    ha:
+      platform: select
+      name: Three-Phase Unbalanced Switch
+      icon: "mdi:scale-unbalanced"
+      entity_category: config
   modbus_address:
     address: 1600
     groups: [advanced, modbus_config]
@@ -327,6 +350,17 @@ holding:
       max: 247
       step: 1
       icon: "mdi:identifier"
+      entity_category: config
+  main_breaker_limit_switch:
+    address: 1636
+    groups: [advanced, settings]
+    map:
+      0: Closed
+      1: Open
+    ha:
+      platform: select
+      name: Main Breaker Limit Switch
+      icon: "mdi:car-speed-limiter"
       entity_category: config
   max_charge_current:
     address: 1640
@@ -722,10 +756,10 @@ input:
     groups: [advanced, diagnostics]
     scan_interval: 15
     map:
-      0: "7.2 kW"
-      1: "11 kW"
-      2: "22 kW"
-      3: "4.6 kW"
+      0: "6 kW"
+      1: "7 kW"
+      2: "11 kW"
+      3: "22 kW"
     ha:
       platform: sensor
       name: Power Rating
@@ -1023,6 +1057,21 @@ translations:
   Modbus Address:
     de: Modbus-Adresse
     en: Modbus Address
+  Three-Phase Unbalanced Power:
+    de: Unsymmetrische Dreiphasenleistung
+    en: Three-Phase Unbalanced Power
+  Three-Phase Unbalanced Switch:
+    de: Unsymmetrische dreiphasige Last
+    en: Three-Phase Unbalanced Switch
+  Main Breaker Limit Switch:
+    de: Hauptschalter-Begrenzungsschalter
+    en: Main Breaker Limit Switch
+  Closed:
+    de: Geschlossen
+    en: Closed
+  Open:
+    de: Offen
+    en: Open
   Run Mode:
     de: Betriebsmodus
     en: Run Mode
