@@ -148,7 +148,7 @@ def _compose_header(
         lines = [
             f"Generated from {source} —",
             f"do not edit here; edit support/devicedocs/{folder}/device.yaml and re-run:",
-            "  .venv/bin/python support/converter/convert_all.py",
+            f"  .venv/bin/python support/converter/convert_all.py --owned {folder}",
         ]
     else:
         lines = [

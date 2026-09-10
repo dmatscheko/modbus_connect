@@ -114,17 +114,21 @@ so nothing is duplicated between the two trees.
 ## Regenerate
 
 ```bash
-# configs: only the MLG import needs an upstream checkout (defaults to a sibling clone)
+# One owned config only; no upstream checkout needed.
+.venv/bin/python support/converter/convert_all.py --owned solax-x3-hac
+
+# All configs: the MLG import needs an upstream checkout (defaults to a sibling clone).
 MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
   .venv/bin/python support/converter/convert_all.py
 
-# references, after the configs are final (folder names limit the run)
-.venv/bin/python support/converter/_common/build_registers_md.py   # all     -> registers.md
-.venv/bin/python support/converter/_common/build_groups_md.py      # grouped -> groups.md
+# References after configs are final; pass a folder to regenerate just its pages.
+.venv/bin/python support/converter/_common/build_registers_md.py solax-x3-hac
+.venv/bin/python support/converter/_common/build_groups_md.py solax-x3-hac
 ```
 
-To change an owned device, edit its `device.yaml` and run the three commands
-(no checkout needed). Regeneration is cosmetic-only for imported files — keys,
+Omit the folder argument when rebuilding all reference pages. To change an owned
+device, edit its `device.yaml`, run its `--owned` command, then rebuild its two
+reference pages. Regeneration is cosmetic-only for imported files — keys,
 addresses, groups and templates are unchanged — and every file validates against
 the integration schema before it is written. `tests/test_devicedocs.py` fails
 when a committed `registers.md` or `groups.md` is stale, and

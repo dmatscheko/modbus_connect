@@ -8,14 +8,17 @@
 The owned devices are no longer imported from the other projects: their source of
 truth is an in-tree ``device.yaml`` (same format as the emitted config), run through
 the shared augment library (``_common/augment.py``, the single writer) so every file
-still lands in one canonical style. Only step 1 needs an external checkout; edit an
-owned device by editing its ``device.yaml`` and re-running this script.
+still lands in one canonical style. Only step 1 needs an external checkout. To
+regenerate just one owned device without that checkout, pass ``--owned <slug>``.
 
     MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \\
         python support/converter/convert_all.py
+
+    python support/converter/convert_all.py --owned solax-x3-hac
 """
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import os
 import subprocess
@@ -38,7 +41,25 @@ _MLG_CONFIGS = (
 )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--owned",
+        metavar="SLUG",
+        help="regenerate only this owned device config (no upstream checkout required)",
+    )
+    args = parser.parse_args(argv)
+
+    if args.owned:
+        owned = augment.owned_slugs()
+        if args.owned not in owned:
+            parser.error(
+                f"{args.owned!r} is not an owned device; choose one of: {', '.join(owned)}"
+            )
+        summary = augment.write_owned(args.owned, variant=__file__)
+        print(f"{args.owned}: {summary}")
+        return 0
+
     if not _MLG_CONFIGS.is_dir():
         print(f"modbus_local_gateway device_configs not found at {_MLG_CONFIGS}\n"
               f"set MLG_GATEWAY_REPO to your checkout.", file=sys.stderr)
