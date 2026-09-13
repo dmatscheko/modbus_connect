@@ -18,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 87 (Holding 35, Input 52) · plus 1 composite template entities
+**Registers in this file:** 88 (Holding 36, Input 52) · plus 1 composite template entities
 
 ## Registers
 
@@ -56,6 +56,7 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x063C` (1596) — Three-Phase Unbalanced Power<br>`three_phase_unbalanced_power` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x063D` (1597) — Three-Phase Unbalanced Switch<br>`three_phase_unbalanced_switch` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0640` (1600) — Modbus Address<br>`modbus_address` | Holding (4x) | FC03 read · FC06 write | uint16 |
+| `0x0662` (1634) — Automatic Phase Switching<br>`automatic_phase_switching` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0664` (1636) — Main Breaker Limit Switch<br>`main_breaker_limit_switch` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 2 opts |
 | `0x0668` (1640) — Max Charge Current<br>`max_charge_current` | Holding (4x) | FC03 read · FC06 write | uint16 · ×0.01 |
 | `0x0669` (1641) — EVSE Mode<br>`evse_mode` | Holding (4x) | FC03 read · FC06 write | uint16 · enum · 3 opts |

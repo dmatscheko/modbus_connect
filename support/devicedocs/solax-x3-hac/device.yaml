@@ -351,6 +351,17 @@ holding:
       step: 1
       icon: "mdi:identifier"
       entity_category: config
+  automatic_phase_switching:
+    address: 1634
+    groups: [advanced, charging]
+    map:
+      0: "Off"
+      1: "On"
+    ha:
+      platform: select
+      name: Automatic Phase Switching
+      icon: "mdi:dip-switch"
+      entity_category: config
   main_breaker_limit_switch:
     address: 1636
     groups: [advanced, settings]
@@ -1018,6 +1029,9 @@ translations:
   Available:
     de: Verfügbar
     en: Available
+  Automatic Phase Switching:
+    de: Automatische Phasenumschaltung
+    en: Automatic Phase Switching
   Unavailable:
     de: Nicht verfügbar
     en: Unavailable
