@@ -1,7 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
 # Hand-maintained source of truth for the dimplex-si-11tu device.
-# Edit this file directly; support/converter/convert_all.py runs it through the
-# augment library to regenerate
+# Edit this file directly.
+# .venv/bin/python support/converter/convert_all.py --owned dimplex-si-11tu
+# runs it through the augment library to regenerate
 # custom_components/modbus_connect/device_configs/dimplex-si-11tu.yaml.
+#
+# Undocumented entries (marked `# undocumented`) come from the pCOWeb
+# Variable.json supervisor map, not the public NWPM wiki.
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -9,6 +14,7 @@ device:
   model: Sole/Wasser-Wärmepumpe SI 11TU
   max_register_read: 100
   prefix: Dimplex SI
+  sw_version: "{{ \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\"[(wpm_software_code | int) + (64 if (wpm_software_code | int) < 64 else 0) - 65] }}{{ wpm_software_minor | int }}.{{ wpm_software_patch | int }}"
   max_read_gap: 64
   # basic is always on; standard is the everyday set (on by default); advanced and
   # the subsystem groups below are opt-in. Every entity also carries a functional
@@ -35,6 +41,8 @@ device:
     schedule: Schedule / time program
     clock: Clock
     test: Test
+    version: "Software version"
+    internal: "Internal supervisor"
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
@@ -655,6 +663,501 @@ holding:
       name: Sync clock
       icon: "mdi:clock-check"
       entity_category: config
+
+  # undocumented: supervisor indexes used by the cloud gateway, absent from the NWPM wiki.
+  # Heating circuit temperatures. Wiki address 27 is not this value on this card.
+  # heating_1st_loop_temp_internal:  # undocumented
+  #   address: 500
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: "1. Heizkreis Temperatur intern"
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heating_2nd_loop_temp_internal:  # undocumented
+  #   address: 1285
+  #   multiplier: 0.1
+  #   groups: [heating_circuit_2, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: "2. Heizkreis Temperatur intern"
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heating_3rd_loop_temp_internal:  # undocumented
+  #   address: 1286
+  #   multiplier: 0.1
+  #   groups: [heating_circuit_3, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: "3. Heizkreis Temperatur intern"
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heating_1st_loop_actual_display:  # undocumented
+  #   address: 6622
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: "1. Heizkreis Ist Anzeige"
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heating_1st_loop_setpoint_display:  # undocumented
+  #   address: 6621
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: "1. Heizkreis Soll Anzeige"
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  heating_common_actual:  # undocumented
+    address: 6576
+    multiplier: 0.1
+    groups: [standard, heating, internal]
+    ha:
+      platform: sensor
+      name: Heizkreise Ist gemeinsam
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: "mdi:thermometer"
+  # outside_temp_internal:  # undocumented
+  #   address: 1301
+  #   multiplier: 0.1
+  #   groups: [basic, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Außentemperatur intern
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # flow_temp_internal:  # undocumented
+  #   address: 1300
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Vorlauftemperatur intern
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # hot_water_temp_internal:  # undocumented
+  #   address: 1305
+  #   multiplier: 0.1
+  #   groups: [basic, hot_water, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Warmwasser Temperatur intern
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heat_pump_return_temp:  # undocumented
+  #   address: 637
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Rücklauf Wärmepumpe
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # heat_pump_flow_temp:  # undocumented
+  #   address: 801
+  #   multiplier: 0.1
+  #   groups: [standard, heating, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Vorlauf Wärmepumpe
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # hot_water_setpoint_display:  # undocumented
+  #   address: 6595
+  #   multiplier: 0.1
+  #   groups: [hot_water, internal]
+  #   ha:
+  #     platform: sensor
+  #     name: Warmwasser Soll Anzeige
+  #     unit_of_measurement: "°C"
+  #     device_class: temperature
+  #     state_class: measurement
+  #     icon: "mdi:thermometer"
+  # operating_mode_internal:  # undocumented
+  #   address: 5715
+  #   groups: [basic, operation, internal]
+  #   map:
+  #     0: Sommer
+  #     1: Auto
+  #     2: Urlaub
+  #     3: Party
+  #     4: "2.Wärmeerzeuger"
+  #     5: Kühlen
+  #   ha:
+  #     platform: sensor
+  #     name: Betriebsart intern
+  #     icon: "mdi:cog"
+  heating_circuit_1_status:  # undocumented and TODO (find out meaning of each state)
+    address: 6582
+    groups: [heating, status, internal]
+    ha:
+      platform: sensor
+      name: "1. Heizkreis Status"
+      icon: "mdi:heating-coil"
+      entity_category: diagnostic
+
+  # undocumented: 4873-4875 are not a factor. Gateway builds
+  # char(4873 < 0x40 ? 4873+0x40 : 4873) + str(4874) + "." + str(4875)
+  wpm_software_code:  # undocumented
+    address: 4873
+    internal: true
+  wpm_software_minor:  # undocumented
+    address: 4874
+    internal: true
+  wpm_software_patch:  # undocumented
+    address: 4875
+    internal: true
+
+  # undocumented: internal heat meters, 3 registers each (digits 1-4, 5-8, 9-12).
+  heat_quantity_heating_internal:  # undocumented
+    address: 6301
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Heizen intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_hot_water_internal:  # undocumented
+    address: 6304
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Warmwasser intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_pool_internal:  # undocumented
+    address: 6307
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [pool, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Schwimmbad intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_heating_display:  # undocumented
+    address: 6664
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Heizen Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_hot_water_display:  # undocumented
+    address: 6670
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Warmwasser Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_pool_display:  # undocumented
+    address: 6667
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [pool, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Schwimmbad Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_total_display:  # undocumented
+    address: 6661
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge gesamt Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  power_heating:  # undocumented
+    address: 7667
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Heizen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_cooling:  # undocumented
+    address: 7668
+    groups: [cooling, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Kühlen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_electric:  # undocumented
+    address: 7669
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Elektrisch
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_defrost:  # undocumented
+    address: 7670
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Abtauen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  compressor_1_hours_internal:  # undocumented
+    address: 6381
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter 1 Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  compressor_2_hours_internal:  # undocumented
+    address: 6382
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter 2 Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  heating_pump_hours_internal:  # undocumented
+    address: 6386
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Heizungspumpe Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  hot_water_pump_hours_internal:  # undocumented
+    address: 6387
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Warmwasserpumpe Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+
+
+  compressor_electric_power:  # undocumented
+    address: 7939
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter Leistung elektrisch
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  fan_electric_power:  # undocumented
+    address: 7938
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Ventilator Leistung elektrisch
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  inverter_ac_input_power:  # undocumented
+    address: 6557
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Inverter AC-Eingangsleistung
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_electric_power:  # undocumented
+    address: 7770
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung elektrisch
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_power_high:  # undocumented
+    address: 7779
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung High
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_power_low:  # undocumented
+    address: 7780
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung Low
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  ventilation_exhaust_power:  # undocumented
+    address: 7241
+    groups: [ventilation, energy, internal]
+    ha:
+      platform: sensor
+      name: Lüftung Abluft Leistung
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  ventilation_supply_power:  # undocumented
+    address: 7255
+    groups: [ventilation, energy, internal]
+    ha:
+      platform: sensor
+      name: Lüftung Zuluft Leistung
+      device_class: power
+      state_class: measurement
+      unit_of_measurement: W
+      icon: "mdi:flash"
+      entity_category: diagnostic
+
+
+  # undocumented: no register is named Umweltenergie. Qc is the source-side heat quantity.
+  # Digit groups are in address order here (1-4, 5-8, 9-12), unlike Qc_H at 6474.
+  environmental_heat_display:  # undocumented
+    address: 6645
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Umweltenergie Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:solar-power"
+      entity_category: diagnostic
+  environmental_heat_heating:  # undocumented
+    address: 6474
+    sum_scale: [10000, 100000000, 1]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Umweltenergie Heizen
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:solar-power"
+      entity_category: diagnostic
+  regenerative_storage_temp:  # undocumented
+    address: 1292
+    multiplier: 0.1
+    groups: [solar, internal]
+    ha:
+      platform: sensor
+      name: Regenerativ Speicher
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: "mdi:thermometer"
+      entity_category: diagnostic
+  regenerative_hours:  # undocumented
+    address: 6511
+    never_resets: true
+    groups: [solar, energy, internal]
+    ha:
+      platform: sensor
+      name: Regenerativ Stunden
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
@@ -1455,6 +1958,19 @@ discrete:
 
 # Templates: composite Home Assistant entities derived from the registers above.
 template:
+
+  wpm_software:
+    ha:
+      platform: sensor
+      name: WPM Software
+      icon: "mdi:chip"
+      entity_category: diagnostic
+    groups: [advanced, version]
+    # 13 + 0x40 = 77 = "M"; gateway does the same when the code is below 64.
+    state: >-
+      {% set n = wpm_software_code | int %}
+      {% if n < 64 %}{% set n = n + 64 %}{% endif %}
+      {{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[n - 65] }}{{ wpm_software_minor | int }}.{{ wpm_software_patch | int }}
   hot_water:
     ha:
       platform: climate
@@ -1490,17 +2006,154 @@ template:
         "off": Sommer
 
 # Translations: per-language text for this device's human-facing strings (device model, group labels, entity names, map/flag values), keyed by the source string.
-
 translations:
   Sole/Wasser-Wärmepumpe SI 11TU:
     de: Sole/Wasser-Wärmepumpe SI 11TU
     en: Brine/water heat pump SI 11TU
+  Standard:
+    en: Standard
+    de: Standard
+  Advanced:
+    en: Advanced
+    de: Erweitert
+  "Operation & mode":
+    en: "Operation & mode"
+    de: "Betrieb & Modus"
+  Heating circuit 1:
+    en: Heating circuit 1
+    de: Heizkreis 1
+  Hot water circuit:
+    en: Hot water circuit
+    de: Warmwasserkreis
+  Component status:
+    en: Component status
+    de: Komponentenstatus
+  "Energy & runtime":
+    en: "Energy & runtime"
+    de: "Energie & Laufzeit"
+  Heat source (brine):
+    en: Heat source (brine)
+    de: Wärmequelle (Sole)
+  Heating circuit 2:
+    en: Heating circuit 2
+    de: Heizkreis 2
+  Heating circuit 3:
+    en: Heating circuit 3
+    de: Heizkreis 3
+  "2nd heat generator":
+    de: "2.Wärmeerzeuger"
+    en: "2nd heat generator"
+  Pool:
+    de: Schwimmbad
+    en: Pool
+  Cooling:
+    en: Cooling
+    de: Kühlung
+  Solar:
+    en: Solar
+    de: Solar
+  Ventilation:
+    en: Ventilation
+    de: Lüftung
+  Room climate sensors:
+    en: Room climate sensors
+    de: Raumklimasensoren
+  Smart Grid:
+    en: Smart Grid
+    de: Smart Grid
+  Schedule / time program:
+    en: Schedule / time program
+    de: Zeitplan / Zeitprogramm
+  Clock:
+    en: Clock
+    de: Uhr
+  Test:
+    en: Test
+    de: Test
+  Sommer:
+    de: Sommer
+    en: Summer
+  Auto:
+    de: Auto
+    en: Automatic
+  Urlaub:
+    de: Urlaub
+    en: Holiday
+  Party:
+    de: Party
+    en: Party
+  "2.Wärmeerzeuger":
+    de: "2.Wärmeerzeuger"
+    en: "2nd heat generator"
+  Kühlen:
+    de: Kühlen
+    en: Cool
+  Hardwareeingang:
+    de: Hardwareeingang
+    en: Hardware input
+  Sperre nicht aktiv:
+    de: Sperre nicht aktiv
+    en: Block not active
+  Sperre aktiv:
+    de: Sperre aktiv
+    en: Block active
+  "2. Heizkreis":
+    de: "2. Heizkreis"
+    en: "2nd heating circuit"
+  "3. Heizkreis":
+    de: "3. Heizkreis"
+    en: "3rd heating circuit"
+  "1. Heizkreis Absenkung":
+    de: "1. Heizkreis Absenkung"
+    en: "1st heating circuit setback"
+  "1. Heizkreis Anhebung":
+    de: "1. Heizkreis Anhebung"
+    en: "1st heating circuit boost"
+  "2. Heizkreis Absenkung":
+    de: "2. Heizkreis Absenkung"
+    en: "2nd heating circuit setback"
+  "2. Heizkreis Anhebung":
+    de: "2. Heizkreis Anhebung"
+    en: "2nd heating circuit boost"
+  "3. Heizkreis Absenkung":
+    de: "3. Heizkreis Absenkung"
+    en: "3rd heating circuit setback"
+  "3. Heizkreis Anhebung":
+    de: "3. Heizkreis Anhebung"
+    en: "3rd heating circuit boost"
+  Warmwasser Sperre:
+    de: Warmwasser Sperre
+    en: Hot water block
+  Thermische Desinfektion:
+    de: Thermische Desinfektion
+    en: Thermal disinfection
+  Zirkulationspumpe:
+    de: Zirkulationspumpe
+    en: Circulation pump
+  Aus:
+    de: Aus
+    en: "Off"
+  Heizen:
+    de: Heizen
+    en: Heating
+  Schwimmbad:
+    de: Schwimmbad
+    en: Pool
+  Warmwasser:
+    de: Warmwasser
+    en: Hot water
+  Abtauen:
+    de: Abtauen
+    en: Defrost
   Durchflussüberwachung:
     de: Durchflussüberwachung
     en: Flow monitoring
   Verzögerung Betriebsmodusumschaltung:
     de: Verzögerung Betriebsmodusumschaltung
     en: Operating mode switch-over delay
+  Sperre:
+    de: Sperre
+    en: Blocked
   keine Meldung:
     de: keine Meldung
     en: No message
@@ -1567,15 +2220,21 @@ translations:
   Sperre Extern:
     de: Sperre Extern
     en: External block
+  Inverter:
+    de: Wechselrichter
+    en: Inverter
   Aufwärmen:
     de: Aufwärmen
     en: Warm-up
   EvD Initialisierung:
     de: EvD Initialisierung
     en: EvD initialization
-  2.Wärmeerzeuger freigegeben:
-    de: 2.Wärmeerzeuger freigegeben
-    en: 2nd heat generator enabled
+  "2.Wärmeerzeuger freigegeben":
+    de: "2.Wärmeerzeuger freigegeben"
+    en: "2nd heat generator enabled"
+  Störung:
+    de: Störung
+    en: Error
   kein Fehler:
     de: kein Fehler
     en: No fault
@@ -1600,45 +2259,45 @@ translations:
   Niederdruck Sole:
     de: Niederdruck Sole
     en: Low pressure brine
-  '!Primärkreis':
-    de: '!Primärkreis'
-    en: '!Primary circuit'
-  '!Abtauen':
-    de: '!Abtauen'
-    en: '!Defrost'
-  '!Niederdruck Sole':
-    de: '!Niederdruck Sole'
-    en: '!Low pressure brine'
-  '!Warmwasser':
-    de: '!Warmwasser'
-    en: '!Hot water'
-  '!Last Verdichter':
-    de: '!Last Verdichter'
-    en: '!Compressor load'
-  '!Codierung':
-    de: '!Codierung'
-    en: '!Coding'
-  '!Niederdruck':
-    de: '!Niederdruck'
-    en: '!Low pressure'
-  '!Frostschutz':
-    de: '!Frostschutz'
-    en: '!Frost protection'
-  '!Hochdruck':
-    de: '!Hochdruck'
-    en: '!High pressure'
-  '!Temperatur Differenz':
-    de: '!Temperatur Differenz'
-    en: '!Temperature difference'
-  '!Heißgasthermostat':
-    de: '!Heißgasthermostat'
-    en: '!Hot gas thermostat'
-  '!Durchfluss':
-    de: '!Durchfluss'
-    en: '!Flow'
-  '!Aufwärmen':
-    de: '!Aufwärmen'
-    en: '!Warm-up'
+  "!Primärkreis":
+    de: "!Primärkreis"
+    en: "!Primary circuit"
+  "!Abtauen":
+    de: "!Abtauen"
+    en: "!Defrost"
+  "!Niederdruck Sole":
+    de: "!Niederdruck Sole"
+    en: "!Low pressure brine"
+  "!Warmwasser":
+    de: "!Warmwasser"
+    en: "!Hot water"
+  "!Last Verdichter":
+    de: "!Last Verdichter"
+    en: "!Compressor load"
+  "!Codierung":
+    de: "!Codierung"
+    en: "!Coding"
+  "!Niederdruck":
+    de: "!Niederdruck"
+    en: "!Low pressure"
+  "!Frostschutz":
+    de: "!Frostschutz"
+    en: "!Frost protection"
+  "!Hochdruck":
+    de: "!Hochdruck"
+    en: "!High pressure"
+  "!Temperatur Differenz":
+    de: "!Temperatur Differenz"
+    en: "!Temperature difference"
+  "!Heißgasthermostat":
+    de: "!Heißgasthermostat"
+    en: "!Hot gas thermostat"
+  "!Durchfluss":
+    de: "!Durchfluss"
+    en: "!Flow"
+  "!Aufwärmen":
+    de: "!Aufwärmen"
+    en: "!Warm-up"
   Außenfühler (R1):
     de: Außenfühler (R1)
     en: Outside sensor (R1)
@@ -1654,12 +2313,12 @@ translations:
   Vorlauffühler (R9):
     de: Vorlauffühler (R9)
     en: Flow sensor (R9)
-  2.Heizkreisfühler (R5):
-    de: 2.Heizkreisfühler (R5)
-    en: 2nd heating circuit sensor (R5)
-  3.Heizkreisfühler (R13):
-    de: 3.Heizkreisfühler (R13)
-    en: 3rd heating circuit sensor (R13)
+  "2.Heizkreisfühler (R5)":
+    de: "2.Heizkreisfühler (R5)"
+    en: "2nd heating circuit sensor (R5)"
+  "3.Heizkreisfühler (R13)":
+    de: "3.Heizkreisfühler (R13)"
+    en: "3rd heating circuit sensor (R13)"
   Regenerativfühler (R13):
     de: Regenerativfühler (R13)
     en: Regenerative sensor (R13)
@@ -1672,9 +2331,9 @@ translations:
   Fühler Wärmequellenaustritt (R6):
     de: Fühler Wärmequellenaustritt (R6)
     en: Heat source outlet sensor (R6)
-  Fühler Wärmequelleneintritt (R24)*:
-    de: Fühler Wärmequelleneintritt (R24)*
-    en: Heat source inlet sensor (R24)*
+  "Fühler Wärmequelleneintritt (R24)*":
+    de: "Fühler Wärmequelleneintritt (R24)*"
+    en: "Heat source inlet sensor (R24)*"
   Kollektorfühler (R23):
     de: Kollektorfühler (R23)
     en: Collector sensor (R23)
@@ -1717,6 +2376,222 @@ translations:
   Anforderungsfühler Kühlen (R39):
     de: Anforderungsfühler Kühlen (R39)
     en: Cooling demand sensor (R39)
+  Betriebsmodus:
+    de: Betriebsmodus
+    en: Work mode
+  Heizung Parallelverschiebung:
+    de: Heizung Parallelverschiebung
+    en: Heating parallel shift
+  Heizung Raumtemperatur:
+    de: Heizung Raumtemperatur
+    en: Heating room temperature
+  Heizung Heizkurvenendpunkt:
+    de: Heizung Heizkurvenendpunkt
+    en: Heating curve end point
+  Heizung Hysterese:
+    de: Heizung Hysterese
+    en: Heating hysteresis
+  Softwaresperre Extern:
+    de: Softwaresperre Extern
+    en: External software block
+  Warmwasser Hysterese:
+    de: Warmwasser Hysterese
+    en: Hot water hysteresis
+  Warmwasser Solltemperatur Minimal:
+    de: Warmwasser Solltemperatur Minimal
+    en: Hot water setpoint minimum
+  Warmwasser Solltemperatur Maximal:
+    de: Warmwasser Solltemperatur Maximal
+    en: Hot water setpoint maximum
+  Solltemp. dyn. Kühlung:
+    de: Solltemp. dyn. Kühlung
+    en: Setpoint dyn. cooling
+  "2./3. Heizkreis Auswahl":
+    de: "2./3. Heizkreis Auswahl"
+    en: "2nd/3rd heating circuit selection"
+  "2./3. Heizkreis Heizkurvenendpunkt":
+    de: "2./3. Heizkreis Heizkurvenendpunkt"
+    en: "2nd/3rd heating circuit heating curve end point"
+  "2./3. Heizkreis Festwertemperatur":
+    de: "2./3. Heizkreis Festwertemperatur"
+    en: "2nd/3rd heating circuit fixed value temperature"
+  "2./3. Heizkreis Parallelverschiebung":
+    de: "2./3. Heizkreis Parallelverschiebung"
+    en: "2nd/3rd heating circuit parallel shift"
+  "2./3. Heizkreis Mischerlaufzeit":
+    de: "2./3. Heizkreis Mischerlaufzeit"
+    en: "2nd/3rd heating circuit mixer runtime"
+  "2./3. Heizkreis Mischerhysterese":
+    de: "2./3. Heizkreis Mischerhysterese"
+    en: "2nd/3rd heating circuit mixer hysteresis"
+  "2./3. Heizkreis Maximale Temperatur":
+    de: "2./3. Heizkreis Maximale Temperatur"
+    en: "2nd/3rd heating circuit maximum temperature"
+  "2./3. Heizkreis Kühlung Raumsolltemperatur":
+    de: "2./3. Heizkreis Kühlung Raumsolltemperatur"
+    en: "2nd/3rd heating circuit cooling room setpoint temperature"
+  Anzahl Partystunden:
+    de: Anzahl Partystunden
+    en: Number of party hours
+  Anzahl Urlaubstage:
+    de: Anzahl Urlaubstage
+    en: Number of holiday days
+  Stufen:
+    de: Stufen
+    en: Stages
+  Zeitwert Stoßlüften:
+    de: Zeitwert Stoßlüften
+    en: Burst ventilation time value
+  Schwimmbad Hysterese:
+    de: Schwimmbad Hysterese
+    en: Pool hysteresis
+  Schwimmbad Solltemperatur:
+    de: Schwimmbad Solltemperatur
+    en: Pool setpoint temperature
+  "2.Wärmeerzeuger Mischerhysterese":
+    de: "2.Wärmeerzeuger Mischerhysterese"
+    en: "2nd heat generator mixer hysteresis"
+  "2.Wärmeerzeuger Grenztemperatur parallel":
+    de: "2.Wärmeerzeuger Grenztemperatur parallel"
+    en: "2nd heat generator parallel limit temperature"
+  "2.Wärmeerzeuger Mischerlaufzeit":
+    de: "2.Wärmeerzeuger Mischerlaufzeit"
+    en: "2nd heat generator mixer runtime"
+  Zeitfunktion Auswahl:
+    de: Zeitfunktion Auswahl
+    en: Time function selection
+  Start Stunde 1:
+    de: Start Stunde 1
+    en: Start hour 1
+  Start Minute 1:
+    de: Start Minute 1
+    en: Start minute 1
+  Ende Stunde 1:
+    de: Ende Stunde 1
+    en: End hour 1
+  Ende Minute 1:
+    de: Ende Minute 1
+    en: End minute 1
+  Start Stunde 2:
+    de: Start Stunde 2
+    en: Start hour 2
+  Start Minute 2:
+    de: Start Minute 2
+    en: Start minute 2
+  Ende Stunde 2:
+    de: Ende Stunde 2
+    en: End hour 2
+  Ende Minute 2:
+    de: Ende Minute 2
+    en: End minute 2
+  Sonntag:
+    de: Sonntag
+    en: Sunday
+  Montag:
+    de: Montag
+    en: Monday
+  Dienstag:
+    de: Dienstag
+    en: Tuesday
+  Mittwoch:
+    de: Mittwoch
+    en: Wednesday
+  Donnerstag:
+    de: Donnerstag
+    en: Thursday
+  Freitag:
+    de: Freitag
+    en: Friday
+  Samstag:
+    de: Samstag
+    en: Saturday
+  Absenk- / Anhebwert:
+    de: Absenk- / Anhebwert
+    en: Setback / boost value
+  Stunde:
+    de: Stunde
+    en: Hour
+  Monat:
+    de: Monat
+    en: Month
+  Wochentag:
+    de: Wochentag
+    en: Weekday
+  Tag:
+    de: Tag
+    en: Day
+  Jahr:
+    de: Jahr
+    en: Year
+  Sync clock:
+    de: Uhr synchronisieren
+    en: Sync clock
+  Außentemperatur (R1):
+    de: Außentemperatur (R1)
+    en: Outside temperature (R1)
+  Heizung Rücklauftemperatur (R2):
+    de: Heizung Rücklauftemperatur (R2)
+    en: Heating return temperature (R2)
+  "1. Heizkreis Temperatur":
+    de: "1. Heizkreis Temperatur"
+    en: "1st heating circuit temperature"
+  "2. Heizkreis Temperatur (R5)":
+    de: "2. Heizkreis Temperatur (R5)"
+    en: "2nd heating circuit temperature (R5)"
+  "3. Heizkreis Temperatur (R13)":
+    de: "3. Heizkreis Temperatur (R13)"
+    en: "3rd heating circuit temperature (R13)"
+  Heizung Rücklaufsolltemperatur:
+    de: Heizung Rücklaufsolltemperatur
+    en: Heating return setpoint temperature
+  "1. Heizkreis Rücklaufsolltemperatur":
+    de: "1. Heizkreis Rücklaufsolltemperatur"
+    en: "1st heating circuit return setpoint temperature"
+  "2. Heizkreis Rücklaufsolltemperatur":
+    de: "2. Heizkreis Rücklaufsolltemperatur"
+    en: "2nd heating circuit return setpoint temperature"
+  "3. Heizkreis Rücklaufsolltemperatur":
+    de: "3. Heizkreis Rücklaufsolltemperatur"
+    en: "3rd heating circuit return setpoint temperature"
+  Warmwasser Temperatur (R3):
+    de: Warmwasser Temperatur (R3)
+    en: Hot water temperature (R3)
+  Warmwasser Solltemperatur:
+    de: Warmwasser Solltemperatur
+    en: Hot water setpoint temperature
+  Vorlauftemperatur (R9):
+    de: Vorlauftemperatur (R9)
+    en: Flow temperature (R9)
+  Wärmequelleneintrittstemperatur (R24):
+    de: Wärmequelleneintrittstemperatur (R24)
+    en: Heat source inlet temperature (R24)
+  Wärmequellenaustrittstemperatur (R6):
+    de: Wärmequellenaustrittstemperatur (R6)
+    en: Heat source outlet temperature (R6)
+  Verdichter 1 Laufzeit:
+    de: Verdichter 1 Laufzeit
+    en: Compressor 1 runtime
+  Primärpumpe / Ventilator (M11) Laufzeit:
+    de: Primärpumpe / Ventilator (M11) Laufzeit
+    en: Primary pump / fan (M11) runtime
+  Heizungspumpe (M13) Laufzeit:
+    de: Heizungspumpe (M13) Laufzeit
+    en: Heating pump (M13) runtime
+  Warmwasserpumpe (M18) Laufzeit:
+    de: Warmwasserpumpe (M18) Laufzeit
+    en: Hot water pump (M18) runtime
+  Zusatzumwälzpumpe (M16) Laufzeit:
+    de: Zusatzumwälzpumpe (M16) Laufzeit
+    en: Additional circulation pump (M16) runtime
+  Wärmemenge Heizung:
+    de: Wärmemenge Heizung
+    en: Heat quantity heating
+  Wärmemenge Warmwasser:
+    de: Wärmemenge Warmwasser
+    en: Heat quantity hot water
+  Wärmemenge Schwimmbad:
+    de: Wärmemenge Schwimmbad
+    en: Heat quantity pool
   Statusmeldung:
     de: Statusmeldung
     en: Status message
@@ -1729,6 +2604,30 @@ translations:
   Sensorfehler:
     de: Sensorfehler
     en: Sensor fault
+  Raumtemperatur 1 / RT-RTH Econ:
+    de: Raumtemperatur 1 / RT-RTH Econ
+    en: Room temperature 1 / RT-RTH Econ
+  Raumtemperatur 2:
+    de: Raumtemperatur 2
+    en: Room temperature 2
+  Raumfeuchte 1 / RT-RTH Econ:
+    de: Raumfeuchte 1 / RT-RTH Econ
+    en: Room humidity 1 / RT-RTH Econ
+  Vorlauftemperatur (R11):
+    de: Vorlauftemperatur (R11)
+    en: Flow temperature (R11)
+  Rücklauftemperatur (R4):
+    de: Rücklauftemperatur (R4)
+    en: Return temperature (R4)
+  Rücklauftemp. gem. Primärkreis (R24):
+    de: Rücklauftemp. gem. Primärkreis (R24)
+    en: Return temp. common primary circuit (R24)
+  Solarspeicher (R22):
+    de: Solarspeicher (R22)
+    en: Solar storage (R22)
+  Außenlufttemperatur:
+    de: Außenlufttemperatur
+    en: Outside air temperature
   Zulufttemperatur:
     de: Zulufttemperatur
     en: Supply air temperature
@@ -1738,6 +2637,234 @@ translations:
   Fortlufttemperatur:
     de: Fortlufttemperatur
     en: Exhaust air temperature
+  Drehzahl Zuluftventilator:
+    de: Drehzahl Zuluftventilator
+    en: Supply air fan speed
+  Drehzahl Abluftventilator:
+    de: Drehzahl Abluftventilator
+    en: Extract air fan speed
+  Verdichter 2 Laufzeit:
+    de: Verdichter 2 Laufzeit
+    en: Compressor 2 runtime
+  "2.Wärmeerzeuger (E10) Laufzeit":
+    de: "2.Wärmeerzeuger (E10) Laufzeit"
+    en: "2nd heat generator (E10) runtime"
+  Flanschheizung (E9) Laufzeit:
+    de: Flanschheizung (E9) Laufzeit
+    en: Flange heater (E9) runtime
+  Schwimmbadpumpe (M19) Laufzeit:
+    de: Schwimmbadpumpe (M19) Laufzeit
+    en: Pool pump (M19) runtime
+  Warmwasserthermostat:
+    de: Warmwasserthermostat
+    en: Hot water thermostat
+  Verdichter 1 Modus:
+    de: Verdichter 1 Modus
+    en: Compressor 1 mode
+  Sole Primärpumpe (M11) / Ventilator (M2) Modus:
+    de: Sole Primärpumpe (M11) / Ventilator (M2) Modus
+    en: Brine primary pump (M11) / fan (M2) mode
+  Heizungspumpe (M13) Modus:
+    de: Heizungspumpe (M13) Modus
+    en: Heating pump (M13) mode
+  Warmwasserpumpe (M18) Modus:
+    de: Warmwasserpumpe (M18) Modus
+    en: Hot water pump (M18) mode
+  "2. Heizkreis Mischer (M21) auf":
+    de: "2. Heizkreis Mischer (M21) auf"
+    en: "2nd heating circuit mixer (M21) open"
+  Zusatzumwälzpumpe (M16) Modus:
+    de: Zusatzumwälzpumpe (M16) Modus
+    en: Additional circulation pump (M16) mode
+  Heizungspumpe (M15) Modus:
+    de: Heizungspumpe (M15) Modus
+    en: Heating pump (M15) mode
+  "3. Heizkreis Mischer (M22) auf":
+    de: "3. Heizkreis Mischer (M22) auf"
+    en: "3rd heating circuit mixer (M22) open"
+  Schwimmbadpumpe (M19) Modus:
+    de: Schwimmbadpumpe (M19) Modus
+    en: Pool pump (M19) mode
   Sammelstörmeldung (H5) Modus:
     de: Sammelstörmeldung (H5) Modus
     en: Collective fault message (H5) mode
+  Heizungspumpe (M14) Modus:
+    de: Heizungspumpe (M14) Modus
+    en: Heating pump (M14) mode
+  Kühlpumpe (M17) Modus:
+    de: Kühlpumpe (M17) Modus
+    en: Cooling pump (M17) mode
+  Heizungspumpe (M20) Modus:
+    de: Heizungspumpe (M20) Modus
+    en: Heating pump (M20) mode
+  Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus:
+    de: Umschaltung Raumthermostate Heizen/Kühlen (N9) Modus
+    en: Room thermostats heating/cooling switch-over (N9) mode
+  Primärpumpe Kühlen (M12) Modus:
+    de: Primärpumpe Kühlen (M12) Modus
+    en: Primary pump cooling (M12) mode
+  Solarpumpe (M23) Modus:
+    de: Solarpumpe (M23) Modus
+    en: Solar pump (M23) mode
+  Aktiv Zeit 1:
+    de: Aktiv Zeit 1
+    en: Active time 1
+  Aktiv Zeit 2:
+    de: Aktiv Zeit 2
+    en: Active time 2
+  Schwimmbadthermostat:
+    de: Schwimmbadthermostat
+    en: Pool thermostat
+  Verdichter 2 Modus:
+    de: Verdichter 2 Modus
+    en: Compressor 2 mode
+  "2.Wärmeerzeuger (E10) Modus":
+    de: "2.Wärmeerzeuger (E10) Modus"
+    en: "2nd heat generator (E10) mode"
+  "2. Heizkreis Mischer (M21) zu":
+    de: "2. Heizkreis Mischer (M21) zu"
+    en: "2nd heating circuit mixer (M21) closed"
+  Flanschheizung (E9) Modus:
+    de: Flanschheizung (E9) Modus
+    en: Flange heater (E9) mode
+  "3. Heizkreis Mischer (M22) zu":
+    de: "3. Heizkreis Mischer (M22) zu"
+    en: "3rd heating circuit mixer (M22) closed"
+  Heizung:
+    de: Heizung
+    en: Space heating
+
+  # "Software version":
+  #   de: Softwarestand
+  #   en: Software version
+  # "Internal supervisor":
+  #   de: Interner Supervisor
+  #   en: Internal supervisor
+  # "1. Heizkreis Temperatur intern":
+  #   de: "1. Heizkreis Temperatur intern"
+  #   en: "1st heating circuit temperature internal"
+  # "2. Heizkreis Temperatur intern":
+  #   de: "2. Heizkreis Temperatur intern"
+  #   en: "2nd heating circuit temperature internal"
+  # "3. Heizkreis Temperatur intern":
+  #   de: "3. Heizkreis Temperatur intern"
+  #   en: "3rd heating circuit temperature internal"
+  # "1. Heizkreis Ist Anzeige":
+  #   de: "1. Heizkreis Ist Anzeige"
+  #   en: "1st heating circuit actual display"
+  # "1. Heizkreis Soll Anzeige":
+  #   de: "1. Heizkreis Soll Anzeige"
+  #   en: "1st heating circuit setpoint display"
+  Heizkreise Ist gemeinsam:
+    de: Heizkreise Ist gemeinsam
+    en: Heating circuits common actual
+  # Außentemperatur intern:
+  #   de: Außentemperatur intern
+  #   en: Outside temperature internal
+  # Vorlauftemperatur intern:
+  #   de: Vorlauftemperatur intern
+  #   en: Flow temperature internal
+  # Warmwasser Temperatur intern:
+  #   de: Warmwasser Temperatur intern
+  #   en: Hot water temperature internal
+  # Rücklauf Wärmepumpe:
+  #   de: Rücklauf Wärmepumpe
+  #   en: Heat pump return temperature
+  # Vorlauf Wärmepumpe:
+  #   de: Vorlauf Wärmepumpe
+  #   en: Heat pump flow temperature
+  # Warmwasser Soll Anzeige:
+  #   de: Warmwasser Soll Anzeige
+  #   en: Hot water setpoint display
+  # Betriebsart intern:
+  #   de: Betriebsart intern
+  #   en: Operating mode internal
+  # "1. Heizkreis Status":
+  #   de: "1. Heizkreis Status"
+  #   en: "1st heating circuit status"
+  Wärmemenge Heizen intern:
+    de: Wärmemenge Heizen intern
+    en: Heat quantity heating internal
+  Wärmemenge Warmwasser intern:
+    de: Wärmemenge Warmwasser intern
+    en: Heat quantity hot water internal
+  Wärmemenge Schwimmbad intern:
+    de: Wärmemenge Schwimmbad intern
+    en: Heat quantity pool internal
+  Wärmemenge Heizen Anzeige:
+    de: Wärmemenge Heizen Anzeige
+    en: Heat quantity heating display
+  Wärmemenge Warmwasser Anzeige:
+    de: Wärmemenge Warmwasser Anzeige
+    en: Heat quantity hot water display
+  Wärmemenge Schwimmbad Anzeige:
+    de: Wärmemenge Schwimmbad Anzeige
+    en: Heat quantity pool display
+  Wärmemenge gesamt Anzeige:
+    de: Wärmemenge gesamt Anzeige
+    en: Heat quantity total display
+  Leistung Heizen:
+    de: Leistung Heizen
+    en: Heating power
+  Leistung Kühlen:
+    de: Leistung Kühlen
+    en: Cooling power
+  Leistung Elektrisch:
+    de: Leistung Elektrisch
+    en: Electric power
+  Leistung Abtauen:
+    de: Leistung Abtauen
+    en: Defrost power
+  Verdichter 1 Stunden intern:
+    de: Verdichter 1 Stunden intern
+    en: Compressor 1 hours internal
+  Verdichter 2 Stunden intern:
+    de: Verdichter 2 Stunden intern
+    en: Compressor 2 hours internal
+  Heizungspumpe Stunden intern:
+    de: Heizungspumpe Stunden intern
+    en: Heating pump hours internal
+  Warmwasserpumpe Stunden intern:
+    de: Warmwasserpumpe Stunden intern
+    en: Hot water pump hours internal
+
+  Verdichter Leistung elektrisch:
+    de: Verdichter Leistung elektrisch
+    en: Compressor electric power
+  Ventilator Leistung elektrisch:
+    de: Ventilator Leistung elektrisch
+    en: Fan electric power
+  Inverter AC-Eingangsleistung:
+    de: Inverter AC-Eingangsleistung
+    en: Inverter AC input power
+  Außengerät Leistung elektrisch:
+    de: Außengerät Leistung elektrisch
+    en: Outdoor unit electric power
+  Außengerät Leistung High:
+    de: Außengerät Leistung High
+    en: Outdoor unit power high word
+  Außengerät Leistung Low:
+    de: Außengerät Leistung Low
+    en: Outdoor unit power low word
+  Lüftung Abluft Leistung:
+    de: Lüftung Abluft Leistung
+    en: Ventilation extract fan power
+  Lüftung Zuluft Leistung:
+    de: Lüftung Zuluft Leistung
+    en: Ventilation supply fan power
+
+  Umweltenergie Anzeige:
+    de: Umweltenergie Anzeige
+    en: Environmental energy display
+  Umweltenergie Heizen:
+    de: Umweltenergie Heizen
+    en: Environmental energy heating
+  Regenerativ Speicher:
+    de: Regenerativ Speicher
+    en: Regenerative storage
+  Regenerativ Stunden:
+    de: Regenerativ Stunden
+    en: Regenerative hours
+  WPM Software:
+    de: WPM Software
+    en: WPM software

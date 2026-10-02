@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
 # Generated from support/devicedocs/dimplex-si-11tu/device.yaml (hand-maintained) —
 # do not edit here; edit support/devicedocs/dimplex-si-11tu/device.yaml and re-run:
-#   .venv/bin/python support/converter/convert_all.py
+#   .venv/bin/python support/converter/convert_all.py --owned dimplex-si-11tu
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -9,6 +9,7 @@ device:
   model: Sole/Wasser-Wärmepumpe SI 11TU
   max_register_read: 100
   prefix: Dimplex SI
+  sw_version: "{{ \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\"[(wpm_software_code | int) + (64 if (wpm_software_code | int) < 64 else 0) - 65] }}{{ wpm_software_minor | int }}.{{ wpm_software_patch | int }}"
   max_read_gap: 64
   default_groups: [basic, standard]
   group_labels:
@@ -32,6 +33,8 @@ device:
     schedule: Schedule / time program
     clock: Clock
     test: Test
+    version: Software version
+    internal: Internal supervisor
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:
@@ -652,6 +655,352 @@ holding:
       name: Sync clock
       icon: "mdi:clock-check"
       entity_category: config
+  heating_common_actual:
+    address: 6576
+    multiplier: 0.1
+    groups: [standard, heating, internal]
+    ha:
+      platform: sensor
+      name: Heizkreise Ist gemeinsam
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: "mdi:thermometer"
+  heating_circuit_1_status:
+    address: 6582
+    groups: [heating, status, internal]
+    ha:
+      platform: sensor
+      name: "1. Heizkreis Status"
+      icon: "mdi:heating-coil"
+      entity_category: diagnostic
+  wpm_software_code:
+    address: 4873
+    internal: true
+  wpm_software_minor:
+    address: 4874
+    internal: true
+  wpm_software_patch:
+    address: 4875
+    internal: true
+  heat_quantity_heating_internal:
+    address: 6301
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Heizen intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_hot_water_internal:
+    address: 6304
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Warmwasser intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_pool_internal:
+    address: 6307
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [pool, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Schwimmbad intern
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_heating_display:
+    address: 6664
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Heizen Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_hot_water_display:
+    address: 6670
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Warmwasser Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_pool_display:
+    address: 6667
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [pool, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge Schwimmbad Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  heat_quantity_total_display:
+    address: 6661
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Wärmemenge gesamt Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:meter-electric"
+      entity_category: diagnostic
+  power_heating:
+    address: 7667
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Heizen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_cooling:
+    address: 7668
+    groups: [cooling, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Kühlen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_electric:
+    address: 7669
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Elektrisch
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  power_defrost:
+    address: 7670
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Leistung Abtauen
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  compressor_1_hours_internal:
+    address: 6381
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter 1 Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  compressor_2_hours_internal:
+    address: 6382
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter 2 Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  heating_pump_hours_internal:
+    address: 6386
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Heizungspumpe Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  hot_water_pump_hours_internal:
+    address: 6387
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Warmwasserpumpe Stunden intern
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
+  compressor_electric_power:
+    address: 7939
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Verdichter Leistung elektrisch
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  fan_electric_power:
+    address: 7938
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Ventilator Leistung elektrisch
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  inverter_ac_input_power:
+    address: 6557
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Inverter AC-Eingangsleistung
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_electric_power:
+    address: 7770
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung elektrisch
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_power_high:
+    address: 7779
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung High
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  midea_power_low:
+    address: 7780
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Außengerät Leistung Low
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  ventilation_exhaust_power:
+    address: 7241
+    groups: [ventilation, energy, internal]
+    ha:
+      platform: sensor
+      name: Lüftung Abluft Leistung
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  ventilation_supply_power:
+    address: 7255
+    groups: [ventilation, energy, internal]
+    ha:
+      platform: sensor
+      name: Lüftung Zuluft Leistung
+      unit_of_measurement: W
+      device_class: power
+      state_class: measurement
+      icon: "mdi:flash"
+      entity_category: diagnostic
+  environmental_heat_display:
+    address: 6645
+    sum_scale: [1, 10000, 100000000]
+    never_resets: true
+    groups: [standard, energy, internal]
+    ha:
+      platform: sensor
+      name: Umweltenergie Anzeige
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:solar-power"
+      entity_category: diagnostic
+  environmental_heat_heating:
+    address: 6474
+    sum_scale: [10000, 100000000, 1]
+    never_resets: true
+    groups: [advanced, energy, internal]
+    ha:
+      platform: sensor
+      name: Umweltenergie Heizen
+      unit_of_measurement: kWh
+      device_class: energy
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:solar-power"
+      entity_category: diagnostic
+  regenerative_storage_temp:
+    address: 1292
+    multiplier: 0.1
+    groups: [solar, internal]
+    ha:
+      platform: sensor
+      name: Regenerativ Speicher
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      icon: "mdi:thermometer"
+      entity_category: diagnostic
+  regenerative_hours:
+    address: 6511
+    never_resets: true
+    groups: [solar, energy, internal]
+    ha:
+      platform: sensor
+      name: Regenerativ Stunden
+      unit_of_measurement: h
+      state_class: total_increasing
+      precision: 0
+      icon: "mdi:history"
+      entity_category: diagnostic
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:
@@ -1449,6 +1798,14 @@ discrete:
 
 # Templates: composite Home Assistant entities derived from the registers above.
 template:
+  wpm_software:
+    ha:
+      platform: sensor
+      name: WPM Software
+      icon: "mdi:chip"
+      entity_category: diagnostic
+    groups: [advanced, version]
+    state: "{% set n = wpm_software_code | int %} {% if n < 64 %}{% set n = n + 64 %}{% endif %} {{ \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\"[n - 65] }}{{ wpm_software_minor | int }}.{{ wpm_software_patch | int }}"
   hot_water:
     ha:
       platform: climate
@@ -2004,6 +2361,90 @@ translations:
   Sync clock:
     de: Uhr synchronisieren
     en: Sync clock
+  Heizkreise Ist gemeinsam:
+    de: Heizkreise Ist gemeinsam
+    en: Heating circuits common actual
+  Wärmemenge Heizen intern:
+    de: Wärmemenge Heizen intern
+    en: Heat quantity heating internal
+  Wärmemenge Warmwasser intern:
+    de: Wärmemenge Warmwasser intern
+    en: Heat quantity hot water internal
+  Wärmemenge Schwimmbad intern:
+    de: Wärmemenge Schwimmbad intern
+    en: Heat quantity pool internal
+  Wärmemenge Heizen Anzeige:
+    de: Wärmemenge Heizen Anzeige
+    en: Heat quantity heating display
+  Wärmemenge Warmwasser Anzeige:
+    de: Wärmemenge Warmwasser Anzeige
+    en: Heat quantity hot water display
+  Wärmemenge Schwimmbad Anzeige:
+    de: Wärmemenge Schwimmbad Anzeige
+    en: Heat quantity pool display
+  Wärmemenge gesamt Anzeige:
+    de: Wärmemenge gesamt Anzeige
+    en: Heat quantity total display
+  Leistung Heizen:
+    de: Leistung Heizen
+    en: Heating power
+  Leistung Kühlen:
+    de: Leistung Kühlen
+    en: Cooling power
+  Leistung Elektrisch:
+    de: Leistung Elektrisch
+    en: Electric power
+  Leistung Abtauen:
+    de: Leistung Abtauen
+    en: Defrost power
+  Verdichter 1 Stunden intern:
+    de: Verdichter 1 Stunden intern
+    en: Compressor 1 hours internal
+  Verdichter 2 Stunden intern:
+    de: Verdichter 2 Stunden intern
+    en: Compressor 2 hours internal
+  Heizungspumpe Stunden intern:
+    de: Heizungspumpe Stunden intern
+    en: Heating pump hours internal
+  Warmwasserpumpe Stunden intern:
+    de: Warmwasserpumpe Stunden intern
+    en: Hot water pump hours internal
+  Verdichter Leistung elektrisch:
+    de: Verdichter Leistung elektrisch
+    en: Compressor electric power
+  Ventilator Leistung elektrisch:
+    de: Ventilator Leistung elektrisch
+    en: Fan electric power
+  Inverter AC-Eingangsleistung:
+    de: Inverter AC-Eingangsleistung
+    en: Inverter AC input power
+  Außengerät Leistung elektrisch:
+    de: Außengerät Leistung elektrisch
+    en: Outdoor unit electric power
+  Außengerät Leistung High:
+    de: Außengerät Leistung High
+    en: Outdoor unit power high word
+  Außengerät Leistung Low:
+    de: Außengerät Leistung Low
+    en: Outdoor unit power low word
+  Lüftung Abluft Leistung:
+    de: Lüftung Abluft Leistung
+    en: Ventilation extract fan power
+  Lüftung Zuluft Leistung:
+    de: Lüftung Zuluft Leistung
+    en: Ventilation supply fan power
+  Umweltenergie Anzeige:
+    de: Umweltenergie Anzeige
+    en: Environmental energy display
+  Umweltenergie Heizen:
+    de: Umweltenergie Heizen
+    en: Environmental energy heating
+  Regenerativ Speicher:
+    de: Regenerativ Speicher
+    en: Regenerative storage
+  Regenerativ Stunden:
+    de: Regenerativ Stunden
+    en: Regenerative hours
   Außentemperatur (R1):
     de: Außentemperatur (R1)
     en: Outside temperature (R1)
@@ -2208,6 +2649,9 @@ translations:
   "3. Heizkreis Mischer (M22) zu":
     de: "3. Heizkreis Mischer (M22) zu"
     en: "3rd heating circuit mixer (M22) closed"
+  WPM Software:
+    de: WPM Software
+    en: WPM software
   Heizung:
     de: Heizung
     en: Space heating
