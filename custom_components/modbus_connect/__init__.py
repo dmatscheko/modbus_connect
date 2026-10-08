@@ -21,15 +21,21 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
+from .issues import async_clear_entry_issues, async_report_invalid_device_file
 from .loader import async_load_device
 from .schema import DeviceSchemaError
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry) -> bool:
     """Set up one device (gateway + Modbus device id + device YAML)."""
+    # Issues describe this setup's state (a quarantine starts over on reload).
+    async_clear_entry_issues(hass, entry.entry_id)
     try:
         device = await async_load_device(hass, entry.data[CONF_FILENAME])
     except DeviceSchemaError as err:
+        async_report_invalid_device_file(
+            hass, entry.entry_id, entry.title, entry.data[CONF_FILENAME], str(err)
+        )
         raise ConfigEntryError(
             str(err),
             translation_domain=DOMAIN,
@@ -95,4 +101,12 @@ async def _async_options_updated(hass: HomeAssistant, entry: ModbusConnectConfig
 
 async def async_unload_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry) -> bool:
     """Unload a device; the on-unload callback drops the gateway reference."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded:
+        async_clear_entry_issues(hass, entry.entry_id)
+    return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry) -> None:
+    """A removed entry (even one that never loaded) leaves no issues behind."""
+    async_clear_entry_issues(hass, entry.entry_id)

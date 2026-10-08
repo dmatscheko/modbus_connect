@@ -207,5 +207,15 @@
     "invalid_device_file": {
       "message": "Ungültige Gerätedatei: {error}"
     }
+  },
+  "issues": {
+    "register_quarantined": {
+      "title": "{device}: {entity} kann nicht gelesen werden",
+      "description": "Das Gerät verweigert wiederholt das Register von **{entity}** (`{key}`, {span}), während es alle anderen Leseanfragen beantwortet. Die Abfrage wurde daher pausiert und wird alle {retry_minutes} Minuten erneut versucht.\n\nMeist enthält die Gerätedatei `{filename}` eine falsche Adresse für diese Entität, oder dieses Gerätemodell hat das Register nicht. Korrigiere oder entferne die Entität in der Gerätedatei und lade den Eintrag neu. Dieses Problem verschwindet von selbst, sobald das Register wieder antwortet."
+    },
+    "invalid_device_file": {
+      "title": "{title}: Gerätedatei kann nicht geladen werden",
+      "description": "Die Gerätedatei `{filename}` von **{title}** ist ungültig, daher wurde das Gerät nicht eingerichtet:\n\n{error}\n\nKorrigiere die Datei (eigene Dateien liegen in `<config>/modbus_connect/`) oder wähle über **Neu konfigurieren** eine andere Gerätedatei und lade den Eintrag dann neu."
+    }
   }
 }

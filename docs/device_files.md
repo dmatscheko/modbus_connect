@@ -130,7 +130,8 @@ register that keeps failing while the device answers everything else (three
 consecutive polls, or one explicit illegal-address answer) is quarantined: its
 entity goes unavailable, its registers leave the read plan, and a standalone
 probe every 10 minutes lifts the quarantine as soon as the device serves it
-again — a wrong `address:` costs a warning and a probe, not permanent traffic.
+again — a wrong `address:` costs a warning, a repair issue (which clears itself
+on recovery) and a probe, not permanent traffic.
 Only a register that has never answered can be quarantined: once the device has
 served it on two consecutive polls it is known alive for the life of the entry
 and stays in the plan through any later failure, so a power-cycled device

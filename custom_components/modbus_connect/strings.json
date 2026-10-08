@@ -207,5 +207,15 @@
     "invalid_device_file": {
       "message": "Invalid device file: {error}"
     }
+  },
+  "issues": {
+    "register_quarantined": {
+      "title": "{device}: {entity} cannot be read",
+      "description": "The device keeps refusing the register of **{entity}** (`{key}`, {span}) while it answers every other read, so polling it is paused and it is re-probed every {retry_minutes} minutes.\n\nThis usually means the device file `{filename}` has a wrong address for this entity, or this device model does not have the register. Fix or remove the entity in the device file and reload the entry. This issue clears itself as soon as the register answers again."
+    },
+    "invalid_device_file": {
+      "title": "{title}: device file cannot be loaded",
+      "description": "The device file `{filename}` used by **{title}** is invalid, so the device was not set up:\n\n{error}\n\nFix the file (user files live in `<config>/modbus_connect/`) or pick another device file with **Reconfigure**, then reload the entry."
+    }
   }
 }

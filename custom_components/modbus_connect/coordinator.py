@@ -40,6 +40,7 @@ from .const import (
     QUARANTINE_RETRY_SECONDS,
     SHOW_ALL_MIN_GROUPS,
 )
+from .issues import async_clear_quarantined, async_report_quarantined
 from .models import (
     TABLE_COIL,
     DeviceDef,
@@ -490,6 +491,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self._fail_streak.pop(key, None)
         self.quarantined[key] = now + QUARANTINE_RETRY_SECONDS
+        async_report_quarantined(
+            self.hass,
+            self.entry_id,
+            str(self.device_info["name"]),
+            self.device_def.filename,
+            defn,
+        )
         _LOGGER.warning(
             "%s: %s (%s) %s while the device answers other reads; pausing "
             "it and re-probing every %d s. If it never recovers, fix or remove "
@@ -963,6 +971,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.debug("Re-probe of quarantined %s failed: %s", key, err)
                 return False
         del self.quarantined[key]
+        async_clear_quarantined(self.hass, self.entry_id, key)
         _LOGGER.info("%s: %s reads again; lifting its quarantine", self.name, key)
         return True
 

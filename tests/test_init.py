@@ -9,6 +9,7 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     mock_restore_cache_with_extra_data,
@@ -1286,3 +1287,42 @@ async def test_setup_unreadable_device_file(hass: HomeAssistant) -> None:
     assert entry.state is ConfigEntryState.SETUP_ERROR
     assert "cannot read" in str(entry.reason)
     assert entry.error_reason_translation_key == "invalid_device_file"
+    # also raised on the Repairs page...
+    issue_id = f"{entry.entry_id}_invalid_device_file"
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.translation_placeholders["filename"] == "acme_x1.yaml"
+    assert "permission denied" in issue.translation_placeholders["error"]
+
+    # ...and gone once the file loads again
+    with patch.object(ModbusBlockClient, "acquire", return_value=make_client()):
+        assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_unload_and_removal_clear_entry_issues(hass: HomeAssistant) -> None:
+    entry = make_entry()
+    assert await setup_entry(hass, entry, make_client())
+    stale = f"{entry.entry_id}_quarantined_temperature"
+    ir.async_create_issue(
+        hass, DOMAIN, stale, is_fixable=False, severity=ir.IssueSeverity.WARNING,
+        translation_key="register_quarantined",
+    )
+    other = "other-entry_quarantined_temperature"
+    ir.async_create_issue(
+        hass, DOMAIN, other, is_fixable=False, severity=ir.IssueSeverity.WARNING,
+        translation_key="register_quarantined",
+    )
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    registry = ir.async_get(hass)
+    assert registry.async_get_issue(DOMAIN, stale) is None
+    assert registry.async_get_issue(DOMAIN, other) is not None  # not this entry's
+
+    ir.async_create_issue(
+        hass, DOMAIN, stale, is_fixable=False, severity=ir.IssueSeverity.WARNING,
+        translation_key="register_quarantined",
+    )
+    assert await hass.config_entries.async_remove(entry.entry_id)
+    assert registry.async_get_issue(DOMAIN, stale) is None

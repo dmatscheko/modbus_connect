@@ -4,8 +4,10 @@ import asyncio
 from datetime import time as dt_time
 
 import pytest
+from homeassistant.helpers import issue_registry as ir
 
 from custom_components.modbus_connect.const import (
+    DOMAIN,
     OPTION_ENABLED_GROUPS,
     OPTION_SHOW_ALL,
 )
@@ -24,6 +26,12 @@ from custom_components.modbus_connect.models import (
 )
 
 from .fakes import FakeClient, FakeTime, make_coordinator, make_device, sensor
+
+
+def quarantine_issue(hass, coordinator, key):
+    return ir.async_get(hass).async_get_issue(
+        DOMAIN, f"{coordinator.entry_id}_quarantined_{key}"
+    )
 
 
 async def test_adjacent_entities_one_read(hass, monkeypatch):
@@ -1390,6 +1398,13 @@ async def test_persistently_failing_register_is_quarantined(hass, monkeypatch):
         ft.now += 30
     assert set(coordinator.quarantined) == {"bad"}
     assert coordinator.data == {"good": 5, "bad": None}
+    # surfaced on the Repairs page, pointing at the device file
+    issue = quarantine_issue(hass, coordinator, "bad")
+    assert issue is not None
+    assert issue.translation_key == "register_quarantined"
+    assert issue.translation_placeholders["span"] == "holding@100+1"
+    assert issue.translation_placeholders["filename"] == "test.yaml"
+    assert quarantine_issue(hass, coordinator, "good") is None
 
     client.reads.clear()
     await coordinator.async_refresh()  # bad has left the read plan
@@ -1430,6 +1445,7 @@ async def test_quarantined_register_reprobes_and_recovers(hass, monkeypatch):
     await coordinator.async_refresh()  # the probe succeeds: quarantine lifts
     assert coordinator.quarantined == {}
     assert coordinator.data["bad"] == 7
+    assert quarantine_issue(hass, coordinator, "bad") is None  # resolved itself
 
     client.reads.clear()
     ft.now += 30

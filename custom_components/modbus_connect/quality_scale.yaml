@@ -145,11 +145,13 @@ rules:
     status: done
     comment: Gateway connection and device file can be changed without removing the entry.
   repair-issues:
-    status: exempt
+    status: done
     comment: >-
-      There are no repairable states: connection problems surface through
-      config entry state and availability, invalid user device files are
-      logged and skipped without breaking existing entries.
+      A quarantined register (one the device keeps refusing — usually a wrong
+      address in the device file) and a device file that fails to load raise
+      non-fixable repair issues naming the entity/file; they clear on recovery,
+      reload, unload and removal. Connection problems surface through config
+      entry state and availability instead.
   stale-devices:
     status: exempt
     comment: One config entry is one device; removing the entry removes the device.

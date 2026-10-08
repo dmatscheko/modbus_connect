@@ -278,7 +278,10 @@ A register that keeps failing while the device answers everything else — the
 signature of a wrong address in a device file — is **quarantined**: the entity
 goes unavailable, its registers leave the read plan, and a probe every
 10 minutes lifts the quarantine as soon as the device serves them again. The
-log warns with the entity and address. Only a register that has never
+log warns with the entity and address, and a **repair issue** on *Settings →
+System → Repairs* names the entity, its register and the device file; it
+clears itself when the register recovers. A device file that fails to load
+raises a repair issue as well. Only a register that has never
 answered can be quarantined: once the device has served it on two consecutive
 polls it is **known alive** and stays in the read plan through any later
 failure, so a device that is power-cycled — timing out, then refusing reads
@@ -345,8 +348,8 @@ automation:
   allow exactly one client.
 - **Some entities are unavailable** — the device rejected their addresses
   (wrong device file, or the register only exists on other firmware). The
-  log names the entity and address, and *Download diagnostics* lists them
-  under `quarantined`. The [Modbus Scanner](#writing-a-device-file-the-modbus-scanner)
+  log and a repair issue name the entity and address, and *Download
+  diagnostics* lists them under `quarantined`. The [Modbus Scanner](#writing-a-device-file-the-modbus-scanner)
   shows in seconds which registers the device actually serves.
 - **Everything is unavailable** — the device did not answer at all: wrong
   Modbus device ID, or the gateway is up while the RS-485 side is down. The
