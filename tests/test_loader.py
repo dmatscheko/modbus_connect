@@ -71,6 +71,21 @@ async def test_list_devices_skips_invalid_files_and_reports_them(
     assert "\n" not in errors["broken.yaml"]  # YAML errors are multi-line
 
 
+async def test_non_utf8_file_is_skipped_not_fatal(hass: HomeAssistant) -> None:
+    """A user file saved in another encoding is reported like any broken file —
+    it must not take the picker (or the entry setup) down with a traceback."""
+    path = user_dir(hass) / "latin1.yaml"
+    path.write_bytes("device: {manufacturer: Acme, model: Wärme}\n".encode("latin-1"))
+    try:
+        devices, errors = await async_list_devices(hass)
+        assert "latin1.yaml" not in devices
+        assert errors["latin1.yaml"].startswith("latin1.yaml: cannot read")
+        with pytest.raises(DeviceSchemaError, match="cannot read"):
+            await async_load_device(hass, "latin1.yaml")
+    finally:
+        path.unlink()  # the testing config dir is shared across tests
+
+
 async def test_list_devices_reads_only_the_head(hass: HomeAssistant) -> None:
     """The picker must not need a valid entity map — a file whose device: block is
     fine but whose entities are broken still lists (it fails later, on selection)."""

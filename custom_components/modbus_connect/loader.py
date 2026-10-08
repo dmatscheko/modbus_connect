@@ -79,9 +79,10 @@ def _load_one(hass: HomeAssistant, filename: str) -> DeviceDef:
         return _load_file(path, filename.lower(), hass.config.language)
     except yaml.YAMLError as err:
         raise DeviceSchemaError(f"{filename}: invalid YAML: {err}") from err
-    except OSError as err:
-        # An unreadable file must surface as a config-entry error message, the
-        # same way _load_all reports it, not as a raw traceback.
+    except (OSError, UnicodeDecodeError) as err:
+        # An unreadable file (or one not saved as UTF-8) must surface as a
+        # config-entry error message, the same way _list_all reports it, not as
+        # a raw traceback.
         raise DeviceSchemaError(f"{filename}: cannot read: {err}") from err
 
 
@@ -118,7 +119,8 @@ def _device_label(path: Path, filename: str) -> tuple[str, str]:
         data = yaml.load(_read_device_head(path), Loader=_UniqueKeyLoader) or {}
     except yaml.YAMLError as err:
         raise DeviceSchemaError(f"{filename}: invalid YAML: {' '.join(str(err).split())}") from err
-    except OSError as err:
+    except (OSError, UnicodeDecodeError) as err:
+        # One unreadable user file must not take the whole picker down.
         raise DeviceSchemaError(f"{filename}: cannot read: {err}") from err
     device = data.get("device")
     if not isinstance(device, dict) or not device.get("manufacturer") or not device.get("model"):
