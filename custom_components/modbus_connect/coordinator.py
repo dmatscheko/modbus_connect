@@ -1114,4 +1114,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if defn.platform != "button":
             data = dict(self.data) if self.data else {}
             data[defn.key] = confirmed
-            self.async_set_updated_data(data)
+            # Not async_set_updated_data: that also reschedules the next poll,
+            # so writes arriving faster than the poll interval (an automation
+            # steering a setpoint) would postpone polling indefinitely.
+            self.data = data
+            self.async_update_listeners()

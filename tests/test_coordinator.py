@@ -576,6 +576,30 @@ async def test_write_encodes_and_confirms(hass, monkeypatch):
     assert coordinator.data["setpoint"] == pytest.approx(21.5)  # confirmed by read-back
 
 
+async def test_write_does_not_postpone_the_next_poll(hass, monkeypatch):
+    # Writes arriving faster than the poll interval must not keep pushing the
+    # scheduled refresh back, or polling would stop altogether.
+    client = FakeClient({0: 1})
+    defn = EntityDef(
+        key="setpoint", platform="number", address=0,
+        ha={"native_min_value": 0, "native_max_value": 50},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    updates: list[None] = []
+    unsub = coordinator.async_add_listener(lambda: updates.append(None))
+    await coordinator.async_refresh()
+    scheduled = coordinator._unsub_refresh
+    assert scheduled is not None
+
+    await coordinator.async_write(defn, 2)
+    assert coordinator._unsub_refresh is scheduled  # same pending refresh
+    assert coordinator.data["setpoint"] == 2
+    assert updates  # listeners still hear about the confirmed value
+    unsub()
+
+
 async def test_confirm_delay_waits_before_readback(hass, monkeypatch):
     client = FakeClient({0: 150})
     defn = EntityDef(
