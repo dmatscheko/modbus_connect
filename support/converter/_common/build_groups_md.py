@@ -131,8 +131,9 @@ def gen_one(cfg_path: Path, folder: str) -> str | None:
     return "\n".join(out)
 
 
-def main() -> None:
-    only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
+def write_docs(only: set[str] | None = None) -> None:
+    """Write ``groups.md`` for every grouped config, or just the ``only`` folders
+    (also called by ``convert_all.py`` after it regenerates configs)."""
     for cfg_name, folder in R.config_folders():
         if only and folder not in only:
             continue
@@ -143,6 +144,10 @@ def main() -> None:
         dest.mkdir(parents=True, exist_ok=True)
         (dest / "groups.md").write_text(md, encoding="utf-8")
         print(f"wrote {folder}/groups.md")
+
+
+def main() -> None:
+    write_docs(set(sys.argv[1:]) or None)
 
 
 if __name__ == "__main__":

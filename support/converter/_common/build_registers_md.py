@@ -321,12 +321,14 @@ def gen_one(cfg_path: Path, folder: str, sources: dict) -> str:
     return "\n".join(out)
 
 
-def main() -> None:
-    # Source metadata is the sibling sources.json; positional args (if any) limit
-    # generation to those device folders.
+def write_docs(only: set[str] | None = None) -> None:
+    """Write ``registers.md`` for every bundled config, or just the ``only`` folders.
+
+    Also called by ``convert_all.py`` after it regenerates configs, so the docs can
+    never lag behind the files they describe."""
+    # Source metadata is the sibling sources.json.
     sources_path = Path(__file__).resolve().parent / "sources.json"
     sources = json.loads(sources_path.read_text()) if sources_path.exists() else {}
-    only = set(sys.argv[1:]) if len(sys.argv) > 1 else None
 
     for cfg_name, folder in config_folders():
         if only and folder not in only:
@@ -337,6 +339,11 @@ def main() -> None:
         dest_dir.mkdir(parents=True, exist_ok=True)
         (dest_dir / "registers.md").write_text(md, encoding="utf-8")
         print(f"wrote {folder}/registers.md ({len(md)} bytes)")
+
+
+def main() -> None:
+    # Positional args (if any) limit generation to those device folders.
+    write_docs(set(sys.argv[1:]) or None)
 
 
 if __name__ == "__main__":

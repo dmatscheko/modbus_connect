@@ -96,7 +96,7 @@ templates in the Dimplex and Pichler `device.yaml` files.
 
 ```
 support/converter/
-├── convert_all.py                        # orchestrator: MLG import, then every owned device
+├── convert_all.py                        # orchestrator: MLG import, every owned device, then docs
 ├── modbus_local_gateway/…-convert.py     # upstream device_configs -> the imported configs
 ├── solax/…-convert.py                    # wills106 solax-modbus plugin -> new SolaX configs
 │                                         #   (X3-Hybrid-G4 / X3-HAC are owned, so skipped)
@@ -114,21 +114,21 @@ so nothing is duplicated between the two trees.
 ## Regenerate
 
 ```bash
-# One owned config only; no upstream checkout needed.
+# One owned config (and its registers.md / groups.md); no upstream checkout needed.
 .venv/bin/python support/converter/convert_all.py --owned solax-x3-hac
 
-# All configs: the MLG import needs an upstream checkout (defaults to a sibling clone).
+# All configs and docs: the MLG import needs an upstream checkout (defaults to a sibling clone).
 MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
   .venv/bin/python support/converter/convert_all.py
 
-# References after configs are final; pass a folder to regenerate just its pages.
+# Only the reference pages (e.g. after editing sources.json); a folder limits them to it.
 .venv/bin/python support/converter/_common/build_registers_md.py solax-x3-hac
 .venv/bin/python support/converter/_common/build_groups_md.py solax-x3-hac
 ```
 
-Omit the folder argument when rebuilding all reference pages. To change an owned
-device, edit its `device.yaml`, run its `--owned` command, then rebuild its two
-reference pages. Regeneration is cosmetic-only for imported files — keys,
+`convert_all.py` always finishes by rebuilding the reference pages of what it just
+wrote, so they never lag behind the configs. To change an owned device, edit its
+`device.yaml` and run its `--owned` command. Regeneration is cosmetic-only for imported files — keys,
 addresses, groups and templates are unchanged — and every file validates against
 the integration schema before it is written. `tests/test_devicedocs.py` fails
 when a committed `registers.md` or `groups.md` is stale, and
