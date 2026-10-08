@@ -462,6 +462,30 @@ async def test_bridged_hole_learned(hass, monkeypatch):
     assert client.reads == [Span("holding", 0, 2), Span("holding", 6, 2)]
 
 
+async def test_failed_bridge_keeps_a_not_due_entity_available(hass, monkeypatch):
+    # "slow" sits in the gap a fast block bridges while slow itself is not due.
+    # The bridged read failing says nothing about slow's last value: its words
+    # stay cached, so the entity neither goes unavailable nor loses its value.
+    ft = FakeTime()
+    client = FakeClient({0: 1, 2: 5, 4: 3})
+    device = make_device(
+        sensor("a", 0, scan_interval=10),
+        sensor("slow", 2, scan_interval=3600),
+        sensor("b", 4, scan_interval=10),
+    )
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    assert coordinator.data == {"a": 1, "slow": 5, "b": 3}
+
+    ft.now += 10  # only a and b are due; their bridged block 0..5 fails once
+    client.fail_spans = {Span("holding", 0, 5)}
+    client.reads.clear()
+    await coordinator.async_refresh()
+    assert client.reads[0] == Span("holding", 0, 5)
+    assert coordinator.data == {"a": 1, "slow": 5, "b": 3}
+    assert not coordinator.missing(coordinator.entity_defs["slow"])
+
+
 async def test_single_bridged_miss_is_forgiven_by_the_next_success(hass, monkeypatch):
     ft = FakeTime()
     client = FakeClient({0: 1, 4: 2})

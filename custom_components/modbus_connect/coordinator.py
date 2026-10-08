@@ -813,10 +813,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 }
             return 1, 1
         except ReadError as err:
-            # Drop the whole failed range before retrying: successful sub-reads
+            # Drop the failed range before retrying: successful sub-reads
             # re-store their part, and whatever stays failed must not decode from
-            # a previous cycle's words (a mixed-generation value).
-            self._clear(block)
+            # a previous cycle's words (a mixed-generation value). Bridged filler
+            # keeps its words — it may belong to an entity that is not due this
+            # cycle, whose last value is still valid (and keeps it available).
+            self._clear(block, keep=bridged_addresses(block, spans))
             block_illegal = err.illegal_address
             _LOGGER.debug("Block %s failed (%s), retrying unbridged", block, err)
 
@@ -933,9 +935,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for i, addr in enumerate(range(block.start, block.end)):
             self._cache[(block.table, addr)] = values[i]
 
-    def _clear(self, block: Span) -> None:
+    def _clear(self, block: Span, keep: set[tuple[str, int]]) -> None:
+        """Drop a block's cached words, except the ``keep`` addresses."""
         for addr in range(block.start, block.end):
-            self._cache.pop((block.table, addr), None)
+            if (block.table, addr) not in keep:
+                self._cache.pop((block.table, addr), None)
 
     def _decode(self, defn: EntityDef) -> Any:
         raw = [
