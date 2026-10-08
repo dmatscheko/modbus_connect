@@ -215,7 +215,7 @@
     },
     "invalid_device_file": {
       "title": "{title}: Gerätedatei kann nicht geladen werden",
-      "description": "Die Gerätedatei `{filename}` von **{title}** ist ungültig, daher wurde das Gerät nicht eingerichtet:\n\n{error}\n\nKorrigiere die Datei (eigene Dateien liegen in `<config>/modbus_connect/`) oder wähle über **Neu konfigurieren** eine andere Gerätedatei und lade den Eintrag dann neu."
+      "description": "Die Gerätedatei `{filename}` von **{title}** ist ungültig, daher wurde das Gerät nicht eingerichtet:\n\n{error}\n\nKorrigiere die Datei (eigene Dateien liegen im Ordner `modbus_connect` des Home-Assistant-Konfigurationsverzeichnisses) oder wähle über **Neu konfigurieren** eine andere Gerätedatei und lade den Eintrag dann neu."
     }
   }
 }

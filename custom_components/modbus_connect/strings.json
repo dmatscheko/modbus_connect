@@ -215,7 +215,7 @@
     },
     "invalid_device_file": {
       "title": "{title}: device file cannot be loaded",
-      "description": "The device file `{filename}` used by **{title}** is invalid, so the device was not set up:\n\n{error}\n\nFix the file (user files live in `<config>/modbus_connect/`) or pick another device file with **Reconfigure**, then reload the entry."
+      "description": "The device file `{filename}` used by **{title}** is invalid, so the device was not set up:\n\n{error}\n\nFix the file (user files live in the `modbus_connect` folder of the Home Assistant configuration directory) or pick another device file with **Reconfigure**, then reload the entry."
     }
   }
 }
