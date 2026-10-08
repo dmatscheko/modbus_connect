@@ -18,7 +18,7 @@ This table lists the **registers used by Modbus Connect's device file** — what
 
 Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 write), **Input** (3x — FC04, read-only), **Coil** (0x — FC01 read, FC05 write), **Discrete** (1x — FC02, read-only). The *Modbus command* column shows the function codes this integration uses; it notes where a single register is written with FC16 (write-multiple) because the device requires it. *(internal)* registers are polled to feed composite template entities but expose no entity of their own.
 
-**Registers in this file:** 128 (Holding 54, Input 45, Coil 2, Discrete 27) · plus 2 composite template entities
+**Registers in this file:** 160 (Holding 86, Input 45, Coil 2, Discrete 27) · plus 3 composite template entities
 
 ## Registers
 
@@ -78,6 +78,38 @@ Tables (as named in the datasheet): **Holding** (4x — FC03 read, FC06/FC16 wri
 | `0x1393` (5011) — Jahr<br>`jahr` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x142F` (5167) — Smart Grid<br>`smart_grid` | Holding (4x) | FC03 read · FC06 write | uint16 |
 | `0x138E` (5006) — Sync clock<br>`sync_clock` | Holding (4x) | FC16 write-only | uint16 |
+| `0x19B0` (6576) — Heizkreise Ist gemeinsam<br>`heating_common_actual` | Holding (4x) | FC03 read | uint16 · ×0.1 |
+| `0x19B6` (6582) — 1. Heizkreis Status<br>`heating_circuit_1_status` | Holding (4x) | FC03 read | uint16 |
+| `0x1309` (4873) — wpm_software_code _(internal)_ | Holding (4x) | FC03 read | uint16 |
+| `0x130A` (4874) — wpm_software_minor _(internal)_ | Holding (4x) | FC03 read | uint16 |
+| `0x130B` (4875) — wpm_software_patch _(internal)_ | Holding (4x) | FC03 read | uint16 |
+| `0x189D` (6301) — Wärmemenge Heizen intern<br>`heat_quantity_heating_internal` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x18A0` (6304) — Wärmemenge Warmwasser intern<br>`heat_quantity_hot_water_internal` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x18A3` (6307) — Wärmemenge Schwimmbad intern<br>`heat_quantity_pool_internal` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x1A08` (6664) — Wärmemenge Heizen Anzeige<br>`heat_quantity_heating_display` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x1A0E` (6670) — Wärmemenge Warmwasser Anzeige<br>`heat_quantity_hot_water_display` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x1A0B` (6667) — Wärmemenge Schwimmbad Anzeige<br>`heat_quantity_pool_display` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x1A05` (6661) — Wärmemenge gesamt Anzeige<br>`heat_quantity_total_display` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x1DF3` (7667) — Leistung Heizen<br>`power_heating` | Holding (4x) | FC03 read | uint16 |
+| `0x1DF4` (7668) — Leistung Kühlen<br>`power_cooling` | Holding (4x) | FC03 read | uint16 |
+| `0x1DF5` (7669) — Leistung Elektrisch<br>`power_electric` | Holding (4x) | FC03 read | uint16 |
+| `0x1DF6` (7670) — Leistung Abtauen<br>`power_defrost` | Holding (4x) | FC03 read | uint16 |
+| `0x18ED` (6381) — Verdichter 1 Stunden intern<br>`compressor_1_hours_internal` | Holding (4x) | FC03 read | uint16 |
+| `0x18EE` (6382) — Verdichter 2 Stunden intern<br>`compressor_2_hours_internal` | Holding (4x) | FC03 read | uint16 |
+| `0x18F2` (6386) — Heizungspumpe Stunden intern<br>`heating_pump_hours_internal` | Holding (4x) | FC03 read | uint16 |
+| `0x18F3` (6387) — Warmwasserpumpe Stunden intern<br>`hot_water_pump_hours_internal` | Holding (4x) | FC03 read | uint16 |
+| `0x1F03` (7939) — Verdichter Leistung elektrisch<br>`compressor_electric_power` | Holding (4x) | FC03 read | uint16 |
+| `0x1F02` (7938) — Ventilator Leistung elektrisch<br>`fan_electric_power` | Holding (4x) | FC03 read | uint16 |
+| `0x199D` (6557) — Inverter AC-Eingangsleistung<br>`inverter_ac_input_power` | Holding (4x) | FC03 read | uint16 |
+| `0x1E5A` (7770) — Außengerät Leistung elektrisch<br>`midea_electric_power` | Holding (4x) | FC03 read | uint16 |
+| `0x1E63` (7779) — Außengerät Leistung High<br>`midea_power_high` | Holding (4x) | FC03 read | uint16 |
+| `0x1E64` (7780) — Außengerät Leistung Low<br>`midea_power_low` | Holding (4x) | FC03 read | uint16 |
+| `0x1C49` (7241) — Lüftung Abluft Leistung<br>`ventilation_exhaust_power` | Holding (4x) | FC03 read | uint16 |
+| `0x1C57` (7255) — Lüftung Zuluft Leistung<br>`ventilation_supply_power` | Holding (4x) | FC03 read | uint16 |
+| `0x19F5` (6645) — Umweltenergie Anzeige<br>`environmental_heat_display` | Holding (4x) | FC03 read | uint16 · sum_scale [1, 10000, 100000000] |
+| `0x194A` (6474) — Umweltenergie Heizen<br>`environmental_heat_heating` | Holding (4x) | FC03 read | uint16 · sum_scale [10000, 100000000, 1] |
+| `0x050C` (1292) — Regenerativ Speicher<br>`regenerative_storage_temp` | Holding (4x) | FC03 read | uint16 · ×0.1 |
+| `0x196F` (6511) — Regenerativ Stunden<br>`regenerative_hours` | Holding (4x) | FC03 read | uint16 |
 | `0x0008` (8) — TEST What is this<br>`test_temp_what_is_this` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0001` (1) — Außentemperatur (R1)<br>`outside_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
 | `0x0002` (2) — Heizung Rücklauftemperatur (R2)<br>`heating_return_temp` | Input (3x) | FC04 read | uint16 · ×0.1 |
