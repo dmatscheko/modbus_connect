@@ -300,7 +300,9 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._static = [
             e for e in device.entities if e.static_value is not None and e.key in needed
         ]
-        self._link_templates: dict[str, Any] = {}
+        # Compiled Jinja per source string (see render): every template the
+        # device file holds compiles once, whichever entity renders it.
+        self._templates: dict[str, Template] = {}
         # Per-refresh hooks (see async_add_refresh_callback). Separate from the
         # coordinator listeners, which always_update=False skips on unchanged data.
         self._refresh_callbacks: list[Callable[[dict[str, Any]], None]] = []
@@ -620,13 +622,23 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if (v := self._render_info(self.device_def.serial_number)) is not None:
             self.device_info["serial_number"] = v
 
-    def _render(self, source: str, *, parse_result: bool = True) -> Any:
-        """Render a Jinja source over the current values (see render_over_values)."""
+    def render(
+        self, source: str, data: dict[str, Any] | None = None, *, parse_result: bool = True
+    ) -> Any:
+        """Render a Jinja source over ``data`` (default: the current values).
+
+        The one entry point for every template a device file holds — template:
+        entities, ``read_register``, button ``write_value``, action selectors,
+        and the device-info fields — so each source compiles once and all of
+        them see the same variables (see render_over_values).
+        """
+        template = self._templates.get(source)
+        if template is None:
+            template = self._templates[source] = Template(source, self.hass)
+        if data is None:
+            data = self.data
         return render_over_values(
-            Template(source, self.hass),
-            self.data,
-            parse_result=parse_result,
-            key_fn=self.key_lookup(self.data),
+            template, data, parse_result=parse_result, key_fn=self._key_lookup(data)
         )
 
     def _render_info(self, source: str | None) -> str | None:
@@ -634,7 +646,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         referencing an unread (None) register."""
         if source is None:
             return None
-        value = self._render(source, parse_result=False)
+        value = self.render(source, parse_result=False)
         if value is None:
             return None
         value = str(value).strip()
@@ -771,7 +783,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for a in range(defn.span.start, defn.span.end)
         )
 
-    def key_lookup(self, data: dict[str, Any] | None) -> Callable[[str], Any]:
+    def _key_lookup(self, data: dict[str, Any] | None) -> Callable[[str], Any]:
         """Build the template ``key(name)`` helper bound to ``data``.
 
         ``key('mode')`` returns the raw register value behind a mapped entity's
@@ -799,10 +811,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         direct = _DIRECT_LINK.match(source)
         if direct is not None:
             return data.get(direct.group(1))
-        template = self._link_templates.get(defn.key)
-        if template is None:
-            template = self._link_templates[defn.key] = Template(source, self.hass)
-        return render_over_values(template, data, key_fn=self.key_lookup(data))
+        return self.render(source, data)
 
     async def _read_with_fallback(self, block: Span, spans: set[Span]) -> tuple[int, int]:
         """Read one block; on failure retry its spans without gap bridging.
@@ -1010,7 +1019,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         words: list[int] = []
         for item in items:
-            rendered = self._render(item) if isinstance(item, str) else item
+            rendered = self.render(item) if isinstance(item, str) else item
             if (
                 isinstance(rendered, bool)
                 or not isinstance(rendered, (int, float))
@@ -1045,7 +1054,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if defn.platform == "button" and isinstance(value, str):
             # a single Jinja template write_value: render it, then encode through
             # the codec below (honouring the entity's type/map/etc.).
-            value = self._render(value)
+            value = self.render(value)
             if value is None:
                 raise WriteError(
                     f"{defn.key}: write_value template rendered to nothing"

@@ -10,12 +10,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity, EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.template import Template, result_as_boolean
+from homeassistant.helpers.template import result_as_boolean
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
 from .const import DOMAIN
-from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator, render_over_values
+from .coordinator import ModbusConnectConfigEntry, ModbusConnectCoordinator
 from .models import (
     BIT_TABLES,
     TYPE_STRING,
@@ -247,7 +247,6 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         self.entity_description = description or build_description(tdef)
         self._attr_unique_id = f"{coordinator.entry_id}_{tdef.key}"
         self._attr_device_info = coordinator.device_info
-        self._compiled: dict[str, Template] = {}
         suggest_entity_id(self, coordinator, tdef.platform, tdef.key)
 
     def render(self, field: str, data: dict[str, Any] | None = None) -> Any:
@@ -260,18 +259,7 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
         source = self._tdef.config.get(field)
         if source is None:
             return None
-        return self._render_source(source, field, data)
-
-    def _render_source(
-        self, source: str, cache_key: str, data: dict[str, Any] | None = None
-    ) -> Any:
-        """Render a template string (compiled cache keyed by ``cache_key``)."""
-        template = self._compiled.get(cache_key)
-        if template is None:
-            template = self._compiled[cache_key] = Template(source, self.hass)
-        if data is None:
-            data = self.coordinator.data
-        return render_over_values(template, data, key_fn=self.coordinator.key_lookup(data))
+        return self.coordinator.render(source, data)
 
     def render_number(self, field: str, data: dict[str, Any] | None = None) -> float | None:
         """Render a template that must produce a number."""
@@ -310,7 +298,7 @@ class ModbusConnectTemplateEntity(CoordinatorEntity[ModbusConnectCoordinator]):
 
     def _resolve_switch(self, name: str, switch: SwitchTarget) -> WriteTarget:
         """Pick a switch action's target by rendering its selector template."""
-        selected = self._render_source(switch.selector, f"{name}.by")
+        selected = self.coordinator.render(switch.selector)
         target = switch.cases.get(str(selected)) if selected is not None else None
         if target is None:
             raise self._action_error(
