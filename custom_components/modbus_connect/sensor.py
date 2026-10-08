@@ -49,12 +49,13 @@ class ModbusConnectTemplateSensor(ModbusConnectTemplateEntity, SensorEntity):
 
 
 class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
-    """A template whose rendered watts are integrated into kilowatt-hours.
+    """A template whose rendered rate is integrated into a running total.
 
-    For values the device offers no native energy counter for, the ``state``
-    template yields instantaneous power and each coordinator refresh advances a
-    Riemann sum (``integrate: trapezoidal|left|right``) — a dashboard-ready
-    energy total without a manual Integral helper. Sampling rides the
+    For values the device offers no native counter for, the ``state`` template
+    yields an instantaneous rate and each coordinator refresh advances a Riemann
+    sum (``integrate: trapezoidal|left|right``) — watts into kilowatt-hours by
+    default, or any rate per ``per:`` time unit (litres per hour into litres) —
+    a dashboard-ready total without a manual Integral helper. Sampling rides the
     coordinator's per-refresh hook, not the listener updates: with
     ``always_update=False`` a listener only fires when some value *changed*,
     but a constant 50 W accumulates energy all the same. The total survives
@@ -70,6 +71,8 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
     ) -> None:
         super().__init__(coordinator, tdef, description)
         self._method: str = tdef.config["integrate"]
+        # Seconds per accumulated unit: 3_600_000 for W -> kWh, else ``per``.
+        self._divisor: float = tdef.config["integrate_divisor"]
         self._total = 0.0
         self._last_sample: tuple[float, float] | None = None
 
@@ -98,12 +101,12 @@ class ModbusConnectIntegralSensor(ModbusConnectTemplateEntity, RestoreSensor):
         if self._last_sample is not None:
             then, previous = self._last_sample
             if now > then:
-                power = {
+                rate = {
                     "trapezoidal": (previous + value) / 2,
                     "left": previous,
                     "right": value,
                 }[self._method]
-                self._total += power * (now - then) / 3_600_000  # W·s -> kWh
+                self._total += rate * (now - then) / self._divisor
         self._last_sample = (now, value)
 
     @callback

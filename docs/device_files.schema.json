@@ -2477,10 +2477,41 @@
                 "type": "string"
               },
               "integrate": {
-                "enum": [
-                  "left",
-                  "right",
-                  "trapezoidal"
+                "oneOf": [
+                  {
+                    "enum": [
+                      "left",
+                      "right",
+                      "trapezoidal"
+                    ],
+                    "description": "Energy shorthand: watts in, kilowatt-hours out."
+                  },
+                  {
+                    "type": "object",
+                    "description": "Any rate: total = sum(value x dt) / per.",
+                    "properties": {
+                      "method": {
+                        "enum": [
+                          "left",
+                          "right",
+                          "trapezoidal"
+                        ]
+                      },
+                      "per": {
+                        "enum": [
+                          "s",
+                          "min",
+                          "h",
+                          "d"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "method",
+                      "per"
+                    ],
+                    "additionalProperties": false
+                  }
                 ]
               }
             },

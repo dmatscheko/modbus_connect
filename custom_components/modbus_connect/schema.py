@@ -1527,6 +1527,10 @@ def _post_number(
 
 
 INTEGRATE_METHODS = ("trapezoidal", "left", "right")
+# ``per:`` of the mapping form: the time unit the rate is expressed in, in seconds.
+INTEGRATE_PER = {"s": 1, "min": 60, "h": 3600, "d": 86400}
+# The string shorthand: watts in, kilowatt-hours out (per hour, kilo prefix).
+_ENERGY_DIVISOR = 3600 * 1000
 
 
 def _post_sensor(
@@ -1536,22 +1540,51 @@ def _post_sensor(
     defs: dict[str, EntityDef],
     ha: dict[str, Any],
 ) -> None:
-    """``integrate``: the state template yields watts; the sensor accumulates
-    kilowatt-hours over time with the given Riemann-sum method."""
-    method = raw.get("integrate")
-    if method is None:
+    """``integrate``: the sensor accumulates its ``state`` rate over time with the
+    given Riemann-sum method. Two forms:
+
+    * ``integrate: <method>`` — the energy shorthand: watts in, kilowatt-hours out;
+    * ``integrate: {method: <method>, per: s|min|h|d}`` — any rate: the total is
+      ``sum(value * dt) / per`` (L/h with ``per: h`` sums litres), in whatever unit
+      the sensor declares; scale in the template if a prefix is needed.
+
+    Stored as ``config["integrate"]`` (the method) and ``config["integrate_divisor"]``
+    (seconds per accumulated unit).
+    """
+    raw_integrate = raw.get("integrate")
+    if raw_integrate is None:
         return
+    if isinstance(raw_integrate, dict):
+        unknown = set(raw_integrate) - {"method", "per"}
+        if unknown:
+            raise ctx.fail(
+                f"'integrate': unknown keys {sorted(unknown)} (valid: ['method', 'per'])"
+            )
+        method = raw_integrate.get("method")
+        per = raw_integrate.get("per")
+        if per not in INTEGRATE_PER:
+            raise ctx.fail(
+                f"'integrate.per' must be one of {list(INTEGRATE_PER)} "
+                "(the time unit the state's rate is per)"
+            )
+        divisor = INTEGRATE_PER[per]
+    else:
+        method, divisor = raw_integrate, _ENERGY_DIVISOR
+        # The shorthand always accumulates kWh; any other declared unit would
+        # mislabel (and, for HA's unit conversion, silently rescale) every reading.
+        unit = ha.get("native_unit_of_measurement")
+        if unit is not None and unit != UnitOfEnergy.KILO_WATT_HOUR:
+            raise ctx.fail(
+                f"'integrate: {method}' accumulates watts into kWh; for "
+                f"ha.unit_of_measurement {unit!r} use the mapping form "
+                "'integrate: {method: ..., per: h}' (or s/min/d)"
+            )
     if method not in INTEGRATE_METHODS:
-        raise ctx.fail(f"'integrate' must be one of {sorted(INTEGRATE_METHODS)}")
-    # The accumulated total is always kWh; any other declared unit would mislabel
-    # (and, for HA's unit conversion, silently rescale) every reading.
-    unit = ha.get("native_unit_of_measurement")
-    if unit is not None and unit != UnitOfEnergy.KILO_WATT_HOUR:
         raise ctx.fail(
-            f"an 'integrate' sensor accumulates kWh; ha.unit_of_measurement {unit!r} "
-            "would mislabel it (use kWh or leave it out)"
+            f"'integrate' method must be one of {sorted(INTEGRATE_METHODS)}, got {method!r}"
         )
     config["integrate"] = method
+    config["integrate_divisor"] = divisor
 
 
 _TEMPLATE_POST = {

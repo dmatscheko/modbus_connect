@@ -406,11 +406,11 @@ template:
     set_percentage: {entity: fan_stage_percent}  # or an internal scaled twin
 ```
 
-### Integrating power into energy (`integrate`)
+### Integrating a rate into a total (`integrate`)
 
-For values the device offers no native energy counter for, a template sensor
-may declare `integrate: trapezoidal` (or `left`/`right`): the `state` template
-then yields instantaneous power in **watts**, and the sensor accumulates
+For values the device offers no native counter for, a template sensor may
+declare `integrate: trapezoidal` (or `left`/`right`): the `state` template then
+yields instantaneous power in **watts**, and the sensor accumulates
 **kilowatt-hours** with that Riemann-sum method across polls — ready for HA's
 Energy Dashboard without setting up an Integral helper. The total survives
 restarts; any interval where the source is unavailable (or HA was down) is
@@ -428,6 +428,26 @@ template:
       state_class: total_increasing
       unit_of_measurement: kWh
 ```
+
+That string form is the energy shorthand, so its unit must be kWh (or left out).
+For any other rate use the mapping form, which names the time unit the rate is
+per — `s`, `min`, `h`, or `d` — and accumulates `Σ value × Δt / per` in whatever
+unit the sensor declares. A flow in litres per hour totals litres:
+
+```yaml
+template:
+  water_used:
+    state: "{{ flow_rate }}"                    # L/h
+    integrate: {method: trapezoidal, per: h}
+    ha:
+      platform: sensor
+      device_class: water
+      state_class: total_increasing
+      unit_of_measurement: L
+```
+
+No prefix is applied in this form; scale in the template if you need one
+(`{{ power / 1000 }}` with `per: h` turns watts into kWh, like the shorthand).
 
 Why not pass templates through to HA's template integration? Its platform
 setup is internal API (and core has no template *climate*), its entities would

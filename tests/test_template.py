@@ -671,7 +671,11 @@ template:
     assert entity.native_value == 6144  # 204.8 V x 30.0 A fallback limit
 
 
-def _integral_device(state='"{{ [p or 0, 0] | max }}"', method="trapezoidal"):
+def _integral_device(
+    state='"{{ [p or 0, 0] | max }}"',
+    method="trapezoidal",
+    ha="device_class: energy, state_class: total_increasing, unit_of_measurement: kWh",
+):
     return parse_device(
         yaml.safe_load(
             f"""
@@ -682,8 +686,7 @@ template:
   e:
     state: {state}
     integrate: {method}
-    ha: {{platform: sensor, device_class: energy, state_class: total_increasing,
-         unit_of_measurement: kWh}}
+    ha: {{platform: sensor, {ha}}}
 """
         ),
         "e.yaml",
@@ -759,6 +762,29 @@ async def test_integral_sensor_methods_and_gaps(hass, monkeypatch):
         assert entity.native_value == pytest.approx(expected / 1000)
         unsub_listener()
         unsub_refresh()
+
+
+async def test_integral_sensor_any_rate_per_time_unit(hass, monkeypatch):
+    """The mapping form integrates any rate: L/h with ``per: h`` sums litres —
+    no kilo prefix, unlike the watts-to-kWh shorthand."""
+    device = _integral_device(
+        state='"{{ p }}"',
+        method="{method: left, per: h}",
+        ha="device_class: water, state_class: total_increasing, unit_of_measurement: L",
+    )
+    client = FakeClient({0: 120})  # 120 L/h
+    faketime = FakeTime()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    await coordinator.async_refresh()
+    entity = make_entity(hass, ModbusConnectIntegralSensor, coordinator, device.templates[0])
+    entity.async_write_ha_state = lambda: None  # not registered with a platform
+    unsub_refresh = coordinator.async_add_refresh_callback(entity._on_refresh)
+    entity._advance(coordinator.data)  # seed
+
+    faketime.now += 900  # a quarter hour at 120 L/h
+    await coordinator.async_refresh()
+    assert entity.native_value == pytest.approx(30.0)
+    unsub_refresh()
 
 
 # --- key() template helper: compare enums by stable map key, not by label ------

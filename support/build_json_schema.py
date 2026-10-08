@@ -46,6 +46,7 @@ from custom_components.modbus_connect.schema import (  # noqa: E402
     DESCRIPTION_CLASSES,
     HA_ALIASES,
     INTEGRATE_METHODS,
+    INTEGRATE_PER,
     description_fields,
 )
 
@@ -108,7 +109,24 @@ STATIC_TYPES: dict[str, dict[str, Any]] = {
     "max_temp": NUMBER,
     "temp_step": NUMBER,
     "temperature_unit": STRING,
-    "integrate": {"enum": sorted(INTEGRATE_METHODS)},
+    "integrate": {
+        "oneOf": [
+            {
+                "enum": sorted(INTEGRATE_METHODS),
+                "description": "Energy shorthand: watts in, kilowatt-hours out.",
+            },
+            {
+                "type": "object",
+                "description": "Any rate: total = sum(value x dt) / per.",
+                "properties": {
+                    "method": {"enum": sorted(INTEGRATE_METHODS)},
+                    "per": {"enum": list(INTEGRATE_PER)},
+                },
+                "required": ["method", "per"],
+                "additionalProperties": False,
+            },
+        ]
+    },
 }
 
 

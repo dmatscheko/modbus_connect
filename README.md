@@ -249,7 +249,7 @@ The `solar_details`, `home_consumption`, and `grid_to_battery` groups mirror
 upstream's *Enable PV Variant Detail / Home Consumption / Grid to Battery
 Sensors* switches. The kWh sensors among them have no native counter on the
 device, so they integrate the matching power over time — the device file's
-[`integrate`](docs/device_files.md#integrating-power-into-energy-integrate)
+[`integrate`](docs/device_files.md#integrating-a-rate-into-a-total-integrate)
 feature, no Integral helper needed.
 
 ## How data is updated

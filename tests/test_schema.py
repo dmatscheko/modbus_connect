@@ -524,8 +524,32 @@ def test_template_integrate_requires_kwh_unit():
                 "template": {"e": {"ha": ha, "state": "{{ p }}", "integrate": "left"}}}
 
     assert parse_device(integrating("kWh"), "t.yaml").templates[0].config["integrate"]
-    with pytest.raises(DeviceSchemaError, match="accumulates kWh"):
+    with pytest.raises(DeviceSchemaError, match="use the mapping form"):
         parse_device(integrating("Wh"), "t.yaml")
+
+
+def test_template_integrate_mapping_form_takes_any_unit():
+    def integrating(integrate, unit="L"):
+        ha = {"platform": "sensor", "unit_of_measurement": unit}
+        return {**doc(f={"address": 0, "ha": {"platform": "sensor"}}),
+                "template": {"v": {"ha": ha, "state": "{{ f }}", "integrate": integrate}}}
+
+    config = parse_device(
+        integrating({"method": "trapezoidal", "per": "min"}), "t.yaml"
+    ).templates[0].config
+    assert config["integrate"] == "trapezoidal"
+    assert config["integrate_divisor"] == 60
+    # the shorthand stays watts -> kWh
+    shorthand = parse_device(integrating("left", "kWh"), "t.yaml").templates[0].config
+    assert shorthand["integrate_divisor"] == 3_600_000
+    for bad, match in (
+        ({"method": "left"}, "integrate.per"),
+        ({"method": "left", "per": "week"}, "integrate.per"),
+        ({"method": "simpson", "per": "h"}, "method must be one of"),
+        ({"method": "left", "per": "h", "prefix": "k"}, "unknown keys"),
+    ):
+        with pytest.raises(DeviceSchemaError, match=match):
+            parse_device(integrating(bad), "t.yaml")
 
 
 def test_template_integrate_is_sensor_only():
