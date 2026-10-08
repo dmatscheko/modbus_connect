@@ -19,9 +19,15 @@ links into these folders, is the table in the
 
 A folder has either a `device.yaml` or an `augment.yaml`, never both. The bundled
 files in `custom_components/modbus_connect/device_configs/` are **generated** from
-these folders and must not be edited directly; the
-[converter README](../converter/README.md) explains how to regenerate them and
-the two references.
+these folders and must not be edited directly. After editing an owned device's
+`device.yaml`, regenerate its bundled file and both references in one go:
+
+```bash
+.venv/bin/python support/converter/convert_all.py --owned <slug>
+```
+
+The [converter README](../converter/README.md) covers the full run (imported
+devices need an upstream checkout) and the doc generators on their own.
 
 `translations.yaml` next to the device folders is the shared German/English
 vocabulary every device file draws on (enum values, group labels, common entity

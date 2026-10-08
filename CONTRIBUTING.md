@@ -46,7 +46,16 @@ Bundled files come in two kinds (see `support/converter/README.md`):
   `support/devicedocs/<slug>/augment.yaml` policy) over hand-editing the output.
 * **Owned** files (Dimplex, Pichler, SolaX) are hand-maintained in
   `support/devicedocs/<slug>/device.yaml` and regenerated from it — edit the
-  `device.yaml`, never the generated `device_configs/` output.
+  `device.yaml`, never the generated `device_configs/` output, then run
+
+  ```bash
+  .venv/bin/python support/converter/convert_all.py --owned <slug>
+  ```
+
+  which rewrites `device_configs/<slug>.yaml` and the device's generated
+  `registers.md` / `groups.md` (no upstream checkout needed). Commit all three
+  together; `tests/test_owned_device_files.py` and `tests/test_devicedocs.py`
+  fail if either output is stale.
 
 See `support/converter/README.md` for the full tooling (config and doc generation).
 
