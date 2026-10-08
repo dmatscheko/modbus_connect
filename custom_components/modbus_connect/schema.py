@@ -10,10 +10,11 @@ and entity named.
 from __future__ import annotations
 
 import inspect
+import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from functools import cache
-from typing import Any
+from typing import Any, TypeIs
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -495,8 +496,18 @@ def _int_in_range(ctx: _Ctx, name: str, value: Any, lo: int, hi: int) -> int:
     return value
 
 
+def _is_number(value: Any) -> TypeIs[float]:
+    """A finite int/float — YAML's ``.nan``/``.inf`` are floats too, but NaN
+    passes every range comparison and neither is a usable setting."""
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+    )
+
+
 def _number(ctx: _Ctx, name: str, value: Any) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if not _is_number(value):
         raise ctx.fail(f"{name} must be a number, got {value!r}")
     return value
 
@@ -742,7 +753,7 @@ def _parse_shape(
         if (
             not isinstance(sum_scale, list)
             or not sum_scale
-            or any(isinstance(s, bool) or not isinstance(s, (int, float)) for s in sum_scale)
+            or not all(_is_number(s) for s in sum_scale)
         ):
             raise ctx.fail("sum_scale must be a non-empty list of numbers")
         sum_scale = tuple(float(s) for s in sum_scale)

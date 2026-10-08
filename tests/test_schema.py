@@ -818,6 +818,24 @@ ERROR_CASES = [
         "multiplier must not be 0",
     ),
     (
+        "multiplier_nan",
+        doc(x={"address": 0, "multiplier": float("nan"), "ha": {"platform": "sensor"}}),
+        "multiplier must be a number",
+    ),
+    (
+        "sum_scale_inf",
+        doc(x={"address": 0, "sum_scale": [1, float("inf")], "ha": {"platform": "sensor"}}),
+        "sum_scale must be a non-empty list of numbers",
+    ),
+    (
+        # NaN compares false against both bounds, so only the finiteness check
+        # stops it from passing a range test
+        "device_timeout_nan",
+        {"device": {"manufacturer": "Acme", "model": "X1", "timeout": float("nan")},
+         "holding": {"x": {"address": 0, "ha": {"platform": "sensor"}}}},
+        "device.timeout must be a number",
+    ),
+    (
         "string_with_conversion",
         doc(x={"address": 0, "type": "string", "count": 2, "multiplier": 2,
                "ha": {"platform": "sensor"}}),
