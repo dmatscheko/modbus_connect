@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, TypeVar
 
 from homeassistant.components.climate import (
+    ATTR_HVAC_MODE,
     ClimateEntity,
     ClimateEntityFeature,
     HVACAction,
@@ -88,6 +89,10 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
         return self._render_hvac("hvac_action", HVACAction)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
+        # climate.set_temperature may carry an hvac_mode to switch to as well;
+        # apply it first, like core's thermostats do.
+        if (hvac_mode := kwargs.get(ATTR_HVAC_MODE)) is not None:
+            await self.async_set_hvac_mode(hvac_mode)
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is not None:
             await self._run_action("set_temperature", temperature)

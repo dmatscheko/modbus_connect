@@ -603,6 +603,19 @@ async def test_template_actions(hass: HomeAssistant) -> None:
         blocking=True,
     )
     assert client.values[("holding", 2)] == 0
+    # set_temperature may switch the mode in the same call
+    await hass.services.async_call(
+        "climate",
+        "set_temperature",
+        {
+            "entity_id": eid(hass, entry, "climate", "t_climate"),
+            "temperature": 60,
+            "hvac_mode": "heat",
+        },
+        blocking=True,
+    )
+    assert client.values[("holding", 1)] == 60
+    assert client.values[("holding", 2)] == 1  # "Auto"
 
 
 async def test_options_update_reloads_entry(hass: HomeAssistant) -> None:
