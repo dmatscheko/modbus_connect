@@ -157,6 +157,16 @@ write the device rejects is an error; a write it took whose read-back then
 fails is only logged and counted as a failed read, and the written value shows
 until the next poll.
 
+A write is **skipped when the register already holds the value**: the register
+is read first, and if the payload would not change it, nothing is written (that
+read is the confirmation). Many devices keep settings in EEPROM or flash, which
+survives only a limited number of write cycles, and an automation re-sending
+the same setpoint every minute would otherwise wear it out. Command registers
+that must act on *every* write — a reset, a start/stop command, a watchdog
+refresh — set `write_always: true`. Buttons, `static_value` and
+`read_register` entities have no own read-back to compare with and always
+write.
+
 To watch the plan at work: *Download diagnostics* shows the parsed definition,
 the planning state (including learned holes, quarantined and not-yet-alive
 registers), and
@@ -185,12 +195,13 @@ entities that surface failures on the device page.
 | `optimistic_default` | Read the register as usual, but fall back to this value when it decodes to nothing (undecodable / out of range) — keeps a writable control usable instead of unavailable. Mutually exclusive with `static_value`; neither combines with `read_register` |
 | `write_multiple` | Force FC16 (write-multiple) for the write, even for a single register — some devices reject FC6 on certain registers (e.g. SolaX `WRITE_MULTISINGLE`) |
 | `confirm_delay` | Seconds to wait between a write and its confirming read-back (0–10) — for devices that apply writes slowly, where an immediate read still returns the old value |
+| `write_always` | Write even when the register already holds the value. By default such a write is skipped to spare EEPROM/flash-backed settings (see [Read planning and polling](#read-planning-and-polling)); set this on command registers that must act every time (resets, start/stop commands, watchdog refreshes). Not valid on buttons, `static_value` or `read_register` entities, which always write |
 | `rectify_time` | `time`-typed entities only (including `internal:` time read-backs): show an out-of-range time (e.g. `24:00`, an end-of-day stop time HA's `time` type cannot represent) as `23:59` instead of dropping the value — so the slot stays usable |
 | `max_change` | Reject changes larger than this between two polls (spike filter) |
 | `never_resets` | Ignore decreasing values (for `total_increasing` counters) |
 | `scan_interval` | Per-entity poll interval in seconds, overriding the device default. Still raised to `min_scan_interval` if that is longer |
 | `duplicate_as_sensor` | Also create a read-only sensor twin of this writable entity (any writing platform except `button`), so its history lands in the recorder/long-term statistics |
-| `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block, and only the decoding keys apply: no `on_value`, `write_value`, `static_value`, `optimistic_default`, `write_multiple`, `confirm_delay` or `duplicate_as_sensor`). Internal entities can still be write targets of template actions. If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
+| `internal` | Poll and decode this register for the `template:` section only — **no Home Assistant entity is created** (so it has no `ha:` block, and only the decoding keys apply: no `on_value`, `write_value`, `static_value`, `optimistic_default`, `write_multiple`, `confirm_delay` or `duplicate_as_sensor`). Internal entities can still be write targets of template actions (and may set `write_always` for that). If you want the entity to exist but stay out of sight, use `ha.enabled_by_default: false` instead |
 | `groups` | Tag the entity (or `template:` entry) into named groups, e.g. `[basic]` or `[advanced]`. The entity is created — and its register polled — only while at least one of its groups is enabled (`basic` is always enabled). In a file that uses groups, an entity with no `groups` is shown only while the *Enable all entities* switch bypasses group handling. See [Entity groups](#entity-groups) |
 
 ## The `ha:` block

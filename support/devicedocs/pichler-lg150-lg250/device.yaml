@@ -619,6 +619,7 @@ holding:
       name: Test mode
   reset_to_default:
     address: 53
+    write_always: true  # a command: re-sending the same value must act again
     groups: [advanced, system]
     ha:
       platform: number
@@ -628,6 +629,7 @@ holding:
       entity_category: config
   reset_hour_counter:
     address: 54
+    write_always: true  # a command: re-sending the same value must act again
     groups: [advanced, system]
     ha:
       platform: number
@@ -657,6 +659,7 @@ holding:
       entity_category: config
   test_sd_card:
     address: 55
+    write_always: true  # a command: re-sending the same value must act again
     groups: [controller]
     ha:
       platform: number

@@ -234,6 +234,7 @@ holding:
       entity_category: config
   control_command:
     address: 1575
+    write_always: true  # a command: re-sending the same value must act again
     groups: [advanced, settings]
     map:
       0: No Command

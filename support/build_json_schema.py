@@ -262,6 +262,7 @@ def _entity(bit_table: bool) -> dict[str, Any]:
         "optimistic_default": {"type": ["number", "boolean", "string"]},
         "write_multiple": BOOLEAN,
         "confirm_delay": {"type": "number", "exclusiveMinimum": 0, "maximum": 10},
+        "write_always": BOOLEAN,
         "read_modify_write": BOOLEAN,
         "max_change": {"type": "number", "minimum": 0},
         "never_resets": BOOLEAN,

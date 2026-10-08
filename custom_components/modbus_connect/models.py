@@ -188,6 +188,12 @@ class EntityDef:
     # that apply writes slowly, where an immediate read still returns the old
     # value. The connection lock is held while waiting (the bus stays quiet).
     confirm_delay: float | None = None
+    # Write even when the register already holds the value. By default a write
+    # whose payload equals the register's current content is skipped, sparing
+    # devices that keep settings in EEPROM/flash (limited write cycles) from
+    # automations re-sending the same value; command registers that must be
+    # re-sent to act (or refreshed for a watchdog) opt out with this.
+    write_always: bool = False
     # time entities only: show an out-of-range time (e.g. 24:00) as 23:59 instead
     # of nothing, so the slot stays usable.
     rectify_time: bool = False
@@ -234,6 +240,16 @@ class EntityDef:
             and self.read_register is None
             and self.static_value is None
         )
+
+    @property
+    def skips_unchanged_writes(self) -> bool:
+        """Whether a write is skipped when the register already holds its payload.
+
+        Only for entities confirmed from their own register: buttons, write-only
+        (``static_value``) and ``read_register`` entities have no own read-back
+        to compare against, so they always write — as does ``write_always``.
+        """
+        return self.polls and not self.write_always
 
 
 @dataclass(frozen=True)

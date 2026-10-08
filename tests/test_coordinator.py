@@ -671,6 +671,83 @@ async def test_masked_write_read_modify_write(hass, monkeypatch):
     await coordinator.async_write(defn, 3)
     assert client.written == [(0, [0x0A3F])]  # other bits preserved
 
+    await coordinator.async_write(defn, 3)  # the field already holds 3
+    assert client.written == [(0, [0x0A3F])]  # nothing written twice
+
+
+def _setpoint(**kwargs) -> EntityDef:
+    return EntityDef(
+        key="setpoint", platform="number", address=0,
+        ha={"native_min_value": 0, "native_max_value": 100}, **kwargs,
+    )
+
+
+async def test_unchanged_write_is_skipped(hass, monkeypatch):
+    # EEPROM/flash-backed settings wear with every write: an automation that
+    # re-sends the current value must not reach the device at all.
+    client = FakeClient({0: 215})
+    defn = _setpoint(multiplier=0.1)
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+
+    client.values[("holding", 0)] = 300  # changed on the device since the poll
+    client.reads.clear()
+    await coordinator.async_write(defn, 30)  # ...to exactly what we would write
+    assert client.written == []
+    assert client.reads == [Span("holding", 0, 1)]  # the fresh pre-write read
+    assert coordinator.data["setpoint"] == 30  # and it serves as confirmation
+
+    await coordinator.async_write(defn, 21.5)  # a real change goes through
+    assert client.written == [(0, [215])]
+
+
+async def test_write_always_writes_unchanged_values(hass, monkeypatch):
+    # command registers that act on every write opt out of the skip
+    client = FakeClient({0: 1})
+    defn = _setpoint(write_always=True)
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    client.reads.clear()
+    await coordinator.async_write(defn, 1)
+    assert client.written == [(0, [1])]
+    assert client.reads == [Span("holding", 0, 1)]  # only the confirming read-back
+
+
+async def test_unchanged_coil_write_is_skipped(hass, monkeypatch):
+    client = FakeClient()
+    client.values[("coil", 3)] = True
+    defn = EntityDef(key="pump", platform="switch", table="coil", address=3)
+    coordinator = await make_coordinator(
+        hass, make_device(defn), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    await coordinator.async_write(defn, True)
+    assert client.written == []
+    await coordinator.async_write(defn, False)
+    assert client.written == [(3, [0])]
+
+
+async def test_entities_without_own_readback_always_write(hass, monkeypatch):
+    # static_value (write-only) and read_register entities cannot compare
+    # against their own register, so a repeated value is written every time
+    client = FakeClient({0: 5, 10: 5})
+    static = _setpoint(static_value=5)
+    linked = EntityDef(
+        key="linked", platform="number", address=10, read_register="{{ setpoint }}",
+        ha={"native_min_value": 0, "native_max_value": 100},
+    )
+    coordinator = await make_coordinator(
+        hass, make_device(static, linked), client, monkeypatch, FakeTime()
+    )
+    await coordinator.async_refresh()
+    await coordinator.async_write(static, 5)
+    await coordinator.async_write(linked, 5)
+    assert client.written == [(0, [5]), (10, [5])]
+
 
 async def test_read_register_reads_linked_value_and_writes_own(hass, monkeypatch):
     # 'charge_current' is shown from reg 144 (via a readback entity) but written to reg 36

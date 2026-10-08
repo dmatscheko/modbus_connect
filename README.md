@@ -262,7 +262,10 @@ option is only a *floor* that slows polling down, never speeds it up (the
 exact precedence is in the [device file
 reference](docs/device_files.md#read-planning-and-polling)). Writes are
 confirmed by reading the register back immediately; a write the device took
-whose read-back fails is logged, not reported as a failed write.
+whose read-back fails is logged, not reported as a failed write. A value the
+register already holds is not written again, sparing EEPROM/flash-backed
+settings from automations that re-send it (`write_always` opts a command
+register out).
 
 The *Configuration* companion device carries the read diagnostics: a **Reads
 per refresh** sensor (how many block reads a full refresh issues — usually far

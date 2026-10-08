@@ -270,6 +270,9 @@
           "exclusiveMinimum": 0,
           "maximum": 10
         },
+        "write_always": {
+          "type": "boolean"
+        },
         "read_modify_write": {
           "type": "boolean"
         },
@@ -444,6 +447,9 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 10
+        },
+        "write_always": {
+          "type": "boolean"
         },
         "read_modify_write": {
           "type": "boolean"

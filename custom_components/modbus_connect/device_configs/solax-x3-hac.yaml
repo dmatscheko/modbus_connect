@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
 # Generated from support/devicedocs/solax-x3-hac/device.yaml (hand-maintained) —
 # do not edit here; edit support/devicedocs/solax-x3-hac/device.yaml and re-run:
-#   .venv/bin/python support/converter/convert_all.py
+#   .venv/bin/python support/converter/convert_all.py --owned solax-x3-hac
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -232,6 +232,7 @@ holding:
       entity_category: config
   control_command:
     address: 1575
+    write_always: true
     groups: [advanced, settings]
     map:
       0: No Command

@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
 # Generated from support/devicedocs/pichler-lg350-lg450/device.yaml (hand-maintained) —
 # do not edit here; edit support/devicedocs/pichler-lg350-lg450/device.yaml and re-run:
-#   .venv/bin/python support/converter/convert_all.py
+#   .venv/bin/python support/converter/convert_all.py --owned pichler-lg350-lg450
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:
@@ -418,6 +418,7 @@ holding:
       entity_category: config
   system_reset_select:
     address: 63
+    write_always: true
     groups: [advanced, system]
     map:
       0: Keine Aktion

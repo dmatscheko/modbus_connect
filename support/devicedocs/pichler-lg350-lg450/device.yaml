@@ -420,6 +420,7 @@ holding:
       entity_category: config
   system_reset_select:
     address: 63
+    write_always: true  # a command: re-sending the same value must act again
     groups: [advanced, system]
     map:
       0: Keine Aktion

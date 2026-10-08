@@ -134,6 +134,7 @@ _MODBUS_KEYS = {
     "optimistic_default",
     "write_multiple",
     "confirm_delay",
+    "write_always",
     "rectify_time",
     "read_modify_write",
     "max_change",
@@ -654,6 +655,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         confirm_delay = _number_in_range(
             ctx, "confirm_delay", confirm_delay, 0, 10, lo_exclusive=True
         )
+    write_always = _bool(ctx, raw, "write_always")
     rectify_time = _bool(ctx, raw, "rectify_time")
     # Values the entity shows so a writable control stays usable; a string here is
     # a map label, so _display_value localizes it in lockstep with the map values.
@@ -695,6 +697,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
         optimistic_default=optimistic_default,
         write_multiple=write_multiple,
         confirm_delay=confirm_delay,
+        write_always=write_always,
         rectify_time=rectify_time,
         read_modify_write=read_modify_write,
         max_change=max_change,
@@ -706,6 +709,10 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     )
     if not defn.internal:
         _check_platform_semantics(ctx, defn)
+    elif defn.write_always and defn.table not in WRITABLE_TABLES:
+        # internal entities may be template-action write targets, so the key is
+        # valid on them — but only where a write can happen at all
+        raise ctx.fail(f"'write_always' needs a writable table, not {defn.table}")
     return defn
 
 
@@ -1033,6 +1040,20 @@ def _check_write_semantics(ctx: _Ctx, defn: EntityDef) -> None:
             "'confirm_delay' needs a write confirmed from the entity's own "
             "register (not valid for buttons, read_register, or static_value "
             "entities)"
+        )
+
+    # Unchanged writes are skipped only for entities read back from their own
+    # register; on the others the opt-out would be a no-op, so it is refused.
+    if defn.write_always and (
+        not defn.writes
+        or platform == "button"
+        or defn.read_register is not None
+        or defn.static_value is not None
+    ):
+        raise ctx.fail(
+            "'write_always' only applies to writable entities read back from their "
+            "own register (buttons, read_register and static_value entities "
+            "always write)"
         )
 
     # A masked write must merge into the register's other bits, which requires

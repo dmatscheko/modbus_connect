@@ -552,6 +552,25 @@ def test_template_integrate_mapping_form_takes_any_unit():
             parse_device(integrating(bad), "t.yaml")
 
 
+def test_write_always_only_where_writes_could_be_skipped():
+    number = {"address": 0, "ha": {"platform": "number", "min": 0, "max": 9}}
+    dev = parse_device(doc(n={**number, "write_always": True}), "t.yaml")
+    assert dev.entities[0].write_always
+    assert not dev.entities[0].skips_unchanged_writes
+    internal = parse_device(doc(i={"address": 0, "internal": True, "write_always": True}), "t.yaml")
+    assert internal.entities[0].write_always  # template actions may write it
+    for section, entity in (
+        ("holding", {"address": 0, "write_always": True, "ha": {"platform": "sensor"}}),
+        ("holding", {"address": 0, "write_always": True, "write_value": 1,
+                     "ha": {"platform": "button"}}),
+        ("holding", {**number, "write_always": True, "static_value": 1}),
+        ("holding", {**number, "write_always": True, "read_register": "{{ 1 }}"}),
+        ("input", {"address": 0, "internal": True, "write_always": True}),
+    ):
+        with pytest.raises(DeviceSchemaError, match="write_always"):
+            parse_device(doc(section, x=entity), "t.yaml")
+
+
 def test_template_integrate_is_sensor_only():
     with pytest.raises(DeviceSchemaError, match="unknown binary_sensor template keys"):
         parse_device(

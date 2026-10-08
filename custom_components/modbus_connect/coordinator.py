@@ -1031,11 +1031,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             words.append(num & 0xFFFF)
         return words
 
-    async def _perform_write(self, defn: EntityDef, value: Any) -> Any:
+    async def _perform_write(self, defn: EntityDef, value: Any) -> tuple[Any, bool]:
         """Write ``value`` for ``defn``; the client lock is held and connected.
 
         Returns the value to confirm with — a single-template button resolves its
-        template here so the caller can echo the rendered value back.
+        template here so the caller can echo the rendered value back — and
+        whether anything was written: a payload the register already holds is
+        skipped (see EntityDef.skips_unchanged_writes), its fresh read cached.
         """
         if isinstance(value, tuple):
             # button list write_value: render each item to a register word and
@@ -1044,7 +1046,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self.client.write_registers(
                 self.device_id, defn.address, words, multiple=True
             )
-            return value
+            return value, True
         if defn.platform == "button" and isinstance(value, str):
             # a single Jinja template write_value: render it, then encode through
             # the codec below (honouring the entity's type/map/etc.).
@@ -1053,11 +1055,20 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise WriteError(
                     f"{defn.key}: write_value template rendered to nothing"
                 )
-        current_raw: int | None = None
-        if defn.mask is not None and defn.read_modify_write:
-            raw = await self.client.read_block(self.device_id, defn.span)
-            current_raw = int(raw[0])
-        payload = codec.encode(defn, value, current_raw=current_raw)
+        masked = defn.mask is not None and defn.read_modify_write
+        current = await self._read_before_write(defn, required=masked)
+        payload = codec.encode(
+            defn, value, current_raw=int(current[0]) if masked and current else None
+        )
+        if current is not None and defn.skips_unchanged_writes and (
+            bool(payload) == bool(current[0])
+            if defn.table == TABLE_COIL
+            else payload == [int(word) for word in current]
+        ):
+            # Reads cost the device nothing; writes may wear its EEPROM/flash.
+            _LOGGER.debug("%s: %s already holds %r; not writing", self.name, defn.key, value)
+            self._store(defn.span, current)
+            return value, False
         # `== TABLE_COIL`, not `in BIT_TABLES`: coil is the only writable bit table
         # (discrete inputs are read-only), so the else-branch is always holding.
         if defn.table == TABLE_COIL:
@@ -1067,6 +1078,32 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self.client.write_registers(
                 self.device_id, defn.address, payload, multiple=defn.write_multiple
             )
+        return value, True
+
+    async def _read_before_write(
+        self, defn: EntityDef, *, required: bool
+    ) -> list[int] | list[bool] | None:
+        """The register's current content ahead of a write (lock held), or None.
+
+        Needed by a masked read-modify-write (``required``: a failed read fails
+        the write) and by the unchanged-write check (best effort: a failed read
+        just means the write goes ahead).
+        """
+        if not (required or defn.skips_unchanged_writes):
+            return None
+        try:
+            return await self.client.read_block(self.device_id, defn.span)
+        except ReadError as err:
+            if required:
+                raise
+            _LOGGER.debug("%s: pre-write read of %s failed: %s", self.name, defn.key, err)
+            return None
+
+    def _decoded_or_default(self, defn: EntityDef) -> Any:
+        """The entity's value decoded from the cache, else its optimistic default."""
+        value = self._decode(defn)
+        if value is None and defn.optimistic_default is not None:
+            return defn.optimistic_default
         return value
 
     async def _confirm_write(self, defn: EntityDef, value: Any) -> Any:
@@ -1082,13 +1119,14 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # the bus quiet until the read-back.
             await asyncio.sleep(defn.confirm_delay)
         self._store(defn.span, await self.client.read_block(self.device_id, defn.span))
-        confirmed = self._decode(defn)
-        if confirmed is None and defn.optimistic_default is not None:
-            confirmed = defn.optimistic_default
-        return confirmed
+        return self._decoded_or_default(defn)
 
     async def async_write(self, defn: EntityDef, value: Any) -> None:
         """Encode and write a value, then read it back to confirm.
+
+        A value the register already holds is not written again (unless the
+        entity sets ``write_always``) — the read that found it is the
+        confirmation.
 
         A write the device rejects (or that cannot be encoded or sent) raises. A
         write the device took whose confirming read-back then fails is a read
@@ -1106,9 +1144,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         translation_key="cannot_connect",
                         translation_placeholders={"target": self.client.target},
                     )
-                value = await self._perform_write(defn, value)
+                value, wrote = await self._perform_write(defn, value)
                 written = True
-                if defn.platform != "button":
+                if not wrote:
+                    confirmed = self._decoded_or_default(defn)  # just read
+                elif defn.platform != "button":
                     confirmed = await self._confirm_write(defn, value)
         except (ReadError, WriteError, codec.CodecError) as err:
             if not written:

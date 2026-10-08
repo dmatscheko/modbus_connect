@@ -167,7 +167,7 @@ SECTIONS = (*TABLES, "template")
 ENTITY_FIELD_ORDER = (
     "address", "type", "count", "swap", "mask", "sum_scale", "multiplier", "offset",
     "on_value", "off_value", "write_value", "static_value", "optimistic_default",
-    "write_multiple", "read_modify_write", "confirm_delay", "rectify_time",
+    "write_multiple", "read_modify_write", "confirm_delay", "write_always", "rectify_time",
     "max_change", "never_resets", "scan_interval", "duplicate_as_sensor", "groups",
 )
 _KNOWN_ENTITY_KEYS = {*ENTITY_FIELD_ORDER, "map", "flags", "read_register", "internal", "ha", "key"}
