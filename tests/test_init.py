@@ -407,9 +407,9 @@ async def test_serial_entry_uses_serial_client(hass: HomeAssistant) -> None:
         title="Acme X1",
     )
     entry.add_to_hass(hass)
-    with patch.object(
-        ModbusBlockClient, "acquire_serial", return_value=make_client()
-    ) as acquire:
+    client = make_client()
+    client.target = "/dev/ttyUSB0"  # what the real serial client reports
+    with patch.object(ModbusBlockClient, "acquire_serial", return_value=client) as acquire:
         assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert acquire.call_args.args[0] == "/dev/ttyUSB0"

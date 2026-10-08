@@ -14,7 +14,7 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, TemplateError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -27,7 +27,6 @@ from .const import (
     ALIVE_AFTER,
     BASIC_GROUP,
     CONF_PREFIX,
-    CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -370,12 +369,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # HA's device-info card has no free-form rows, so fold the connection
         # (gateway or serial port, and Modbus id) into model_id — it renders
         # right after the model as "<model> (<target · ID N>)".
-        target = (
-            entry.data[CONF_SERIAL_PORT]
-            if CONF_SERIAL_PORT in entry.data
-            else f"{entry.data[CONF_HOST]}:{entry.data[CONF_PORT]}"
-        )
-        connection = f"{target} · ID {self.device_id}"
+        connection = f"{client.target} · ID {self.device_id}"
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
