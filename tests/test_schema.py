@@ -517,6 +517,17 @@ def test_template_integrate_rejects_unknown_method():
         )
 
 
+def test_template_integrate_requires_kwh_unit():
+    def integrating(unit):
+        ha = {"platform": "sensor", "unit_of_measurement": unit}
+        return {**doc(p={"address": 0, "ha": {"platform": "sensor"}}),
+                "template": {"e": {"ha": ha, "state": "{{ p }}", "integrate": "left"}}}
+
+    assert parse_device(integrating("kWh"), "t.yaml").templates[0].config["integrate"]
+    with pytest.raises(DeviceSchemaError, match="accumulates kWh"):
+        parse_device(integrating("Wh"), "t.yaml")
+
+
 def test_template_integrate_is_sensor_only():
     with pytest.raises(DeviceSchemaError, match="unknown binary_sensor template keys"):
         parse_device(

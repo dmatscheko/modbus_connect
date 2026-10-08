@@ -40,7 +40,7 @@ from homeassistant.components.switch import SwitchDeviceClass, SwitchEntityDescr
 from homeassistant.components.text import TextEntityDescription, TextMode
 from homeassistant.components.time import TimeEntityDescription
 from homeassistant.components.valve import ValveDeviceClass, ValveEntityDescription
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature
 from homeassistant.helpers.entity import EntityCategory, EntityDescription
 
 from .const import BASIC_GROUP, MODBUS_ID_MAX, MODBUS_ID_MIN
@@ -1543,6 +1543,14 @@ def _post_sensor(
         return
     if method not in INTEGRATE_METHODS:
         raise ctx.fail(f"'integrate' must be one of {sorted(INTEGRATE_METHODS)}")
+    # The accumulated total is always kWh; any other declared unit would mislabel
+    # (and, for HA's unit conversion, silently rescale) every reading.
+    unit = ha.get("native_unit_of_measurement")
+    if unit is not None and unit != UnitOfEnergy.KILO_WATT_HOUR:
+        raise ctx.fail(
+            f"an 'integrate' sensor accumulates kWh; ha.unit_of_measurement {unit!r} "
+            "would mislabel it (use kWh or leave it out)"
+        )
     config["integrate"] = method
 
 
