@@ -200,6 +200,12 @@
     },
     "no_case": {
       "message": "{key}: {action} hat keinen Fall für {value}."
+    },
+    "device_no_answer": {
+      "message": "Das Modbus-Gerät {device_id} hat auf keine Leseanfrage geantwortet."
+    },
+    "invalid_device_file": {
+      "message": "Ungültige Gerätedatei: {error}"
     }
   }
 }

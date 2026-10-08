@@ -544,6 +544,7 @@ async def test_backoff_on_total_failure(hass, monkeypatch):
 
     await coordinator.async_refresh()
     assert not coordinator.last_update_success
+    assert coordinator.last_exception.translation_key == "cannot_connect"
     first = coordinator.update_interval.total_seconds()
     await coordinator.async_refresh()
     second = coordinator.update_interval.total_seconds()
@@ -954,6 +955,7 @@ async def test_all_reads_fail_raises(hass, monkeypatch):
 
     await coordinator.async_refresh()
     assert not coordinator.last_update_success
+    assert coordinator.last_exception.translation_key == "device_no_answer"
 
 
 async def test_partial_fallback_learns_no_holes(hass, monkeypatch):

@@ -689,7 +689,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if not await self.client.ensure_connected():
                 self._record_read_failure()
                 self._register_failure()
-                raise UpdateFailed(f"cannot connect to {self.client.target}")
+                raise UpdateFailed(
+                    f"cannot connect to {self.client.target}",
+                    translation_domain=DOMAIN,
+                    translation_key="cannot_connect",
+                    translation_placeholders={"target": self.client.target},
+                )
         ok_blocks = 0
         reads = 0
         # The lock is taken per block, not around the whole refresh, so a user
@@ -714,7 +719,12 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # cycle leaves the device's health untouched.
         if blocks and not ok_blocks:
             self._register_failure()
-            raise UpdateFailed(f"device {self.device_id} did not answer any read")
+            raise UpdateFailed(
+                f"device {self.device_id} did not answer any read",
+                translation_domain=DOMAIN,
+                translation_key="device_no_answer",
+                translation_placeholders={"device_id": str(self.device_id)},
+            )
         if ok_blocks:
             self._register_success()
 

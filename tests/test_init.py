@@ -1271,3 +1271,4 @@ async def test_setup_unreadable_device_file(hass: HomeAssistant) -> None:
         assert not await setup_entry(hass, entry, make_client())
     assert entry.state is ConfigEntryState.SETUP_ERROR
     assert "cannot read" in str(entry.reason)
+    assert entry.error_reason_translation_key == "invalid_device_file"

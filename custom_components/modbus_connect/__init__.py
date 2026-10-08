@@ -16,6 +16,7 @@ from .const import (
     CONF_PARITY,
     CONF_SERIAL_PORT,
     CONF_STOPBITS,
+    DOMAIN,
     FRAMER_SOCKET,
     PLATFORMS,
 )
@@ -29,7 +30,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ModbusConnectConfigEntry
     try:
         device = await async_load_device(hass, entry.data[CONF_FILENAME])
     except DeviceSchemaError as err:
-        raise ConfigEntryError(str(err)) from err
+        raise ConfigEntryError(
+            str(err),
+            translation_domain=DOMAIN,
+            translation_key="invalid_device_file",
+            translation_placeholders={"error": str(err)},
+        ) from err
 
     if CONF_SERIAL_PORT in entry.data:
         client = ModbusBlockClient.acquire_serial(

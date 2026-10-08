@@ -200,6 +200,12 @@
     },
     "no_case": {
       "message": "{key}: {action} has no case for {value}."
+    },
+    "device_no_answer": {
+      "message": "Modbus device {device_id} did not answer any read."
+    },
+    "invalid_device_file": {
+      "message": "Invalid device file: {error}"
     }
   }
 }
