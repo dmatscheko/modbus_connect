@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-import voluptuous as vol
+# Home Assistant 2026.10 replaced voluptuous with its API-compatible successor
+# probatio (flow schemas are typed against it); older releases, down to the
+# hacs.json floor, still ship only voluptuous.
+try:
+    import probatio as vol
+except ImportError:  # pragma: no cover - Home Assistant < 2026.10
+    import voluptuous as vol  # type: ignore[no-redef]
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -86,7 +92,7 @@ def _device_schema(
     )
 
 
-def _modbus_id_selector() -> vol.All:
+def _modbus_id_selector() -> vol.All[int]:
     """The Modbus unit-address (slave id) field, 0-255 — shared by the TCP and
     serial schemas so the range lives in one place (see const.MODBUS_ID_*)."""
     return vol.All(
