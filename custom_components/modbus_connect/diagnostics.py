@@ -54,6 +54,10 @@ async def async_get_config_entry_diagnostics(
                 if coordinator.update_interval
                 else None
             ),
+            "rounded_intervals": {
+                key: {"configured": configured, "effective": effective}
+                for key, (configured, effective) in sorted(coordinator.rounded_intervals.items())
+            },
             "consecutive_failures": coordinator.consecutive_failures,
             "learned_holes": sorted(coordinator.holes),
             "last_read_count": coordinator.last_read_count,

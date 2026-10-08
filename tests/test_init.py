@@ -646,6 +646,7 @@ async def test_diagnostics(hass: HomeAssistant) -> None:
     assert diagnostics["device"]["manufacturer"] == "Acme"
     assert diagnostics["device"]["model"] == "X1"
     assert diagnostics["polling"]["last_update_success"] is True
+    assert diagnostics["polling"]["rounded_intervals"] == {}
     by_key = {e["key"]: e for e in diagnostics["entities"]}
     assert by_key["temperature"]["value"] == pytest.approx(21.5)
     assert by_key["temperature"]["address"] == 0

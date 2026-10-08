@@ -318,6 +318,15 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         interval_for, floor = resolve_scan_intervals(device, user_min)
         self._interval_for = {e.key: interval_for[e.key] for e in self._readers}
         self._tick: int = min(self._interval_for.values(), default=floor)
+        # Every poll runs on the shared tick (the fastest interval), batching all
+        # due registers into as few reads as possible. An interval that is no
+        # multiple of it therefore polls at the next multiple: 45 s next to a
+        # 30 s entity polls every 60 s. Reported, not "fixed" by extra wake-ups.
+        self.rounded_intervals: dict[str, tuple[int, int]] = {
+            key: (interval, math.ceil(interval / self._tick) * self._tick)
+            for key, interval in self._interval_for.items()
+            if interval % self._tick
+        }
         self._next_due: dict[str, float] = dict.fromkeys(self._interval_for, 0.0)
         # Device-declared dead registers seed the same set the planner grows from
         # failed reads, so no read is ever bridged across them.
@@ -398,6 +407,19 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Skip listener/state updates on cycles where no value changed.
             always_update=False,
         )
+        if self.rounded_intervals:
+            _LOGGER.warning(
+                "%s: all polls run on a %d s tick (the fastest interval), so %s "
+                "poll later than configured. Use multiples of %d s in the device "
+                "file's scan_interval values to poll them exactly",
+                self.name,
+                self._tick,
+                ", ".join(
+                    f"{key} ({configured} s -> every {effective} s)"
+                    for key, (configured, effective) in sorted(self.rounded_intervals.items())
+                ),
+                self._tick,
+            )
 
     @property
     def read_entity_count(self) -> int:

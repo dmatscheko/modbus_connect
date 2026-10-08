@@ -150,7 +150,14 @@ is the entity's `scan_interval`, else the device file's `scan_interval`, else
 30 s; the *floor* is the larger of the config-entry option and the device
 file's `min_scan_interval` (unset, it imposes no floor — it defaults to the
 config's fastest cadence). So `scan_interval` sets the actual rate, while
-`min_scan_interval` and the option only ever slow polling down. Writes are
+`min_scan_interval` and the option only ever slow polling down.
+
+All polls run on one shared tick — the fastest effective interval — so every
+register due at that moment shares the same few block reads. An interval that
+is not a multiple of the tick polls at the next multiple (45 s next to a 30 s
+entity polls every 60 s); the integration logs a warning naming those entities,
+and *Download diagnostics* lists them under `rounded_intervals`. Pick intervals
+that are multiples of the fastest one. Writes are
 confirmed by reading the register back immediately (an entity's
 `confirm_delay` defers that read for devices that apply writes slowly). A
 write the device rejects is an error; a write it took whose read-back then

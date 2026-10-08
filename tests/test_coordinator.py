@@ -48,6 +48,23 @@ async def test_device_info_shows_connection(hass, monkeypatch):
     assert info["model_id"] == "127.0.0.1:502 · ID 1"
 
 
+async def test_interval_off_the_tick_is_reported(hass, monkeypatch, caplog):
+    # polls share the fastest interval's tick; 45 s next to 30 s therefore polls
+    # every 60 s — warned about (with the effective cadence), not silently
+    device = make_device(
+        sensor("fast", 0), sensor("odd", 1, scan_interval=45), sensor("even", 2, scan_interval=90)
+    )
+    coordinator = await make_coordinator(hass, device, FakeClient(), monkeypatch, FakeTime())
+    assert coordinator.rounded_intervals == {"odd": (45, 60)}
+    assert "odd (45 s -> every 60 s)" in caplog.text
+
+    caplog.clear()
+    aligned = make_device(sensor("fast", 0), sensor("even", 2, scan_interval=90))
+    coordinator = await make_coordinator(hass, aligned, FakeClient(), monkeypatch, FakeTime())
+    assert coordinator.rounded_intervals == {}
+    assert "tick" not in caplog.text
+
+
 async def test_scan_interval_buckets(hass, monkeypatch):
     faketime = FakeTime()
     client = FakeClient({0: 1, 50: 2})
