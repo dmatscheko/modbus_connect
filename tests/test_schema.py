@@ -1071,6 +1071,28 @@ ERROR_CASES = [
         doc("input", x={"address": 0, "ha": {"platform": "number", "min": 0, "max": 1}}),
         "read-only",
     ),
+    # YAML shapes no specific check anticipates must still fail as a device-file
+    # error (the config flow and setup only handle DeviceSchemaError).
+    (
+        "unknown_keys_of_mixed_types",
+        {**DEVICE, True: 1, "foo": 2, "holding": {"x": VALID_SENSOR}},
+        "unknown top-level keys",
+    ),
+    (
+        "unknown_entity_keys_of_mixed_types",
+        doc(x={**VALID_SENSOR, 5: 1, "zz": 2}),
+        "unknown keys",
+    ),
+    (
+        "list_where_a_platform_belongs",
+        doc(x={"address": 0, "ha": {"platform": ["sensor"]}}),
+        "malformed device file",
+    ),
+    (
+        "list_where_a_name_belongs",
+        doc(x={"address": 0, "ha": {"platform": "sensor", "name": ["a"]}}),
+        "malformed device file",
+    ),
 ]
 
 

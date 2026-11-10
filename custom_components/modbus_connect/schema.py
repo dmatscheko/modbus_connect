@@ -250,6 +250,19 @@ def parse_device(data: Any, filename: str = "", language: str = "en") -> DeviceD
     to English so standalone callers (the converter, tests) need not pass it.
     """
     ctx = _Ctx(filename)
+    try:
+        return _parse_device(ctx, data, language)
+    except DeviceSchemaError:
+        raise
+    except (TypeError, ValueError, KeyError, AttributeError, IndexError) as err:
+        # A YAML shape no check anticipated (a list where a name belongs, ...)
+        # is still a bad device file: report it like one, not as a traceback
+        # the config flow can only show as "unknown error".
+        raise ctx.fail(f"malformed device file ({type(err).__name__}: {err})") from err
+
+
+def _parse_device(ctx: _Ctx, data: Any, language: str) -> DeviceDef:
+    filename = ctx.filename
     if not isinstance(data, dict):
         raise ctx.fail("file does not contain a YAML mapping")
     if _OLD_FORMAT_SECTIONS & set(data):
@@ -261,7 +274,7 @@ def parse_device(data: Any, filename: str = "", language: str = "en") -> DeviceD
     unknown = set(data) - {"device", "template", "translations", *TABLES}
     if unknown:
         raise ctx.fail(
-            f"unknown top-level keys: {sorted(unknown)} "
+            f"unknown top-level keys: {sorted(unknown, key=str)} "
             f"(entities live in {'/'.join(TABLES)} sections)"
         )
 
@@ -332,7 +345,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "group_labels",
     }
     if unknown:
-        raise ctx.fail(f"unknown device keys: {sorted(unknown)}")
+        raise ctx.fail(f"unknown device keys: {sorted(unknown, key=str)}")
     scan_interval = device.get("scan_interval")
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "device.scan_interval", scan_interval, 1, 86400)
@@ -607,7 +620,7 @@ def _parse_entity(ctx: _Ctx, key: str, raw: Any, table: str) -> EntityDef:
     unknown = set(raw) - _MODBUS_KEYS
     if unknown:
         raise ctx.fail(
-            f"unknown keys: {sorted(unknown)} (Home Assistant fields go under 'ha:')"
+            f"unknown keys: {sorted(unknown, key=str)} (Home Assistant fields go under 'ha:')"
         )
 
     platform, parsed_ha = _parse_platform(ctx, raw)
@@ -1241,7 +1254,7 @@ def _parse_template(
     unknown = set(raw) - spec.allowed
     if unknown:
         raise ctx.fail(
-            f"unknown {platform} template keys: {sorted(unknown)} "
+            f"unknown {platform} template keys: {sorted(unknown, key=str)} "
             f"(valid: {sorted(spec.allowed - {'ha'})})"
         )
 
@@ -1307,7 +1320,7 @@ def _parse_switch_target(
 ) -> SwitchTarget:
     unknown = set(raw) - {"by", "cases"}
     if unknown:
-        raise ctx.fail(f"'{name}': unknown keys {sorted(unknown)} (valid: ['by', 'cases'])")
+        raise ctx.fail(f"'{name}': unknown keys {sorted(unknown, key=str)} (valid: ['by', 'cases'])")
     selector = raw.get("by")
     if not isinstance(selector, str):
         raise ctx.fail(f"'{name}.by' must be a template string selecting a case")
@@ -1338,7 +1351,7 @@ def _parse_single_target(
     allowed |= {"map"} if kind == "mapped" else set()
     unknown = set(raw) - allowed
     if unknown:
-        raise ctx.fail(f"'{name}': unknown keys {sorted(unknown)} (valid: {sorted(allowed)})")
+        raise ctx.fail(f"'{name}': unknown keys {sorted(unknown, key=str)} (valid: {sorted(allowed)})")
 
     target = str(raw["entity"])
     defn = defs.get(target)
@@ -1579,7 +1592,7 @@ def _post_sensor(
         unknown = set(raw_integrate) - {"method", "per"}
         if unknown:
             raise ctx.fail(
-                f"'integrate': unknown keys {sorted(unknown)} (valid: ['method', 'per'])"
+                f"'integrate': unknown keys {sorted(unknown, key=str)} (valid: ['method', 'per'])"
             )
         method = raw_integrate.get("method")
         per = raw_integrate.get("per")
