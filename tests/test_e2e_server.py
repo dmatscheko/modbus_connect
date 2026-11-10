@@ -9,6 +9,7 @@ counts wire transactions exactly and does not depend on pymodbus server APIs.
 """
 
 import asyncio
+import contextlib
 import struct
 import time
 from pathlib import Path
@@ -229,6 +230,35 @@ async def test_device_timeout_bounds_a_silent_read(rtu_server):
         assert 0.25 <= time.monotonic() - start < 1.5
     finally:
         client.release("e2e-timeout")
+
+
+async def test_cancelling_a_poll_ends_it(rtu_server):
+    # pymodbus reports a cancelled request as a failed one; the client must let
+    # the cancellation through, or an unloading entry's poll would log a device
+    # failure and work through its remaining reads
+    port, _ = rtu_server
+    client = ModbusBlockClient.acquire("127.0.0.1", port, "e2e-cancel", timeout=5.0)
+    reads_started = 0
+
+    async def poll() -> None:
+        nonlocal reads_started
+        for start in (0, 10):
+            async with client.lock:
+                reads_started += 1
+                # what the coordinator does: note the failure, go on
+                with contextlib.suppress(ReadError):
+                    await client.read_block(1, Span("holding", start, 1))
+
+    try:
+        assert await client.ensure_connected()
+        task = asyncio.create_task(poll())
+        await asyncio.sleep(0.1)  # the first (never answered) read is in flight
+        task.cancel()
+        await asyncio.wait([task], timeout=2)
+        assert task.cancelled()
+        assert reads_started == 1
+    finally:
+        client.release("e2e-cancel")
 
 
 async def test_request_delay_spaces_transactions(modbus_server):

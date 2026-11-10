@@ -371,6 +371,15 @@ class ModbusBlockClient:
                 await asyncio.sleep(wait)
         try:
             return await func(**kwargs)
+        except ModbusException:
+            # pymodbus turns a cancellation of the waiting task into a failed
+            # request ("Request cancelled outside library"). The task is still
+            # being cancelled (an unloading entry, a shutdown): end it, rather
+            # than report a device failure and carry on with the next read.
+            task = asyncio.current_task()
+            if task is not None and task.cancelling():
+                raise asyncio.CancelledError from None
+            raise
         finally:
             self._last_io = time.monotonic()
 
