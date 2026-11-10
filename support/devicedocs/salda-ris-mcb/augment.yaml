@@ -1,7 +1,7 @@
 # Augmentation policy for Salda_RIS_MCB: hand-curation ported from the pre-library config
 # (edits that are not in the upstream modbus_local_gateway source).
 
-# Translations (en/de): shared cross-device vocabulary in _common/translations.yaml is
+# Translations (en/de): shared cross-device vocabulary in support/devicedocs/translations.yaml is
 # applied automatically; the block below adds this device's own strings (each matched by
 # any of a unit's language values), plus any per-device override of a shared unit.
 translations:

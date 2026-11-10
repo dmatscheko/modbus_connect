@@ -117,7 +117,7 @@ so nothing is duplicated between the two trees.
 # One owned config (and its registers.md / groups.md); no upstream checkout needed.
 .venv/bin/python support/converter/convert_all.py --owned solax-x3-hac
 
-# All configs and docs: the MLG import needs an upstream checkout (defaults to a sibling clone).
+# All configs and docs: the MLG import needs an upstream checkout (defaults to a clone next to this repository).
 MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \
   .venv/bin/python support/converter/convert_all.py
 

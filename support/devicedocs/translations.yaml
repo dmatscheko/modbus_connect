@@ -16,7 +16,7 @@
 #
 # NOTE: a translated map/flag value changes what templates see, so templates must compare
 # the stable map key via key('entity') == N, never the label. See the README and the
-# migrated climate templates in Dimplex-SI-11TU / Pichler-* augment.yaml.
+# migrated climate templates in the Dimplex / Pichler device.yaml files.
 
 # --- operating modes, status and valve positions (German <-> English) ----------
 - {de: Sommer, en: Summer}

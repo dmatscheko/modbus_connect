@@ -2,7 +2,7 @@
 # Add an `ops:` list (and optional `device:` block) here to group or tune entities.
 
 # Translations (en/de): shared cross-device vocabulary in
-# support/converter/_common/translations.yaml is applied automatically; the translations:
+# support/devicedocs/translations.yaml is applied automatically; the translations:
 # block below adds this device's own strings (each matched by any of a unit's language
 # values). The integration resolves against Home Assistant's language at load, falling back
 # to English then the source string.

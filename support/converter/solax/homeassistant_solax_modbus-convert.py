@@ -42,10 +42,11 @@ _aug_spec = importlib.util.spec_from_file_location("augment", _COMMON / "augment
 augment = importlib.util.module_from_spec(_aug_spec)
 _aug_spec.loader.exec_module(augment)
 
-# Checkout of the upstream homeassistant-solax-modbus repo to read entity descriptions from.
+# Checkout of the upstream homeassistant-solax-modbus repo to read entity descriptions
+# from: SOLAX_MODBUS_REPO, else a clone next to this repository.
 ROOT = os.environ.get(
     "SOLAX_MODBUS_REPO",
-    "/Users/dma/Eigenes/Development/home_assistant_projects/homeassistant-solax-modbus",
+    str(Path(__file__).resolve().parents[4] / "homeassistant-solax-modbus"),
 )
 
 

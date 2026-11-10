@@ -158,6 +158,7 @@ device.
 
 - Upstream button + loop: `homeassistant-solax-modbus`
   `custom_components/solax_modbus/plugin_solax.py:1501` and `:709`.
-- Time/`value_function` handling and skips: the original SolaX importer (removed once the
-  device became owned in-tree; see its history under `support/converter/` in git).
+- Time/`value_function` handling and skips: the original SolaX importer, kept at
+  `support/converter/solax/` (the devices themselves are owned in-tree now, so it no
+  longer writes their configs).
 - Device-file format (what *is* expressible): [docs/device_files.md](../docs/device_files.md).
