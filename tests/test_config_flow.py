@@ -176,6 +176,21 @@ async def test_device_file_defaults_prefill(hass: HomeAssistant) -> None:
     assert defaults[CONF_PREFIX] == "acme_pre"
 
 
+async def test_device_file_modbus_id_zero_prefills(hass: HomeAssistant) -> None:
+    """0 is a valid Modbus ID in a device file; it must not fall back to 1."""
+    write_device_file(
+        hass, "acme_zero.yaml", DEVICE_YAML_DEFAULTS.replace("modbus_id: 42", "modbus_id: 0")
+    )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_FILENAME: "acme_zero.yaml", CONF_NAME: ""}
+    )
+    result = await pick(hass, result, "connection")
+    assert form_defaults(result)[CONF_SLAVE_ID] == 0
+
+
 async def test_cannot_connect_then_recover(hass: HomeAssistant) -> None:
     write_device_file(hass)
     result = await hass.config_entries.flow.async_init(
@@ -341,6 +356,65 @@ async def test_reconfigure_prefills_name_from_old_prefix(hass: HomeAssistant) ->
 
     result = await start_reconfigure(hass, entry)
     assert form_defaults(result)[CONF_NAME] == "Old name"
+
+
+async def test_reconfigure_keeps_a_blank_name_blank(hass: HomeAssistant) -> None:
+    """A name the user left empty is not the pre-CONF_NAME case: the prefix
+    must not be offered (and then saved) as the entry's name."""
+    write_device_file(hass)
+    entry = make_entry(**{CONF_NAME: "", CONF_PREFIX: "acme_pre"})
+    entry.add_to_hass(hass)
+
+    result = await start_reconfigure(hass, entry)
+    assert form_defaults(result)[CONF_NAME] == ""
+
+
+async def _reconfigure_reloads(
+    hass: HomeAssistant, entry: MockConfigEntry, connection: dict
+) -> int:
+    """Run a reconfigure to the end; how many reloads the flow itself scheduled."""
+    result = await start_reconfigure(hass, entry)
+    with (
+        patch_probe(True),
+        patch_setup(),
+        patch.object(hass.config_entries, "async_schedule_reload") as schedule_reload,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], DEVICE_STEP
+        )
+        result = await pick(hass, result, "reconfigure_connection")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], connection
+        )
+        await hass.async_block_till_done()
+    assert result["reason"] == "reconfigure_successful"
+    return schedule_reload.call_count
+
+
+async def test_reconfigure_reloads_exactly_once(hass: HomeAssistant) -> None:
+    """A loaded entry's update listener reloads on a change, so the flow must
+    not schedule a second reload; it reloads itself only when the listener
+    won't (nothing changed, or the entry never set up)."""
+    write_device_file(hass)
+    changed = {**CONNECTION, "host": "192.0.2.2"}
+
+    # Loaded (has the update listener) and changed: the listener's reload only.
+    entry = make_entry(**{CONF_NAME: ""})
+    entry.add_to_hass(hass)
+    listener = AsyncMock()
+    entry.add_update_listener(listener)
+    assert await _reconfigure_reloads(hass, entry, changed) == 0
+    listener.assert_awaited_once()
+
+    # Loaded and unchanged: no listener call, so the flow reloads.
+    listener.reset_mock()
+    assert await _reconfigure_reloads(hass, entry, changed) == 1
+    listener.assert_not_awaited()
+
+    # Never set up (no listener): the flow reloads.
+    failed = make_entry(host="192.0.2.8")
+    failed.add_to_hass(hass)
+    assert await _reconfigure_reloads(hass, failed, {**CONNECTION, "host": "192.0.2.9"}) == 1
 
 
 async def test_reconfigure_same_connection_ok(hass: HomeAssistant) -> None:

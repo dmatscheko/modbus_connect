@@ -232,7 +232,8 @@ def _probe_span(device: DeviceDef) -> Span | None:
 
 
 class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Two steps: device file + name, then the gateway connection."""
+    """Device file + name, then the connection type (network gateway or serial
+    port), then that connection's form; reconfigure walks the same steps."""
 
     VERSION = 1
 
@@ -289,7 +290,11 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
         assert self._device is not None
         prefix = self._device.prefix or self._title
         if entry is None:
-            return {CONF_SLAVE_ID: self._device.modbus_id or DEFAULT_SLAVE_ID, CONF_PREFIX: prefix}
+            modbus_id = self._device.modbus_id  # 0 is a valid file default
+            return {
+                CONF_SLAVE_ID: DEFAULT_SLAVE_ID if modbus_id is None else modbus_id,
+                CONF_PREFIX: prefix,
+            }
         return {**dict(entry.data), **({} if entry.data.get(CONF_PREFIX) else {CONF_PREFIX: prefix})}
 
     async def _connection_step(
@@ -438,8 +443,13 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
 
         defaults = {
             CONF_FILENAME: entry.data.get(CONF_FILENAME),
-            # Old entries stored the device name in CONF_PREFIX
-            CONF_NAME: entry.data.get(CONF_NAME) or entry.data.get(CONF_PREFIX) or "",
+            # Entries from before CONF_NAME existed kept the device name in
+            # CONF_PREFIX. A stored blank name is the user's choice, not that.
+            CONF_NAME: (
+                entry.data[CONF_NAME]
+                if CONF_NAME in entry.data
+                else entry.data.get(CONF_PREFIX, "")
+            ),
         }
         return self.async_show_form(
             step_id="reconfigure",
@@ -470,13 +480,20 @@ class ModbusConnectConfigFlow(ConfigFlow, domain=DOMAIN):
                 for k, v in entry.options.items()
                 if k not in (OPTION_ENABLED_GROUPS, OPTION_SHOW_ALL)
             }
-        return self.async_update_reload_and_abort(
+        changed = self.hass.config_entries.async_update_entry(
             entry,
             unique_id=self.unique_id,
             title=self._title,
             data=self._entry_data(connection),
             **kwargs,
         )
+        # Exactly one reload: a loaded entry's update listener already reloads
+        # on a change (__init__._async_options_updated). Reload here only when
+        # it won't — nothing changed (still re-reads an edited device file), or
+        # the entry never set up and so has no listener.
+        if not (changed and entry.update_listeners):
+            self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        return self.async_abort(reason="reconfigure_successful")
 
     async def async_step_reconfigure_connection(
         self, user_input: dict[str, Any] | None = None
