@@ -8,6 +8,7 @@
 device:
   manufacturer: Husdata
   model: H60
+  untested: true
 
 # Input registers: 16-bit words, read-only (Modbus FC04 read).
 input:

@@ -313,6 +313,7 @@ def _device_block() -> dict[str, Any]:
         "properties": {
             "manufacturer": STRING,
             "model": STRING,
+            "untested": {"type": "boolean"},
             "max_register_read": {"type": "integer", "minimum": 1, "maximum": 2000},
             "max_read_gap": {"type": "integer", "minimum": 0, "maximum": 1000},
             "bad_addresses": _address_hints(),

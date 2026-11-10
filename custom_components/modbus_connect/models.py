@@ -294,6 +294,21 @@ class TemplateDef:
     groups: tuple[str, ...] = ()
 
 
+# "untested", in the languages the integration ships.
+_UNTESTED_LABEL = {"en": "untested", "de": "ungetestet"}
+
+
+def display_model(model: str, untested: bool, language: str = "en") -> str:
+    """The model as shown to the user: an untested device file is marked as such
+    in the device picker and on the device page, in ``language`` (falling back
+    to English). Entry titles and entity-ID prefixes keep the plain model, so
+    the mark never ends up in an entity ID."""
+    if not untested:
+        return model
+    label = _UNTESTED_LABEL.get(language.split("-")[0].lower(), _UNTESTED_LABEL["en"])
+    return f"{model} ({label})"
+
+
 @dataclass(frozen=True)
 class DeviceDef:
     """A device YAML file, parsed and validated."""
@@ -302,6 +317,10 @@ class DeviceDef:
     model: str
     entities: tuple[EntityDef, ...]
     templates: tuple[TemplateDef, ...] = ()
+    # Declared by the file itself: nobody has verified it against real hardware
+    # (the bundled conversions of community files). Shown to the user wherever
+    # the model is — see display_model.
+    untested: bool = False
     max_read: int = DEFAULT_MAX_READ  # max registers/bits per read request
     max_gap: int = DEFAULT_MAX_GAP  # bridge unused holes up to this many addresses
     # (table, address) pairs the planner must never bridge a read across

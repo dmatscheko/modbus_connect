@@ -102,6 +102,18 @@ async def test_list_devices_reads_only_the_head(hass: HomeAssistant) -> None:
         await async_load_device(hass, "listable.yaml")
 
 
+async def test_picker_marks_untested_device_files(hass: HomeAssistant) -> None:
+    """The device picker says so when a file declares itself untested — in the
+    server's language — and leaves every other file's model alone."""
+    devices, _ = await async_list_devices(hass)
+    assert devices["eastron-sdm630.yaml"] == ("Eastron", "SDM-630 (untested)")
+    assert devices["solax-x3-hac.yaml"] == ("SolaX Power", "X3-HAC (11 kW)")
+
+    hass.config.language = "de"
+    devices, _ = await async_list_devices(hass)
+    assert devices["eastron-sdm630.yaml"] == ("Eastron", "SDM-630 (ungetestet)")
+
+
 async def test_user_file_overrides_builtin(hass: HomeAssistant) -> None:
     (user_dir(hass) / "test.yaml").write_text(GOOD, encoding="utf-8")
     device = await async_load_device(hass, "Test.yaml")  # lookup is case-insensitive

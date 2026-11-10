@@ -16,7 +16,7 @@ import yaml
 from homeassistant.core import HomeAssistant
 
 from .const import USER_CONFIG_DIR
-from .models import DeviceDef
+from .models import DeviceDef, display_model
 from .schema import DeviceSchemaError, parse_device
 
 # The libyaml-backed loader is ~7x faster than the pure-Python one; parsing all
@@ -110,9 +110,10 @@ def _read_device_head(path: Path) -> str:
     return "".join(lines)
 
 
-def _device_label(path: Path, filename: str) -> tuple[str, str]:
+def _device_label(path: Path, filename: str, language: str = "en") -> tuple[str, str]:
     """``(manufacturer, model)`` read from just the ``device:`` block — no entity
     parse, no schema validation (that happens on selection via async_load_device).
+    The model of a file that declares itself ``untested`` says so (display_model).
     Raises DeviceSchemaError if the block is unreadable or lacks either field.
     """
     try:
@@ -125,7 +126,8 @@ def _device_label(path: Path, filename: str) -> tuple[str, str]:
     device = data.get("device")
     if not isinstance(device, dict) or not device.get("manufacturer") or not device.get("model"):
         raise DeviceSchemaError(f"{filename}: device.manufacturer and device.model are required")
-    return str(device["manufacturer"]), str(device["model"])
+    untested = device.get("untested") is True
+    return str(device["manufacturer"]), display_model(str(device["model"]), untested, language)
 
 
 def _list_all(hass: HomeAssistant) -> tuple[dict[str, tuple[str, str]], dict[str, str]]:
@@ -137,7 +139,7 @@ def _list_all(hass: HomeAssistant) -> tuple[dict[str, tuple[str, str]], dict[str
     errors: dict[str, str] = {}
     for name, path in _discover(hass).items():
         try:
-            devices[name] = _device_label(path, name)
+            devices[name] = _device_label(path, name, hass.config.language)
         except DeviceSchemaError as err:
             _LOGGER.warning("Skipping device file %s: %s", path, err)
             errors[name] = str(err)

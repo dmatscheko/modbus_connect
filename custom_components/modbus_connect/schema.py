@@ -344,9 +344,13 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
         "serial_number",
         "default_groups",
         "group_labels",
+        "untested",
     }
     if unknown:
         raise ctx.fail(f"unknown device keys: {sorted(unknown, key=str)}")
+    untested = device.get("untested", False)
+    if not isinstance(untested, bool):
+        raise ctx.fail("device.untested must be true or false")
     scan_interval = device.get("scan_interval")
     if scan_interval is not None:
         scan_interval = _int_in_range(ctx, "device.scan_interval", scan_interval, 1, 86400)
@@ -386,6 +390,7 @@ def _parse_device_block(ctx: _Ctx, device: dict[str, Any]) -> dict[str, Any]:
     return {
         "manufacturer": device["manufacturer"],
         "model": ctx.localize(device["model"]),
+        "untested": untested,
         "max_read": _int_in_range(ctx, "device.max_register_read",
                                   device.get("max_register_read", DEFAULT_MAX_READ), 1, 2000),
         "max_gap": _int_in_range(ctx, "device.max_read_gap",

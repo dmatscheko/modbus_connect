@@ -8,6 +8,7 @@
 device:
   manufacturer: Fröling GmbH
   model: BWP300 PV
+  untested: true
   max_register_read: 160
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).

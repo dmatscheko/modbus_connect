@@ -38,9 +38,8 @@ The integration polls. Each cycle it
 4. decodes all values from the result.
 
 Blocks never exceed the device's `max_register_read` or the Modbus protocol
-limit of 125 registers. With the bundled files, an Eastron SDM630 goes from 85
-requests per poll to 27 (7 if the file allowed 100 registers per read), and a
-Pichler LG350 with every group enabled from 184 to 7.
+limit of 125 registers. With its bundled file, a Pichler LG350 with every
+group enabled goes from 184 requests per poll to 7.
 
 **How often.** The device file sets each entity's interval. The *Minimum
 update interval* in the entry's options is only a floor: it slows polling

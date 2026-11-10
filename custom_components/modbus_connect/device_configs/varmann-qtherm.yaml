@@ -8,6 +8,7 @@
 device:
   manufacturer: Varmann
   model: Qtherm
+  untested: true
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).
 holding:

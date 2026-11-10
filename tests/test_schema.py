@@ -789,6 +789,11 @@ ERROR_CASES = [
         "device.modbus_id",
     ),
     (
+        "untested_not_a_boolean",
+        {"device": {"manufacturer": "A", "model": "X", "untested": "yes"}},
+        "device.untested",
+    ),
+    (
         "bad_device_prefix",
         {"device": {"manufacturer": "A", "model": "X", "prefix": ""}},
         "device.prefix",
@@ -2230,3 +2235,22 @@ def test_select_explicit_options_checked_and_localized():
     # an option the target can never encode is rejected at parse time
     with pytest.raises(DeviceSchemaError, match="not one of the map labels"):
         parse_device(data(["On", "Onn"]), "t.yaml")
+
+
+def test_untested_flag_and_its_display():
+    """A file can declare itself untested; the mark is added where the model is
+    shown, in the server's language, and never to the stored model."""
+    from custom_components.modbus_connect.models import display_model
+
+    assert parse_device(doc(x=VALID_SENSOR), "t.yaml").untested is False
+    data = doc(x=VALID_SENSOR)
+    data["device"] = {**data["device"], "untested": True}
+    device = parse_device(data, "t.yaml")
+    assert device.untested is True
+    assert "untested" not in device.model
+
+    assert display_model("X1", False, "de") == "X1"
+    assert display_model("X1", True) == "X1 (untested)"
+    assert display_model("X1", True, "de-AT") == "X1 (ungetestet)"
+    assert display_model("X1", True, "fr") == "X1 (untested)"
+

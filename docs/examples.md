@@ -55,7 +55,7 @@ automation:
 ```
 
 Send a notification when an inverter reports a fault (a Growatt fault-code
-sensor):
+sensor; the Growatt files are [untested](supported_devices.md#untested-device-files)):
 
 ```yaml
 automation:

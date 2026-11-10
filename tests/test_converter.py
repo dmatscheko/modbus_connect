@@ -387,3 +387,12 @@ def test_unmapped_file_never_lands_in_the_bundled_directory(tmp_path, capsys):
     assert not (augment.BUNDLED_DIR / "My_Meter.yaml").exists()
     assert "not a bundled device" in capsys.readouterr().err
 
+
+def test_imported_bundled_device_is_marked_untested():
+    """A bundled import declares itself untested, right after the model."""
+    ir = to_intermediate(convert_device(OLD, "old.yaml"))
+    _mlg._mark_untested(ir)
+    assert list(ir["device"])[:3] == ["manufacturer", "model", "untested"]
+    assert ir["device"]["untested"] is True
+    parse_device(yaml.safe_load(augment.emit(ir)), "old.yaml")  # still a valid file
+

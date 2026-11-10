@@ -130,6 +130,7 @@ Only `manufacturer` and `model` are required.
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `manufacturer`, `model` | — | Shown on the device page and in the device picker |
+| `untested` | `false` | Set to `true` on a file nobody has verified against the hardware. Home Assistant then shows *(untested)* after the model, in the device picker and on the device page. Entry titles and entity IDs are not affected |
 | `max_register_read` | 8 | Most registers per read request; capped at the protocol limit (125 registers, 2000 coils/discrete inputs) |
 | `max_read_gap` | 8 | Bridge unused holes of up to this many registers |
 | `bad_addresses` | — | Per table: addresses the device answers with an error; no read is bridged across them |

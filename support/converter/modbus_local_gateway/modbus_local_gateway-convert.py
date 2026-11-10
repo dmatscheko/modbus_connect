@@ -400,6 +400,8 @@ def convert_file(path: Path, out_dir: Path) -> int:
     ir = to_intermediate(convert_device(doc, path.name))
     if not augment.is_mapped(name):
         return _convert_unmapped(ir, path, out_dir)
+    if augment.folder_for(name) != _EXAMPLE_SLUG:
+        _mark_untested(ir)
     if augment.write_augmented(
         ir, name, source=f"modbus_local_gateway '{path.name}'", variant=__file__, dest_dir=out_dir
     ) is None:
@@ -408,6 +410,23 @@ def convert_file(path: Path, out_dir: Path) -> int:
     # output is named after the devicedocs slug, not the upstream basename
     print(f"  {path.name}: {count} entities -> {out_dir / f'{augment.folder_for(name)}.yaml'}")
     return count
+
+
+# The annotated example / test fixture ("Test Model (DO NOT USE)"): not a device.
+_EXAMPLE_SLUG = "test"
+
+
+def _mark_untested(ir: dict[str, Any]) -> None:
+    """An imported bundled file is a conversion nobody here has run against the
+    hardware: declare that in the file (``device.untested``, right after the
+    model), so Home Assistant shows it. Adopting the device — a tested
+    ``device.yaml`` in its devicedocs folder — is what removes the mark."""
+    device: dict[str, Any] = {}
+    for key, value in ir["device"].items():
+        device[key] = value
+        if key == "model":
+            device["untested"] = True
+    ir["device"] = device
 
 
 def _convert_unmapped(ir: dict[str, Any], path: Path, out_dir: Path) -> int:

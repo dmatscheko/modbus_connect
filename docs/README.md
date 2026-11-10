@@ -6,7 +6,7 @@ New here? The [main README](../README.md) covers installation and setup.
 
 | Page | What it answers |
 | --- | --- |
-| [Supported devices](supported_devices.md) | Which devices are bundled, which are tested, and where their register docs are |
+| [Supported devices](supported_devices.md) | Which devices are tested, which bundled files are untested conversions, and where their register docs are |
 | [Entity groups](entity_groups.md) | How to show and hide parts of a device |
 | [Examples](examples.md) | Wiring the Energy Dashboard; automation examples |
 | [Troubleshooting](troubleshooting.md) | Connection problems, unavailable entities, wrong values, diagnostics, known limitations |

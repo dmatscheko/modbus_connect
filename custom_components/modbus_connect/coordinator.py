@@ -48,6 +48,7 @@ from .models import (
     Span,
     SwitchTarget,
     TemplateDef,
+    display_model,
     reverse_value_map,
 )
 from .planner import bridged_addresses, plan_blocks, spans_in_block
@@ -406,7 +407,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             identifiers={(DOMAIN, entry.entry_id)},
             name=name,
             manufacturer=device.manufacturer,
-            model=device.model,
+            model=display_model(device.model, device.untested, hass.config.language),
             model_id=connection,
         )
         # Meta entities (group toggles, read diagnostics) live on their own

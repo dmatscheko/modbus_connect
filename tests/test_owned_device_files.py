@@ -43,6 +43,18 @@ def test_owned_config_regenerates_from_device_yaml(slug, tmp_path):
     )
 
 
+def test_exactly_the_imported_configs_are_marked_untested():
+    """Tested means owned: a bundled file says ``untested: true`` exactly when it
+    is an import no device.yaml stands behind (the example file aside). Adopting
+    a device removes the mark; nothing else may."""
+    owned = set(aug.owned_slugs())
+    for path in sorted(_CONFIGS.glob("*.yaml")):
+        if path.stem == "test":
+            continue
+        device = yaml.safe_load(path.read_text(encoding="utf-8"))["device"]
+        assert device.get("untested", False) is (path.stem not in owned), path.name
+
+
 def test_owned_devices_have_no_stale_augment_yaml():
     """Owned policy lives in device.yaml; a leftover augment.yaml would silently
     re-apply on top (and its add: ops would collide with device.yaml entities)."""

@@ -8,6 +8,7 @@
 device:
   manufacturer: Growatt
   model: MIC 2500TL-X
+  untested: true
   max_register_read: 5
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).

@@ -8,6 +8,7 @@
 device:
   manufacturer: Waveshare
   model: Modbus RTU Relay (D)
+  untested: true
   max_register_read: 16
 
 # Holding registers: 16-bit words, read/write (Modbus FC03 read, FC06/FC16 write).

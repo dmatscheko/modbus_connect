@@ -32,6 +32,9 @@
         "model": {
           "type": "string"
         },
+        "untested": {
+          "type": "boolean"
+        },
         "max_register_read": {
           "type": "integer",
           "minimum": 1,

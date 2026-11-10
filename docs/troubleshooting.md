@@ -15,6 +15,12 @@ attachment.
 - [Diagnostics](#diagnostics) · [Debug logging](#debug-logging)
 - [Known limitations](#known-limitations)
 
+**Is your device file marked *(untested)*?** Then missing entities,
+unavailable entities and wrong values are to be expected: the file is an
+automatic conversion that nobody has checked against the hardware — see
+[untested device files](supported_devices.md#untested-device-files). Reports
+and fixes are welcome.
+
 ## Setup: "Failed to connect"
 
 The gateway or adapter could not be opened.

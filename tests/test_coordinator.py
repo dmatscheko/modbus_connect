@@ -56,6 +56,15 @@ async def test_device_info_shows_connection(hass, monkeypatch):
     assert info["model_id"] == "127.0.0.1:502 · ID 1"
 
 
+async def test_device_info_marks_an_untested_device_file(hass, monkeypatch):
+    """The device page shows that the device file is untested; the plain model
+    (which seeds the default title and entity-ID prefix) stays clean."""
+    device = make_device(sensor("a", 0), untested=True)
+    coordinator = await make_coordinator(hass, device, FakeClient({0: 1}), monkeypatch, FakeTime())
+    assert coordinator.device_info["model"] == "X1 (untested)"
+    assert device.model == "X1"
+
+
 async def test_interval_off_the_tick_is_reported(hass, monkeypatch, caplog):
     # polls share the fastest interval's tick; 45 s next to 30 s therefore polls
     # every 60 s — warned about (with the effective cadence), not silently

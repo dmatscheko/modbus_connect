@@ -8,6 +8,7 @@
 device:
   manufacturer: ebyte
   model: ME31-AXAX404
+  untested: true
 
 # Coils: single-bit booleans, read/write (Modbus FC01 read, FC05 write).
 coil:
