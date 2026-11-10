@@ -337,13 +337,15 @@ class ModbusBlockClient:
 
         pymodbus reads both values per request; there is no public setter, so
         this writes the attributes the transaction manager actually consults
-        rather than recreating the (shared, possibly in-use) connection.
+        rather than recreating the (shared, possibly in-use) connection. That
+        is the manager's own ``comm_params`` — it works on a copy of the
+        client's, so writing ``self._client.comm_params`` would change nothing.
         """
         settings = self._settings.values()
         timeout = max((s[0] for s in settings), default=DEFAULT_TIMEOUT)
         retries = max((s[1] for s in settings), default=DEFAULT_RETRIES)
         self._request_delay = max((s[2] for s in settings), default=DEFAULT_REQUEST_DELAY)
-        self._client.comm_params.timeout_connect = timeout
+        self._client.ctx.comm_params.timeout_connect = timeout
         self._client.ctx.retries = retries
 
     # --- I/O ---------------------------------------------------------------------

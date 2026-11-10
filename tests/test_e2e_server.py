@@ -203,16 +203,32 @@ async def test_settings_max_wins_and_release_recomputes(modbus_server):
     try:
         assert fast is slow
         # the shared connection meets the most demanding entry
-        assert slow._client.comm_params.timeout_connect == 8.0
+        assert slow._client.ctx.comm_params.timeout_connect == 8.0
         assert slow._client.ctx.retries == 4
         assert slow._request_delay == pytest.approx(0.2)
         # a released entry no longer pins the maxima
         slow.release("slow")
-        assert slow._client.comm_params.timeout_connect == 1.0
+        assert slow._client.ctx.comm_params.timeout_connect == 1.0
         assert slow._client.ctx.retries == 1
         assert slow._request_delay == 0.0
     finally:
         slow.release("fast")
+
+
+async def test_device_timeout_bounds_a_silent_read(rtu_server):
+    # the RTU server never answers a socket-framed request; the read must give
+    # up after the configured timeout, not after pymodbus's construction default
+    port, _ = rtu_server
+    client = ModbusBlockClient.acquire("127.0.0.1", port, "e2e-timeout", timeout=0.3, retries=0)
+    try:
+        assert await client.ensure_connected()
+        start = time.monotonic()
+        async with client.lock:
+            with pytest.raises(ReadError):
+                await client.read_block(1, Span("holding", 0, 1))
+        assert 0.25 <= time.monotonic() - start < 1.5
+    finally:
+        client.release("e2e-timeout")
 
 
 async def test_request_delay_spaces_transactions(modbus_server):
