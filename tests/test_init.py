@@ -1182,6 +1182,35 @@ def test_time_mirror_sensor_has_no_state_class() -> None:
     assert numeric.state_class is not None
 
 
+def test_mirror_of_a_config_control_is_diagnostic() -> None:
+    # Home Assistant refuses to add a sensor with the config category, so the
+    # mirror of a config-category control (the docs' own example) must not copy it
+    from homeassistant.const import EntityCategory
+
+    from custom_components.modbus_connect.entity import (
+        build_description,
+        build_mirror_description,
+    )
+    from custom_components.modbus_connect.schema import parse_device
+
+    device = parse_device(
+        {
+            "device": {"manufacturer": "Acme", "model": "X1"},
+            "holding": {
+                "mode": {
+                    "address": 1,
+                    "map": {0: "Off", 1: "Auto"},
+                    "duplicate_as_sensor": True,
+                    "ha": {"platform": "select", "entity_category": "config"},
+                }
+            },
+        }
+    )
+    (mode,) = device.entities
+    assert build_description(mode).entity_category is EntityCategory.CONFIG
+    assert build_mirror_description(mode).entity_category is EntityCategory.DIAGNOSTIC
+
+
 async def test_provided_unique_ids_match_registry(hass: HomeAssistant) -> None:
     # provided_unique_ids drives the cleanup button; it must mirror exactly what
     # the platform modules register, or the button would delete live entities.

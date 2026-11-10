@@ -6,6 +6,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from typing import Any
 
 from homeassistant.components.sensor import SensorStateClass
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity import Entity, EntityDescription
@@ -57,6 +58,10 @@ def build_mirror_description(defn: EntityDef) -> EntityDescription:
     )
     if numeric and "state_class" not in defn.ha:
         overrides["state_class"] = SensorStateClass.MEASUREMENT
+    if defn.ha.get("entity_category") is EntityCategory.CONFIG:
+        # Home Assistant refuses to add a sensor categorised as config; the
+        # read-only twin of a configuration control is a diagnostic.
+        overrides["entity_category"] = EntityCategory.DIAGNOSTIC
     return build_description(defn, platform="sensor", overrides=overrides)
 
 
