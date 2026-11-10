@@ -591,8 +591,8 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     @property
     def group_switch_names(self) -> tuple[str, ...]:
         """The named groups that get a toggle switch (the always-on ``basic``
-        gets none). The show-all switch is separate — it exists whenever the
-        device file uses groups at all."""
+        gets none). The show-all switch is separate — see wants_show_all_switch
+        for when a file gets one."""
         return tuple(g for g in self.all_groups if g != BASIC_GROUP)
 
     @property

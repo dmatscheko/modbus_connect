@@ -55,6 +55,7 @@ from .models import (
     TEMPLATE_PLATFORMS,
     TYPE_ALIASES,
     TYPE_BITS,
+    TYPE_BOOL,
     TYPE_STRING,
     TYPE_TIME,
     TYPE_WIDTH,
@@ -779,8 +780,8 @@ def _parse_shape(
         sum_scale = tuple(float(s) for s in sum_scale)
 
     if table in BIT_TABLES:
-        typ = raw.get("type", "bool")
-        if typ != "bool":
+        typ = raw.get("type", TYPE_BOOL)
+        if typ != TYPE_BOOL:
             raise ctx.fail(f"type {typ!r} is not valid for a {table} (bit) table")
         for forbidden in ("swap", "sum_scale", "mask", "multiplier", "offset", "map", "flags"):
             if raw.get(forbidden) is not None:
@@ -790,7 +791,7 @@ def _parse_shape(
         typ = raw.get("type", "uint16")
         if isinstance(typ, str):
             typ = TYPE_ALIASES.get(typ, typ)
-        if not isinstance(typ, str) or typ == "bool" or (
+        if not isinstance(typ, str) or typ == TYPE_BOOL or (
             typ not in (TYPE_STRING, TYPE_TIME) and typ not in TYPE_BITS
         ):
             raise ctx.fail(

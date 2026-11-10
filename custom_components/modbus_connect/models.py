@@ -20,18 +20,16 @@ TABLE_DISCRETE = "discrete"
 # from it.
 TABLES = (TABLE_HOLDING, TABLE_INPUT, TABLE_COIL, TABLE_DISCRETE)
 
-WORD_TABLES = frozenset({TABLE_HOLDING, TABLE_INPUT})
 BIT_TABLES = frozenset({TABLE_COIL, TABLE_DISCRETE})
 WRITABLE_TABLES = frozenset({TABLE_HOLDING, TABLE_COIL})
-ALL_TABLES = frozenset(TABLES)
 
 # Modbus protocol limits per read request
 PROTOCOL_MAX_REGISTERS = 125
 PROTOCOL_MAX_BITS = 2000
 
 # Device-level read-planning defaults, defined here (the HA-import-free module)
-# so the DeviceDef fields below and const.py agree on one value; const.py
-# re-exports them as Final (it can't be imported here — it pulls in Home Assistant).
+# so the DeviceDef fields below and schema.py share one value (const.py can't
+# be imported here — it pulls in Home Assistant).
 DEFAULT_MAX_READ = 8
 DEFAULT_MAX_GAP = 8
 
@@ -205,9 +203,9 @@ class EntityDef:
     scan_interval: int | None = None
     duplicate_as_sensor: bool = False
     # Group tags. The entity is created (and its register polled) only when at
-    # least one of these groups is enabled; an entity with no groups is always
-    # shown. Groups are independent (OR) — tiers like basic/advanced are expressed
-    # by listing every tier an entity belongs to, e.g. ``[basic, advanced, all]``.
+    # least one of these groups is enabled. Groups are independent (OR). An entity
+    # with no groups shows only through the "Enable all entities" bypass — or
+    # always, in a file that uses no groups at all (see coordinator.is_group_visible).
     groups: tuple[str, ...] = ()
     # Validated Home Assistant EntityDescription passthrough (aliases resolved)
     ha: dict[str, Any] = field(default_factory=dict)

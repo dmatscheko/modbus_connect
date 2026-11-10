@@ -108,7 +108,8 @@ def decode(defn: EntityDef, raw: list[int] | list[bool] | bool) -> object:
     """Convert raw register words / coil bits into the entity's value.
 
     Returns ``None`` for values that cannot be interpreted (NaN floats,
-    integers missing from ``map``); the entity then shows as unavailable.
+    integers missing from ``map``); the entity's state is then unknown (it
+    stays available — the device did answer).
     """
     if defn.table in BIT_TABLES:
         bit = raw[0] if isinstance(raw, (list, tuple)) else raw

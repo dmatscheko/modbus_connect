@@ -64,7 +64,7 @@ OPTION_MIN_SCAN_INTERVAL: Final = "min_scan_interval"
 # List of enabled group names; absent means "use the device file's default_groups".
 OPTION_ENABLED_GROUPS: Final = "enabled_groups"
 # Bypass group handling entirely while true: every non-internal entity is shown,
-# whatever the group selection says (the "Show all entities" switch).
+# whatever the group selection says (the "Enable all entities" switch).
 OPTION_SHOW_ALL: Final = "show_all_entities"
 # The show-all switch is offered only where it adds something: when entities are
 # tagged into no group (nothing else can reveal them), or when a file has at least
