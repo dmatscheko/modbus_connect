@@ -360,7 +360,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Keys whose last read failed and that already got their one quick retry;
         # see _async_update_data.
         self._retried: set[str] = set()
-        self._full_plan_cache: tuple[int, int] | None = None
+        self._full_plan_cache: tuple[tuple[int, frozenset[str]], int] | None = None
         self.consecutive_failures = 0
         # Read efficiency (diagnostic): block merging lets one Modbus read cover many
         # entities, so these are typically far below read_entity_count.
@@ -624,32 +624,48 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         The two full-refresh planners; the unbridged per-span fallback in
         ``_read_with_fallback`` deliberately calls ``plan_blocks`` with only
         ``max_read`` (no gap bridging), so it is not routed through here.
+
+        A quarantined entity's registers count as holes for as long as it is
+        quarantined: the device refuses them, so a block bridged across them
+        between two healthy neighbours would fail on every single cycle.
         """
+        holes = self.holes
+        if self.quarantined:
+            holes = holes | {
+                (defn.table, address)
+                for defn in map(self.entity_defs.__getitem__, self.quarantined)
+                for address in range(defn.span.start, defn.span.end)
+            }
         return plan_blocks(
             spans,
             max_read=self.device_def.max_read,
             max_gap=self.device_def.max_gap,
-            holes=self.holes,
+            holes=holes,
             boundaries=self.device_def.boundaries,
         )
 
     @property
     def full_refresh_read_count(self) -> int:
-        """Modbus block reads a complete refresh issues — every reader due at once.
+        """Modbus block reads a complete refresh issues — every reader due at once
+        (quarantined ones excepted: a refresh does not read those).
 
         Block merging keeps this well below :attr:`read_entity_count`. Unlike
         ``last_read_count`` (which dips on cycles where only the fast entities are
         due), it is stable — it shifts only when the read plan does: a config
-        reload, or a rejected bridge address teaching the planner a new hole. That
+        reload, a rejected bridge address teaching the planner a new hole, or a
+        register entering or leaving quarantine. That
         stability is what keeps the diagnostic sensor cheap for the recorder.
         """
         if not self._readers:
             return 0
-        # The plan only shifts when a hole is learned; cache on the hole count so
-        # the sensor's state reads don't re-plan every cycle.
-        if self._full_plan_cache is None or self._full_plan_cache[0] != len(self.holes):
-            blocks = self._plan({e.span for e in self._readers})
-            self._full_plan_cache = (len(self.holes), len(blocks))
+        # The plan only shifts when a hole is learned or a quarantine changes;
+        # cache on both so the sensor's state reads don't re-plan every cycle.
+        plan_key = (len(self.holes), frozenset(self.quarantined))
+        if self._full_plan_cache is None or self._full_plan_cache[0] != plan_key:
+            blocks = self._plan(
+                {e.span for e in self._readers if e.key not in self.quarantined}
+            )
+            self._full_plan_cache = (plan_key, len(blocks))
         return self._full_plan_cache[1]
 
     # --- device info ----------------------------------------------------------

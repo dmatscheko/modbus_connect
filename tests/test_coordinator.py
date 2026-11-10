@@ -1698,3 +1698,33 @@ async def test_refresh_callback_fires_every_cycle(hass, monkeypatch):
     unsub()
     await coordinator.async_refresh()
     assert len(seen) == 2
+
+
+async def test_quarantined_register_is_not_bridged_across(hass, monkeypatch):
+    # the device refuses x; once it is quarantined, a and b must not be merged
+    # into one block across it — that read would fail on every cycle
+    ft = FakeTime()
+    client = FakeClient({0: 1, 2: 3})
+    client.fail_addresses = {1}
+    client.illegal = True
+    device = make_device(sensor("a", 0), sensor("x", 1), sensor("b", 2))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    assert set(coordinator.quarantined) == {"x"}
+    assert coordinator.full_refresh_read_count == 2  # a and b, each on its own
+
+    client.reads.clear()
+    ft.now += 30
+    await coordinator.async_refresh()
+    assert client.reads == [Span("holding", 0, 1), Span("holding", 2, 1)]
+
+    # a recovered register rejoins the plan: one bridged block again
+    client.fail_addresses = set()
+    ft.now += 3600  # past the slow re-probe
+    await coordinator.async_refresh()
+    assert not coordinator.quarantined
+    assert coordinator.full_refresh_read_count == 1
+    client.reads.clear()
+    ft.now += 30
+    await coordinator.async_refresh()
+    assert client.reads == [Span("holding", 0, 3)]
