@@ -98,7 +98,9 @@ class Client:
             rr = self._read_funcs[table](
                 address=address, count=count, device_id=self.device_id
             )
-        except ModbusException as exc:
+        except (ModbusException, ValueError) as exc:
+            # ValueError: pymodbus rejects a count beyond the protocol limit
+            # (125 registers / 2000 bits) before sending anything.
             return ReadResult(None, str(exc))
         if rr.isError():
             code = rr.exception_code if isinstance(rr, ExceptionResponse) else None
@@ -140,6 +142,13 @@ def _describe(response: object) -> str:
 
 def _auto_int(text: str) -> int:
     return int(text, 0)  # accepts decimal and 0x hex
+
+
+def _positive_int(text: str) -> int:
+    value = _auto_int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"must be at least 1, got {value}")
+    return value
 
 
 def _parse_coil_value(text: str) -> bool:
@@ -371,7 +380,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("read", help="read registers or bits, with decoded views")
     p.add_argument("table", choices=TABLES)
     p.add_argument("address", type=_auto_int, help="first address (decimal or 0x hex)")
-    p.add_argument("--count", type=_auto_int, default=1, help="how many to read")
+    p.add_argument("--count", type=_positive_int, default=1, help="how many to read")
     p.set_defaults(func=cmd_read)
 
     p = sub.add_parser("write", help="write holding register(s) or one coil")
@@ -394,7 +403,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--start", type=_auto_int, default=0, help="first address (default 0)")
     p.add_argument("--end", type=_auto_int, required=True, help="last address, inclusive")
     p.add_argument(
-        "--block", type=_auto_int, default=8,
+        "--block", type=_positive_int, default=8,
         help="addresses per read, like max_register_read (default 8)",
     )
     p.set_defaults(func=cmd_scan)

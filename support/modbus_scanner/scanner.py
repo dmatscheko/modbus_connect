@@ -2315,7 +2315,10 @@ def main(argv: list[str] | None = None) -> int:
                 if cand.is_file():
                     path = cand
                     break
-        summary = scanner.load_device(path.read_text(encoding="utf-8"), path.name)
+        try:
+            summary = scanner.load_device(path.read_text(encoding="utf-8"), path.name)
+        except (OSError, DeviceSchemaError, yaml.YAMLError) as exc:
+            sys.exit(f"--device {args.device}: {exc}")
         # fit the initial range to what the file maps on the chosen table, if any
         tbl = (summary or {}).get("tables", {}).get(args.table)
         if tbl:
