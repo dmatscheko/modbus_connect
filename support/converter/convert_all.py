@@ -2,8 +2,8 @@
 """Global orchestrator: regenerate every bundled device config.
 
     1. modbus_local_gateway  -> the ~19 MLG-derived configs (needs an upstream checkout)
-    2. owned devices         -> Dimplex / Pichler / SolaX, straight from their
-                                hand-maintained support/devicedocs/<slug>/device.yaml
+    2. owned devices         -> every device with a hand-maintained
+                                support/devicedocs/<slug>/device.yaml, straight from it
     3. device docs           -> support/devicedocs/<slug>/registers.md + groups.md,
                                 regenerated from the configs just written
 
@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -42,11 +43,22 @@ sys.path.insert(0, str(_HERE / "_common"))
 import build_groups_md  # noqa: E402
 import build_registers_md  # noqa: E402
 
-_DEFAULT_MLG = "/Users/dma/Eigenes/Development/home_assistant_projects/modbus_local_gateway"
+# The upstream checkout: MLG_GATEWAY_REPO, else a clone next to this repository.
 _MLG_CONFIGS = (
-    Path(os.environ.get("MLG_GATEWAY_REPO", _DEFAULT_MLG))
+    Path(os.environ.get("MLG_GATEWAY_REPO", _REPO.parent / "modbus_local_gateway"))
     / "custom_components/modbus_local_gateway/device_configs"
 )
+
+
+def _missing_upstream_sources() -> list[str]:
+    """Mapped upstream files of imported (not owned) devices that the checkout lacks —
+    their bundled configs cannot be refreshed from it."""
+    mapping = json.loads((_HERE / "_common" / "device_folders.json").read_text(encoding="utf-8"))
+    return sorted(
+        source
+        for source, slug in mapping.items()
+        if not augment.is_owned(slug) and not (_MLG_CONFIGS / source).is_file()
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -64,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
             parser.error(
                 f"{args.owned!r} is not an owned device; choose one of: {', '.join(owned)}"
             )
-        summary = augment.write_owned(args.owned, variant=__file__)
+        summary = augment.write_owned(args.owned)
         print(f"{args.owned}: {summary}")
         _write_docs({args.owned})
         return 0
@@ -82,10 +94,17 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"\n{'=' * 8} owned devices (device.yaml) {'=' * 8}")
     for slug in augment.owned_slugs():
-        summary = augment.write_owned(slug, variant=__file__)
+        summary = augment.write_owned(slug)
         print(f"  {slug}: {summary}")
 
     _write_docs()
+    if missing := _missing_upstream_sources():
+        print(
+            f"\nNOT refreshed — missing from the checkout at {_MLG_CONFIGS}:\n  "
+            + "\n  ".join(missing),
+            file=sys.stderr,
+        )
+        return 1
     print("\nAll device configs and docs regenerated (one canonical style via the augment library).")
     return 0
 

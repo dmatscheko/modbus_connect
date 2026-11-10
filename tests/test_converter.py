@@ -344,3 +344,46 @@ def test_multiplier_folds_into_map_keys():
     assert "odd" not in doc["holding"]  # 1/0.4 = 2.5: no raw value maps to it
     assert "flagged" not in doc["holding"]  # scaled bit positions: not representable
     parse_device(doc, "old.yaml")
+
+
+def test_config_category_on_a_read_only_entity_becomes_diagnostic():
+    """Home Assistant refuses to add a sensor categorised as config."""
+    old = {
+        "device": {"manufacturer": "Acme", "model": "X1"},
+        "read_write_word": {
+            "word": {"address": 1, "entity_category": "config"},
+            "limit": {
+                "address": 2,
+                "control": "number",
+                "number": {"min": 0, "max": 9},
+                "entity_category": "config",
+            },
+        },
+    }
+    new = convert_device(old, "old.yaml")["holding"]
+    assert new["word"]["ha"] == {"platform": "sensor", "entity_category": "diagnostic"}
+    assert new["limit"]["ha"]["entity_category"] == "config"
+
+
+def _write_old(tmp_path: Path, name: str) -> Path:
+    path = tmp_path / name
+    path.write_text(yaml.safe_dump(OLD), encoding="utf-8")
+    return path
+
+
+def test_unmapped_file_converts_as_is(tmp_path):
+    """A file outside device_folders.json — a user's own old-format file — is
+    converted under its own name, without policy, into a valid device file."""
+    source = _write_old(tmp_path, "My_Meter.yaml")
+    out = tmp_path / "out"
+    assert _mlg.convert_file(source, out) == 13
+    dev = parse_device(yaml.safe_load((out / "My_Meter.yaml").read_text()), "My_Meter.yaml")
+    assert len(dev.entities) == 13
+
+
+def test_unmapped_file_never_lands_in_the_bundled_directory(tmp_path, capsys):
+    source = _write_old(tmp_path, "My_Meter.yaml")
+    assert _mlg.convert_file(source, augment.BUNDLED_DIR) == 0
+    assert not (augment.BUNDLED_DIR / "My_Meter.yaml").exists()
+    assert "not a bundled device" in capsys.readouterr().err
+

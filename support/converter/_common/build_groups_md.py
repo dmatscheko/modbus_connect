@@ -147,7 +147,7 @@ def write_docs(only: set[str] | None = None) -> None:
 
 
 def main() -> None:
-    write_docs(set(sys.argv[1:]) or None)
+    write_docs(R.requested_folders(sys.argv[1:]))
 
 
 if __name__ == "__main__":

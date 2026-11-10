@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/dmatscheko/modbus_connect/main/docs/device_files.schema.json
 # Generated from support/devicedocs/anhui-qdf70b-pressure-sensor/device.yaml (hand-maintained) —
 # do not edit here; edit support/devicedocs/anhui-qdf70b-pressure-sensor/device.yaml and re-run:
-#   .venv/bin/python support/converter/convert_all.py
+#   .venv/bin/python support/converter/convert_all.py --owned anhui-qdf70b-pressure-sensor
 
 # Device metadata: manufacturer and model, plus optional read/poll tuning.
 device:

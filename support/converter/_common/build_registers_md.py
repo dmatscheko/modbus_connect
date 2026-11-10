@@ -341,9 +341,19 @@ def write_docs(only: set[str] | None = None) -> None:
         print(f"wrote {folder}/registers.md ({len(md)} bytes)")
 
 
+def requested_folders(argv: list[str]) -> set[str] | None:
+    """The device folders named on the command line (none = all). A name that is not
+    a bundled device's folder is an error rather than a silent no-op."""
+    only = set(argv)
+    unknown = only - {folder for _, folder in config_folders()}
+    if unknown:
+        sys.exit(f"unknown device folder(s): {', '.join(sorted(unknown))}")
+    return only or None
+
+
 def main() -> None:
     # Positional args (if any) limit generation to those device folders.
-    write_docs(set(sys.argv[1:]) or None)
+    write_docs(requested_folders(sys.argv[1:]))
 
 
 if __name__ == "__main__":

@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """Convert modbus_local_gateway device YAML files to the modbus_connect format.
 
-Standalone: needs only PyYAML, no Home Assistant.
+Run it with the project's Python (it validates its output through the
+integration's schema, which imports Home Assistant):
 
-Usage:
-    python3 convert.py OLD.yaml [MORE.yaml ...] -o OUTPUT_DIR
-    python3 convert.py OLD_DIR -o OUTPUT_DIR
+    .venv/bin/python support/converter/modbus_local_gateway/modbus_local_gateway-convert.py \
+        OLD.yaml [MORE.yaml ...] -o OUTPUT_DIR
+    .venv/bin/python support/converter/modbus_local_gateway/modbus_local_gateway-convert.py \
+        OLD_DIR -o OUTPUT_DIR
 
-Most MLG-derived bundled files are byte-identical to this converter's output
-and safe to regenerate. These have been HAND-EDITED after conversion and must
-NOT be overwritten blindly (diff against fresh output and re-apply):
-    test.yaml (annotated example), salda-ris-mcb.yaml (fan+climate templates),
-    froeling-bwp300-pv.yaml (repaired 0-indexed flags).
+A file listed in _common/device_folders.json is a bundled device: it is written
+as <slug>.yaml with the policy from support/devicedocs/<slug>/augment.yaml applied
+(that file, not the generated config, is where hand curation lives). Any other
+file — your own old-format device file — is converted as-is to <name>.yaml;
+only into the bundled device_configs/ directory is it skipped, since nothing
+maps it to a device there.
 
 Dimplex and Pichler are NOT produced here — they are owned in-tree (their source of
 truth is support/devicedocs/<slug>/device.yaml). Nothing device-specific is needed for
@@ -312,7 +315,12 @@ def convert_entity(key: str, old: dict, section: str, filename: str) -> dict[str
     if old.get("icon"):
         ha["icon"] = old["icon"]
     if old.get("entity_category"):
-        ha["entity_category"] = old["entity_category"]
+        category = old["entity_category"]
+        if category == "config" and platform in ("sensor", "binary_sensor"):
+            # Home Assistant refuses to add a read-only entity categorised as
+            # config ("cannot be added as the entity category is set to config").
+            category = "diagnostic"
+        ha["entity_category"] = category
     if old.get("entity_registry_enabled_default") is not None:
         ha["enabled_by_default"] = old["entity_registry_enabled_default"]
 
@@ -390,6 +398,8 @@ def convert_file(path: Path, out_dir: Path) -> int:
         return 0
     name = path.stem
     ir = to_intermediate(convert_device(doc, path.name))
+    if not augment.is_mapped(name):
+        return _convert_unmapped(ir, path, out_dir)
     if augment.write_augmented(
         ir, name, source=f"modbus_local_gateway '{path.name}'", variant=__file__, dest_dir=out_dir
     ) is None:
@@ -400,8 +410,32 @@ def convert_file(path: Path, out_dir: Path) -> int:
     return count
 
 
+def _convert_unmapped(ir: dict[str, Any], path: Path, out_dir: Path) -> int:
+    """A file no device_folders.json entry maps to a devicedocs folder is not a
+    bundled device. Converted as-is (no policy, no shared translations) it is
+    still a valid device file — but never dropped into the bundled directory."""
+    if out_dir.resolve() == augment.BUNDLED_DIR:
+        warn(path.name, "not in _common/device_folders.json (not a bundled device), "
+                        "skipped — map it to a support/devicedocs/<slug> folder to import it")
+        return 0
+    out = out_dir / f"{path.stem}.yaml"
+    text = augment.emit(ir, f"Converted from the modbus_local_gateway device file '{path.name}'.")
+    try:
+        augment.validate(text, out.name)
+    except Exception as err:  # the schema's DeviceSchemaError (imported lazily there)
+        warn(path.name, f"the conversion is not a valid device file, skipped: {err}")
+        return 0
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    count = sum(len(ir.get(s, ())) for s in augment.TABLES)
+    print(f"  {path.name}: {count} entities -> {out}")
+    return count
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("inputs", nargs="+", type=Path, help="old YAML files or directories")
     parser.add_argument("-o", "--out", type=Path, default=Path("converted"),
                         help="output directory (default: ./converted)")

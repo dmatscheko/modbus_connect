@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Common augmentation library — the single writer of the bundled device configs.
 
-Every converter (SolaX / modbus_local_gateway / Dimplex-Pichler) builds a *tagged
-intermediate* in memory and hands it to :func:`write_augmented`, which is the only
+Every importer (modbus_local_gateway, SolaX) and every owned device.yaml yields a
+*tagged intermediate* in memory and hands it to :func:`write_augmented`, which is the only
 code in the repo that emits a ``device_configs/*.yaml`` file. Because all devices
 flow through this one function, every bundled file comes out in the same canonical
 style.
@@ -44,7 +44,8 @@ import yaml
 _COMMON_DIR = Path(__file__).resolve().parent
 _SUPPORT_DIR = Path(__file__).resolve().parents[2]
 _REPO_DIR = _SUPPORT_DIR.parent
-_DEST_DIR = _REPO_DIR / "custom_components/modbus_connect/device_configs"
+# Where the bundled configs live — the default destination of every write.
+BUNDLED_DIR = _REPO_DIR / "custom_components/modbus_connect/device_configs"
 
 # The integration's HA-import-free model module is the single source of the
 # table vocabulary; import it (under its canonical package name, so tests and
@@ -58,7 +59,7 @@ _DEVICEDOCS_DIR = _SUPPORT_DIR / "devicedocs"
 # The shared translate-once memory: every source string's per-language text, applied
 # to any device that uses the string (a device's own translations: block overrides it).
 _SHARED_TRANSLATIONS = _DEVICEDOCS_DIR / "translations.yaml"
-# Canonical map: bundled config basename -> its support/devicedocs/<slug> folder. Single
+# Canonical map: upstream source basename -> its support/devicedocs/<slug> folder. Single
 # source of truth (JSON so importlib-loaded copies of this module need no sibling import).
 _DEVICE_FOLDERS = json.loads((_COMMON_DIR / "device_folders.json").read_text(encoding="utf-8"))
 _SLUGS = frozenset(_DEVICE_FOLDERS.values())
@@ -85,8 +86,18 @@ def folder_for(source_name: str, augment_dir: str | Path | None = None) -> str:
     raise KeyError(
         f"{source_name!r} is not in support/converter/_common/device_folders.json, "
         f"is not a known slug, and support/devicedocs/{source_name}/device.yaml does "
-        f"not exist — add its config-basename -> devicedocs-folder mapping, or a device.yaml."
+        f"not exist — add its source-basename -> devicedocs-folder mapping, or a device.yaml."
     )
+
+
+def is_mapped(source_name: str, augment_dir: str | Path | None = None) -> bool:
+    """Whether :func:`folder_for` resolves ``source_name`` — i.e. it names a bundled
+    device. An importer checks this to tell a bundled device from any other file."""
+    try:
+        folder_for(source_name, augment_dir)
+    except KeyError:
+        return False
+    return True
 
 
 def is_owned(slug: str, augment_dir: str | Path | None = None) -> bool:
@@ -121,7 +132,6 @@ SCHEMA_DIRECTIVE = (
 # each file's header so a reader knows exactly how to reproduce it.
 _REGEN_CMD = (
     "  MLG_GATEWAY_REPO=/path/to/modbus_local_gateway \\",
-    "  SOLAX_MODBUS_REPO=/path/to/homeassistant-solax-modbus \\",
     "    .venv/bin/python support/converter/convert_all.py",
 )
 
@@ -854,7 +864,6 @@ def write_augmented(
     source: str | None = None,
     variant: str | Path | None = None,
     note: str | None = None,
-    header: str | None = None,
     owned: bool = False,
     transform: Callable[[dict], None] | None = None,
     augment_dir: str | Path | None = None,
@@ -867,7 +876,7 @@ def write_augmented(
 
     The file header is composed here (one canonical format): pass ``source`` (what upstream
     this device came from) and ``variant`` (the converter script's ``__file__``); an optional
-    ``note`` becomes a trailing header line. ``header`` overrides the composed text entirely.
+    ``note`` becomes a trailing header line.
     ``transform`` is a final in-place tweak of the fully-applied intermediate (after ops,
     before emit) for device-family-wide adjustments a converter wants to make reversibly.
 
@@ -876,7 +885,7 @@ def write_augmented(
     is false): the import is skipped so it can never clobber the hand-maintained source.
     ``write_owned`` passes ``owned=True`` to regenerate that same file, so it is not skipped."""
     augment_dir = Path(augment_dir) if augment_dir else _DEVICEDOCS_DIR
-    dest_dir = Path(dest_dir) if dest_dir else _DEST_DIR
+    dest_dir = Path(dest_dir) if dest_dir else BUNDLED_DIR
     folder = folder_for(source_name, augment_dir)
     if not owned and is_owned(folder, augment_dir):
         print(
@@ -894,10 +903,9 @@ def write_augmented(
     untranslated = resolve_translations(final, load_shared_translations())
     _report_translation_coverage(source_name, final.get("translations") or {}, *untranslated)
     _warn_label_comparisons(source_name, final)
-    if header is None:
-        header = _compose_header(
-            source or "(source unspecified)", variant or __file__, folder, note, owned=owned
-        )
+    header = _compose_header(
+        source or "(source unspecified)", variant or __file__, folder, note, owned=owned
+    )
     text = emit(final, header)
     # The output filename is the slug (== devicedocs folder), so every bundled
     # config shares one naming scheme with its docs, regardless of the source
@@ -912,7 +920,6 @@ def write_augmented(
 def write_owned(
     slug: str,
     *,
-    variant: str | Path | None = None,
     augment_dir: str | Path | None = None,
     dest_dir: str | Path | None = None,
 ) -> dict:
@@ -935,7 +942,6 @@ def write_owned(
         ir,
         slug,
         source=f"support/devicedocs/{slug}/device.yaml (hand-maintained)",
-        variant=variant,
         owned=True,
         augment_dir=augment_dir,
         dest_dir=dest_dir,
