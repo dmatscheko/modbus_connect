@@ -15,7 +15,7 @@
 # "Kühlung") would be ambiguous. Here the mode is "Cool" and the group is "Cooling".
 #
 # NOTE: a translated map/flag value changes what templates see, so templates must compare
-# the stable map key via key('entity') == N, never the label. See the README and the
+# the stable map key via key('entity') == N, never the label. See docs/device_files.md and the
 # migrated climate templates in the Dimplex / Pichler device.yaml files.
 
 # --- operating modes, status and valve positions (German <-> English) ----------

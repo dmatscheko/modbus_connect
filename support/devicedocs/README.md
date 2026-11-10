@@ -3,8 +3,8 @@
 One folder per bundled device, holding everything that belongs to it: the
 **source** the bundled file is generated from, the **primary register document**
 it was checked against, and generated **references**. The list of devices, with
-links into these folders, is the table in the
-[main README](../../README.md#bundled-device-files).
+links into these folders, is on the
+[supported devices](../../docs/supported_devices.md) page.
 
 ## What is in a device folder
 
@@ -17,7 +17,11 @@ links into these folders, is the table in the
 | `caveats.md` | Hand-written notes on device quirks, firmware differences, and known gaps | yes |
 | PDF / XLSX / HTML | A local copy of the manufacturer's register document, so the reference stays checkable when the vendor's link dies | — |
 
-A folder has either a `device.yaml` or an `augment.yaml`, never both. The bundled
+A folder has either a `device.yaml` or an `augment.yaml`, never both. That
+split is also the line between **tested** and **untested**: an imported device
+(`augment.yaml`) is an automatic conversion nobody here has run against the
+hardware, and its bundled file says so with `untested: true`
+([supported devices](../../docs/supported_devices.md)). The bundled
 files in `custom_components/modbus_connect/device_configs/` are **generated** from
 these folders and must not be edited directly. After editing an owned device's
 `device.yaml`, regenerate its bundled file and both references in one go:
@@ -25,6 +29,10 @@ these folders and must not be edited directly. After editing an owned device's
 ```bash
 .venv/bin/python support/converter/convert_all.py --owned <slug>
 ```
+
+(`.venv/` is the checkout's virtual environment — see
+[Development → Set up](../../docs/development.md#set-up) if you have not
+created it yet.)
 
 The [converter README](../converter/README.md) covers the full run (imported
 devices need an upstream checkout) and the doc generators on their own.

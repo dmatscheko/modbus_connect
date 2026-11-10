@@ -7,6 +7,23 @@ them; you test an existing device file against the live device; and you generate
 device file from what you mapped. It reuses the integration's own planner, schema
 and codec, so what it shows is what the running integration would show.
 
+It is one step of [writing a device file](../../docs/writing_a_device_file.md);
+that page has the surrounding workflow.
+
+## In short
+
+1. [Run](#run) the scanner and [connect](#connect) to the gateway (or pick the
+   demo device).
+2. [Scan](#scan-and-page) the address range; registers that change light up
+   ([what you see](#what-you-see)).
+3. Narrow down what matters with the [filter chips and the find box](#filter-and-find),
+   and inspect a register's readings and history in [Details](#details).
+4. [Map registers](#map-registers) to entities by clicking them — or
+   [load an existing device file](#load-a-device-file) to test it against the
+   device.
+5. [Generate](#export-import-generate) the device file, and export the project
+   to continue later.
+
 ## Run
 
 ```bash
@@ -15,8 +32,10 @@ and codec, so what it shows is what the running integration would show.
 .venv/bin/python support/modbus_scanner/scanner.py --demo                       # simulated device, no hardware
 ```
 
-Run it from a checkout of this repository with its virtualenv (it imports the
-integration's modules). It opens <http://127.0.0.1:8765> (`--no-open` to skip
+Run it from a checkout of this repository (it imports the integration's
+modules). `.venv/bin/python` is the Python of the checkout's virtual
+environment, which does not exist after a fresh clone — create it once as
+described in [Development → Set up](../../docs/development.md#set-up). It opens <http://127.0.0.1:8765> (`--no-open` to skip
 that, `--web-port` to move it). CLI flags — `--table`, `--start`, `--count`,
 `--max-read`, `--port`, `--timeout`, `--retries`, `--device` — only seed the
 initial values; everything is also set in the UI. The **Demo** device fakes a

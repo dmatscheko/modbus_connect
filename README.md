@@ -7,423 +7,149 @@
 [![Tests](https://github.com/dmatscheko/modbus_connect/actions/workflows/test.yml/badge.svg)](https://github.com/dmatscheko/modbus_connect/actions/workflows/test.yml)
 [![Validate](https://github.com/dmatscheko/modbus_connect/actions/workflows/validate.yml/badge.svg)](https://github.com/dmatscheko/modbus_connect/actions/workflows/validate.yml)
 
-A Home Assistant custom integration for Modbus devices — over TCP gateways,
-transparent RTU-over-TCP bridges, or directly attached serial adapters — a
-ground-up rewrite of
-[modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) that
-also draws on
-[homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus),
-built around four ideas:
+Modbus Connect is a Home Assistant custom integration for Modbus devices. It
+connects through a Modbus TCP gateway, a transparent RTU-over-TCP bridge, or a
+serial (RS-485/RS-232) adapter attached to the Home Assistant machine.
 
-1. **Block reads.** Instead of one Modbus round trip per entity, each poll
-   merges everything into as few reads as possible: overlapping and adjacent
-   registers combine, small unused holes are bridged (cheaper to read than to
-   ask twice), and blocks respect the device's `max_register_read` and the
-   protocol limit of 125 registers. Real device files: an Eastron SDM630 drops
-   from 85 transactions per poll to 27 (7 with `max_register_read: 100`); a
-   Pichler LG350 with every group enabled from 184 to 7. Registers
-   the device chokes on are learned from failed reads and routed around; stubborn
-   ones can be declared up front (`bad_addresses`, `split_before`).
-2. **Home Assistant is not shadowed.** Every entity has an `ha:` block that is
-   passed to the real per-platform `EntityDescription` and validated against
-   it — any entity feature HA supports (today or in a future release) can be
-   set there, and typos fail loudly with the file, entity, and valid choices
-   in the message.
-3. **Symmetric conversions.** Whatever the integration can decode it can also
-   encode for writing (`multiplier`/`offset`, `map`, `sum_scale`, masked bit
-   fields via read-modify-write). Only `flags` is inherently read-only.
-4. **Templates, not code.** Derived values are declared as Jinja over the
-   device's register values and re-rendered every poll, and the same engine
-   drives writes. Device quirks become a few lines of YAML, not a plugin.
-
-Failures are contained: a bad register never takes its neighbours down, an
-offline device backs off instead of hammering the gateway, and a register that
-keeps failing is quarantined and re-probed — see
-[how data is updated](#how-data-is-updated). And writing a file for a new
-device is a matter of clicking through its registers in the bundled
-[Modbus Scanner](#writing-a-device-file-the-modbus-scanner).
-
-Typical use cases: energy meters (Eastron SDM), solar inverters and hybrid
-storage (Growatt), heat pumps (Dimplex, Husdata gateways), ventilation units
-(Pichler, Salda), motor drives (Schneider Altivar), relay boards (Waveshare,
-Finder) — or any other device that speaks Modbus TCP, directly or through an
-RS-485 gateway.
+Each device is described by a YAML *device file* that maps its registers to
+Home Assistant entities. A few device files are bundled; for any other device
+you write one yourself.
 
 <p align="center">
   <img src="docs/img/dimplex_si_dashboard.png" alt="Device page of a Dimplex heat pump: climate controls for heating and hot water, temperature sensors, and the activity log" width="800">
-  <br><em>A heat pump's device page — climate entities, sensors and history, all from one YAML file that the user never needs to touch.</em>
+  <br><em>The device page of a Dimplex heat pump, set up from its bundled device file.</em>
 </p>
+
+## Features
+
+- Sensors, binary sensors, numbers, selects, switches, buttons, texts, times
+  and valves from single registers; climate, fan, cover and light entities
+  composed from several registers.
+- Registers are read in merged blocks rather than one request per entity.
+- [Entity groups](docs/entity_groups.md): parts of a device can be switched on
+  and off; entities that are off are not polled.
+- A register the device refuses is taken out of polling and reported as a
+  repair issue; the other entities keep working.
+- Several devices can share one gateway or serial adapter.
+- Your own [device files](docs/writing_a_device_file.md) are loaded from the
+  Home Assistant configuration folder. A browser-based register scanner in
+  this repository helps with writing them.
+
+## Requirements
+
+- Home Assistant **2026.11** or newer.
+- A Modbus device reachable over the network, or through a serial adapter that
+  Home Assistant can see.
+
+## Supported devices
+
+These six device files have been tested on real hardware and are maintained
+here:
+
+| Manufacturer | Model |
+| --- | --- |
+| Anhui | QDF70B pressure sensor |
+| Dimplex | SI 11TU brine/water heat pump |
+| Pichler | LG 150 – LG 250 ventilation unit |
+| Pichler | LG 350 – LG 450 ventilation unit |
+| SolaX Power | X3-Hybrid G4 inverter |
+| SolaX Power | X3-HAC 11 kW EV charger |
+
+**Untested device files.** A further 18 files are bundled that were converted
+automatically from community files of another integration. Nobody here has
+run them against the hardware, so they may be incomplete or wrong; they are
+not counted as supported. Home Assistant shows them with *(untested)* after
+the model. They cover devices from Eastron, ebyte, Finder, Fröling, Growatt,
+Husdata, Salda, Schneider Electric, Varmann and Waveshare — see the
+[device list](docs/supported_devices.md). Reports from people who own one of
+these devices are welcome.
 
 ## Installation
 
-### HACS (recommended)
+**With HACS (recommended)**
 
-1. In HACS, choose **Custom repositories** in the three-dot menu, add
-   `https://github.com/dmatscheko/modbus_connect` with type **Integration**
-   (or click
-   [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration)).
+1. In HACS, open the three-dot menu, choose **Custom repositories**, and add
+   `https://github.com/dmatscheko/modbus_connect` with type **Integration** —
+   or click
+   [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration).
 2. Install **Modbus Connect** and restart Home Assistant.
 
-### Manual
+**Manually**
 
-Copy `custom_components/modbus_connect/` into
+Copy the `custom_components/modbus_connect/` folder into
 `<ha_config>/custom_components/` and restart Home Assistant.
 
-It can be installed side by side with `modbus_local_gateway`; entities are
-independent.
+## Setup
 
-## Configuration
+Add the integration once per Modbus device: **Settings → Devices & services →
+Add integration → Modbus Connect**, or click
+[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect).
 
-Add the **Modbus Connect** integration in **Settings → Devices & services**
-(or click
-[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=modbus_connect)):
-pick the device definition and name the device, then choose how it is reached
-— over the network (Modbus TCP, or *RTU over TCP* for transparent bridges) or
-through a directly attached RS-485/RS-232 adapter — and enter the connection.
-The Modbus device ID and the entity-ID prefix are prefilled from the chosen
-device file, and the connection is verified with a real read from the device
-before anything is created — a wrong Modbus ID fails right there instead of
-producing an entry full of unavailable entities. Add the integration once per
-Modbus device — several devices can share one gateway or adapter.
+1. **Device type** — pick the definition that matches your hardware and give
+   the device a name. Entries marked *(untested)* are
+   [unverified conversions](#supported-devices).
+2. **Connection type** — *Network* (Modbus TCP, or RTU over TCP for transparent
+   bridges) or *Serial port* (an adapter attached to the Home Assistant
+   machine).
+3. **Connection** — enter the host and port, or the serial port and its line
+   settings. The Modbus device ID and the entity-ID prefix are prefilled from
+   the device definition.
+
+Before the entry is created, the integration reads from the device once, so a
+wrong address or Modbus device ID is reported in the dialog.
 
 <p align="center">
   <img src="docs/img/add_device_dialog.png" alt="The add-device dialog: pick a device definition from the bundled and user files, then name the device" width="800">
-  <br><em>Adding a device: pick its definition, name it, then enter the connection.</em>
+  <br><em>Step 1: pick the device definition and name the device.</em>
 </p>
 
-Worth knowing: entity IDs are assigned when an entity is first created, so
-changing the prefix later does not rename existing entities. The entry's
-options (gear icon) set a *minimum* poll interval — a floor over the device
-file's cadences that only ever slows polling down. *Reconfigure* (three-dot
-menu) changes the device file, name, or connection without removing the
-entry.
+Notes:
 
-## Device files
+- **Changing things later.** *Reconfigure* (three-dot menu of the entry)
+  changes the device definition, name or connection without removing the
+  entry. The entry's options (gear icon) set a *minimum* update interval — it
+  can only slow polling down.
+- **Entity IDs** are assigned when an entity is first created, so changing the
+  prefix later does not rename existing entities.
+- **Showing more or fewer entities.** A device file that uses entity groups
+  gets one switch per group on the device's companion *Configuration* device —
+  see [entity groups](docs/entity_groups.md).
 
-Every device is described by one YAML file — a bundled one from the table
-below, or your own in `<ha_config>/modbus_connect/` (your files survive
-updates and override built-in files with the same name; invalid files are
-skipped, with the entity and reason shown right in the config flow's device
-picker and in the log).
+## Documentation
 
-A few lines per entity are enough:
+| Topic | Page |
+| --- | --- |
+| Tested devices and untested device files | [Supported devices](docs/supported_devices.md) |
+| Showing and hiding parts of a device | [Entity groups](docs/entity_groups.md) |
+| Energy Dashboard wiring, automation examples | [Examples](docs/examples.md) |
+| Connection problems, unavailable entities, wrong values | [Troubleshooting](docs/troubleshooting.md) |
+| Polling, writes, read-health sensors | [How it works](docs/how_it_works.md) |
+| Adding a device that is not bundled | [Writing a device file](docs/writing_a_device_file.md) |
+| Every key of the device-file format | [Device file reference](docs/device_files.md) |
+| Contributing a device file or code | [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) |
 
-```yaml
-input:
-  phase_1_voltage:
-    address: 0x0000
-    type: float32
-    ha:
-      platform: sensor
-      name: Phase 1 voltage
-      device_class: voltage
-      unit_of_measurement: V
-```
+All pages are listed in the [documentation index](docs/README.md).
 
-The complete format — register types and conversions, writable entities,
-composite `template:` entities (climate, fan, cover, …), entity groups, and
-read-planning hints — is documented in the
-[device file reference](docs/device_files.md).
+## Getting help
 
-### Writing a device file: the Modbus Scanner
-
-You rarely have to write a file blind. `support/modbus_scanner/` is a
-browser-based register scanner for authoring and testing device files against
-the live device (or a built-in demo device): it walks the address space over a
-Modbus TCP gateway, shows which registers answer, which change and how fast,
-decodes each one as every type at once, lets you map registers to entities by
-clicking them — validated on the spot by the integration's own schema —
-overlays an existing device file to check it against the hardware, and
-generates a ready-to-load file from your mappings. Run it from a checkout of
-this repository:
-
-```bash
-.venv/bin/python support/modbus_scanner/scanner.py
-```
-
-The [scanner guide](support/modbus_scanner/README.md) walks through it. For
-one-off probes, reads and writes from a terminal there is also
-`support/modbus_cli.py`, a single-file CLI (see its `--help`).
-
-## Bundled device files
-
-Definitions ship with the integration; pull requests with new files are
-welcome. Any Modbus TCP device not listed here works too — write a device file
-for it.
-
-**Tested vs. untested:** only the six **✓** files have been tested on
-real hardware and are actively maintained here; each is generated from a
-hand-written source (`support/devicedocs/<slug>/device.yaml`). Three of them were
-written in this integration; the Pichler LG 350 – LG 450 file was first written
-for `modbus_local_gateway` and ported, and the two SolaX files started as
-conversions of
-[`homeassistant-solax-modbus`](https://github.com/wills106/homeassistant-solax-modbus);
-all three have been heavily modified since. Every **untested** file is a conversion of
-a community file from
-[`modbus_local_gateway`](https://github.com/timlaing/modbus_local_gateway) — the
-*Source* column links the exact upstream file. Those should
-work but have **not** been verified against hardware here, so treat them as a
-starting point and please report corrections.
-
-Every file has a generated register reference (*registers*, with the primary
-document it was checked against), grouped files a group reference (*groups*),
-and some a hand-written note on quirks (*caveats*) — see
-[`support/devicedocs/`](support/devicedocs/README.md). For a converted file,
-*Source* links the upstream file it started from (*modified* where it has been
-reworked here). For a file written for this integration, it says where the
-register map comes from: **official** — the manufacturer's own document;
-**none** — no public document exists, the map is community knowledge. Each
-file's *registers* page rates its primary document the same way.
-
-| Manufacturer | Model | File | Tested | Docs | Source |
-| --- | --- | --- | :---: | --- | --- |
-| Anhui | QDF70B Pressure Sensor | `anhui-qdf70b-pressure-sensor.yaml` | ✓ | [registers](support/devicedocs/anhui-qdf70b-pressure-sensor/registers.md) · [groups](support/devicedocs/anhui-qdf70b-pressure-sensor/groups.md) · [caveats](support/devicedocs/anhui-qdf70b-pressure-sensor/caveats.md) | official |
-| Dimplex | Sole/Wasser-Wärmepumpe SI 11TU | `dimplex-si-11tu.yaml` | ✓ | [registers](support/devicedocs/dimplex-si-11tu/registers.md) · [groups](support/devicedocs/dimplex-si-11tu/groups.md) · [caveats](support/devicedocs/dimplex-si-11tu/caveats.md) | official |
-| Eastron | SDM-230 | `eastron-sdm230.yaml` | untested | [registers](support/devicedocs/eastron-sdm230/registers.md) · [caveats](support/devicedocs/eastron-sdm230/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/SDM230.yaml) |
-| Eastron | SDM-630 | `eastron-sdm630.yaml` | untested | [registers](support/devicedocs/eastron-sdm630/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/SDM630.yaml) |
-| ebyte | ME31-AXAX404 | `ebyte-me31-axax404.yaml` | untested | [registers](support/devicedocs/ebyte-me31-axax404/registers.md) · [caveats](support/devicedocs/ebyte-me31-axax404/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/ME31-AXAX404.yaml) |
-| Finder | 7M.24 | `finder-7m24.yaml` | untested | [registers](support/devicedocs/finder-7m24/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/7M_24.yaml) |
-| Finder | 7M.38 | `finder-7m38.yaml` | untested | [registers](support/devicedocs/finder-7m38/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/7M_38.yaml) |
-| Fröling | BWP300 PV | `froeling-bwp300-pv.yaml` | untested | [registers](support/devicedocs/froeling-bwp300-pv/registers.md) · [caveats](support/devicedocs/froeling-bwp300-pv/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Fr%C3%B6ling_BWP300PV.yaml) |
-| Growatt | MIC 2500TL-X | `growatt-mic-2500tl-x.yaml` | untested | [registers](support/devicedocs/growatt-mic-2500tl-x/registers.md) · [caveats](support/devicedocs/growatt-mic-2500tl-x/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/MIC-2500TL-X.yaml) |
-| Growatt | MIN 6000TL-XH | `growatt-min-6000tl-xh.yaml` | untested | [registers](support/devicedocs/growatt-min-6000tl-xh/registers.md) · [caveats](support/devicedocs/growatt-min-6000tl-xh/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/MIN-6000TL-XH.yaml) |
-| Growatt | MOD 6000TL-X | `growatt-mod-6000tl-x.yaml` | untested | [registers](support/devicedocs/growatt-mod-6000tl-x/registers.md) · [caveats](support/devicedocs/growatt-mod-6000tl-x/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/MOD-6000TL-X.yaml) |
-| Growatt | MOD 10KTL3-XH | `growatt-mod-10ktl3-xh.yaml` | untested | [registers](support/devicedocs/growatt-mod-10ktl3-xh/registers.md) · [caveats](support/devicedocs/growatt-mod-10ktl3-xh/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/MOD-10KTL3-XH.yaml) |
-| Growatt | SPH3600TL BL_UP | `growatt-sph-3600tl-bl-up.yaml` | untested | [registers](support/devicedocs/growatt-sph-3600tl-bl-up/registers.md) · [caveats](support/devicedocs/growatt-sph-3600tl-bl-up/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/SPH-3600TL-BL_UP.yaml) |
-| Husdata | H60 | `husdata-h60.yaml` | untested | [registers](support/devicedocs/husdata-h60/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Husdata_H60.yaml) |
-| Pichler | Lüftungsgerät LG 150 – LG 250 | `pichler-lg150-lg250.yaml` | ✓ | [registers](support/devicedocs/pichler-lg150-lg250/registers.md) · [groups](support/devicedocs/pichler-lg150-lg250/groups.md) · [caveats](support/devicedocs/pichler-lg150-lg250/caveats.md) | official |
-| Pichler | Lüftungsgerät LG 350 – LG 450 | `pichler-lg350-lg450.yaml` | ✓ | [registers](support/devicedocs/pichler-lg350-lg450/registers.md) · [groups](support/devicedocs/pichler-lg350-lg450/groups.md) · [caveats](support/devicedocs/pichler-lg350-lg450/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Pichler-LG350-LG450.yaml), modified |
-| Salda | RIS / RIRS (MCB) | `salda-ris-mcb.yaml` | untested | [registers](support/devicedocs/salda-ris-mcb/registers.md) · [caveats](support/devicedocs/salda-ris-mcb/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Salda_RIS_MCB.yaml) |
-| Schneider Electric | Altivar ATV312 | `schneider-atv312.yaml` | untested | [registers](support/devicedocs/schneider-atv312/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Schneider_ATV312.yaml) |
-| Schneider Electric | Altivar ATV312 Expert | `schneider-atv312-expert.yaml` | untested | [registers](support/devicedocs/schneider-atv312-expert/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Schneider_ATV312_expert.yaml) |
-| SolaX Power | X3-Hybrid G4 | `solax-x3-hybrid-g4.yaml` | ✓ | [registers](support/devicedocs/solax-x3-hybrid-g4/registers.md) · [groups](support/devicedocs/solax-x3-hybrid-g4/groups.md) · [caveats](support/devicedocs/solax-x3-hybrid-g4/caveats.md) | [homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus/blob/main/custom_components/solax_modbus/plugin_solax.py), modified |
-| SolaX Power | X3-HAC (11 kW EV charger) | `solax-x3-hac.yaml` | ✓ | [registers](support/devicedocs/solax-x3-hac/registers.md) · [groups](support/devicedocs/solax-x3-hac/groups.md) · [caveats](support/devicedocs/solax-x3-hac/caveats.md) | [homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus/blob/main/custom_components/solax_modbus/plugin_solax_ev_charger.py), modified |
-| Varmann | Qtherm | `varmann-qtherm.yaml` | untested | [registers](support/devicedocs/varmann-qtherm/registers.md) · [caveats](support/devicedocs/varmann-qtherm/caveats.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Varmann%20Qtherm.yaml) |
-| Waveshare | Modbus POE ETH Relay 30CH | `waveshare-modbus-poe-eth-relay-30ch.yaml` | untested | [registers](support/devicedocs/waveshare-modbus-poe-eth-relay-30ch/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Waveshare_30_POE.yaml) |
-| Waveshare | Modbus RTU Relay (D) | `waveshare-modbus-rtu-relay-d.yaml` | untested | [registers](support/devicedocs/waveshare-modbus-rtu-relay-d/registers.md) | [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway/blob/main/custom_components/modbus_local_gateway/device_configs/Waveshare_RTU_Relay_D.yaml) |
-
-## Entity groups
-
-Big devices expose far more settings and sensors than most people want, so a
-device file can tag its entities into named groups — a `basic` / `standard` /
-`advanced` detail tier, plus per-subsystem groups (how, is in the
-[device file reference](docs/device_files.md#entity-groups)).
-Switches on the device's companion **Configuration** device turn whole groups
-on and off; `basic` is the always-visible baseline and has no switch, while
-`standard` is enabled by default — so a fresh install shows the everyday set
-and leaves the deeper detail one switch away. An **Enable all entities**
-master switch appears only where it adds something: when the file has
-entities in no group at all (the expert tier only it can reveal), or when it
-has so many groups that flipping them one by one would be a chore. The bundled SolaX X3-Hybrid G4 file, for example, keeps its
-parallel-mode, EPS, and generator register blocks in groups of their own —
-the same opt-ins the solax-modbus integration offers as config checkboxes,
-except a switch flip materializes the entities (and their register reads) at
-runtime.
-
-Hidden entities are not merely disabled — they stop being provided and drop
-out of the Modbus read plan entirely. Home Assistant greys them out but keeps
-their registry rows, so renames, areas, and enabled/disabled states all come
-back when the group does. The **Remove hidden entities** button deletes those
-greyed-out leftovers (including stale rows from an earlier device file)
-without touching anything that is currently provided.
-
-<p align="center">
-  <img src="docs/img/dimplex_si_config.png" alt="The Configuration device of a Dimplex heat pump: one switch per entity group, the enable-all switch, and the remove-hidden-entities button" width="800">
-  <br><em>The companion Configuration device: one switch per group, plus the expert bypass and the cleanup button.</em>
-</p>
-
-## Wiring the HA Energy Dashboard (SolaX X3-Hybrid G4)
-
-Everything the [Energy Dashboard](https://www.home-assistant.io/docs/energy/)
-needs is a first-class entity of the bundled hybrid file (the solax-modbus
-integration offers the same values as copies on a virtual device behind three
-enable switches — here the groups reveal the real sensors instead):
-
-| Dashboard slot | Entity | Group |
-| --- | --- | --- |
-| Grid consumption | `import_energy_today` | `standard` |
-| Return to grid | `export_energy_today` | `standard` |
-| Solar production | `solar_energy_today` | `basic` |
-| — per string | `pv_energy_1`, `pv_energy_2` | `solar_details` |
-| Battery in | `battery_input_energy_today` | `standard` |
-| Battery out | `battery_output_energy_today` | `standard` |
-| Grid → battery | `e_charge_today`, live `grid_to_battery_power` | `grid_to_battery` |
-| Home consumption | `home_consumption_energy`, live `house_load` | `home_consumption` |
-
-The `solar_details`, `home_consumption`, and `grid_to_battery` groups mirror
-upstream's *Enable PV Variant Detail / Home Consumption / Grid to Battery
-Sensors* switches. The kWh sensors among them have no native counter on the
-device, so they integrate the matching power over time — the device file's
-[`integrate`](docs/device_files.md#integrating-a-rate-into-a-total-integrate)
-feature, no Integral helper needed.
-
-## How data is updated
-
-The integration polls. Each cycle collects every entity that is due, plans
-the minimal set of block reads (see the top of this page), executes them over
-one shared TCP connection per gateway, and decodes all values from the
-result. The device file sets each entity's poll cadence; the config-entry
-option is only a *floor* that slows polling down, never speeds it up (the
-exact precedence is in the [device file
-reference](docs/device_files.md#read-planning-and-polling)). Writes are
-confirmed by reading the register back immediately; a write the device took
-whose read-back fails is logged, not reported as a failed write. A value the
-register already holds is not written again, sparing EEPROM/flash-backed
-settings from automations that re-send it (`write_always` opts a command
-register out).
-
-The *Configuration* companion device carries the read diagnostics: a **Reads
-per refresh** sensor (how many block reads a full refresh issues — usually far
-below the entity count, that gap being the merge win), a **Read failures**
-problem indicator for the last 5 minutes, and a **Failed reads** running
-total. Both failure entities count unrecovered failures only, so a healthy
-device never writes them to the recorder.
-
-A register that keeps failing while the device answers everything else — the
-signature of a wrong address in a device file — is **quarantined**: the entity
-goes unavailable, its registers leave the read plan, and a probe every
-10 minutes lifts the quarantine as soon as the device serves them again. The
-log warns with the entity and address, and a **repair issue** on *Settings →
-System → Repairs* names the entity, its register and the device file; it
-clears itself when the register recovers. A device file that fails to load
-raises a repair issue as well. Only a register that has never
-answered can be quarantined: once the device has served it on two consecutive
-polls it is **known alive** and stays in the read plan through any later
-failure, so a device that is power-cycled — timing out, then refusing reads
-while it boots — is polled again the moment it answers. *Download diagnostics*
-lists `quarantined`, `not_yet_alive` and per-entity failure counts
-(`failed_reads_by_key`, worst first). A register the device genuinely never
-serves is best removed from the file; unused addresses the device refuses
-between entities go into
-[`bad_addresses`](docs/device_files.md#read-planning-and-polling) so no read
-is bridged across them.
-
-## Automation examples
-
-Entities behave like any other Home Assistant entities:
-
-```yaml
-automation:
-  - alias: Boost ventilation while cooking
-    triggers:
-      - trigger: state
-        entity_id: binary_sensor.kitchen_hood_running
-        to: "on"
-    actions:
-      - action: fan.set_preset_mode
-        target:
-          entity_id: fan.pichler_lg_ventilation
-        data:
-          preset_mode: Stufe 3
-
-  - alias: Warn on inverter fault
-    triggers:
-      - trigger: state
-        entity_id: sensor.growatt_mod_6000tl_x_fault_code
-    conditions: "{{ trigger.to_state.state not in ('0', 'unknown', 'unavailable') }}"
-    actions:
-      - action: notify.mobile_app_phone
-        data:
-          message: "Inverter fault: {{ trigger.to_state.state }}"
-```
-
-## Known limitations
-
-- **Serial adapters must be visible to Home Assistant.** For direct RTU use
-  the adapter has to show up as a device on the machine running Home
-  Assistant (in containers, map it in; prefer stable `/dev/serial/by-id/…`
-  paths). A networked RS-485 bridge works either as a Modbus TCP gateway or
-  in transparent mode with *Modbus RTU over TCP* as the protocol (also the
-  right choice for `ser2net`).
-- **No discovery.** Modbus has no discovery protocol; the gateway address
-  must be entered manually.
-- **Reads are capped at 125 registers** per transaction by the Modbus
-  protocol; `max_register_read` can only lower that.
-- **`flags` entities are read-only** — a bit field cannot be written back as
-  a whole. Use `mask` with `read_modify_write` to write single fields.
-- **Writes go through the same conversions as reads**, so a value that
-  cannot be encoded (e.g. not in the `map`) is rejected instead of written.
-- **One device per config entry.** A gateway serving several Modbus device
-  IDs needs one entry per device (they share the TCP connection automatically).
-
-## Troubleshooting
-
-- **"Failed to connect" in the config flow** — check host/port, and that
-  nothing else holds the gateway's only TCP slot; many cheap RS-485 gateways
-  allow exactly one client.
-- **Some entities are unavailable** — the device rejected their addresses
-  (wrong device file, or the register only exists on other firmware). The
-  log and a repair issue name the entity and address, and *Download
-  diagnostics* lists them under `quarantined`. The [Modbus Scanner](#writing-a-device-file-the-modbus-scanner)
-  shows in seconds which registers the device actually serves.
-- **Everything is unavailable** — the device did not answer at all: wrong
-  Modbus device ID, or the gateway is up while the RS-485 side is down. The
-  integration logs once when a device becomes unreachable and once when it
-  recovers, and retries with exponential backoff (up to 5 min).
-- **Wrong values** — usually byte order: try `swap: word`, `byte`, or
-  `word_byte`, and check `multiplier`.
-- **Diagnostics**: the device page offers *Download diagnostics* with the
-  parsed device definition, poll planning state, and current values (host
-  redacted).
-- **Debug logging**:
-
-  ```yaml
-  logger:
-    logs:
-      custom_components.modbus_connect: debug
-      pymodbus: info
-  ```
+Start with [troubleshooting](docs/troubleshooting.md). If that does not solve
+it, open an
+[issue](https://github.com/dmatscheko/modbus_connect/issues/new/choose) and
+attach the diagnostics file (device page → ⋮ → *Download diagnostics*).
 
 ## Removal
 
 Remove the integration entry in **Settings → Devices & services** (this
-deletes its entities and device), then remove **Modbus Connect** in HACS (or
-delete `custom_components/modbus_connect/` manually) and restart Home
-Assistant. Your own device files in `<ha_config>/modbus_connect/` are never
-deleted automatically.
+deletes its entities and devices), then remove **Modbus Connect** in HACS — or
+delete `custom_components/modbus_connect/` — and restart Home Assistant. Your
+own device files in `<ha_config>/modbus_connect/` are never deleted
+automatically.
 
-## Quality
+## Credits
 
-Custom integrations cannot carry an official quality scale rating (the
-manifest says `custom`), but the code follows the
-[integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
-up to and including the **Platinum** rules — connection test before setup,
-reconfigure flow, translations (English and German), translated exceptions,
-diagnostics, parallel-update limits, strict typing, async I/O throughout, and
-98% test coverage. [`quality_scale.yaml`](custom_components/modbus_connect/quality_scale.yaml)
-documents every rule, including the exemptions (Modbus has no discovery, no
-authentication, and no fixed entity set to translate).
-
-## Development
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements_test.txt
-.venv/bin/python -m pytest tests/ --cov=custom_components.modbus_connect
-.venv/bin/ruff check custom_components tests support
-.venv/bin/mypy custom_components/modbus_connect   # strict, see pyproject.toml
-```
-
-Layout: `models.py` (plain dataclasses), `codec.py` (registers ↔ values,
-pure), `planner.py` (block planning, pure), `client.py` (pymodbus wrapper),
-`schema.py` (YAML validation), `coordinator.py` (polling, cache, backoff,
-writes), `entity.py` + thin platform modules including template-driven
-`climate.py`. The pure modules have no Home Assistant imports and are tested
-standalone; `tests/test_e2e_server.py` proves the transaction counts against
-a real TCP server. The device-file YAML format is documented in
-[docs/device_files.md](docs/device_files.md).
-
-`support/` holds the tooling: the [Modbus Scanner](support/modbus_scanner/README.md)
-and `modbus_cli.py` (above), the [converters and doc generators](support/converter/README.md)
-that produce the bundled device files and their [register docs](support/devicedocs/README.md),
-`build_json_schema.py`, which regenerates the editor schema for device files
-([docs/device_files.schema.json](docs/device_files.schema.json); a test fails
-when the committed schema is stale), and `brand/` (SVG sources and
-`build_brand.py` for the PNGs in `custom_components/modbus_connect/brand/`,
-which Home Assistant ≥ 2026.3 serves locally).
-
-Releases are cut from the GitHub **Actions** tab: run the *Release* workflow
-and enter the version (e.g. `0.3.0`). It re-runs the full gate (ruff, mypy,
-tests), bumps `manifest.json`/`pyproject.toml` when the version is new, tags
-`vX.Y.Z`, and publishes a GitHub release with generated notes — the version
-HACS then offers to users.
+Modbus Connect is a ground-up rewrite of
+[modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway) by Tim
+Laing — it can be installed side by side with it; the entities are independent
+— and also draws on
+[homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus).
+Released under the [MIT License](LICENSE).

@@ -6,8 +6,8 @@ body:
     attributes:
       value: >
         Device files are plain YAML — with the register documentation at hand,
-        writing one is quick (see the
-        [device file reference](https://github.com/dmatscheko/modbus_connect/blob/main/docs/device_files.md)).
+        writing one is quick (see
+        [writing a device file](https://github.com/dmatscheko/modbus_connect/blob/main/docs/writing_a_device_file.md)).
         This template collects what a file needs; a draft you started is the
         best starting point, however incomplete.
   - type: input

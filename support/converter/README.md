@@ -9,6 +9,9 @@ None of it ships to users; it runs occasionally, from the repository's virtualen
 .venv/bin/python support/converter/<script>.py
 ```
 
+`.venv/` does not exist after a fresh clone; create it once as described in
+[Development → Set up](../../docs/development.md#set-up).
+
 ## Owned and imported devices
 
 There are two kinds of bundled device:
@@ -17,6 +20,8 @@ There are two kinds of bundled device:
   truth is a hand-maintained `support/devicedocs/<slug>/device.yaml`, in the same
   format as the emitted file. Edit it directly.
 - **Imported** (the rest, from [modbus_local_gateway](https://github.com/timlaing/modbus_local_gateway)):
+  untested conversions — the importer stamps `untested: true` into each one's
+  `device:` block, which Home Assistant shows after the model. They are
   converted from the upstream file, separating **facts** (where an entity came
   from, its raw name) from **policy** (grouping, field tweaks, translations).
   Facts are stamped as per-entity `tags` on an in-memory *tagged intermediate*;
