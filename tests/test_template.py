@@ -154,11 +154,8 @@ async def test_internal_entities_polled_but_hidden(hass, monkeypatch):
     assert coordinator.data["setpoint"] == pytest.approx(45.0)
     assert coordinator.data["mode"] == "Auto"
     # ... but no platform will ever create an HA entity for them
-    assert all(
-        e.platform not in ("sensor", "binary_sensor", "number", "select",
-                           "switch", "text", "button")
-        for e in device.entities if e.internal
-    )
+    assert any(e.internal for e in device.entities)
+    assert not any(e.internal for e in coordinator.visible_entities)
 
 
 async def test_template_sensor_renders(hass, monkeypatch):
