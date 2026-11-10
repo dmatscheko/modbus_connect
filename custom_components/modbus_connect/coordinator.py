@@ -185,6 +185,13 @@ def is_group_visible(groups: tuple[str, ...], enabled: frozenset[str]) -> bool:
     return bool(enabled.intersection(groups))
 
 
+def _key_pattern(keys: set[str]) -> re.Pattern[str]:
+    """Matches any of ``keys`` as a whole word in a Jinja source (longest first)."""
+    return re.compile(
+        r"\b(" + "|".join(re.escape(k) for k in sorted(keys, key=len, reverse=True)) + r")\b"
+    )
+
+
 def referenced_read_keys(
     device: DeviceDef,
     visible_entities: list[EntityDef],
@@ -219,9 +226,7 @@ def referenced_read_keys(
     all_keys = {e.key for e in device.entities} | {t.key for t in device.templates}
     if not all_keys:
         return set()
-    pattern = re.compile(
-        r"\b(" + "|".join(re.escape(k) for k in sorted(all_keys, key=len, reverse=True)) + r")\b"
-    )
+    pattern = _key_pattern(all_keys)
 
     referenced: set[str] = set()
     stack: list[str] = []
@@ -307,6 +312,16 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._static = [
             e for e in device.entities if e.static_value is not None and e.key in needed
         ]
+        # Per read_register entity: the polled keys its template reads, and whether
+        # it reads nothing else (then its value can only change when one of those
+        # is re-read — see _async_update_data and missing).
+        self._link_sources: dict[str, tuple[frozenset[str], bool]] = {}
+        if self._linked:
+            polled = {e.key for e in self._readers}
+            pattern = _key_pattern({e.key for e in device.entities})
+            for e in self._linked:
+                refs = set(pattern.findall(e.read_register or ""))
+                self._link_sources[e.key] = (frozenset(refs & polled), refs <= polled)
         # Compiled Jinja per source string (see render): every template the
         # device file holds compiles once, whichever entity renders it.
         self._templates: dict[str, Template] = {}
@@ -797,9 +812,21 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else:
                 self._retried.discard(defn.key)
                 self._next_due[defn.key] = now + self._interval_for[defn.key]
-        # read_register entities take their value from other (just-decoded) values
+        # read_register entities take their value from other (just-decoded) values.
+        # Only from sources read this cycle, though: between their polls the
+        # value cannot change — except by a write, whose echoed value must stand
+        # until the device's own read-back replaces it (re-rendering from the
+        # not-yet-re-read source would flip the entity back to the old value).
+        due_keys = {e.key for e in due}
         for defn in self._linked:
-            data[defn.key] = self._render_link(defn, data)
+            sources, only_polled = self._link_sources[defn.key]
+            if (
+                not only_polled
+                or not sources
+                or defn.key not in data
+                or not sources.isdisjoint(due_keys)
+            ):
+                data[defn.key] = self._render_link(defn, data)
         self._notify_refresh(data)
         return data
 
@@ -808,7 +835,13 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         (i.e. its last block read failed, as opposed to a decode error).
 
         Public: entity availability uses this to tell a real outage apart
-        from an answered read whose value merely fails to decode or map."""
+        from an answered read whose value merely fails to decode or map.
+
+        A read_register entity never polls its own (write) register; it is
+        unread when one of the polled entities it reads from is."""
+        if defn.read_register is not None:
+            sources, _ = self._link_sources.get(defn.key, (frozenset(), True))
+            return any(self.missing(self.entity_defs[key]) for key in sources)
         return any(
             (defn.table, a) not in self._cache
             for a in range(defn.span.start, defn.span.end)
@@ -1184,6 +1217,11 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                 value, wrote = await self._perform_write(defn, value)
                 written = True
+                if wrote and defn.key in self._link_sources:
+                    # Fetch the device's own read-back on the next tick rather
+                    # than whenever its (possibly slow) interval comes round.
+                    for key in self._link_sources[defn.key][0]:
+                        self._next_due[key] = 0.0
                 if not wrote:
                     confirmed = self._decoded_or_default(defn)  # just read
                 elif defn.platform != "button":

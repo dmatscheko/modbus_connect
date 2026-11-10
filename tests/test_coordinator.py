@@ -819,6 +819,68 @@ async def test_read_register_reads_linked_value_and_writes_own(hass, monkeypatch
     assert coordinator.data["charge_current"] == pytest.approx(30.0)  # optimistic update
 
 
+def _linked_device():
+    readback = EntityDef(
+        key="cc_readback", platform="internal", address=144, multiplier=0.1, scan_interval=300
+    )
+    linked = EntityDef(
+        key="charge_current", platform="number", address=36, multiplier=0.1,
+        read_register="{{ cc_readback }}", ha={"native_min_value": 0, "native_max_value": 50},
+    )
+    return make_device(sensor("fast", 0), readback, linked), linked
+
+
+async def test_written_read_register_value_stands_until_its_source_is_reread(hass, monkeypatch):
+    # the read-back register is polled slowly; a faster entity's poll in between
+    # must not flip the just-written value back to the stale read-back
+    ft = FakeTime()
+    client = FakeClient({144: 250, 36: 0})
+    device, linked = _linked_device()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    await coordinator.async_write(linked, 30.0)
+
+    coordinator._next_due["cc_readback"] = ft.now + 300  # as if not re-read early
+    ft.now += 30  # only "fast" is due
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_current"] == pytest.approx(30.0)
+
+    ft.now += 300  # the read-back is polled: the device's own value wins
+    await coordinator.async_refresh()
+    assert coordinator.data["charge_current"] == pytest.approx(25.0)
+
+
+async def test_write_to_read_register_entity_rereads_its_source_next_tick(hass, monkeypatch):
+    ft = FakeTime()
+    client = FakeClient({144: 250, 36: 0})
+    device, linked = _linked_device()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, ft)
+    await coordinator.async_refresh()
+    await coordinator.async_write(linked, 30.0)
+    client.values[("holding", 144)] = 300  # the device applied the write
+
+    client.reads.clear()
+    ft.now += 30  # one tick later — far short of the read-back's 300 s interval
+    await coordinator.async_refresh()
+    assert Span("holding", 144, 1) in client.reads
+    assert coordinator.data["charge_current"] == pytest.approx(30.0)
+
+
+async def test_read_register_entity_is_unread_only_when_its_source_is(hass, monkeypatch):
+    # its own (write) register is never polled, so that must not decide it
+    client = FakeClient({144: 250})
+    device, linked = _linked_device()
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await coordinator.async_refresh()
+    assert ("holding", 36) not in coordinator._cache
+    assert not coordinator.missing(linked)
+
+    client.fail_addresses = {144}
+    failing = await make_coordinator(hass, device, client, monkeypatch, FakeTime())
+    await failing.async_refresh()
+    assert failing.missing(linked)
+
+
 async def test_read_register_packed_read_full_write(hass, monkeypatch):
     # a byte-packed read (low byte of reg 150) with a full-register write to reg 103
     client = FakeClient({150: (30 << 8) | 25, 103: 0})
