@@ -22,7 +22,7 @@ body:
       description: >
         A bundled file's name, or attach your own YAML below (drag & drop —
         rename to .txt if GitHub refuses .yaml).
-      placeholder: SDM630.yaml
+      placeholder: eastron-sdm630.yaml
     validations:
       required: true
   - type: input

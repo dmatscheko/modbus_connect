@@ -26,7 +26,7 @@ rules:
   config-flow-test-coverage: done
   config-flow:
     status: done
-    comment: Two-step flow (connection, device file) with data_description for every field.
+    comment: Device file and name, then a connection-type menu (network gateway or serial port) and that connection's form; fields carry a data_description.
   dependency-transparency:
     status: done
     comment: pymodbus is open source, on PyPI, built from public CI.
@@ -63,7 +63,7 @@ rules:
       ConfigEntryError.
   unique-config-entry:
     status: done
-    comment: "Unique id host:port:slave_id prevents duplicates."
+    comment: "Unique id host:port:slave_id (serial: port:slave_id) prevents duplicates."
 
   # Silver
   action-exceptions:
@@ -159,7 +159,7 @@ rules:
   # Platinum
   async-dependency:
     status: done
-    comment: Uses pymodbus AsyncModbusTcpClient throughout; no blocking I/O in the event loop.
+    comment: Uses pymodbus's async TCP and serial clients throughout; no blocking I/O in the event loop.
   inject-websession:
     status: exempt
     comment: Modbus TCP is raw TCP, not HTTP; there is no websession to inject.

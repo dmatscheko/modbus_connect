@@ -34,9 +34,12 @@ python3 -m venv .venv
    `.venv/bin/python support/modbus_scanner/scanner.py --host <gateway>` (or `--demo`).
 5. Drop the file into `<ha_config>/modbus_connect/` and add the integration —
    schema errors name the entity and reason, right in the config flow.
-6. For the PR: place the file in `device_configs/`, run the test suite (every
-   bundled file is parsed and schema-validated by CI), and mention what
-   hardware/firmware it was tested against.
+6. For the PR: save the file as `support/devicedocs/<slug>/device.yaml`, generate
+   the bundled config and its docs from it with
+   `.venv/bin/python support/converter/convert_all.py --owned <slug>` (the files
+   under `device_configs/` are generated, never placed or edited by hand), run
+   the test suite (every bundled file is parsed and schema-validated by CI), and
+   mention what hardware/firmware it was tested against.
 
 Bundled files come in two kinds (see `support/converter/README.md`):
 
@@ -44,7 +47,8 @@ Bundled files come in two kinds (see `support/converter/README.md`):
   `support/converter/modbus_local_gateway/modbus_local_gateway-convert.py`. If your
   file derives from that source, prefer fixing the converter (or the device's
   `support/devicedocs/<slug>/augment.yaml` policy) over hand-editing the output.
-* **Owned** files (Dimplex, Pichler, SolaX) are hand-maintained in
+* **Owned** files (every device with a `device.yaml` — Anhui, Dimplex, Pichler,
+  SolaX) are hand-maintained in
   `support/devicedocs/<slug>/device.yaml` and regenerated from it — edit the
   `device.yaml`, never the generated `device_configs/` output, then run
 

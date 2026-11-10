@@ -1,7 +1,7 @@
 [project]
 name = "modbus-connect"
 version = "0.6.0"
-description = "Home Assistant integration for Modbus devices behind local TCP gateways, with block-optimized register reads"
+description = "Home Assistant integration for Modbus devices behind TCP gateways or on a serial port, with block-optimized register reads"
 # Every supported HA release (hacs.json: >= 2026.3) requires Python >= 3.14.2.
 requires-python = ">=3.14"
 

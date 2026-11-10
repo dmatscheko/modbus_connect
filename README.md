@@ -20,7 +20,8 @@ built around four ideas:
    registers combine, small unused holes are bridged (cheaper to read than to
    ask twice), and blocks respect the device's `max_register_read` and the
    protocol limit of 125 registers. Real device files: an Eastron SDM630 drops
-   from 85 transactions per poll to 7; a Pichler LG350 from 129 to 5. Registers
+   from 85 transactions per poll to 27 (7 with `max_register_read: 100`); a
+   Pichler LG350 with every group enabled from 184 to 7. Registers
    the device chokes on are learned from failed reads and routed around; stubborn
    ones can be declared up front (`bad_addresses`, `split_before`).
 2. **Home Assistant is not shadowed.** Every entity has an `ha:` block that is
@@ -240,12 +241,12 @@ enable switches — here the groups reveal the real sensors instead):
 
 | Dashboard slot | Entity | Group |
 | --- | --- | --- |
-| Grid consumption | `today_s_import_energy` | `advanced` |
-| Return to grid | `today_s_export_energy` | `advanced` |
-| Solar production | `today_s_solar_energy` | `basic` |
+| Grid consumption | `import_energy_today` | `standard` |
+| Return to grid | `export_energy_today` | `standard` |
+| Solar production | `solar_energy_today` | `basic` |
 | — per string | `pv_energy_1`, `pv_energy_2` | `solar_details` |
-| Battery in | `battery_input_energy_today` | `basic` |
-| Battery out | `battery_output_energy_today` | `basic` |
+| Battery in | `battery_input_energy_today` | `standard` |
+| Battery out | `battery_output_energy_today` | `standard` |
 | Grid → battery | `e_charge_today`, live `grid_to_battery_power` | `grid_to_battery` |
 | Home consumption | `home_consumption_energy`, live `house_load` | `home_consumption` |
 
@@ -309,17 +310,17 @@ automation:
         entity_id: binary_sensor.kitchen_hood_running
         to: "on"
     actions:
-      - action: fan.set_percentage
+      - action: fan.set_preset_mode
         target:
-          entity_id: fan.pichler_lg350_ventilation
+          entity_id: fan.pichler_lg_ventilation
         data:
-          percentage: 75
+          preset_mode: Stufe 3
 
   - alias: Warn on inverter fault
     triggers:
       - trigger: state
-        entity_id: sensor.growatt_mod_6000tl_x_fault_flags
-    conditions: "{{ trigger.to_state.state not in ('', 'unknown', 'unavailable') }}"
+        entity_id: sensor.growatt_mod_6000tl_x_fault_code
+    conditions: "{{ trigger.to_state.state not in ('0', 'unknown', 'unavailable') }}"
     actions:
       - action: notify.mobile_app_phone
         data:
