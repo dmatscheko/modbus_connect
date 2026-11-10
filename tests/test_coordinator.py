@@ -89,6 +89,33 @@ async def test_scan_interval_buckets(hass, monkeypatch):
     assert coordinator.data["slow"] == 2  # kept from previous cycle
 
 
+async def test_entity_is_due_despite_scheduling_jitter(hass, monkeypatch):
+    # Home Assistant fires refreshes one tick apart give or take event-loop
+    # latency; a refresh that starts a hair early must still poll the entity
+    # whose interval lands on it, not skip it for a whole extra tick.
+    faketime = FakeTime()
+    client = FakeClient({0: 1, 50: 2})
+    device = make_device(sensor("fast", 0), sensor("slow", 50, scan_interval=90))
+    coordinator = await make_coordinator(hass, device, client, monkeypatch, faketime)
+    faketime.now += 0.3  # this refresh started 300 ms late
+    await coordinator.async_refresh()
+
+    client.reads.clear()
+    faketime.now += 30 - 0.25  # the next one only 50 ms late: 29.75 s apart
+    await coordinator.async_refresh()
+    assert client.reads == [Span("holding", 0, 1)]
+
+    # ... while an interval that is not due yet stays on its own (later) tick
+    client.reads.clear()
+    faketime.now += 30
+    await coordinator.async_refresh()
+    assert client.reads == [Span("holding", 0, 1)]
+    client.reads.clear()
+    faketime.now += 30  # 89.75 s after the first read: slow's tick
+    await coordinator.async_refresh()
+    assert len(client.reads) == 2
+
+
 async def test_last_read_count_reports_block_merge(hass, monkeypatch):
     # three adjacent registers merge into a single block -> one read covers three entities
     client = FakeClient({0: 1, 1: 2, 2: 3})

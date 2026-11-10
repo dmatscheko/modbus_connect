@@ -59,6 +59,13 @@ type ModbusConnectConfigEntry = ConfigEntry[ModbusConnectCoordinator]
 # A read_register template that is just one key, e.g. "{{ other_key }}". Rendering
 # through Jinja would stringify the source value; plain references instead copy it
 # as-is, which keeps non-string values (a time readback's datetime.time) intact.
+# Home Assistant fires the refreshes one tick apart, give or take event-loop
+# latency. An entity is due on the tick its interval lands on, so the due check
+# allows this many seconds of that jitter — without it "exactly one interval
+# later" is a coin flip, and a missed entity waits a whole extra tick. Below the
+# 1 s granularity of intervals, so it never pulls a poll onto an earlier tick.
+_DUE_SLACK = 0.5
+
 _DIRECT_LINK = re.compile(r"\s*\{\{\s*([A-Za-z_]\w*)\s*\}\}\s*\Z")
 
 
@@ -711,7 +718,7 @@ class ModbusConnectCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         due = [
             e
             for e in self._readers
-            if e.key not in self.quarantined and self._next_due[e.key] <= now
+            if e.key not in self.quarantined and self._next_due[e.key] <= now + _DUE_SLACK
         ]
         probes = sorted(k for k, t in self.quarantined.items() if t <= now)
         if not due and not probes:
