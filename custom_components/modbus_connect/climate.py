@@ -61,8 +61,7 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
         self._attr_supported_features = features
 
     # Home Assistant 2026.11 renamed the temperature members to native_* and
-    # made the old names final; _alias_pre_native_members below serves the old
-    # names on the earlier releases this integration still supports.
+    # made the old names final (see _alias_pre_native_members below).
     @property
     def native_temperature_unit(self) -> str:
         return self._temperature_unit
@@ -119,8 +118,9 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
 
 def _alias_pre_native_members() -> None:
     """Home Assistant < 2026.11 reads the temperature members under their old
-    names; point those at the native_* properties (a no-op from 2026.11 on,
-    where the base class resolves the old names itself)."""
+    names; point those at the native_* properties. A no-op on every supported
+    release (2026.11 on) — kept only while the test harness
+    (pytest-homeassistant-custom-component) still runs an older one."""
     for name in ("temperature_unit", "current_temperature", "target_temperature"):
         if not hasattr(ClimateEntity, f"native_{name}"):
             setattr(ModbusConnectClimate, name, getattr(ModbusConnectClimate, f"native_{name}"))

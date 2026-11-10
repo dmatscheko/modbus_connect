@@ -3,10 +3,7 @@
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-try:  # the same schema library the flow uses (see config_flow.py)
-    import probatio as vol
-except ImportError:  # Home Assistant < 2026.10
-    import voluptuous as vol  # type: ignore[no-redef]
+import probatio as vol  # the same schema library the flow uses
 from homeassistant.config_entries import SOURCE_RECONFIGURE, SOURCE_USER
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant

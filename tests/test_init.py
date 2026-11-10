@@ -36,13 +36,11 @@ def device_by_identifiers(
     registry: dr.DeviceRegistry, identifiers: set[tuple[str, str]]
 ) -> dr.DeviceEntry | None:
     """``async_get_device`` is deprecated since HA 2026.9 (identifiers are no longer
-    unique across config entries) and raises in tests; use the replacement where it
-    exists, the old lookup on earlier releases."""
-    if hasattr(registry, "async_get_devices"):
-        devices = registry.async_get_devices(identifiers=identifiers)
-        assert len(devices) <= 1, devices
-        return devices[0] if devices else None
-    return registry.async_get_device(identifiers)
+    unique across config entries) and raises in tests; this is its replacement,
+    narrowed back to the single device these tests expect."""
+    devices = registry.async_get_devices(identifiers=identifiers)
+    assert len(devices) <= 1, devices
+    return devices[0] if devices else None
 
 DEVICE_YAML = """
 device:

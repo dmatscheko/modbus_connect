@@ -4,13 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-# Home Assistant 2026.10 replaced voluptuous with its API-compatible successor
-# probatio (flow schemas are typed against it); older releases, down to the
-# hacs.json floor, still ship only voluptuous.
-try:
-    import probatio as vol
-except ImportError:  # pragma: no cover - Home Assistant < 2026.10
-    import voluptuous as vol  # type: ignore[no-redef]
+# voluptuous's API-compatible successor, which Home Assistant types its flow
+# schemas against since 2026.10.
+import probatio as vol
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -202,7 +198,8 @@ def _serial_schema(defaults: dict[str, Any], ports: list[str]) -> vol.Schema:
 def _list_serial_ports() -> list[str]:
     """Detected serial devices for the port dropdown (custom paths stay typable).
 
-    Runs in the executor: pyserial enumerates the system's ports synchronously.
+    Runs in the executor: pyserial (a Home Assistant core dependency since
+    2026.11, hence not in the manifest) enumerates the ports synchronously.
     """
     from serial.tools import list_ports
 
