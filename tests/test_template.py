@@ -184,8 +184,8 @@ async def test_climate_state_from_templates(hass, monkeypatch):
     device, _, coordinator = await setup_device(hass, monkeypatch)
     climate = make_entity(hass, ModbusConnectClimate, coordinator,
                           template_def(device, "hot_water"))
-    assert climate.current_temperature == pytest.approx(35.2)
-    assert climate.target_temperature == pytest.approx(45.0)
+    assert climate.native_current_temperature == pytest.approx(35.2)
+    assert climate.native_target_temperature == pytest.approx(45.0)
     assert climate.hvac_mode == HVACMode.HEAT
     assert set(climate.hvac_modes) == {HVACMode.HEAT, HVACMode.OFF}
     assert climate.min_temp == 20
@@ -201,7 +201,7 @@ async def test_climate_set_temperature_writes_through_codec(hass, monkeypatch):
     # setpoint has multiplier 0.5 -> raw register 100
     assert client.written == [(1, [100])]
     # read-back confirmed the new value; template sees it immediately
-    assert climate.target_temperature == pytest.approx(50.0)
+    assert climate.native_target_temperature == pytest.approx(50.0)
 
 
 async def test_climate_set_hvac_mode_maps_to_select_option(hass, monkeypatch):
@@ -366,16 +366,16 @@ async def test_climate_switch_target_follows_regulation_type(hass, monkeypatch):
                           template_def(device, "klima"))
 
     # Zuluft selected -> the climate reads and writes the supply-air pair
-    assert climate.current_temperature == pytest.approx(20.0)
-    assert climate.target_temperature == pytest.approx(21.0)
+    assert climate.native_current_temperature == pytest.approx(20.0)
+    assert climate.native_target_temperature == pytest.approx(21.0)
     await climate.async_set_temperature(temperature=25.0)
     assert client.written[-1] == (1, [250])  # soll_zuluft, through its 0.1 codec
-    assert climate.target_temperature == pytest.approx(25.0)
+    assert climate.native_target_temperature == pytest.approx(25.0)
 
     # switch to Raum -> the same entity now follows the room pair, no reconfig
     await _reselect(coordinator, client, 3)
-    assert climate.current_temperature == pytest.approx(22.5)
-    assert climate.target_temperature == pytest.approx(23.0)
+    assert climate.native_current_temperature == pytest.approx(22.5)
+    assert climate.native_target_temperature == pytest.approx(23.0)
     await climate.async_set_temperature(temperature=24.0)
     assert client.written[-1] == (2, [240])  # soll_raum
 

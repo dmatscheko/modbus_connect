@@ -40,7 +40,7 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
     ) -> None:
         super().__init__(coordinator, tdef, description)
         cfg = tdef.config
-        self._attr_temperature_unit = cfg.get(
+        self._temperature_unit: str = cfg.get(
             "temperature_unit", UnitOfTemperature.CELSIUS
         )
         if "min_temp" in cfg:
@@ -60,12 +60,19 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
             features |= ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
         self._attr_supported_features = features
 
+    # Home Assistant 2026.11 renamed the temperature members to native_* and
+    # made the old names final; _alias_pre_native_members below serves the old
+    # names on the earlier releases this integration still supports.
     @property
-    def current_temperature(self) -> float | None:
+    def native_temperature_unit(self) -> str:
+        return self._temperature_unit
+
+    @property
+    def native_current_temperature(self) -> float | None:
         return self.render_number("current_temperature")
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         return self.render_number("target_temperature")
 
     def _render_hvac(self, field: str, enum_cls: type[_HVACEnum]) -> _HVACEnum | None:
@@ -109,5 +116,16 @@ class ModbusConnectClimate(ModbusConnectTemplateEntity, ClimateEntity):
                 await self.async_set_hvac_mode(mode)
                 return
 
+
+def _alias_pre_native_members() -> None:
+    """Home Assistant < 2026.11 reads the temperature members under their old
+    names; point those at the native_* properties (a no-op from 2026.11 on,
+    where the base class resolves the old names itself)."""
+    for name in ("temperature_unit", "current_temperature", "target_temperature"):
+        if not hasattr(ClimateEntity, f"native_{name}"):
+            setattr(ModbusConnectClimate, name, getattr(ModbusConnectClimate, f"native_{name}"))
+
+
+_alias_pre_native_members()
 
 async_setup_entry = platform_setup("climate", template_cls=ModbusConnectClimate)
