@@ -75,8 +75,9 @@ the project tests itself with, not a real device.
 
 **File** is the name of the bundled device file
 (in [`custom_components/modbus_connect/device_configs/`](../custom_components/modbus_connect/device_configs/)).
-A file of your own with the same name in `<ha_config>/modbus_connect/`
-overrides it.
+Do not add personal files to that directory: HACS replaces it on update. A file
+of your own with the same name in `<ha_config>/modbus_connect/` — normally
+`/config/modbus_connect/`, outside `custom_components/` — overrides it.
 
 **Docs** links what is known about the device:
 

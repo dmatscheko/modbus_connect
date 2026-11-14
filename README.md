@@ -74,6 +74,15 @@ these devices are welcome.
    [![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dmatscheko&repository=modbus_connect&category=integration).
 2. Install **Modbus Connect** and restart Home Assistant.
 
+> [!WARNING]
+> `custom_components/modbus_connect/` is the integration's installed code and
+> bundled device-file directory. HACS replaces its contents during an update.
+> **Never save your own device files anywhere below
+> `<ha_config>/custom_components/modbus_connect/`**, including
+> `device_configs/`. Save them in `<ha_config>/modbus_connect/` instead. For
+> the normal Home Assistant installation, `<ha_config>` is `/config`, so this
+> means `/config/modbus_connect/`.
+
 **Manually**
 
 Copy the `custom_components/modbus_connect/` folder into

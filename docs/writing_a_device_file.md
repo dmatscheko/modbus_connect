@@ -96,8 +96,16 @@ are working examples of everything the format can do.
 ## 4. Load it and fix what it reports
 
 Save the file as `<ha_config>/modbus_connect/<name>.yaml` (create the folder if
-needed) and [add the integration](../README.md#setup). Your file appears in the
-device list next to the bundled ones.
+needed) and [add the integration](../README.md#setup). In a normal Home
+Assistant installation, this is `/config/modbus_connect/<name>.yaml`. Your file
+appears in the device list next to the bundled ones.
+
+> [!WARNING]
+> Do **not** save it under
+> `/config/custom_components/modbus_connect/`, including in `device_configs/`.
+> That directory is installed and managed by HACS; an integration update can
+> replace it and remove files you added. `/config/modbus_connect/` is a separate
+> directory and is the safe location for your own files.
 
 - **Your files survive updates** of the integration.
 - **A file with the same name as a bundled one overrides it** — handy for

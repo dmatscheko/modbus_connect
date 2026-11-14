@@ -12,6 +12,14 @@ Bundled files ship with the integration (see
 file with the same name. An invalid file never loads silently — the setup
 dialog and the log name the file, the entity and the reason.
 
+> [!WARNING]
+> Do not put your own file in
+> `<ha_config>/custom_components/modbus_connect/device_configs/`. That is the
+> installation directory for bundled files and HACS replaces it on update.
+> `<ha_config>/modbus_connect/` is a separate folder directly inside the Home
+> Assistant configuration directory — normally `/config/modbus_connect/`, **not**
+> anywhere inside `/config/custom_components/modbus_connect/`.
+
 **On this page**
 
 - [Layout](#layout) — the shape of a file, with a commented example
